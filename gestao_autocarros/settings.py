@@ -8,7 +8,9 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ─── LOAD ENV ───
-load_dotenv()
+# Carrega explicitamente o .env
+dotenv_path = os.path.join(BASE_DIR, '.env')
+load_dotenv(dotenv_path)
 
 # ─── MEDIA ───
 MEDIA_URL = '/media/'
@@ -52,14 +54,17 @@ MIDDLEWARE = [
 # ─── URLS ───
 ROOT_URLCONF = 'gestao_autocarros.urls'
 
-# ─── DATABASE (Render) ───
+
+import dj_database_url
+
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
+    'default': dj_database_url.parse(
+        'postgresql://banco_alca_aty_user:UtoSBIAyRykAzpFtDAF8jUfRSaVumUUR@dpg-d3hj6iffte5s73d08ovg-a.oregon-postgres.render.com/banco_alca_aty',
         conn_max_age=600,
-        ssl_require=not DEBUG,
+        ssl_require=True  # Render exige SSL
     )
 }
+
 
 # ─── TEMPLATES ───
 TEMPLATES = [
