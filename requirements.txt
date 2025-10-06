@@ -1,16 +1,14 @@
 # Django e canais
-Django==4.2.11
+Django==5.2.7
 asgiref==3.9.2
 channels==4.3.1
 channels_redis==4.3.0
 daphne==4.2.1
 psycopg2-binary==2.9.9
-Django==5.2.7
 gunicorn
 whitenoise
 dj-database-url
 python-dotenv
-
 
 # Tarefas assíncronas e cache
 celery==5.5.3
