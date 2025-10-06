@@ -37,5 +37,5 @@ packaging==24.0
 rich==13.7.1
 
 # Manipulação de arquivos
-Pillow==9.5.0
+Pillow==10.4.0
 PyYAML==6.0.1
