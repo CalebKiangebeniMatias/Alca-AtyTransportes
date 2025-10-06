@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Autocarros{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h1 class="text-white mb-0">
+            <i class="fas fa-bus me-2"></i>
+            Lista de Autocarros
+        </h1>
+        <a href="{% url 'cadastrar_autocarro' %}" class="btn btn-success">
+            <i class="fas fa-plus me-2"></i>
+            Cadastrar Autocarro
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    {% if autocarros %}
+        {% for autocarro in autocarros %}
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100 bg-azul-forte">
+                <div class="card-header bg-primary text-white d-flex justify-content-between">
+                    <span><i class="fas fa-bus me-2"></i> {{ autocarro.numero }}</span>
+                    <span class="badge bg-light text-dark">{{ autocarro.modelo }}</span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Placa:</strong> <code>{{ autocarro.placa }}</code></p>
+                    <p><strong>Total Registos:</strong> {{ autocarro.registos.count }}</p>
+                    <p>
+                        <strong>Último Registo:</strong>
+                        {% with ultimo_registo=autocarro.registos.first %}
+                            {% if ultimo_registo %}
+                                {{ ultimo_registo.data|date:"d/m/Y" }}
+                            {% else %}
+                                <small class="text-muted">Nenhum</small>
+                            {% endif %}
+                        {% endwith %}
+                    </p>
+                    <hr>
+                    <h6 class="text-muted"><i class="fas fa-exchange-alt me-2"></i>Status do Autocarro</h6>
+                    <form method="post" action="{% url 'alterar_status_autocarro' autocarro.pk %}">
+                        {% csrf_token %}
+                        <div class="input-group input-group-sm">
+                            <select name="status" class="form-select">
+                                <option value="ativo" {% if autocarro.status == "ativo" %}selected{% endif %}>Ativo</option>
+                                <option value="manutencao" {% if autocarro.status == "manutencao" %}selected{% endif %}>Em Manutenção</option>
+                                <option value="inativo" {% if autocarro.status == "inativo" %}selected{% endif %}>Inativo</option>
+                            </select>
+                            <button class="btn btn-outline-success" type="submit">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Último Estado -->
+                    {% with ultimo_estado=autocarro.estados.last %}
+                        {% if ultimo_estado %}
+                            <hr>
+                            <h6 class="text-muted"><i class="fas fa-tools me-2"></i>Último Estado</h6>
+                            <ul class="list-unstyled small">
+                                <li>
+                                    <i class="fas fa-lightbulb text-warning me-1"></i>
+                                    Luzes:
+                                    {% if ultimo_estado.luzes_funcionam %}
+                                        <span class="text-success fw-bold">Bom</span>
+                                    {% else %}
+                                        <span class="text-danger fw-bold">Avariado</span>
+                                    {% endif %}
+                                </li>
+                                <li>
+                                    <i class="fas fa-car-crash text-danger me-1"></i>
+                                    Travões:
+                                    {% if ultimo_estado.travoes_bons %}
+                                        <span class="text-success fw-bold">Bom</span>
+                                    {% else %}
+                                        <span class="text-danger fw-bold">Avariado</span>
+                                    {% endif %}
+                                </li>
+                                <li>
+                                    <i class="fas fa-tachometer-alt text-info me-1"></i>
+                                    Pneus:
+                                    {% if ultimo_estado.pneus_bons %}
+                                        <span class="text-success fw-bold">Bom</span>
+                                    {% else %}
+                                        <span class="text-danger fw-bold">Avariado</span>
+                                    {% endif %}
+                                </li>
+                                <li>
+                                    <i class="fas fa-cogs text-primary me-1"></i>
+                                    Motor:
+                                    {% if ultimo_estado.motor_funciona %}
+                                        <span class="text-success fw-bold">Bom</span>
+                                    {% else %}
+                                        <span class="text-danger fw-bold">Avariado</span>
+                                    {% endif %}
+                                </li>
+
+                                <li>
+                                    <i class="fas fa-wind text-info me-1"></i>
+                                    Para-brisas:
+                                    {% if ultimo_estado.parabrisas_ok %}
+                                        <span class="text-success fw-bold">Bom</span>
+                                    {% else %}
+                                        <span class="text-danger fw-bold">Avariado</span>
+                                    {% endif %}
+                                </li>
+
+                                <li>
+                                    <i class="fas fa-chair text-secondary me-1"></i>
+                                    Bancos:
+                                    {% if ultimo_estado.bancos_bons %}
+                                        <span class="text-success fw-bold">Bom</span>
+                                    {% else %}
+                                        <span class="text-danger fw-bold">Avariado</span>
+                                    {% endif %}
+                                </li>
+                                <li>
+                                    <i class="fas fa-comment-dots text-secondary me-1"></i>
+                                    Obs: {{ ultimo_estado.observacoes|default:"-" }}
+                                </li>
+                                <li class="text-muted">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    {{ ultimo_estado.data|date:"d/m/Y" }}
+                                </li>
+                            </ul>
+                        {% else %}
+                            <p class="text-muted"><em>Nenhum estado registado</em></p>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <div class="btn-group">
+                        <a href="{% url 'editar_autocarro' autocarro.pk %}" class="btn btn-sm btn-outline-warning">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'atualizar_estado' %}?autocarro={{ autocarro.pk }}" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-wrench"></i> Atualizar Estado
+                        </a>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger"
+                            data-bs-toggle="modal" data-bs-target="#deleteModal{{ autocarro.pk }}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de exclusão -->
+        <div class="modal fade" id="deleteModal{{ autocarro.pk }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content bg-dark">
+                    <div class="modal-header">
+                        <h5 class="modal-title text-white">Confirmar Exclusão</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-white">
+                        <p>Tem certeza que deseja excluir o autocarro <strong>{{ autocarro.numero }}</strong>?</p>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Atenção:</strong> Todos os registos relacionados a este autocarro também serão removidos!
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <form method="post" action="{% url 'deletar_autocarro' autocarro.pk %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i>Excluir
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-bus fa-5x text-muted mb-4"></i>
+            <h4 class="text-muted">Nenhum Autocarro Cadastrado</h4>
+            <p class="text-muted">Cadastre o primeiro autocarro para começar a usar o sistema.</p>
+            <a href="{% url 'cadastrar_autocarro' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-2"></i>Cadastrar Autocarro
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

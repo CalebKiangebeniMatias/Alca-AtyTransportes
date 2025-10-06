@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Novo Relatório do Setor{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-plus-circle me-2"></i> Novo Relatório do Setor
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- 🔹 Mensagens de Alerta -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Bloco de erros gerais do formulário -->
+                {% if relatorio_form.errors or multi_file_form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Corrija os erros abaixo:</strong>
+                        <ul class="mb-0">
+                            {% for field, errors in relatorio_form.errors.items %}
+                                {% for error in errors %}
+                                    <li><strong>{{ campo|capfirst }}:</strong> {{ erro }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for field, errors in multi_file_form.errors.items %}
+                                {% for error in errors %}
+                                    <li><strong>{{ campo|capfirst }}:</strong> {{ erro }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data" id="relatorioForm">
+                    {% csrf_token %}
+
+                    <!-- 🔹 Dados Básicos do Relatório -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">{{ relatorio_form.sector.label }}</label>
+                                {{ relatorio_form.sector }}
+                                {% if relatorio_form.sector.errors %}
+                                    <div class="text-danger small">{{ relatorio_form.sector.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">{{ relatorio_form.data.label }}</label>
+                                {{ relatorio_form.data }}
+                                {% if relatorio_form.data.errors %}
+                                    <div class="text-danger small">{{ relatorio_form.data.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ relatorio_form.descricao.label }}</label>
+                        {{ relatorio_form.descricao }}
+                        {% if relatorio_form.descricao.errors %}
+                            <div class="text-danger small">{{ relatorio_form.descricao.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 🔹 Seção de Comprovativos Múltiplos SIMPLIFICADA -->
+                    <div class="border rounded p-3 mb-4 bg-light">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-images me-2"></i> Comprovativos
+                        </h5>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Selecionar Arquivos</label>
+                            {{ multi_file_form.arquivos }}
+                            {% if multi_file_form.arquivos.errors %}
+                                <div class="text-danger small">{{ multi_file_form.arquivos.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div id="file-preview" class="mt-3"></div>
+                        
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Segure Ctrl (ou Cmd no Mac) para selecionar múltiplos arquivos. 
+                            Formatos suportados: imagens, PDF, Word.
+                        </div>
+                    </div>
+
+                    <!-- 🔹 Botões de Ação -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-success btn-lg me-2">
+                            <i class="fas fa-save me-2"></i> Criar Relatório
+                        </button>
+                        <a href="{% url 'listar_registros' %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>        
+    </div>
+</div>
+
+<!-- 🔹 JavaScript para Preview de Arquivos -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.querySelector('input[type="file"]');
+    const filePreview = document.getElementById('file-preview');
+    
+    fileInput.addEventListener('change', function() {
+        filePreview.innerHTML = '';
+        
+        if (this.files.length > 0) {
+            const fileList = document.createElement('div');
+            fileList.className = 'file-list';
+            
+            const header = document.createElement('h6');
+            header.className = 'text-success';
+            header.innerHTML = `<i class="fas fa-files me-2"></i>${this.files.length} arquivo(s) selecionado(s):`;
+            fileList.appendChild(header);
+            
+            const list = document.createElement('ul');
+            list.className = 'list-group mt-2';
+            
+            Array.from(this.files).forEach((file, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                listItem.innerHTML = `
+                    <div>
+                        <i class="fas fa-file me-2"></i>
+                        <span class="file-name">${file.name}</span>
+                        <small class="text-muted ms-2">(${(file.size / 1024).toFixed(2)} KB)</small>
+                    </div>
+                    <span class="badge bg-primary rounded-pill">${index + 1}</span>
+                `;
+                list.appendChild(listItem);
+            });
+            
+            fileList.appendChild(list);
+            filePreview.appendChild(fileList);
+        }
+    });
+    
+    // 🔹 VALIDAÇÃO DE TAMANHO DE ARQUIVO
+    fileInput.addEventListener('change', function() {
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        const files = Array.from(this.files);
+        
+        for (let file of files) {
+            if (file.size > maxSize) {
+                alert(`❌ O arquivo "${file.name}" é muito grande (máximo 10MB)`);
+                this.value = ''; // Limpar seleção
+                filePreview.innerHTML = '';
+                break;
+            }
+        }
+    });
+});
+</script>
+
+<style>
+.file-list {
+    border: 1px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #f8f9fa;
+}
+
+.file-name {
+    font-weight: 500;
+}
+
+.list-group-item {
+    border: 1px solid #e9ecef;
+    margin-bottom: 5px;
+    border-radius: 5px;
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.btn-success {
+    background: linear-gradient(45deg, #198754, #20c997);
+    border: none;
+}
+
+.btn-success:hover {
+    background: linear-gradient(45deg, #157347, #1aa179);
+}
+</style>
+{% endblock %}

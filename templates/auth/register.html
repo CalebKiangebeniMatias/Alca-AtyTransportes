@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Registrar Usuário{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="card p-5 shadow-lg text-center" style="max-width: 480px; width: 100%;">
+    <h3 class="mb-4"><i class="fas fa-user-plus me-2"></i> Criar Usuário</h3>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <input type="text" class="form-control text-center" name="username" placeholder="Usuário" required>
+      </div>
+
+      <div class="mb-3">
+        <input type="email" class="form-control text-center" name="email" placeholder="Email" required>
+      </div>
+
+      <div class="mb-3">
+        <input type="text" class="form-control text-center" name="telefone" placeholder="Telefone (opcional)">
+      </div>
+
+      <div class="mb-3">
+        <input type="password" class="form-control text-center" name="password" placeholder="Senha" required>
+      </div>
+
+      <div class="mb-3">
+        <input type="password" class="form-control text-center" name="confirm" placeholder="Confirmar Senha" required>
+      </div>
+
+      <div class="mb-3">
+        <select name="nivel_acesso" class="form-control text-center" required>
+          <option value="" disabled selected>Selecione o nível de acesso</option>
+          {% for value, label in niveis %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-success w-100 py-2 mt-3">
+        <i class="fas fa-user-check me-2"></i> Registrar
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Editar Autocarro - Sistema de Gestão{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-edit me-2"></i>
+                    Editar Autocarro: {{ autocarro.numero }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label text-white">
+                                <i class="fas fa-hashtag me-1"></i>{{ form.numero.label }}
+                            </label>
+                            {{ form.numero }}
+                            {% if form.numero.errors %}
+                                <div class="text-danger small mt-1">{{ form.numero.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <label class="form-label text-white">
+                                <i class="fas fa-cog me-1"></i>{{ form.modelo.label }}
+                            </label>
+                            {{ form.modelo }}
+                            {% if form.modelo.errors %}
+                                <div class="text-danger small mt-1">{{ form.modelo.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-white">
+                                <i class="fas fa-id-card me-1"></i>{{ form.placa.label }}
+                            </label>
+                            {{ form.placa }}
+                            {% if form.placa.errors %}
+                                <div class="text-danger small mt-1">{{ form.placa.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-white">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ form.sector.label }}
+                            </label>
+                            {{ form.sector }}
+                            {% if form.sector.errors %}
+                                <div class="text-danger small mt-1">{{ form.sector.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-warning btn-lg me-3">
+                            <i class="fas fa-save me-2"></i>
+                            Atualizar Autocarro
+                        </button>
+                        <a href="{% url 'listar_autocarros' %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Informações do Autocarro -->
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Informações do Autocarro
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-white">Registos Associados:</h6>
+                        <p class="text-muted">{{ autocarro.registos.count }} registos cadastrados</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-white">Último Registo:</h6>
+                        {% with ultimo_registo=autocarro.registos.first %}
+                            {% if ultimo_registo %}
+                                <p class="text-muted">{{ ultimo_registo.data|date:"d/m/Y" }}</p>
+                            {% else %}
+                                <p class="text-muted">Nenhum registo encontrado</p>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Gerência de Campo{% endblock %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h2 class="mb-3"><i class="fas fa-map-marked-alt me-2"></i>Gerência de Campo</h2>
+
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <div class="card p-3 bg-azul-forte">
+          <h6 class="mb-2"><i class="fas fa-bus text-success me-2"></i>Autocarros Ativos</h6>
+          <p class="h3">{{ autocarros_ativos }}</p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card p-3 bg-azul-forte">
+          <h6 class="mb-2"><i class="fas fa-bus text-secondary me-2"></i>Autocarros Inativos</h6>
+          <p class="h3">{{ autocarros_inativos }}</p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card p-3 bg-azul-forte">
+          <h6 class="mb-2"><i class="fas fa-tools text-warning me-2"></i>Em Manutenção</h6>
+          <p class="h3">{{ autocarros_manutencao }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-8 mb-4">
+        <div class="card">
+          <div class="card-header">
+            <strong>Mapa da Frota</strong>
+          </div>
+          <div class="card-body p-0">
+            <div id="map" style="height:480px;"></div>
+          </div>
+        </div>
+
+        <!-- manómetro do combustível -->
+        <div class="card mt-3">
+          <div class="card-header">
+            <strong>Nível de Combustível</strong>
+          </div>
+          <div class="card-body d-flex justify-content-center">
+            <canvas id="gaugeCombustivel" width="250" height="130"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 mb-4">
+        <div class="card">
+          <div class="card-header">
+            <strong>Lista de Autocarros</strong>
+          </div>
+          <div class="card-body">
+            {% if autocarros %}
+              {% for a in autocarros %}
+                <div class="card mb-2 bg-azul-forte">
+                  <div class="card-body p-2">
+                      <div class="d-flex justify-content-between align-items-start">
+                          <div>
+                              <strong>{{ a.numero }}</strong><br>
+                              <small>{{ a.modelo }}</small>
+                          </div>
+                          <div class="text-end">
+                              {% if a.status == "ativo" %}
+                                <span class="badge bg-success">Ativo</span>
+                              {% elif a.status == "manutencao" %}
+                                <span class="badge bg-warning text-dark">Manutenção</span>
+                              {% else %}
+                                <span class="badge bg-secondary">Inativo</span>
+                              {% endif %}
+                          </div>
+                      </div>
+                      <div class="mt-2 small text-muted">
+                        Lat: {{ a.lat }} · Lng: {{ a.lng }}
+                      </div>
+                      <div class="mt-2">
+                        <a href="{% url 'detalhe_autocarro' a.pk %}" class="btn btn-sm btn-outline-primary">Detalhe</a>
+                        <a href="{% url 'atualizar_estado' %}?autocarro={{ a.pk }}" class="btn btn-sm btn-outline-success">Atualizar Estado</a>
+                      </div>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <p class="text-muted">Nenhum autocarro encontrado.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet (mapa) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Chart.js para o manómetro -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- passa dados para JS de forma segura -->
+  {{ autocarros|json_script:"autocarros-data" }}
+
+  <script>
+    const autocarros = JSON.parse(document.getElementById('autocarros-data').textContent || '[]');
+
+    // iniciar mapa
+    const map = L.map('map').setView(
+      autocarros.length ? [autocarros[0].lat, autocarros[0].lng] : [-8.8383, 13.2344],
+      11
+    );
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    autocarros.forEach(a => {
+      if (a.lat && a.lng) {
+        const marker = L.marker([a.lat, a.lng]).addTo(map);
+        marker.bindPopup(`<strong>${a.numero}</strong><br>${a.modelo}<br>Status: ${a.status || 'N/A'}`);
+      }
+    });
+
+    // --- manómetro de combustível (simulação, 65% por exemplo) ---
+    // --- manómetro de combustível ---
+    const ctxGauge = document.getElementById('gaugeCombustivel').getContext('2d');
+    const combustivel = 90; // <-- backend pode enviar valor (%)
+
+    new Chart(ctxGauge, {
+      type: 'doughnut',
+      data: {
+        datasets: [{
+          data: [combustivel, 100 - combustivel],
+          backgroundColor: ['#28a745', '#e9ecef'],
+          borderWidth: 0,
+          cutout: '200',
+          circumference: 180,  // meia lua
+          rotation: 270        // começa da esquerda
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: false },
+        }
+      },
+      plugins: [{
+        id: 'combustivel-gauge',
+        beforeDraw(chart) {
+          const {ctx, chartArea: {width, height}} = chart;
+          const centerX = width / 2;
+          const centerY = height * 0.9; // parte de baixo do semicírculo
+          const radius = Math.min(width, height) / 2.5;
+
+          // Texto central (percentagem)
+          ctx.save();
+          ctx.font = "bold 18px sans-serif";
+          ctx.fillStyle = "#333";
+          ctx.textAlign = "center";
+          ctx.fillText(combustivel + "%", centerX, centerY - radius / 2);
+          ctx.restore();
+
+          // Marcadores E (esquerda), 1/2 (topo), F (direita)
+          ctx.save();
+          ctx.font = "14px sans-serif";
+          ctx.fillStyle = "#000";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("E - Vazio", centerX - radius, centerY);
+          ctx.fillText("1/2 - Meio", centerX, centerY - radius);
+          ctx.fillText("1/1 - Cheio", centerX + radius, centerY);
+          ctx.restore();
+
+          // Agulha (ponteiro)
+          const angle = Math.PI - (combustivel / 100) * Math.PI; // 180º -> 0-100%
+          const needleX = centerX + radius * Math.cos(angle);
+          const needleY = centerY - radius * Math.sin(angle);
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(centerX, centerY);
+          ctx.lineTo(needleX, needleY);
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = "red";
+          ctx.stroke();
+          ctx.restore();
+
+          // Ponto central da agulha
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
+          ctx.fillStyle = "black";
+          ctx.fill();
+        }
+      }]
+    });
+  </script>
+{% endblock %}

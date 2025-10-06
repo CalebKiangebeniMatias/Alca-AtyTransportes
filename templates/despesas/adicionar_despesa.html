@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Adicionar Despesa - Sistema de Autocarros{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-md-10">
+    <div class="card shadow-lg border-0 rounded-4">
+      <div class="card-header bg-success text-white rounded-top-4">
+        <h4 class="card-title mb-0">
+          <i class="fas fa-money-check me-2"></i>
+          Adicionar Nova Despesa
+        </h4>
+      </div>
+
+      <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <!-- Valor -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">{{ form.valor.label }}</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+              {{ form.valor }}
+            </div>
+          </div>
+
+          <!-- Data -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">{{ form.data.label }}</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+              {{ form.data }}
+            </div>
+          </div>
+
+          <!-- Descrição -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Descrição</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-align-left"></i></span>
+              {{ form.descricao }}
+            </div>
+          </div>
+
+          <!-- Sector (opcional) -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Sector (opcional)</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+              {{ form.sector }}
+            </div>
+            <small class="text-muted">Deixe vazio para uma despesa geral.</small>
+          </div>
+
+          <!-- Nº Transação & Nº Requisição -->
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">Transação</label>
+              {{ form.numero_transacao }}
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">Requisição</label>
+              {{ form.numero_requisicao }}
+            </div>
+          </div>
+
+          <!-- Upload de Comprovativos (múltiplos) -->
+          <div class="mb-4">
+            <label class="form-label fw-bold">Comprovativos</label>
+            <div class="p-3 border rounded bg-light">
+              {{ multi.arquivos }}
+            </div>
+            <small class="text-muted d-block mt-2">
+              Pode carregar várias fotos ou PDFs como comprovativos (Ctrl/Cmd+click para múltiplos).
+            </small>
+          </div>
+
+          <!-- Botões -->
+          <div class="text-center">
+            <button type="submit" class="btn btn-success btn-lg me-3 rounded-pill px-4">
+              <i class="fas fa-save me-2"></i> Salvar
+            </button>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-lg rounded-pill px-4">
+              <i class="fas fa-times me-2"></i> Cancelar
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

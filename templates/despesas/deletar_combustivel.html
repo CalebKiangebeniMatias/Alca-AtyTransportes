@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Apagar Despesa de Combustível{% endblock %}
+
+{% block content %}
+<div class="card bg-dark text-white">
+  <div class="card-header bg-danger">
+    <h4 class="mb-0"><i class="fas fa-trash"></i> Confirmar Exclusão</h4>
+  </div>
+  <div class="card-body">
+    <p>Tem certeza que deseja apagar a despesa de combustível do veículo 
+       <strong>{{ despesa.autocarro }}</strong> no valor de 
+       <strong>{{ despesa.valor }} Kz</strong>?</p>
+
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">
+        <i class="fas fa-trash"></i> Confirmar
+      </button>
+      <a href="{% url 'listar_despesas' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Cancelar
+      </a>
+    </form>
+  </div>
+</div>
+{% endblock %}

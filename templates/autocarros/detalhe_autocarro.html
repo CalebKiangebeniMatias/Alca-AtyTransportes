@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load l10n %}
+
+{% block title %}Detalhes do Autocarro {{ autocarro.numero }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="text-white mb-4">
+            <i class="fas fa-bus me-2"></i>
+            Autocarro {{ autocarro.numero }} - {{ autocarro.modelo }}
+        </h1>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Voltar ao Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Totais -->
+<div class="row text-center mb-4">
+    <div class="col-md-4">
+        <div class="card stats-card bg-azul-forte">
+            <div class="card-body">
+                <h4 class="text-success">{{ total_entradas|floatformat:2|intcomma }} Kz</h4>
+                <p>Total Entradas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stats-card bg-azul-forte">
+            <div class="card-body">
+                <h4 class="text-danger">{{ total_saidas|floatformat:2|intcomma }} Kz</h4>
+                <p>Total Saídas (incl. combustível)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stats-card bg-azul-forte">
+            <div class="card-body">
+                <h4 class="{% if resto >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    {{ resto|floatformat:2|intcomma }} Kz
+                </h4>
+                <p>Resto</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Total Combustível -->
+<div class="row text-center mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card bg-azul-forte">
+            <div class="card-body">
+                <h5 class="text-danger">{{ total_combustivel_valor|floatformat:2|intcomma }} Kz</h5>
+                <p>Total Combustível</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card bg-azul-forte">
+            <div class="card-body">
+                <h5 class="text-info">{{ total_combustivel_litros|floatformat:2|intcomma }}</h5>
+                <p>Litros (ilustr.)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card bg-azul-forte">
+            <div class="card-body">
+                <h5 class="text-warning">{{ total_combustivel_sobragem|floatformat:2|intcomma }} Kz</h5>
+                <p>Sobragem Filtros</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card bg-azul-forte">
+            <div class="card-body">
+                <h5 class="text-info">{{ total_combustivel_lavagem|floatformat:2|intcomma }} Kz</h5>
+                <p>Lavagem</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estatísticas -->
+<table class="table table-bordered">
+    <tr><th>KM Total</th><td>{{ total_km|floatformat:2|intcomma }} km</td></tr>
+    <tr><th>Passageiros</th><td>{{ total_passageiros|intcomma }}</td></tr>
+    <tr><th>Viagens</th><td>{{ total_viagens|intcomma }}</td></tr>
+</table>
+
+<!-- Gráfico -->
+<div style="max-width: 400px; margin: 20px auto;">
+    <canvas id="grafico"></canvas>
+</div>
+
+{# Últimos registos removidos por solicitação do usuário #}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+var ctx = document.getElementById('grafico').getContext('2d');
+
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Entradas (Kz)', 'Saídas (Kz)', 'KM', 'Passageiros', 'Viagens'],
+        datasets: [{
+            label: 'Estatísticas do Autocarro',
+            data: [
+                {{ total_entradas|default:0|unlocalize }},
+                {{ total_saidas|default:0|unlocalize }},
+                {{ total_km|default:0|unlocalize }},
+                {{ total_passageiros|default:0|unlocalize }},
+                {{ total_viagens|default:0|unlocalize }}
+            ],
+            backgroundColor: [
+                '#28a745',
+                '#dc3545',
+                '#007bff',
+                '#ffc107',
+                '#6f42c1'
+            ],
+            borderWidth: 2,
+            hoverOffset: 15
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+            animateRotate: true,
+            animateScale: true,
+            duration: 1200,
+            easing: 'easeOutCubic'
+        },
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    color: '#fff',
+                    font: { size: 12 }
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': ' + context.formattedValue;
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load l10n %}
+{% load humanize %}
+
+{% block title %}Dashboard - Sistema de Autocarros{% endblock %}
+
+{% block content %}
+
+    <!-- 🔎 Filtro de Ano e Mês -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-8">
+                    <label for="mes" class="form-label text-white">Selecionar Mês/Ano</label>
+                    <input type="month" name="mes" id="mes" value="{{ mes }}" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumo Geral -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card stats-card text-center bg-azul-forte">
+                <div class="card-body">
+                    <i class="fas fa-coins icon-stat text-success"></i>
+                    <div class="stats-number text-success">
+                        {{ total_entradas|floatformat:2|intcomma }} Kz
+                    </div>
+                    <h5 class="card-title">Total Entradas</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card text-center bg-azul-forte">
+                <div class="card-body">
+                    <i class="fas fa-money-bill-wave icon-stat text-danger"></i>
+                    <div class="stats-number text-danger">{{ total_saidas|floatformat:2|intcomma }} Kz</div>
+                    <h5 class="card-title">Total Saídas</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card text-center bg-azul-forte">
+                <div class="card-body">
+                    <i class="fas fa-piggy-bank icon-stat text-warning"></i>
+                    <div class="stats-number text-warning">{{ total_resto|floatformat:2|intcomma }} Kz</div>
+                    <h5 class="card-title">Resto Total</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Combustível -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card text-center bg-azul-forte">
+                <div class="card-body">
+                    <i class="fas fa-gas-pump icon-stat text-danger"></i>
+                    <div class="stats-number text-danger">{{ total_combustivel_valor|floatformat:2|intcomma }} Kz</div>
+                    <h5 class="card-title">Total Combustível</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card text-center bg-azul-forte">
+                <div class="card-body">
+                    <i class="fas fa-tint icon-stat text-info"></i>
+                    <div class="stats-number text-info">{{ total_combustivel_litros|floatformat:2|intcomma }}</div>
+                    <h5 class="card-title">Total Litros (ilustr.)</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card text-center bg-azul-forte">
+                <div class="card-body">
+                    <i class="fas fa-filter icon-stat text-warning"></i>
+                    <div class="stats-number text-warning">{{ total_combustivel_sobragem|floatformat:2|intcomma }} Kz</div>
+                    <h5 class="card-title">Sobragem Filtros</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card text-center bg-azul-forte">
+                <div class="card-body">
+                    <i class="fas fa-bucket icon-stat text-info"></i>
+                    <div class="stats-number text-info">{{ total_combustivel_lavagem|floatformat:2|intcomma }} Kz</div>
+                    <h5 class="card-title">Lavagem</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cards Estatísticas por Autocarro -->
+    <div class="row mb-4">
+        {% for stats in autocarros_stats %}
+            <div class="col-md-4 col-sm-6 mb-3">
+                <div class="card h-100 shadow-sm bg-azul-forte">
+                    <div class="card-body text-center">
+                        <i class="fas fa-bus fa-2x mb-2 text-primary"></i>
+                        <h5 class="card-title">{{ stats.autocarro.numero }}</h5>
+                        <p class="text-muted">{{ stats.autocarro.modelo }}</p>
+                        
+                        <p><strong>KMs:</strong> {{ stats.total_km|floatformat:2|intcomma }} km</p>
+                        <p class="text-success">
+                            <strong>Entradas:</strong> {{ stats.total_entradas|floatformat:2|intcomma }} Kz
+                        </p>
+                        <p class="text-danger">
+                            <strong>Saídas:</strong> {{ stats.total_saidas|floatformat:2|intcomma }} Kz
+                        </p>
+                        {% if stats.total_combustivel %}
+                        <p class="text-danger">
+                            <strong>Combustível:</strong> {{ stats.total_combustivel|floatformat:2|intcomma }} Kz
+                        </p>
+                        {% endif %}
+                        <p class="{% if stats.resto >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            <strong>Resto:</strong> {{ stats.resto|floatformat:2|intcomma }} Kz
+                        </p>
+                        <p><strong>Passageiros:</strong> {{ stats.total_passageiros|intcomma }}</p>
+                        <p><strong>Viagens:</strong> {{ stats.total_viagens|intcomma }}</p>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{% url 'detalhe_autocarro' stats.autocarro.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i> Detalhes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {# Últimos registos removidos por solicitação do usuário #}
+
+    <div class="text-center mt-4">
+        <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Adicionar Relatório por Sector
+        </a>
+    </div>
+
+{% endblock %}

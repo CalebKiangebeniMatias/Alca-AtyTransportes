@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Resumo - {{ sector|title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">
+        <i class="fas fa-map-marker-alt"></i> Resumo do Sector: {{ sector|title }}
+    </h2>
+
+    <!-- 🔎 Filtro -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <label for="data_inicio" class="form-label">Data Início</label>
+            <input type="date" name="data_inicio" id="data_inicio" value="{{ data_inicio }}" class="form-control">
+        </div>
+        <div class="col-md-4">
+            <label for="data_fim" class="form-label">Data Fim</label>
+            <input type="date" name="data_fim" id="data_fim" value="{{ data_fim }}" class="form-control">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-filter"></i> Filtrar
+            </button>
+        </div>
+    </form>
+
+    <!-- 🔢 Totais -->
+    <div class="row mb-4 text-center">
+        <div class="col-md-3">
+            <div class="card border-success shadow-sm bg-azul-forte">
+                <div class="card-body">
+                    <h5 class="text-success"><i class="fas fa-arrow-down"></i> Entradas</h5>
+                    <p class="fs-4 fw-bold text-success">{{ total_entradas }} Kz</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+                <div class="card border-danger shadow-sm bg-azul-forte">
+                <div class="card-body">
+                    <h5 class="text-danger"><i class="fas fa-arrow-up"></i> Saídas</h5>
+                    <p class="fs-4 fw-bold text-danger">{{ total_saidas }} Kz</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning shadow-sm bg-azul-forte">
+                <div class="card-body">
+                    <h5 class="text-warning"><i class="fas fa-wallet"></i> Resto</h5>
+                    <p class="fs-4 fw-bold text-warning">{{ resto }} Kz</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info shadow-sm bg-azul-forte">
+                <div class="card-body">
+                    <h5 class="text-info"><i class="fas fa-road"></i> KM</h5>
+                    <p class="fs-4 fw-bold">{{ total_km }} km</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Script do gráfico (Chart.js via CDN se não estiver incluído globalmente) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (function(){
+            const ctx = document.getElementById('sectorChart');
+            if (!ctx) return;
+            const entradas = {{ chart_entradas|default:0 }};
+            const saidas = {{ chart_saidas|default:0 }};
+            const data = {
+                labels: ['Entradas', 'Saídas'],
+                datasets: [{
+                    data: [entradas, saidas],
+                    backgroundColor: ['#198754', '#dc3545'],
+                    hoverOffset: 6
+                }]
+            };
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: data,
+                options: {
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        })();
+    </script>
+    
+    <!-- Total Combustível do Período -->
+    <div class="row mb-4 text-center">
+        <div class="col-md-3">
+            <div class="card border-danger shadow-sm bg-azul-forte">
+                <div class="card-body">
+                    <h5 class="text-danger"><i class="fas fa-gas-pump"></i> Combustível</h5>
+                    <p class="fs-5 fw-bold text-danger">{{ total_combustivel_valor|floatformat:2 }} Kz</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info shadow-sm bg-azul-forte">
+                <div class="card-body">
+                    <h5 class="text-info"><i class="fas fa-tint"></i> Litros (ilustr.)</h5>
+                    <p class="fs-5 fw-bold">{{ total_combustivel_litros|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning shadow-sm bg-azul-forte">
+                <div class="card-body">
+                    <h5 class="text-warning"><i class="fas fa-filter"></i> Sobragem</h5>
+                    <p class="fs-5 fw-bold text-warning">{{ total_combustivel_sobragem|floatformat:2 }} Kz</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info shadow-sm bg-azul-forte">
+                <div class="card-body">
+                    <h5 class="text-info"><i class="fas fa-bucket"></i> Lavagem</h5>
+                    <p class="fs-5 fw-bold">{{ total_combustivel_lavagem|floatformat:2 }} Kz</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cartão de Despesas do Sector -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm bg-azul-forte">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="text-danger"><i class="fas fa-file-invoice-dollar"></i> Despesas do Sector</h5>
+                        <p class="fs-4 fw-bold text-danger">{{ total_despesas_sector|floatformat:2 }} Kz</p>
+                        <small class="text-muted">Inclui despesas gerais (não combustível) e comprovativos.</small>
+                    </div>
+                    <div style="width:220px;">
+                        <canvas id="sectorChart" width="220" height="220"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- � Enviar resumo por WhatsApp -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm bg-azul-forte">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fab fa-whatsapp text-success"></i> Enviar resumo por WhatsApp</h5>
+                    <p class="text-muted">Revise a mensagem abaixo antes de enviar. Clique no botão para abrir o WhatsApp com o texto preenchido.</p>
+                    <div class="mb-3">
+                        <textarea id="wa_message" class="form-control" rows="8">{{ whatsapp_message }}</textarea>
+                    </div>
+                    <a id="wa_send" href="{{ whatsapp_link }}" target="_blank" class="btn btn-success">
+                        <i class="fab fa-whatsapp"></i> Abrir WhatsApp
+                    </a>
+                    <button id="wa_copy" class="btn btn-outline-secondary ms-2">Copiar mensagem</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // copiar mensagem para clipboard e atualizar link
+    document.addEventListener('DOMContentLoaded', function(){
+        const ta = document.getElementById('wa_message');
+        const btn = document.getElementById('wa_copy');
+        const send = document.getElementById('wa_send');
+        btn && btn.addEventListener('click', function(){
+            navigator.clipboard.writeText(ta.value).then(function(){
+                btn.innerText = 'Copiado!';
+                setTimeout(()=> btn.innerText = 'Copiar mensagem', 2000);
+            });
+        });
+        ta && ta.addEventListener('input', function(){
+            const base = 'https://api.whatsapp.com/send?text=';
+            send.href = base + encodeURIComponent(ta.value);
+        });
+    });
+    </script>
+
+    <!-- �📊 Resumo por Autocarro -->
+    <h4 class="mt-5">Resumo por Autocarro</h4>
+    <div class="row mt-3">
+        {% for stats in autocarros_stats %}
+            <div class="col-md-4 col-sm-6 mb-3">
+                <div class="card h-100 shadow-sm bg-azul-forte">
+                    <div class="card-body text-center">
+                        <i class="fas fa-bus fa-2x mb-2 text-primary"></i>
+                        <h5 class="card-title">{{ stats.autocarro.numero }}</h5>
+                        <p class="text-muted">{{ stats.autocarro.modelo }}</p>
+
+                        <p class="text-success fw-bold">
+                            <i class="fas fa-arrow-down"></i> {{ stats.total_entradas }} Kz
+                        </p>
+                        <p class="text-danger fw-bold">
+                            <i class="fas fa-arrow-up"></i> {{ stats.total_saidas }} Kz
+                        </p>
+                        <p class="{% if stats.resto >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
+                            <i class="fas fa-wallet"></i> {{ stats.resto }} Kz
+                        </p>
+                        <p><i class="fas fa-road"></i> {{ stats.total_km }} km</p>
+                        <p><i class="fas fa-users"></i> {{ stats.total_passageiros }}</p>
+                        <p><i class="fas fa-route"></i> {{ stats.total_viagens }}</p>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{% url 'detalhe_autocarro' stats.autocarro.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-info-circle"></i> Detalhes
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center">
+                <p class="text-muted">Nenhum registo no período selecionado.</p>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

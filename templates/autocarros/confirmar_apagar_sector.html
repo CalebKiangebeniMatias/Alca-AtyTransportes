@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmar Apagar Setor{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão
+    </div>
+    <div class="card-body">
+        <p>Tem certeza que deseja <strong>apagar</strong> o setor 
+           <strong>{{ sector.nome }}</strong>?</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <a href="{% url 'lista_sectores' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Apagar
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,432 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Registos - {{ sector.nome }} - {{ data|date:"d/m/Y" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+        color: white;
+        border-radius: 8px 8px 0 0 !important;
+    }
+
+    .input-group-custom {
+        position: relative;
+    }
+
+    .input-group-custom .form-control {
+        padding-right: 2.5rem;
+        text-align: right;
+    }
+
+    .input-group-custom .currency-symbol {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .resumo-card {
+        background: #f8f9fa;
+        border-left: 4px solid #0d6efd;
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+    }
+
+    .resumo-valor {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .entradas-card {
+        border-left: 4px solid #198754;
+        background: #f8fff9;
+    }
+
+    .saidas-card {
+        border-left: 4px solid #dc3545;
+        background: #fff8f8;
+    }
+
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+        border: none;
+        font-weight: 600;
+    }
+
+    .numeric-input {
+        text-align: right;
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding: 0 10px;
+        }
+        .btn-lg {
+            font-size: 1rem;
+            padding: 0.75rem 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <!-- Cabeçalho Simples -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h4 class="mb-1">
+                        <i class="fas fa-edit me-2"></i>Editando {{ sector.nome }}
+                    </h4>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-calendar me-1"></i>{{ data|date:"d/m/Y" }} • 
+                        <i class="fas fa-bus me-1"></i>{{ total_registros }}/{{ total_autocarros }} Autocarros
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a href="{% url 'listar_registros' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i> Voltar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comprovativos (opcional) -->
+    {% with relatorio=forms.0.registro.relatorio %}
+        {% if relatorio and relatorio.comprovativos.exists %}
+        <div class="card mb-3">
+            <div class="card-body py-2">
+                <small class="text-muted">
+                    <i class="fas fa-file-alt me-1"></i>
+                    {{ relatorio.comprovativos.count }} comprovativo(s) anexado(s)
+                </small>
+            </div>
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Formulário Principal -->
+    <form method="post" id="mainForm">
+        {% csrf_token %}
+        
+        {% if messages %}
+        <div class="mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="row">
+            {% for item in forms %}
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center py-2">
+                        <h6 class="mb-0">
+                            <i class="fas fa-bus me-2"></i>
+                            {{ item.registro.autocarro.numero }} - {{ item.registro.autocarro.modelo }}
+                        </h6>
+                        <div>
+                            {% if item.registro.validado %}
+                                <span class="badge bg-success">Validado</span>
+                            {% elif item.registro.concluido %}
+                                <span class="badge bg-warning">Concluído</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Pendente</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <!-- Resumo Automático -->
+                        <div class="resumo-card">
+                            <div class="row text-center small">
+                                <div class="col-4">
+                                    <div class="text-success resumo-valor" id="entradas_total_{{ item.registro.id }}">0.00</div>
+                                    <small>Entradas</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="text-danger resumo-valor" id="saidas_total_{{ item.registro.id }}">0.00</div>
+                                    <small>Saídas</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="resumo-valor" id="saldo_liquido_{{ item.registro.id }}">0.00</div>
+                                    <small>Saldo</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <div class="form-check">
+                                    {{ item.form.concluido }}
+                                    <label class="form-check-label small" for="{{ item.form.concluido.id_for_label }}">
+                                        Concluído
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-check">
+                                    {{ item.form.validado }}
+                                    <label class="form-check-label small" for="{{ item.form.validado.id_for_label }}">
+                                        Validado
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Equipa -->
+                        <div class="row mb-3">
+                            <div class="col-12 mb-2">
+                                <label class="form-label small fw-bold">Motorista</label>
+                                {{ item.form.motorista }}
+                            </div>
+                            <div class="col-6 mb-2">
+                                <label class="form-label small fw-bold">Cobrador Principal</label>
+                                {{ item.form.cobrador_principal }}
+                            </div>
+                            <div class="col-6 mb-2">
+                                <label class="form-label small fw-bold">Cobrador Auxiliar</label>
+                                {{ item.form.cobrador_auxiliar }}
+                            </div>
+                        </div>
+
+                        <!-- Entradas -->
+                        <div class="entradas-card mb-3 p-2">
+                            <h6 class="text-success mb-2 small">
+                                <i class="fas fa-arrow-down me-1"></i>Entradas (Kz)
+                            </h6>
+                            <div class="row g-2">
+                                {% if sector.nome|lower == 'luanda' %}
+                                <div class="col-6">
+                                    <label class="form-label small">Manhã</label>
+                                    <div class="input-group-custom">
+                                        {{ item.form.normal }}
+                                        <span class="currency-symbol">Kz</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small">Tarde</label>
+                                    <div class="input-group-custom">
+                                        {{ item.form.alunos }}
+                                        <span class="currency-symbol">Kz</span>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="col-6">
+                                    <label class="form-label small">{{ item.form.normal.label }}</label>
+                                    <div class="input-group-custom">
+                                        {{ item.form.normal }}
+                                        <span class="currency-symbol">Kz</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small">{{ item.form.alunos.label }}</label>
+                                    <div class="input-group-custom">
+                                        {{ item.form.alunos }}
+                                        <span class="currency-symbol">Kz</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                <div class="col-6">
+                                    <label class="form-label small">{{ item.form.luvu.label }}</label>
+                                    <div class="input-group-custom">
+                                        {{ item.form.luvu }}
+                                        <span class="currency-symbol">Kz</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small">{{ item.form.frete.label }}</label>
+                                    <div class="input-group-custom">
+                                        {{ item.form.frete }}
+                                        <span class="currency-symbol">Kz</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Saídas -->
+                        <div class="saidas-card mb-3 p-2">
+                            <h6 class="text-danger mb-2 small">
+                                <i class="fas fa-arrow-up me-1"></i>Saídas (Kz)
+                            </h6>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label small">{{ item.form.alimentacao.label }}</label>
+                                    <div class="input-group-custom">
+                                        {{ item.form.alimentacao }}
+                                        <span class="currency-symbol">Kz</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small">{{ item.form.parqueamento.label }}</label>
+                                    <div class="input-group-custom">
+                                        {{ item.form.parqueamento }}
+                                        <span class="currency-symbol">Kz</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small">{{ item.form.taxa.label }}</label>
+                                    <div class="input-group-custom">
+                                        {{ item.form.taxa }}
+                                        <span class="currency-symbol">Kz</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small">{{ item.form.outros.label }}</label>
+                                    <div class="input-group-custom">
+                                        {{ item.form.outros }}
+                                        <span class="currency-symbol">Kz</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dados Operacionais -->
+                        <div class="mb-3">
+                            <h6 class="text-secondary mb-2 small">
+                                <i class="fas fa-chart-bar me-1"></i>Dados Operacionais
+                            </h6>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label small">Nº de Viagens</label>
+                                    {{ item.form.numero_viagens }}
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small">Km Percorridos</label>
+                                    {{ item.form.km_percorridos }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {{ item.form.id }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Botões Simples -->
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-success btn-lg me-2">
+                <i class="fas fa-save me-2"></i> Salvar Alterações
+            </button>
+            <a href="{% url 'listar_registros' %}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-times me-2"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Função para obter valor numérico seguro
+    function getValue(id) {
+        const el = document.getElementById(id);
+        if (!el) return 0;
+        const v = parseFloat(el.value);
+        return isNaN(v) ? 0 : v;
+    }
+
+    // Função para formatar número
+    function formatNumber(value) {
+        return value.toFixed(2);
+    }
+
+    // Função para atualizar resumo de cada autocarro
+    function updateSummary(registroId) {
+        // Calcular totais
+        const entradas = (
+            getValue(`id_registro_${registroId}-normal`) +
+            getValue(`id_registro_${registroId}-alunos`) +
+            getValue(`id_registro_${registroId}-luvu`) +
+            getValue(`id_registro_${registroId}-frete`)
+        );
+
+        const saidas = (
+            getValue(`id_registro_${registroId}-alimentacao`) +
+            getValue(`id_registro_${registroId}-parqueamento`) +
+            getValue(`id_registro_${registroId}-taxa`) +
+            getValue(`id_registro_${registroId}-outros`)
+        );
+
+        const saldo = entradas - saidas;
+
+        // Atualizar display
+        const entradasEl = document.getElementById(`entradas_total_${registroId}`);
+        const saidasEl = document.getElementById(`saidas_total_${registroId}`);
+        const saldoEl = document.getElementById(`saldo_liquido_${registroId}`);
+
+        if (entradasEl) entradasEl.textContent = formatNumber(entradas);
+        if (saidasEl) saidasEl.textContent = formatNumber(saidas);
+        if (saldoEl) {
+            saldoEl.textContent = formatNumber(saldo);
+            saldoEl.className = saldo < 0 ? 'text-danger resumo-valor' : 
+                               saldo > 0 ? 'text-success resumo-valor' : 'resumo-valor';
+        }
+    }
+
+    // Configurar event listeners para todos os registros
+    {% for item in forms %}
+    (function() {
+        const registroId = {{ item.registro.id }};
+        const campos = ['normal','alunos','luvu','frete','alimentacao','parqueamento','taxa','outros'];
+        
+        campos.forEach(campo => {
+            const el = document.getElementById(`id_registro_${registroId}-${campo}`);
+            if (el) {
+                el.addEventListener('input', () => updateSummary(registroId));
+                el.classList.add('numeric-input');
+            }
+        });
+
+        // Inicializar cálculo
+        updateSummary(registroId);
+    })();
+    {% endfor %}
+
+    // Validação simples do formulário
+    document.getElementById('mainForm').addEventListener('submit', function(e) {
+        let valid = true;
+        
+        {% for item in forms %}
+        const viagens{{ item.registro.id }} = document.getElementById('id_registro_{{ item.registro.id }}-numero_viagens');
+        if (viagens{{ item.registro.id }} && !viagens{{ item.registro.id }}.value.trim()) {
+            valid = false;
+            viagens{{ item.registro.id }}.classList.add('is-invalid');
+        }
+        {% endfor %}
+
+        if (!valid) {
+            e.preventDefault();
+            alert('Por favor, preencha o número de viagens para todos os autocarros.');
+        }
+    });
+});
+</script>
+{% endblock %}

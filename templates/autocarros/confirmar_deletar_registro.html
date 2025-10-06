@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-danger text-white">
+            <h4><i class="fas fa-trash me-2"></i> Confirmar Eliminação</h4>
+        </div>
+        <div class="card-body">
+            <p>Tem certeza que deseja eliminar o registro do autocarro <strong>{{ registro.autocarro.numero }}</strong> do dia <strong>{{ registro.data|date:"d/m/Y" }}</strong>?</p>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash me-1"></i> Eliminar
+                </button>
+                <a href="{% url 'listar_registros' %}" class="btn btn-secondary ms-2">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

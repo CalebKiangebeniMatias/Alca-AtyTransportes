@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Cadastrar Autocarro - Sistema de Gestão{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-plus me-2"></i>
+                    Cadastrar Novo Autocarro
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Linha 1: Número + Modelo -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label text-white">
+                                <i class="fas fa-hashtag me-1"></i>{{ form.numero.label }}
+                            </label>
+                            {{ form.numero }}
+                            {% if form.numero.errors %}
+                                <div class="text-danger small mt-1">{{ form.numero.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Ex: AC001, BUS01, etc.</small>
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <label class="form-label text-white">
+                                <i class="fas fa-cog me-1"></i>{{ form.modelo.label }}
+                            </label>
+                            {{ form.modelo }}
+                            {% if form.modelo.errors %}
+                                <div class="text-danger small mt-1">{{ form.modelo.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Ex: Mercedes-Benz OF-1721, Volkswagen 17.230</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Linha 2: Placa + Sector -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-white">
+                                <i class="fas fa-id-card me-1"></i>{{ form.placa.label }}
+                            </label>
+                            {{ form.placa }}
+                            {% if form.placa.errors %}
+                                <div class="text-danger small mt-1">{{ form.placa.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Ex: LD-12-34-AB (Formato Angola)</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label text-white">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ form.sector.label }}
+                            </label>
+                            {{ form.sector }}
+                            {% if form.sector.errors %}
+                                <div class="text-danger small mt-1">{{ form.sector.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Escolha o sector a que o autocarro pertence</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Botões -->
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-success btn-lg me-3">
+                            <i class="fas fa-save me-2"></i>
+                            Cadastrar Autocarro
+                        </button>
+                        <a href="{% url 'listar_autocarros' %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Card de Preview -->
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-eye me-2"></i>
+                    Preview do Autocarro
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="bus-preview">
+                    <i class="fas fa-bus fa-4x text-primary mb-3"></i>
+                    <div id="preview-info">
+                        <h5 class="text-white">Número: <span id="preview-numero">---</span></h5>
+                        <p class="text-muted">Modelo: <span id="preview-modelo">---</span></p>
+                        <p class="text-muted">Placa: <span id="preview-placa">---</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const numeroInput = document.getElementById('id_numero');
+    const modeloInput = document.getElementById('id_modelo');
+    const placaInput = document.getElementById('id_placa');
+    
+    const previewNumero = document.getElementById('preview-numero');
+    const previewModelo = document.getElementById('preview-modelo');
+    const previewPlaca = document.getElementById('preview-placa');
+    
+    function updatePreview() {
+        previewNumero.textContent = numeroInput.value || '---';
+        previewModelo.textContent = modeloInput.value || '---';
+        previewPlaca.textContent = placaInput.value || '---';
+    }
+    
+    numeroInput.addEventListener('input', updatePreview);
+    modeloInput.addEventListener('input', updatePreview);
+    placaInput.addEventListener('input', updatePreview);
+});
+</script>
+{% endblock %}

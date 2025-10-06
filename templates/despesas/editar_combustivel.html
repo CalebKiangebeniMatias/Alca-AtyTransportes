@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Despesa de Combustível{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header bg-warning text-dark">
+    <h4 class="mb-0"><i class="fas fa-edit"></i> Editar Despesa de Combustível</h4>
+  </div>
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <!-- Mostra os campos do form -->
+      {{ form.as_p }}
+
+      <!-- Mostra imagem atual (se existir) -->
+      {% if despesa.comprovativo %}
+        <div class="mb-3">
+          <label class="form-label">Comprovativo Atual:</label><br>
+          <a href="{{ despesa.comprovativo.url }}" target="_blank">
+            <img src="{{ despesa.comprovativo.url }}" 
+                 alt="Comprovativo atual"
+                 class="img-thumbnail"
+                 style="max-width: 250px;">
+          </a>
+        </div>
+      {% endif %}
+
+      <!-- Input para substituir a imagem -->
+      <div class="mb-3">
+        <label class="form-label">Alterar Comprovativo:</label>
+        <input type="file" name="comprovativo" class="form-control">
+        <small class="text-muted">Deixe em branco se não quiser alterar.</small>
+      </div>
+
+      <button type="submit" class="btn btn-success">
+        <i class="fas fa-save"></i> Salvar Alterações
+      </button>
+      <a href="{% url 'listar_despesas' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Voltar
+      </a>
+    </form>
+  </div>
+</div>
+{% endblock %}

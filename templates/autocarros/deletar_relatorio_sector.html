@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow border-danger">
+        <div class="card-header bg-danger text-white">
+            <h4>Confirmar Exclusão</h4>
+        </div>
+        <div class="card-body">
+            <p>Tem certeza que deseja apagar o relatório do setor 
+               <strong>{{ relatorio.sector.nome }}</strong> 
+               de <strong>{{ relatorio.data|date:"d/m/Y" }}</strong>?</p>
+            <p>⚠️ Todos os registos dos autocarros associados serão apagados também.</p>
+        </div>
+        <div class="card-footer d-flex justify-content-between">
+            <a href="{% url 'listar_registros' %}" class="btn btn-secondary">Cancelar</a>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Apagar</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

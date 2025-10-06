@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Atualizar Estado do Autocarro{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-tools"></i> Atualizar Estado do Autocarro</h2>
+    <hr>
+    <form method="post" class="mt-3">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            <label class="form-label">Autocarro</label>
+            {{ form.autocarro }}
+        </div>
+
+        <div class="form-check">
+            {{ form.motor_funciona }} <label class="form-check-label">Motor em bom estado</label>
+        </div>
+        <div class="form-check">
+            {{ form.pneus_bons }} <label class="form-check-label">Pneus bons</label>
+        </div>
+        <div class="form-check">
+            {{ form.luzes_funcionam }} <label class="form-check-label">Luzes funcionam</label>
+        </div>
+        <div class="form-check">
+            {{ form.travoes_bons }} <label class="form-check-label">Travões bons</label>
+        </div>
+        <div class="form-check">
+            {{ form.parabrisas_ok }} <label class="form-check-label">Para-brisas em bom estado</label>
+        </div>
+        <div class="form-check">
+            {{ form.bancos_bons }} <label class="form-check-label">Bancos bons</label>
+        </div>
+
+        <div class="mb-3 mt-3">
+            <label class="form-label">Observações</label>
+            {{ form.observacoes }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Salvar Estado
+        </button>
+    </form>
+</div>
+{% endblock %}

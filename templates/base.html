@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Gestão de Autocarros{% endblock %}</title>
+    {% load static %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1b2a49;
+            --secondary-color: #2463a3;
+            --accent-color: #ffffff;
+            --gradient-start: #2463a3;
+            --gradient-end: #1b2a49;
+            --glass-bg: rgba(36,99,163,0.18);
+            --glass-blur: 12px;
+            --success-color: #27ae60;
+        }
+
+        body {
+            background: linear-gradient(120deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--accent-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            box-shadow: 0 4px 24px rgba(27, 42, 73, 0.18);
+            border-bottom: 2px solid var(--secondary-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: background 0.4s, box-shadow 0.4s;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+            color: var(--accent-color) !important;
+            display: flex;
+            align-items: center;
+            text-shadow: 0 2px 8px rgba(36,99,163,0.18);
+        }
+
+        .navbar-nav .nav-link, .dropdown-item {
+            color: var(--accent-color) !important;
+            font-size: 1.08rem;
+            margin-right: 8px;
+            transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+            border-radius: 8px;
+        }
+
+        .navbar-nav .nav-link.active, .navbar-nav .nav-link:hover {
+            color: var(--secondary-color) !important;
+            background: var(--accent-color);
+            box-shadow: 0 2px 8px rgba(36,99,163,0.10);
+        }
+
+        .dropdown-menu {
+            background: var(--primary-color) !important;
+            border: 1px solid var(--secondary-color);
+            box-shadow: 0 4px 16px rgba(27, 42, 73, 0.15);
+        }
+
+        .dropdown-item:hover {
+            background: var(--secondary-color) !important;
+            color: var(--accent-color) !important;
+        }
+
+        .container {
+            margin-top: 48px;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background: linear-gradient(120deg, rgba(36,99,163,0.18) 0%, rgba(27,42,73,0.12) 100%);
+            border: none;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px 0 rgba(27, 42, 73, 0.22);
+            color: var(--accent-color);
+            margin-bottom: 32px;
+            transition: transform 0.25s, box-shadow 0.25s;
+        }
+
+        .card:hover {
+            transform: translateY(-6px) scale(1.03);
+            box-shadow: 0 16px 40px 0 rgba(27, 42, 73, 0.28);
+        }
+
+        .card-header {
+            background: linear-gradient(90deg, var(--secondary-color) 60%, var(--primary-color) 100%);
+            color: var(--accent-color);
+            border-radius: 18px 18px 0 0;
+            font-weight: bold;
+            font-size: 1.25rem;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 8px rgba(36,99,163,0.10);
+        }
+
+        .card-title {
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 1.15rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--secondary-color) 60%, var(--primary-color) 100%);
+            border: none;
+            border-radius: 12px;
+            color: var(--accent-color);
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(36,99,163, 0.10);
+            transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-color);
+            color: var(--accent-color);
+            box-shadow: 0 4px 16px rgba(36,99,163, 0.18);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            border: none;
+            border-radius: 12px;
+            color: var(--accent-color);
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(39,174,96, 0.10);
+            transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-success:hover {
+            background: #219150;
+            color: var(--accent-color);
+            box-shadow: 0 4px 16px rgba(39,174,96, 0.18);
+        }
+
+        .bg-azul-forte {
+            background-color: #001e5773;
+        }
+
+        .table {
+            background: rgba(36,99,163,0.12);
+            border-radius: 12px;
+            color: var(--accent-color);
+            overflow: hidden;
+        }
+
+        .table th {
+            border-color: var(--secondary-color);
+            background: var(--primary-color);
+            color: var(--accent-color);
+        }
+
+        .table td {
+            border-color: var(--secondary-color);
+        }
+
+        .icon-stat {
+            font-size: 2.7rem;
+            margin-bottom: 1rem;
+            opacity: 0.85;
+            color: var(--secondary-color);
+            transition: color 0.3s, transform 0.3s;
+        }
+
+        .icon-stat:hover {
+            color: var(--accent-color);
+            transform: scale(1.1) rotate(-6deg);
+        }
+
+        /* Alertas */
+        .alert {
+            border-radius: 12px;
+            font-weight: bold;
+            background: rgba(36,99,163,0.18);
+            color: var(--accent-color);
+            border: 1px solid var(--secondary-color);
+            box-shadow: 0 2px 8px rgba(36,99,163,0.10);
+        }
+
+        /* Footer elegante */
+        footer {
+            background: var(--primary-color);
+            color: var(--accent-color);
+            text-align: center;
+            padding: 22px 0 14px 0;
+            margin-top: 60px;
+            box-shadow: 0 -2px 12px rgba(27, 42, 73, 0.14);
+            font-size: 1.08rem;
+            letter-spacing: 1px;
+            border-top: 2px solid var(--secondary-color);
+            position: relative;
+        }
+
+        /* Responsividade extra */
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1.3rem;
+            }
+            .container {
+                margin-top: 24px;
+            }
+            .card {
+                margin-bottom: 18px;
+            }
+            footer {
+                font-size: 0.95rem;
+                padding: 14px 0 8px 0;
+            }
+        }
+
+        /* Quando o modal estiver aberto, o fundo não reage aos eventos de mouse */
+        body.modal-open *:not(.modal):not(.modal *) {
+            pointer-events: none !important;
+            user-select: none !important;
+        }
+
+        /* Garante que o modal e seus elementos internos recebam eventos normalmente */
+        .modal, .modal * {
+            pointer-events: auto !important;
+        }
+
+        /* Garantir que o modal fique fixo e centralizado */
+        .modal-dialog {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            margin: 0 !important;
+        }
+
+        /* Desabilitar transições no modal para evitar mudanças de posição */
+        .modal,
+        .modal-dialog,
+        .modal-content {
+            transition: none !important;
+            animation: none !important;
+        }
+
+        /* Sugestão: otimizar o render da posição do modal */
+        .modal-dialog {
+            will-change: transform;
+        }
+
+        /* Desabilitar transições e animações no backdrop do modal */
+        .modal-backdrop {
+            transition: none !important;
+            animation: none !important;
+        }
+
+        /* Botão flutuante de perfil */
+        .perfil-flutuante {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-align: center;
+            line-height: 60px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            transition: transform 0.25s, box-shadow 0.25s, background 0.3s;
+            text-decoration: none;
+            z-index: 1050;
+        }
+
+        .perfil-flutuante:hover {
+            transform: scale(1.1);
+            background: var(--primary-color);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+        }
+
+    </style>
+    
+</head>
+<!-- Botão flutuante de perfil -->
+<a href="{% url 'perfil' %}" class="perfil-flutuante" title="Ver Perfil">
+    <span>{{ user.username|first|upper }}</span>
+</a>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <h5> <strong>Alca&Aty Transportes</strong> </h5>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto">
+
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-chart-line me-1"></i>Dashboard
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'dashboard' %}">
+                                    <i class="fas fa-list me-1"></i>Gestão De Frota
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'contabilista_financas' %}">
+                                    <i class="fas fa-coins me-1"></i>Contabilidade & Finanças
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'gerencia_financas' %}">
+                                    <i class="fas fa-money-bill-trend-up me-1"></i>Gerencia De Finanças
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'gerencia_campo' %}">
+                                    <i class="fas fa-map-location-dot me-1"></i>Gerencia De Campo
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-calendar-check me-1"></i>Controlo Diário
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="dropdown-item" href="{% url 'register' %}">
+                                    <i class="fas fa-user-plus"></i> Registrar Usuário
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!--- Sobre Autocarros -->                    
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-bus me-1"></i>Autocarros
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'listar_autocarros' %}">
+                                    <i class="fas fa-list me-1"></i>Listar Autocarros
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'cadastrar_autocarro' %}">
+                                    <i class="fas fa-plus me-1"></i>Cadastrar Autocarro
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'atualizar_estado' %}">
+                                    <i class="fas fa-tools me-1"></i>Atualizar Estado
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Novo link para adicionar registro -->
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-clipboard-list me-1"></i>Registos
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'listar_registros' %}">
+                                    <i class="fas fa-list me-1"></i>Listar Registros
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'adicionar_relatorio_sector' %}">
+                                    <i class="fas fa-plus me-1"></i>Adicionar Relatório por Sector
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="dropdown-item" href="{% url 'relatorios_validados' %}">
+                                    <i class="fas fa-check-circle me-2"></i>Relatórios Validados
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+
+                    <!-- Novo link para adicionar despesa -->
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-money-check me-1"></i>Despesas
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'listar_despesas' %}">
+                                    <i class="fas fa-list me-1"></i>Listar Despesas
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'selc_sector_cumb' %}">
+                                    <i class="fas fa-plus me-1"></i>Add Despesa Combústivel
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'adicionar_despesa' %}">
+                                    <i class="fas fa-plus me-1"></i>Add Despesa Normal
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'adicionar_despesa' %}">
+                                    <i class="fas fa-plus me-1"></i>Add Despesas Salários
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Novo link para Regiões -->
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-map-marker-alt me-1"></i>Regiões
+                        </a>
+                        
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'lista_sectores' %}">
+                                    <i class="fas fa-list me-1"></i> Listar Setores
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'adicionar_sector' %}">
+                                    <i class="fas fa-plus me-1"></i> Adicionar Setor
+                                </a>
+                            </li>
+
+                            {% for sector in sectores %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'resumo_sector' sector.nome|slugify %}">
+                                        <i class="fas fa-city me-1"></i> {{ sector.nome }}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li><span class="dropdown-item text-muted">Nenhum setor cadastrado</span></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <footer>
+        &copy; {{ now|date:"Y" }} Gestão de Autocarros. Todos os direitos reservados.
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

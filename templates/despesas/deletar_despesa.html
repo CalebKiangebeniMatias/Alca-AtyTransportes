@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir Despesa{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header bg-danger">
+                <h4 class="mb-0"><i class="fas fa-trash me-2"></i>Excluir Despesa</h4>
+            </div>
+            <div class="card-body">
+                <p>Tem certeza que deseja excluir esta despesa?</p>
+                <ul>
+                    <li><strong>Descrição:</strong> {{ despesa.descricao }}</li>
+                    <li><strong>Valor:</strong> {{ despesa.valor }} Kz</li>
+                    <li><strong>Data:</strong> {{ despesa.data|date:"d/m/Y" }}</li>
+                </ul>
+                <form method="post">
+                    {% csrf_token %}
+                    <a href="{% url 'listar_despesas' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Confirmar Exclusão
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

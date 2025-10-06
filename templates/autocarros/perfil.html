@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Perfil - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow-lg border-0 p-4" style="max-width: 480px; width: 100%;">
+        <div class="text-center mb-4">
+            <div class="rounded-circle mx-auto mb-3 d-flex justify-content-center align-items-center" 
+                 style="width: 100px; height: 100px; background: var(--secondary-color); color: var(--accent-color); font-size: 2.5rem; font-weight: 700;">
+                {{ user.username|first|upper }}
+            </div>
+            <h4 class="fw-bold text-primary">{{ user.username }}</h4>
+            <span class="badge bg-success px-3 py-2">
+                {{ user.get_nivel_acesso_display }}
+            </span>
+        </div>
+
+        <hr>
+
+        <div class="px-2">
+            <p class="mb-2"><i class="fas fa-envelope text-primary me-2"></i><strong>Email:</strong> {{ user.email }}</p>
+            <p class="mb-2"><i class="fas fa-phone text-primary me-2"></i><strong>Telefone:</strong> {{ user.telefone|default:"—" }}</p>
+            <p class="mb-2"><i class="fas fa-calendar-alt text-primary me-2"></i><strong>Data de Registro:</strong> {{ user.data_registro|date:"d/m/Y H:i" }}</p>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'logout' %}" class="btn btn-outline-danger px-4">
+                <i class="fas fa-sign-out-alt me-2"></i> Sair
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

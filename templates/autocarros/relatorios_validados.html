@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- 🔹 Cabeçalho com Estatísticas -->
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-success text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-check-circle me-2"></i> Registos Diários Validados
+                </h4>
+                <div>
+                    <span class="badge bg-light text-success me-2">
+                        {{ registos_agrupados|length }} Grupos
+                    </span>
+                    <a href="{% url 'listar_registros' %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i> Voltar
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    <div class="border-end">
+                        <h3 class="text-success mb-1">{{ totais.total_autocarros }}</h3>
+                        <small class="text-muted">Registos Validados</small>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="border-end">
+                        <h3 class="text-warning mb-1">{{ totais.total_entradas|default_if_none:0|floatformat:2 }} Kz</h3>
+                        <small class="text-muted">Total Entradas</small>
+                    </div>
+                </div>
+                    <div class="col-md-3 text-center">
+                    <div class="border-end">
+                        <h3 class="text-danger mb-1">{{ totais.total_saidas|floatformat:2 }} Kz</h3>
+                        <small class="text-muted">Total Saídas</small>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <h3 class="text-primary mb-1">{{ totais.total_saldo|floatformat:2 }} Kz</h3>
+                    <small class="text-muted">Saldo Líquido</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔹 Filtro -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="fas fa-filter me-2"></i> Filtros
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="sector" class="form-label">Sector</label>
+                    <select name="sector" id="sector" class="form-select">
+                        <option value="">-- Todos os Sectores --</option>
+                        {% for s in sectores %}
+                        <option value="{{ s.id }}" {% if sector_id == s.id|stringformat:"s" %}selected{% endif %}>
+                            {{ s.nome }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="data_inicio" class="form-label">Data Início</label>
+                    <input type="date" id="data_inicio" name="data_inicio" class="form-control"
+                        value="{{ data_inicio }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="data_fim" class="form-label">Data Fim</label>
+                    <input type="date" id="data_fim" name="data_fim" class="form-control"
+                        value="{{ data_fim }}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-success w-100 me-2">
+                        <i class="fas fa-search me-1"></i> Filtrar
+                    </button>
+                    <a href="{% url 'relatorios_validados' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-sync"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if registos_agrupados %}
+        {% for grupo in registos_agrupados %}
+        <div class="card shadow-lg border-0 rounded-3 mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-map-marker-alt me-2"></i> {{ grupo.sector.nome }}
+                    <small class="opacity-75"> - {{ grupo.data|date:"d/m/Y" }}</small>
+                </h5>
+            </div>
+            
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                            <div>
+                                <small class="text-muted">Entradas:</small>
+                                {% if grupo.total_entradas is not None %}
+                                    <strong class="ms-2 text-success">{{ grupo.total_entradas|floatformat:2 }} Kz</strong>
+                                {% else %}
+                                    <strong class="ms-2">0.00 Kz</strong>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <small class="text-muted">Saídas (incl. combustível):</small>
+                                <strong class="ms-2 text-danger">{{ grupo.total_saidas|default:0|floatformat:2 }} Kz</strong>
+                            </div>
+                            <div>
+                                <small class="text-muted">Saldo:</small>
+                                <strong class="ms-2 text-primary">{{ grupo.total_saldo|default:0|floatformat:2 }} Kz</strong>
+                            </div>
+                            {# Combustível agregado não exibido aqui por solicitação #}
+                        </div>
+                    </div>
+                    {% for reg in grupo.registos %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-success border-2">
+                            <div class="card-header bg-success text-white py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong>🚌 {{ reg.autocarro.numero }}</strong>
+                                    <span class="badge bg-light text-success">
+                                        <i class="fas fa-check me-1"></i>Validado
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row small">
+                                    <div class="col-6"><strong>Entradas:</strong> {{ reg.entradas_total }} Kz</div>
+                                    <div class="col-6"><strong>Saídas (incl. combustível):</strong> {{ reg.saidas_total_incl_combustivel }} Kz</div>
+                                    <div class="col-6"><strong>Saldo (incl. combustível):</strong> {{ reg.saldo_liquido_incl_combustivel }} Kz</div>
+                                    <div class="col-6"><strong>Viagens:</strong> {{ reg.numero_viagens }}</div>
+                                    <div class="col-12 mt-2">
+                                        <small class="text-muted">
+                                            👤 {{ reg.motorista|default:"N/A" }} | 
+                                            👥 {{ reg.numero_passageiros }} passageiros
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="card shadow-lg">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-check-circle fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">Nenhum registo validado encontrado</h4>
+                <p class="text-muted">Tente ajustar os filtros de data ou sector.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

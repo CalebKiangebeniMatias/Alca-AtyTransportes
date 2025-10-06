@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-warning text-dark">
+            <h4>🔧 Verificação de Integridade dos Dados</h4>
+        </div>
+        <div class="card-body">
+            {% if problemas %}
+                <div class="alert alert-danger">
+                    <h5>❌ Foram encontrados {{ total_problemas }} problema(s):</h5>
+                    <ul>
+                        {% for problema in problemas %}
+                            <li>{{ problema }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" name="corrigir" class="btn btn-success">
+                        🔧 Corrigir Problemas Automaticamente
+                    </button>
+                    <a href="{% url 'listar_registros' %}" class="btn btn-secondary">Voltar</a>
+                </form>
+            {% else %}
+                <div class="alert alert-success">
+                    <h5>✅ Todos os dados estão íntegros!</h5>
+                    <p>Nenhum problema foi encontrado na base de dados.</p>
+                </div>
+                <a href="{% url 'listar_registros' %}" class="btn btn-primary">Voltar</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

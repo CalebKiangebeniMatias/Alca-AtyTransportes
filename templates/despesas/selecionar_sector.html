@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Selecionar Setor{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-success text-white">
+            <h4><i class="fas fa-gas-pump me-2"></i> Selecionar Setor</h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    {{ form.sector.label_tag }}
+                    {{ form.sector }}
+                </div>
+                <button type="submit" class="btn btn-primary">Avançar</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,556 @@
+{% extends 'base.html' %}
+
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- 🔹 Cabeçalho com Estatísticas -->
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i> Registos Diários
+                </h4>
+                <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-plus me-1"></i> Novo Registo
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    <div class="border-end">
+                        <h3 class="text-success mb-1">{{ registros_agrupados|length }}</h3>
+                        <small class="text-muted">Grupos de Registo</small>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="border-end">
+                        <h3 class="text-info mb-1">{{ totais.total_autocarros }}</h3>
+                        <small class="text-muted">Registos</small>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="border-end">
+                        <h3 class="text-warning mb-1">{{ totais.total_entradas|floatformat:2 }} Kz</h3>
+                        <small class="text-muted">Total Entradas</small>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <h3 class="text-danger mb-1">{{ totais.total_saldo|floatformat:2 }} Kz</h3>
+                    <small class="text-muted">Saldo Geral</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔹 Filtro Melhorado -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="fas fa-filter me-2"></i> Filtros
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="sector" class="form-label">Sector</label>
+                    <select name="sector" id="sector" class="form-select">
+                        <option value="">-- Todos os Sectores --</option>
+                        {% for s in sectores %}
+                        <option value="{{ s.id }}" {% if sector_id == s.id|stringformat:"s" %}selected{% endif %}>
+                            {{ s.nome }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="data_inicio" class="form-label">Data Início</label>
+                    <input type="date" id="data_inicio" name="data_inicio" class="form-control"
+                        value="{{ data_inicio }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="data_fim" class="form-label">Data Fim</label>
+                    <input type="date" id="data_fim" name="data_fim" class="form-control"
+                        value="{{ data_fim }}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100 me-2">
+                        <i class="fas fa-search me-1"></i> Aplicar Filtros
+                    </button>
+                    <a href="{% url 'listar_registros' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-sync"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if registros_agrupados %}
+        {% for grupo in registros_agrupados %}
+        <div class="card shadow-lg border-0 rounded-3 mb-4">
+            <!-- 🔹 Cabeçalho do Grupo -->
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">
+                        <i class="fas fa-map-marker-alt me-2"></i> {{ grupo.sector.nome }}
+                    </h5>
+                    <small class="opacity-75">{{ grupo.data|date:"d/m/Y" }}</small>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-success me-2">
+                        <i class="fas fa-file-invoice me-1"></i> {{ grupo.registos|length }} Registos
+                    </span>
+                    
+                    <div class="btn-group">
+                        <form method="get" action="{% url 'deletar_registros_sector_data' grupo.sector.id grupo.data|date:'Y-m-d' %}" onsubmit="return confirm('Tem certeza que deseja eliminar todos os registros deste grupo?');">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-trash"></i> Eliminar Grupo
+                            </button>
+                        </form>
+                        <a href="{% url 'editar_relatorio_sector' grupo.registos.0.id %}" class="btn btn-sm btn-light">
+                            <i class="fas fa-edit me-1"></i> Gerir
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <!-- 🔹 RESUMO CONSOLIDADO DO GRUPO -->
+                <div class="alert border-0 shadow-sm mb-4 resumo-grupo">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="mb-2" style="color: #1565c0;">
+                                <i class="fas fa-chart-pie me-2"></i> 
+                                Resumo Consolidado - {{ grupo.sector.nome }}
+                            </h5>
+                            <div class="row small">
+                                <div class="col-4">
+                                    <i class="fas fa-bus text-primary"></i> <strong>{{ grupo.registos|length }}</strong> Autocarros
+                                </div>
+                                <div class="col-4">
+                                    <i class="fas fa-users text-info"></i> <strong>{{ grupo.registos|soma_campo:'numero_passageiros' }}</strong> Passageiros
+                                </div>
+                                <div class="col-4">
+                                    <i class="fas fa-route text-warning"></i> <strong>{{ grupo.registos|soma_campo:'numero_viagens' }}</strong> Viagens
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="p-3 bg-white rounded shadow-sm">
+                                        <small class="d-block mb-1" style="color: #2e7d32; font-weight: 600;">Entradas</small>
+                                        <h5 class="mb-0" style="color: #1b5e20; font-weight: 700;">{{ grupo.total_entradas|floatformat:2 }}</h5>
+                                        <small style="color: #2e7d32;">Kz</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-3 bg-white rounded shadow-sm">
+                                        <small class="d-block mb-1" style="color: #c62828; font-weight: 600;">Saídas</small>
+                                        <h5 class="mb-0" style="color: #b71c1c; font-weight: 700;">{{ grupo.total_saidas|floatformat:2 }}</h5>
+                                        <small style="color: #c62828;">Kz</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-3 bg-white rounded shadow-sm">
+                                        <small class="d-block mb-1" style="color: #1565c0; font-weight: 600;">Saldo</small>
+                                        <h5 class="mb-0" style="color: #0d47a1; font-weight: 700;">{{ grupo.total_saldo|floatformat:2 }}</h5>
+                                        <small style="color: #1565c0;">Kz</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🔹 Registos de Autocarros -->
+                <div class="row">
+                    {% for reg in grupo.registos %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-0 shadow-sm h-100">
+                                <!-- Cabeçalho do Autocarro -->
+                                <div class="card-header bg-dark text-white">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-bus me-2"></i> {{ reg.autocarro.numero }}
+                                        </h6>
+                                        <small>{{ reg.autocarro.modelo }}</small>
+                                    </div>
+                                    <form method="post" action="{% url 'deletar_registro' reg.id %}" class="mt-2">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-danger btn-sm w-100" onclick="return confirm('Tem certeza que deseja eliminar este registro?');">
+                                            <i class="fas fa-trash"></i> Eliminar
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <div class="card-body">
+                                    <!-- 🔹 Status e Data -->
+                                    <div class="d-flex justify-content-between mb-3">
+                                        {% if reg.validado %}
+                                        <span class="badge bg-success">✅ Validado</span>
+                                        {% elif reg.concluido %}
+                                        <span class="badge bg-warning">📋 Concluído</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">⏳ Pendente</span>
+                                        {% endif %}
+                                        
+                                        <span class="badge bg-info">{{ reg.data|date:"d/m/Y" }}</span>
+                                    </div>
+
+                                    <!-- 🔹 RESUMO FINANCEIRO DESTACADO -->
+                                    <div class="mb-3 p-3 bg-light rounded">
+                                        <h6 class="text-center mb-3">
+                                            <i class="fas fa-calculator me-2"></i>Resumo Financeiro
+                                        </h6>
+                                        <div class="row text-center">
+                                            <div class="col-4">
+                                                <div class="border-end">
+                                                    <small class="text-muted d-block">Entrada</small>
+                                                    <strong class="text-success d-block">{{ reg.entradas_total|floatformat:2 }}</strong>
+                                                    <small class="text-muted">Kz</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="border-end">
+                                                    <small class="text-muted d-block">Saída (incl. Combustível)</small>
+                                                    <strong class="text-danger d-block">{{ reg.saidas_total_incl_combustivel|floatformat:2 }}</strong>
+                                                    <small class="text-muted">Kz</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <small class="text-muted d-block">Saldo (incl. Combustível)</small>
+                                                <strong class="text-primary d-block">{{ reg.saldo_liquido_incl_combustivel|floatformat:2 }}</strong>
+                                                <small class="text-muted">Kz</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 🔹 Equipa -->
+                                    <div class="row small mb-3">
+                                        <div class="col-4">
+                                            <strong>Motorista:</strong><br>
+                                            <span class="text-muted">{{ reg.motorista|default:"N/A" }}</span>
+                                        </div>
+                                        <div class="col-4">
+                                            <strong>Cob. Principal:</strong><br>
+                                            <span class="text-muted">{{ reg.cobrador_principal|default:"N/A" }}</span>
+                                        </div>
+                                        <div class="col-4">
+                                            <strong>Cob. Auxiliar:</strong><br>
+                                            <span class="text-muted">{{ reg.cobrador_auxiliar|default:"N/A" }}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- 🔹 Detalhamento de Entradas -->
+                                    <div class="border-start border-3 border-success ps-3 mb-3">
+                                        <h6 class="text-success mb-2">
+                                            <i class="fas fa-arrow-down me-1"></i> Detalhamento de Entradas
+                                        </h6>
+                                        <div class="row small">
+                                            <div class="col-6">
+                                                {% if grupo.sector.nome == "Luanda" %}
+                                                    <i class="fas fa-sun text-success"></i> Manhã: <strong>{{ reg.normal|floatformat:2 }} Kz</strong>
+                                                {% else %}
+                                                    <i class="fas fa-ticket-alt text-success"></i> Normal: <strong>{{ reg.normal|floatformat:2 }} Kz</strong>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-6">
+                                                {% if grupo.sector.nome == "Luanda" %}
+                                                    <i class="fas fa-moon text-success"></i> Tarde: <strong>{{ reg.alunos|floatformat:2 }} Kz</strong>
+                                                {% else %}
+                                                    <i class="fas fa-graduation-cap text-success"></i> Alunos: <strong>{{ reg.alunos|floatformat:2 }} Kz</strong>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-6">
+                                                <i class="fas fa-coins text-success"></i> Luvu: <strong>{{ reg.luvu|floatformat:2 }} Kz</strong>
+                                            </div>
+                                            <div class="col-6">
+                                                <i class="fas fa-box text-success"></i> Frete: <strong>{{ reg.frete|floatformat:2 }} Kz</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 🔹 Detalhamento de Saídas -->
+                                    <div class="border-start border-3 border-danger ps-3 mb-3">
+                                        <h6 class="text-danger mb-2">
+                                            <i class="fas fa-arrow-up me-1"></i> Detalhamento de Saídas
+                                        </h6>
+                                        <div class="row small">
+                                            <div class="col-6">
+                                                <i class="fas fa-utensils text-danger"></i> Alimentação: <strong>{{ reg.alimentacao|floatformat:2 }} Kz</strong>
+                                            </div>
+                                            <div class="col-6">
+                                                <i class="fas fa-parking text-danger"></i> Parqueamento: <strong>{{ reg.parqueamento|floatformat:2 }} Kz</strong>
+                                            </div>
+                                            <div class="col-6">
+                                                <i class="fas fa-file-invoice-dollar text-danger"></i> Taxa: <strong>{{ reg.taxa|floatformat:2 }} Kz</strong>
+                                            </div>
+                                            <div class="col-6">
+                                                <i class="fas fa-ellipsis-h text-danger"></i> Outros: <strong>{{ reg.outros|floatformat:2 }} Kz</strong>
+                                            </div>
+                                            <div class="col-6">
+                                                <i class="fas fa-gas-pump text-danger"></i> Combustível: <strong>{{ reg.combustivel_total|floatformat:2 }} Kz</strong>
+                                            </div>
+                                            <div class="col-6">
+                                                <i class="fas fa-filter text-danger"></i> Sobragem Filtros: <strong>{{ reg.combustivel_sobragem|floatformat:2 }} Kz</strong>
+                                            </div>
+                                            <div class="col-6">
+                                                <i class="fas fa-bucket text-danger"></i> Lavagem: <strong>{{ reg.combustivel_lavagem|floatformat:2 }} Kz</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 🔹 Dados Operacionais -->
+                                    <div class="border-start border-3 border-secondary ps-3 mb-3">
+                                        <h6 class="text-secondary mb-2">
+                                            <i class="fas fa-chart-bar me-1"></i> Dados Operacionais
+                                        </h6>
+                                        <div class="row small">
+                                            <div class="col-4">🚀 Viagens: <strong>{{ reg.numero_viagens }}</strong></div>
+                                            <div class="col-4">👥 Passageiros: <strong>{{ reg.numero_passageiros }}</strong></div>
+                                            <div class="col-4">🛣️ Kms: <strong>{{ reg.km_percorridos }}</strong></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 🔹 Saldo Final Destacado -->
+                                    <div class="text-center p-3 rounded saldo-box">
+                                        <small class="d-block text-dark mb-1" style="font-weight: 500;">💰 SALDO LÍQUIDO</small>
+                                        <h4 class="mb-0" style="color: #1a237e; font-weight: 700;">
+                                            {{ reg.saldo_liquido_incl_combustivel|floatformat:2 }} Kz
+                                        </h4>
+                                    </div>
+
+                                    {# Combustível exibido dentro do Detalhamento de Saídas acima #}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 🔹 Rodapé com Botões de Ação -->
+            <div class="card-footer bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                        <a href="{% url 'adicionar_relatorio_sector' %}?sector={{ grupo.sector.id }}&data={{ grupo.data|date:'Y-m-d' }}" 
+                           class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i> Adicionar Registo
+                        </a>
+                    </div>
+                    
+                    <div class="btn-group">
+                        {% if grupo.whatsapp_link %}
+                            <a href="{{ grupo.whatsapp_link }}" target="_blank" class="btn btn-success btn-sm">
+                                <i class="fab fa-whatsapp me-1"></i> Enviar
+                            </a>
+                        {% else %}
+                            <button type="button" class="btn btn-secondary btn-sm" disabled>
+                                <i class="fab fa-whatsapp me-1"></i> Enviar
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAIS -->
+        {% with primeiro_registro=grupo.registos.0 %}
+        <div class="modal fade" id="concluirModal{{ primeiro_registro.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Concluir Registos</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Tem certeza que deseja concluir os registos de <strong>{{ grupo.sector.nome }}</strong> do dia <strong>{{ grupo.data|date:"d/m/Y" }}</strong>?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <form method="post" action="{% url 'concluir_relatorio' primeiro_registro.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-1"></i> Sim, Concluir
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="validarModal{{ primeiro_registro.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Validar Registos</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Deseja validar os registos de <strong>{{ grupo.sector.nome }}</strong> do dia <strong>{{ grupo.data|date:"d/m/Y" }}</strong>?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <form method="post" action="{% url 'validar_relatorio' primeiro_registro.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-shield-alt me-1"></i> Validar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+        {% endfor %}
+
+        <!-- 🔹 TOTAIS GERAIS -->
+        <div class="card shadow-lg mt-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);">
+                <h5 class="mb-0 text-white">
+                    <i class="fas fa-chart-bar me-2"></i> Resumo Geral
+                </h5>
+            </div>
+            <div class="card-body bg-light">
+                <div class="row text-center g-3">
+                    <div class="col-md-3">
+                        <div class="p-3 bg-white rounded shadow-sm h-100">
+                            <small class="d-block mb-2" style="color: #2e7d32; font-weight: 600;">💰 Total Entradas</small>
+                            <h3 class="mb-0" style="color: #1b5e20; font-weight: 700;">{{ totais.total_entradas|floatformat:2 }}</h3>
+                            <small style="color: #2e7d32;">Kz</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-white rounded shadow-sm h-100">
+                            <small class="d-block mb-2" style="color: #c62828; font-weight: 600;">📤 Total Saídas</small>
+                            <h3 class="mb-0" style="color: #b71c1c; font-weight: 700;">{{ totais.total_saidas|floatformat:2 }}</h3>
+                            <small style="color: #c62828;">Kz</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-white rounded shadow-sm h-100">
+                            <small class="d-block mb-2" style="color: #f57c00; font-weight: 600;">📊 Total Registos</small>
+                            <h3 class="mb-0" style="color: #e65100; font-weight: 700;">{{ totais.total_autocarros }}</h3>
+                            <small style="color: #f57c00;">Autocarros</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-white rounded shadow-sm h-100">
+                            <small class="d-block mb-2" style="color: #1565c0; font-weight: 600;">💵 Saldo Líquido</small>
+                            <h3 class="mb-0" style="color: #0d47a1; font-weight: 700;">{{ totais.total_saldo|floatformat:2 }}</h3>
+                            <small style="color: #1565c0;">Kz</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="card shadow-lg">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">Nenhum registo encontrado</h4>
+                <p class="text-muted">Tente ajustar os filtros ou criar um novo registo.</p>
+                <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i> Criar Primeiro Registo
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.btn-success {
+    background: linear-gradient(45deg, #25D366, #128C7E);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.btn-success:hover {
+    background: linear-gradient(45deg, #128C7E, #075E54);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(18, 140, 126, 0.3);
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.border-3 {
+    border-width: 3px !important;
+}
+
+.shadow-lg {
+    box-shadow: 0 1rem 3rem rgba(0,0,0,.175) !important;
+}
+
+.shadow-sm {
+    box-shadow: 0 .125rem .25rem rgba(0,0,0,.075) !important;
+}
+
+.btn-group .btn {
+    border-radius: 8px;
+    margin: 0 2px;
+}
+
+.badge {
+    border-radius: 10px;
+    padding: 6px 12px;
+}
+
+.resumo-grupo {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-left: 4px solid #1565c0 !important;
+}
+
+.saldo-box {
+    background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+    border: 2px solid #3f51b5;
+}
+
+/* ======= Ajustes Mobile ======= */
+@media (max-width: 767px) {
+    .card-body { padding: 0.75rem !important; }
+    .card-header .d-flex.justify-content-between { flex-direction: column; align-items: flex-start; gap: .5rem; }
+    .card-header h5, .card-header h4 { font-size: 1rem; }
+    .resumo-grupo .row.small { display: block; }
+    .resumo-grupo .row.small .col-4 { width: 100%; display: block; margin-bottom: .5rem; }
+    .resumo-grupo h5 { font-size: 1rem; }
+    .card .card-header { padding: .6rem .9rem; }
+    .card .card-body { padding: .7rem .9rem; }
+    .btn-group .btn { padding: .35rem .45rem; font-size: .85rem; }
+    .btn-light.btn-sm, .btn-outline-secondary { font-size: .82rem; padding: .35rem .5rem; }
+    .card .card-header small { display: none; }
+    .card .card-header .badge { margin-top: .25rem; }
+    /* Make footer buttons full width stacked */
+    .card-footer .btn-group a.btn, .card-footer .btn-group form .btn { display: block; width: 100%; margin-bottom: .5rem; }
+    /* Compact financeiro boxes */
+    .card .p-3.bg-white { padding: .6rem; }
+    .card .p-3.bg-white h5 { font-size: 1.05rem; }
+    /* Truncate long model names */
+    .card-header small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; display: inline-block; }
+}
+
+@media (max-width: 420px) {
+    /* Further reduce spacings on very small devices */
+    .resumo-grupo h5 { font-size: .95rem; }
+    .saldo-box h4 { font-size: 1.25rem; }
+    .badge { padding: 4px 8px; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+});
+</script>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="text-center mt-5">
+    <h1 class="text-danger"><i class="fas fa-ban"></i> Acesso Negado</h1>
+    <p>Você não tem permissão para acessar esta página.</p>
+    <a href="{% url 'dashboard' %}" class="btn btn-primary mt-3">Voltar ao Painel</a>
+</div>
+{% endblock %}

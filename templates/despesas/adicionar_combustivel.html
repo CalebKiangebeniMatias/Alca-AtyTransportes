@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Adicionar Despesas - {{ sector.nome }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4><i class="fas fa-bus-alt me-2"></i> Despesas de Combustível - {{ sector.nome }}</h4>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ formset.management_form }}
+
+        <div class="row g-4">
+            {% if formset_autocarros %}
+                {% for form, autocarro in formset_autocarros %}
+                    <div class="col-md-6"> <!-- 🔹 2 colunas -->
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-success text-white">
+                                <h5>Autocarro {{ autocarro.numero }} - {{ autocarro.modelo }}</h5>
+                            </div>
+                            <div class="card-body">
+
+                                <!-- 🔹 Data -->
+                                <div class="mb-3">
+                                    {{ form.data.label_tag }}
+                                    {{ form.data }}
+                                </div>
+
+                                <!-- 🔹 Valor -->
+                                <div class="mb-3">
+                                    {{ form.valor.label_tag }}
+                                    {{ form.valor }}
+                                </div>
+
+                                <!-- 🔹 Valor Litros -->
+                                <div class="mb-3">
+                                    {{ form.valor_litros.label_tag }}
+                                    {{ form.valor_litros }}
+                                </div>
+
+                                <!-- 🔹 Comprovativo -->
+                                <div class="mb-3">
+                                    {{ form.comprovativo.label_tag }}
+                                    {{ form.comprovativo }}
+                                </div>
+
+                                <!-- 🔹 Descrição -->
+                                <div class="mb-3">
+                                    {{ form.descricao.label_tag }}
+                                    {{ form.descricao }}
+                                </div>
+
+                                <!-- 🔹 Campos extras -->
+                                <div class="mb-3">
+                                    {{ form.sobragem_filtros.label_tag }}
+                                    {{ form.sobragem_filtros }}
+                                </div>
+                                <div class="mb-3">
+                                    {{ form.lavagem.label_tag }}
+                                    {{ form.lavagem }}
+                                </div>
+
+                                <!-- Hidden -->
+                                {{ form.sector }}
+                                {{ form.autocarro }}
+                                {{ form.id }}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        Não foram encontrados autocarros para este setor.
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="fas fa-save me-2"></i> Salvar
+            </button>
+            <a href="{% url 'selc_sector_cumb' %}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-arrow-left me-2"></i> Voltar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
