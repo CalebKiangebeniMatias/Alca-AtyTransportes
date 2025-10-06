@@ -1,32 +1,41 @@
 from pathlib import Path
 import os
 from django.core.management.utils import get_random_secret_key
-import dj_database_url
-from dotenv import load_dotenv
 
-# ─── BASE DIR ───
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ─── LOAD ENV ───
-# Carrega explicitamente o .env
-dotenv_path = os.path.join(BASE_DIR, '.env')
-load_dotenv(dotenv_path)
-
-# ─── MEDIA ───
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# ─── SECRET KEY & DEBUG ───
+# ─── CHAVE E DEBUG ───
 SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 # ─── HOSTS ───
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
-# ─── USER MODEL ───
-AUTH_USER_MODEL = 'autocarros.CustomUser'
+# ─── BANCO DE DADOS ───
+# Use PostgreSQL somente se a variável de ambiente DATABASE_URL existir
+if os.getenv('DATABASE_URL'):
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse(
+            os.getenv('DATABASE_URL'),
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:
+    # Localmente, sem precisar instalar nada
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
-# ─── APPS ───
+# ─── MEDIA ───
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# ─── INSTALLED APPS ───
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,7 +50,6 @@ INSTALLED_APPS = [
 # ─── MIDDLEWARE ───
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # ✅ necessário no Render
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -53,18 +61,6 @@ MIDDLEWARE = [
 
 # ─── URLS ───
 ROOT_URLCONF = 'gestao_autocarros.urls'
-
-
-import dj_database_url
-
-DATABASES = {
-    'default': dj_database_url.parse(
-        'postgresql://banco_alca_aty_user:UtoSBIAyRykAzpFtDAF8jUfRSaVumUUR@dpg-d3hj6iffte5s73d08ovg-a/banco_alca_aty',
-        conn_max_age=600,
-        ssl_require=True  # Render exige SSL
-    )
-}
-
 
 # ─── TEMPLATES ───
 TEMPLATES = [
@@ -84,42 +80,12 @@ TEMPLATES = [
     },
 ]
 
-# ─── LOCALE / FORMATOS ───
-LANGUAGE_CODE = 'pt-PT'
-TIME_ZONE = 'Africa/Luanda'
-USE_I18N = True
-USE_L10N = True
-USE_TZ = True
-USE_THOUSAND_SEPARATOR = True
-FORMAT_MODULE_PATH = 'autocarros.locale'
-
 # ─── STATIC ───
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"  # ✅
 
 # ─── AUTENTICAÇÃO ───
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/login/'
-
-# ─── GRUPOS ───
-GRUPOS = {
-    'ADMIN': 'Administrador',
-    'GESTOR': 'Gestor',
-    'OPERADOR': 'Operador',
-    'VISUALIZADOR': 'Visualizador',
-}
-
-# ─── SESSÃO ───
-SESSION_COOKIE_AGE = 3600
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-
-# ─── SEGURANÇA PARA PRODUÇÃO ───
-if not DEBUG:
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_SSL_REDIRECT = True

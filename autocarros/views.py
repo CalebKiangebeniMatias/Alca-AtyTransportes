@@ -32,7 +32,7 @@ def admin_required(user):
     return user.is_authenticated and user.is_admin()
 
 
-@login_required
+
 def associar_gestor(request, sector_id):
     sector = get_object_or_404(Sector, id=sector_id)
 
@@ -56,8 +56,7 @@ def associar_gestor(request, sector_id):
 
     return render(request, "autocarros/associar_gestor.html", context)
 
-# Decorators personalizados para níveis de acesso
-@acesso_restrito(['ADMIN', 'GESTOR'])
+
 def admin_required(view_func):
     decorated_view = user_passes_test(
         lambda user: user.is_authenticated and user.is_admin(),
@@ -66,7 +65,6 @@ def admin_required(view_func):
     return decorated_view
 
 
-@acesso_restrito(['ADMIN', 'GESTOR'])
 def gestor_required(view_func):
     decorated_view = user_passes_test(
         lambda user: user.is_authenticated and user.is_gestor(),
@@ -75,7 +73,7 @@ def gestor_required(view_func):
     return decorated_view
 
 
-@acesso_restrito(['ADMIN', 'GESTOR'])
+
 def can_edit_required(view_func):
     decorated_view = user_passes_test(
         lambda user: user.is_authenticated and user.can_edit(),
@@ -107,8 +105,8 @@ class LoginView(View):
             messages.error(request, "Usuário ou senha incorretos.")
             return render(request, 'auth/login.html')
 
-@login_required
-@acesso_restrito(['ADMIN', 'GESTOR'])
+
+
 def register_user(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -146,8 +144,7 @@ def logout_view(request):
     return redirect('login')
 
 
-@login_required
-@acesso_restrito(['ADMIN', 'GESTOR'])
+
 def admin_dashboard(request):
     usuarios = CustomUser.objects.all()
     context = {
@@ -158,19 +155,17 @@ def admin_dashboard(request):
     return render(request, 'admin_dashboard.html', context)
 
 
-@login_required
+
 def perfil(request):
     return render(request, 'autocarros/perfil.html', {'user': request.user})
 
-@login_required
-@acesso_restrito(['ADMIN', 'GESTOR'])
+
 def gerir_usuarios(request):
     usuarios = CustomUser.objects.all().order_by('-date_joined')
     return render(request, 'gerir_usuarios.html', {'usuarios': usuarios})
 
 
-@login_required
-@acesso_restrito(['ADMIN', 'GESTOR'])
+
 def editar_usuario(request, user_id):
     usuario = get_object_or_404(CustomUser, id=user_id)
     if request.method == 'POST':
@@ -189,8 +184,7 @@ def acesso_negado(request):
     return render(request, 'acesso_negado.html', status=403)
 
 
-@login_required
-@acesso_restrito(['ADMIN', 'GESTOR'])
+
 def verificar_integridade(request):
     """View para verificar e corrigir problemas de integridade"""
     if not request.user.is_superuser:
@@ -250,21 +244,19 @@ def verificar_integridade(request):
     return render(request, "autocarros/verificar_integridade.html", context)
 
 
-@login_required
+
 def layout_base(request):
     sectores = Sector.objects.all()
     return render(request, "base.html", {"sectores": sectores})
 
 
-@login_required
-@acesso_restrito(['ADMIN', 'GESTOR'])
+
 def lista_sectores(request):
     sectores = Sector.objects.all().order_by("nome")
     return render(request, "autocarros/lista_sectores.html", {"sectores": sectores})
 
 
-@login_required
-@acesso_restrito(['ADMIN'])
+
 def adicionar_sector(request):
     if request.method == "POST":
         form = SectorForm(request.POST)
@@ -279,8 +271,6 @@ def adicionar_sector(request):
     return render(request, "autocarros/adicionar_sector.html", {"form": form})
 
 
-@login_required
-@acesso_restrito(['ADMIN'])
 def editar_sector(request, pk):
     sector = get_object_or_404(Sector, pk=pk)
     if request.method == "POST":
@@ -296,8 +286,6 @@ def editar_sector(request, pk):
     return render(request, "autocarros/adicionar_sector.html", {"form": form, "editar": True})
 
 
-@login_required
-@acesso_restrito(['ADMIN'])
 def apagar_sector(request, pk):
     sector = get_object_or_404(Sector, pk=pk)
     if request.method == "POST":
@@ -310,8 +298,6 @@ def apagar_sector(request, pk):
     return render(request, "autocarros/confirmar_apagar_sector.html", {"sector": sector})
 
 
-@login_required
-@acesso_restrito(['ADMIN'])
 def dashboard(request):
     hoje = timezone.now().date()
 
@@ -483,7 +469,6 @@ def dashboard(request):
     return render(request, "autocarros/dashboard.html", context)
 
 
-@login_required
 def resumo_sector(request, slug):
     sector_obj = get_object_or_404(Sector, slug=slug)
 
@@ -677,8 +662,7 @@ def resumo_sector(request, slug):
     return render(request, "autocarros/resumo_sector.html", context)
 
 
-@login_required
-@acesso_restrito(['ADMIN'])
+
 def detalhe_autocarro(request, autocarro_id):
     autocarro = get_object_or_404(Autocarro, id=autocarro_id)
     registos_local = RegistoDiario.objects.filter(autocarro=autocarro)
@@ -770,7 +754,7 @@ from django.utils import timezone
 from datetime import date
 from decimal import Decimal
 
-@login_required
+
 def listar_registros(request):
     hoje = timezone.now().date()
 
@@ -1070,7 +1054,7 @@ def listar_registros(request):
     return render(request, 'autocarros/listar_registros.html', context)
 
 
-@login_required
+
 def deletar_registros_sector_data(request, sector_id, data):
     sector = get_object_or_404(Sector, pk=sector_id)
     data_obj = parse_date(data)
@@ -1090,7 +1074,7 @@ def deletar_registros_sector_data(request, sector_id, data):
     return render(request, 'autocarros/confirmar_deletar_registros_sector.html', {'sector': sector, 'data': data_obj})
 
 
-@login_required
+
 def deletar_registro(request, pk):
     registro = get_object_or_404(RegistoDiario, pk=pk)
     if request.method == 'POST':
@@ -1103,7 +1087,7 @@ def deletar_registro(request, pk):
     return render(request, 'autocarros/confirmar_deletar_registro.html', {'registro': registro})
 
 
-@login_required
+
 def concluir_relatorio(request, pk):
     """Marca o relatório como concluído"""
     relatorio = get_object_or_404(RelatorioSector, pk=pk)
@@ -1118,8 +1102,6 @@ def concluir_relatorio(request, pk):
     return redirect('listar_registros')
 
 
-@login_required
-@acesso_restrito(['ADMIN'])
 def validar_relatorio(request, pk):
     """Marca o relatório como validado pelo supervisor"""
     relatorio = get_object_or_404(RelatorioSector, pk=pk)
@@ -1134,8 +1116,7 @@ def validar_relatorio(request, pk):
     return redirect('listar_registros')
 
 
-@login_required
-@acesso_restrito(['ADMIN', 'GESTOR'])
+
 def relatorios_validados(request):
     # Obter parâmetros de filtro
     sector_id = request.GET.get('sector', '')
@@ -1284,7 +1265,7 @@ def relatorios_validados(request):
     return render(request, 'autocarros/relatorios_validados.html', context)
 
 
-@login_required
+
 def adicionar_relatorio_sector(request):
     if request.method == 'POST':
         relatorio_form = RelatorioSectorForm(request.POST)
@@ -1361,7 +1342,6 @@ from django.contrib import messages
 from .models import RegistoDiario, Autocarro, Sector
 from .forms import RegistoDiarioForm
 
-@login_required
 def editar_relatorio_sector(request, pk):
     """
     View para editar registos diários agrupados por sector e data
@@ -1461,7 +1441,6 @@ def editar_relatorio_sector(request, pk):
     return render(request, "autocarros/editar_relatorio_sector.html", context)
 
 
-@login_required
 def adicionar_comprovativos(request, pk):
     """Adicionar comprovativos a um relatório existente"""
     relatorio = get_object_or_404(RelatorioSector, pk=pk)
@@ -1490,7 +1469,6 @@ def adicionar_comprovativos(request, pk):
     return redirect('editar_relatorio_sector', pk=relatorio.pk)
 
 
-@login_required
 def deletar_comprovativo(request, pk):
     """Deletar um comprovativo específico"""
     comprovativo = get_object_or_404(ComprovativoRelatorio, pk=pk)
@@ -1506,7 +1484,7 @@ def deletar_comprovativo(request, pk):
     return redirect('editar_relatorio_sector', pk=relatorio_pk)
 
 
-@login_required
+
 def deletar_relatorio_sector(request, pk):
     relatorio = get_object_or_404(RelatorioSector, pk=pk)
 
@@ -1523,13 +1501,11 @@ def deletar_relatorio_sector(request, pk):
     })
 
 
-@login_required
 def listar_autocarros(request):
     autocarros = Autocarro.objects.all().order_by('numero')
     return render(request, 'autocarros/listar_autocarros.html', {'autocarros': autocarros})
 
 
-@login_required
 def alterar_status_autocarro(request, pk):
     autocarro = get_object_or_404(Autocarro, pk=pk)
     if request.method == "POST":
@@ -1543,8 +1519,7 @@ def alterar_status_autocarro(request, pk):
     return redirect("listar_autocarros")
 
 
-@login_required
-@acesso_restrito(['ADMIN', 'GESTOR'])
+
 def cadastrar_autocarro(request):
     if request.method == 'POST':
         form = AutocarroForm(request.POST)
@@ -1562,7 +1537,7 @@ def cadastrar_autocarro(request):
     return render(request, 'autocarros/cadastrar_autocarro.html', {'form': form})
 
 
-@login_required
+
 def atualizar_estado(request):
     if request.method == "POST":
         form = EstadoAutocarroForm(request.POST)
@@ -1580,8 +1555,7 @@ def atualizar_estado(request):
     return render(request, "autocarros/atualizar_estado.html", {"form": form})
 
 
-@login_required
-@acesso_restrito(['ADMIN', 'GESTOR'])
+
 def editar_autocarro(request, pk):
     autocarro = get_object_or_404(Autocarro, pk=pk)
     if request.method == 'POST':
@@ -1600,8 +1574,6 @@ def editar_autocarro(request, pk):
     return render(request, 'autocarros/editar_autocarro.html', {'form': form, 'autocarro': autocarro})
 
 
-@login_required
-@acesso_restrito(['ADMIN'])
 def deletar_autocarro(request, pk):
     autocarro = get_object_or_404(Autocarro, pk=pk)
     if request.method == 'POST':
@@ -1614,7 +1586,7 @@ def deletar_autocarro(request, pk):
     return render(request, 'autocarros/deletar_autocarro.html', {'autocarro': autocarro})
 
 
-@login_required
+
 def adicionar_despesa(request):
     if request.method == 'POST':
         form = DespesaForm(request.POST)
@@ -1640,7 +1612,7 @@ def adicionar_despesa(request):
     return render(request, 'despesas/adicionar_despesa.html', {'form': form, 'multi': multi})
 
 
-@login_required
+
 def selecionar_sector_combustivel(request):
     if request.method == "POST":
         form = SelecionarSectorCombustivelForm(request.POST)
@@ -1653,7 +1625,7 @@ def selecionar_sector_combustivel(request):
     return render(request, "despesas/selecionar_sector.html", {"form": form})
 
 
-@login_required
+
 def adicionar_combustivel(request, pk):
     sector = get_object_or_404(Sector, pk=pk)
     autocarros = Autocarro.objects.filter(sector=sector).order_by("numero")
@@ -1703,7 +1675,7 @@ def adicionar_combustivel(request, pk):
     })
 
 
-@login_required
+
 def editar_combustivel(request, pk):
     despesa = get_object_or_404(DespesaCombustivel, pk=pk)
 
@@ -1727,7 +1699,6 @@ def editar_combustivel(request, pk):
     })
 
 
-@login_required
 def deletar_combustivel(request, pk):
     despesa = get_object_or_404(DespesaCombustivel, pk=pk)
 
@@ -1744,8 +1715,7 @@ def deletar_combustivel(request, pk):
     })
 
 
-@login_required
-@acesso_restrito(['ADMIN'])
+
 def listar_despesas(request):
     data_inicio = request.GET.get("data_inicio")
     data_fim = request.GET.get("data_fim")
@@ -1781,8 +1751,7 @@ def listar_despesas(request):
     })
 
 
-@login_required
-@acesso_restrito(['ADMIN'])
+
 def editar_despesa(request, pk):
     despesa = get_object_or_404(Despesa, pk=pk)
     if request.method == 'POST':
@@ -1801,8 +1770,7 @@ def editar_despesa(request, pk):
     return render(request, 'despesas/editar_despesa.html', {'form': form, 'despesa': despesa})
 
 
-@login_required
-@acesso_restrito(['ADMIN'])
+
 def deletar_despesa(request, pk):
     despesa = get_object_or_404(Despesa, pk=pk)
     if request.method == 'POST':
@@ -1817,7 +1785,7 @@ def deletar_despesa(request, pk):
 # 🔹 Dashboards Especializados
 from django.db.models import ExpressionWrapper
 
-@login_required
+
 def decimal_default(obj):
     if isinstance(obj, Decimal):
         return float(obj)
@@ -1825,8 +1793,6 @@ def decimal_default(obj):
 
 
 
-@login_required
-@acesso_restrito(['ADMIN', 'VISUALIZADOR'])
 def contabilista_financas(request):
     registos = RegistoDiario.objects.annotate(
         saldo_liquido=ExpressionWrapper(
@@ -1879,8 +1845,7 @@ def contabilista_financas(request):
     })
 
 
-@login_required
-@acesso_restrito(['ADMIN', 'OPERADOR'])
+
 def gerencia_financas(request):
     registros = (
         RegistoDiario.objects
@@ -1934,8 +1899,6 @@ def gerencia_financas(request):
     return render(request, "dashboards/gerencia_financas.html", context)
 
 
-@login_required
-@acesso_restrito(['ADMIN', 'OPERADOR', 'VISUALIZADOR'])
 def gerencia_campo(request):
     # Verificar se o modelo Motorista existe
     try:
