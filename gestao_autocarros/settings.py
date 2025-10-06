@@ -1,20 +1,23 @@
 from pathlib import Path
 import os
 from django.core.management.utils import get_random_secret_key
+import dj_database_url  # garante que você importou
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ─── CHAVE E DEBUG ───
+# 🔹 Chave e Debug
 SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-# ─── HOSTS ───
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+# 🔹 Hosts permitidos
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0', '192.168.1.10']
 
-# ─── BANCO DE DADOS ───
-# Use PostgreSQL somente se a variável de ambiente DATABASE_URL existir
+
+# settings.py
+AUTH_USER_MODEL = 'autocarros.CustomUser'
+
+# 🔹 Banco de dados
 if os.getenv('DATABASE_URL'):
-    import dj_database_url
     DATABASES = {
         'default': dj_database_url.parse(
             os.getenv('DATABASE_URL'),
@@ -23,7 +26,6 @@ if os.getenv('DATABASE_URL'):
         )
     }
 else:
-    # Localmente, sem precisar instalar nada
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -31,11 +33,20 @@ else:
         }
     }
 
-# ─── MEDIA ───
+# 🔹 Media e static
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# ─── INSTALLED APPS ───
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# 🔹 Autenticação
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/login/'
+
+# 🔹 Installed apps, middleware, templates...
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -47,7 +58,6 @@ INSTALLED_APPS = [
     'autocarros',
 ]
 
-# ─── MIDDLEWARE ───
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -59,10 +69,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# ─── URLS ───
 ROOT_URLCONF = 'gestao_autocarros.urls'
 
-# ─── TEMPLATES ───
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -79,13 +87,3 @@ TEMPLATES = [
         },
     },
 ]
-
-# ─── STATIC ───
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# ─── AUTENTICAÇÃO ───
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/login/'
