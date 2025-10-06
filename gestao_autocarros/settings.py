@@ -1,9 +1,14 @@
 from pathlib import Path
 import os
 from django.core.management.utils import get_random_secret_key
+import dj_database_url
+from dotenv import load_dotenv
 
 # ─── BASE DIR ───
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# ─── LOAD ENV ───
+load_dotenv()
 
 # ─── MEDIA ───
 MEDIA_URL = '/media/'
@@ -34,6 +39,7 @@ INSTALLED_APPS = [
 # ─── MIDDLEWARE ───
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ✅ necessário no Render
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -46,16 +52,13 @@ MIDDLEWARE = [
 # ─── URLS ───
 ROOT_URLCONF = 'gestao_autocarros.urls'
 
-# ─── DATABASE ───
+# ─── DATABASE (Render) ───
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'banco_alca_aty'),
-        'USER': os.getenv('DB_USER', 'banco_alca_aty_user'),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', ''),
-        'PORT': os.getenv('DB_PORT', '5432'),
-    }
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        ssl_require=not DEBUG,
+    )
 }
 
 # ─── TEMPLATES ───
@@ -88,7 +91,8 @@ FORMAT_MODULE_PATH = 'autocarros.locale'
 # ─── STATIC ───
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = BASE_DIR / "staticfiles"  # usado no deploy
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"  # ✅
 
 # ─── AUTENTICAÇÃO ───
 LOGIN_URL = '/login/'
@@ -104,7 +108,7 @@ GRUPOS = {
 }
 
 # ─── SESSÃO ───
-SESSION_COOKIE_AGE = 3600  # 1 hora
+SESSION_COOKIE_AGE = 3600
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # ─── SEGURANÇA PARA PRODUÇÃO ───
