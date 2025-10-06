@@ -20,7 +20,7 @@ class CustomUserCreationForm(UserCreationForm):
     
     class Meta:
         model = User
-        fields = ('username', 'email', 'telefone', 'nivel_acesso', 'password1', 'password2')
+        fields = ('username', 'email',)
     
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -32,17 +32,17 @@ class CustomUserCreationForm(UserCreationForm):
 class CustomAuthenticationForm(AuthenticationForm):
     username = forms.CharField(
         label='Username ou Email',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Digite seu username ou email'})
+        widget=forms.TextInput(attrs={'class': 'form-control'})
     )
     password = forms.CharField(
         label='Password',
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Digite sua password'})
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
     )
 
 class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['username', 'email', 'telefone', 'nivel_acesso', 'ativo']
+        fields = ['username', 'email']
 
 # ==================== FORMULÁRIOS ==================== #
 
