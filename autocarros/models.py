@@ -9,28 +9,31 @@ from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 
 
-class CustomUser(AbstractUser):
-    NIVEL_ACESSO_CHOICES = [
-        ('ADMIN', 'Administrador'),
-        ('GESTOR', 'Gestor'),
-        ('OPERADOR', 'Operador'),
-        ('VISUALIZADOR', 'Visualizador'),
-    ]
+from django.contrib.auth.models import AbstractUser, Group, Permission
 
+class CustomUser(AbstractUser):
     telefone = models.CharField(max_length=15, blank=True, null=True)
-    nivel_acesso = models.CharField(max_length=20, choices=NIVEL_ACESSO_CHOICES, default='OPERADOR')
-    sector = models.ForeignKey(
-        'Sector',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='usuarios'
-    )
-    data_registro = models.DateTimeField(auto_now_add=True)
+    nivel_acesso = models.CharField(max_length=20, choices=NIVEL_ACESSO_CHOICES, default='user')
     ativo = models.BooleanField(default=True)
 
-    def __str__(self):
-        return f"{self.username} - {self.get_nivel_acesso_display()}"
+    groups = models.ManyToManyField(
+        Group,
+        related_name='customuser_set',       # <--- define um related_name único
+        related_query_name='customuser',
+        blank=True,
+        help_text='The groups this user belongs to.',
+        verbose_name='groups',
+    )
+
+    user_permissions = models.ManyToManyField(
+        Permission,
+        related_name='customuser_set',       # <--- define um related_name único
+        related_query_name='customuser',
+        blank=True,
+        help_text='Specific permissions for this user.',
+        verbose_name='user permissions',
+    )
+
     
 
 # <----- Modelo para Autocarro -----> #
