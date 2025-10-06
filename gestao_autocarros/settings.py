@@ -10,7 +10,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # 🔹 Hosts permitidos
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0', '192.168.1.10']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0', 'https://alca-atytransportes.onrender.com']
 
 
 # settings.py
