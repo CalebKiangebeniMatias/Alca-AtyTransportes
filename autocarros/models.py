@@ -10,15 +10,27 @@ from django.conf import settings
 
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.db import models
 
 class CustomUser(AbstractUser):
+    NIVEL_ACESSO_CHOICES = [
+        ('admin', 'Administrador'),
+        ('gestor', 'Gestor'),
+        ('user', 'Usuário'),
+    ]
+
     telefone = models.CharField(max_length=15, blank=True, null=True)
-    nivel_acesso = models.CharField(max_length=20, choices=NIVEL_ACESSO_CHOICES, default='user')
+    nivel_acesso = models.CharField(
+        max_length=20, 
+        choices=NIVEL_ACESSO_CHOICES, 
+        default='user'
+    )
     ativo = models.BooleanField(default=True)
 
     groups = models.ManyToManyField(
         Group,
-        related_name='customuser_set',       # <--- define um related_name único
+        related_name='customuser_set',
         related_query_name='customuser',
         blank=True,
         help_text='The groups this user belongs to.',
@@ -27,12 +39,15 @@ class CustomUser(AbstractUser):
 
     user_permissions = models.ManyToManyField(
         Permission,
-        related_name='customuser_set',       # <--- define um related_name único
+        related_name='customuser_set',
         related_query_name='customuser',
         blank=True,
         help_text='Specific permissions for this user.',
         verbose_name='user permissions',
     )
+
+    def __str__(self):
+        return self.username
 
     
 
