@@ -59,7 +59,7 @@ import dj_database_url
 
 DATABASES = {
     'default': dj_database_url.parse(
-        'postgresql://banco_alca_aty_user:UtoSBIAyRykAzpFtDAF8jUfRSaVumUUR@dpg-d3hj6iffte5s73d08ovg-a.oregon-postgres.render.com/banco_alca_aty',
+        'postgresql://banco_alca_aty_user:UtoSBIAyRykAzpFtDAF8jUfRSaVumUUR@dpg-d3hj6iffte5s73d08ovg-a/banco_alca_aty',
         conn_max_age=600,
         ssl_require=True  # Render exige SSL
     )
