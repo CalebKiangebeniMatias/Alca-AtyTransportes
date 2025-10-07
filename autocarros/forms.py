@@ -60,14 +60,15 @@ class SectorForm(forms.ModelForm):
 
 class SectorGestorForm(forms.ModelForm):
     gestor = forms.ModelChoiceField(
-        queryset=CustomUser.objects.filter(nivel_acesso='GESTOR'),
+        queryset=CustomUser.objects.filter(nivel_acesso__iexact='gestor'),
         required=True,
+        label='Gestor responsável',
         widget=forms.Select(attrs={'class': 'form-select'})
     )
 
     class Meta:
         model = Sector
-        fields = ['nome', 'slug', 'gestor']
+        fields = ['gestor']
 
 
 

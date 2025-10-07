@@ -33,9 +33,6 @@ def admin_required(user):
 def associar_gestor(request, sector_id):
     sector = get_object_or_404(Sector, id=sector_id)
 
-    # Pega todos os usuários que podem ser gestores (ajuste conforme seu campo)
-    gestores_disponiveis = CustomUser.objects.filter(nivel_acesso='gestor')
-
     if request.method == "POST":
         form = SectorGestorForm(request.POST, instance=sector)
         if form.is_valid():
@@ -45,13 +42,11 @@ def associar_gestor(request, sector_id):
     else:
         form = SectorGestorForm(instance=sector)
 
-    context = {
+    return render(request, "autocarros/associar_gestor.html", {
         "form": form,
         "sector": sector,
-        "gestor": gestores_disponiveis,
-    }
+    })
 
-    return render(request, "autocarros/associar_gestor.html", context)
 
 @login_required
 def admin_required(view_func):
