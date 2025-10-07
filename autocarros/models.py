@@ -136,7 +136,6 @@ class Sector(models.Model):
         return self.nome
 
 
-
 class RelatorioSector(models.Model):
     sector = models.ForeignKey(Sector, on_delete=models.CASCADE, related_name='relatorios')
     data = models.DateField()
