@@ -1118,6 +1118,7 @@ def concluir_relatorio(request, pk):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def validar_relatorio(request, pk):
     """Marca o relatório como validado pelo supervisor"""
     relatorio = get_object_or_404(RelatorioSector, pk=pk)
