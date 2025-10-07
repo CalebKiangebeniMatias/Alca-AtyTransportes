@@ -25,11 +25,13 @@ from .models import CustomUser
 
 # Decorator para só admins poderem associar gestores
 @login_required
+@acesso_restrito(['admin'])
 def admin_required(user):
     return user.is_authenticated and user.is_admin()
 
 
 @login_required
+@acesso_restrito(['admin'])
 def associar_gestor(request, sector_id):
     sector = get_object_or_404(Sector, id=sector_id)
 
@@ -49,6 +51,7 @@ def associar_gestor(request, sector_id):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def admin_required(view_func):
     decorated_view = user_passes_test(
         lambda user: user.is_authenticated and user.is_admin(),
@@ -58,6 +61,7 @@ def admin_required(view_func):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def gestor_required(view_func):
     decorated_view = user_passes_test(
         lambda user: user.is_authenticated and user.is_gestor(),
@@ -100,6 +104,7 @@ class LoginView(View):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def register_user(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -139,6 +144,7 @@ def logout_view(request):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def admin_dashboard(request):
     usuarios = CustomUser.objects.all()
     context = {
@@ -155,12 +161,14 @@ def perfil(request):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def gerir_usuarios(request):
     usuarios = CustomUser.objects.all().order_by('-date_joined')
     return render(request, 'gerir_usuarios.html', {'usuarios': usuarios})
 
 
 @login_required
+@acesso_restrito(['admin'])
 def editar_usuario(request, user_id):
     usuario = get_object_or_404(CustomUser, id=user_id)
     if request.method == 'POST':
@@ -180,6 +188,7 @@ def acesso_negado(request):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def verificar_integridade(request):
     """View para verificar e corrigir problemas de integridade"""
     if not request.user.is_superuser:
@@ -246,12 +255,14 @@ def layout_base(request):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def lista_sectores(request):
     sectores = Sector.objects.all().order_by("nome")
     return render(request, "autocarros/lista_sectores.html", {"sectores": sectores})
 
 
 @login_required
+@acesso_restrito(['admin'])
 def adicionar_sector(request):
     if request.method == "POST":
         form = SectorForm(request.POST)
@@ -266,6 +277,8 @@ def adicionar_sector(request):
     return render(request, "autocarros/adicionar_sector.html", {"form": form})
 
 
+@login_required
+@acesso_restrito(['admin'])
 def editar_sector(request, pk):
     sector = get_object_or_404(Sector, pk=pk)
     if request.method == "POST":
@@ -281,6 +294,8 @@ def editar_sector(request, pk):
     return render(request, "autocarros/adicionar_sector.html", {"form": form, "editar": True})
 
 
+@login_required
+@acesso_restrito(['admin'])
 def apagar_sector(request, pk):
     sector = get_object_or_404(Sector, pk=pk)
     if request.method == "POST":
@@ -294,6 +309,7 @@ def apagar_sector(request, pk):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def dashboard(request):
     hoje = timezone.now().date()
 
@@ -466,6 +482,7 @@ def dashboard(request):
 
 
 @login_required
+@acesso_restrito(['admin', 'gestor'])
 def resumo_sector(request, slug):
     sector_obj = get_object_or_404(Sector, slug=slug)
 
@@ -480,7 +497,7 @@ def resumo_sector(request, slug):
         if not sector_obj.associados.filter(pk=request.user.pk).exists():
             return redirect('acesso_negado')  # 🚫 redireciona
 
-    elif nivel in ['admin', 'superuser']:
+    elif nivel in ['admin']:
         pass  # acesso total permitido
 
     else:
@@ -658,6 +675,7 @@ def resumo_sector(request, slug):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def detalhe_autocarro(request, autocarro_id):
     autocarro = get_object_or_404(Autocarro, id=autocarro_id)
     registos_local = RegistoDiario.objects.filter(autocarro=autocarro)
@@ -751,6 +769,7 @@ from decimal import Decimal
 
 
 @login_required
+@acesso_restrito(['admin', 'gestor'])
 def listar_registros(request):
     hoje = timezone.now().date()
 
