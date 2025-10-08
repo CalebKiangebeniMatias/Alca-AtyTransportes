@@ -591,7 +591,8 @@ def resumo_sector(request, slug):
         stats['total_combustivel_litros'] = comb_auto.get('total_litros') or Decimal('0')
         stats['total_combustivel_sobragem'] = comb_auto.get('total_sobragem') or Decimal('0')
         stats['total_combustivel_lavagem'] = comb_auto.get('total_lavagem') or Decimal('0')
-        # ajustar saídas por autocarro para incluir sobragem e lavagem
+
+        # Ajustar saídas por autocarro para incluir sobragem e lavagem
         stats['total_saidas'] = stats['total_saidas'] + stats.get('total_combustivel', Decimal('0')) + stats.get('total_combustivel_sobragem', Decimal('0')) + stats.get('total_combustivel_lavagem', Decimal('0'))
         stats["resto"] = stats["total_entradas"] - stats["total_saidas"]
         autocarros_stats.append(stats)
@@ -1120,16 +1121,26 @@ def concluir_relatorio(request, pk):
 @login_required
 @acesso_restrito(['admin'])
 def validar_relatorio(request, pk):
-    """Marca o relatório como validado pelo supervisor"""
+    """Marca o relatório como validado pelo supervisor — só admin pode validar."""
     relatorio = get_object_or_404(RelatorioSector, pk=pk)
-    
+
+    # Verificação redundante/explicita para evitar inconsistências no campo nivel_acesso
+    nivel = getattr(request.user, "nivel_acesso", "") or ""
+    if not (hasattr(request.user, "is_admin") and request.user.is_admin()) and nivel.lower() != "admin":
+        messages.error(request, "❌ Acesso negado. Apenas administradores podem validar relatórios.")
+        return redirect('acesso_negado')
+
     if request.method == 'POST':
         try:
-            # 🔹 Aqui você pode adicionar lógica de validação do supervisor
+            # marcar como validado (implemente a lógica real aqui, ex: relatorio.validado = True; relatorio.save())
+            # Exemplo genérico:
+            if hasattr(relatorio, "validado"):
+                relatorio.validado = True
+                relatorio.save()
             messages.success(request, f"✅ Relatório de {relatorio.sector.nome} validado com sucesso!")
         except Exception as e:
             messages.error(request, f"❌ Erro ao validar relatório: {str(e)}")
-    
+
     return redirect('listar_registros')
 
 
@@ -1408,7 +1419,7 @@ def editar_relatorio_sector(request, pk):
             if form.is_valid():
                 try:
                     # 🔒 Verifica se o usuário tentou validar sem permissão
-                    if form.cleaned_data.get("validado") and request.user.nivel_acesso not in ['ADMIN', 'GESTOR']:
+                    if form.cleaned_data.get("validado") and request.user.nivel_acesso not in ['admin']:
                         messages.error(request, f"🚫 Você não tem permissão para validar relatórios.")
                         continue  # não salva esse registro
 
@@ -1586,6 +1597,7 @@ def editar_autocarro(request, pk):
             try:
                 form.save()
                 messages.success(request, '✅ Autocarro atualizado com sucesso!')
+               
                 return redirect('listar_autocarros')
             except Exception as e:
                 messages.error(request, f'❌ Erro ao atualizar autocarro: {str(e)}')

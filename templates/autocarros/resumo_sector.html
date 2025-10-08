@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load l10n humanize %}
 
 {% block title %}Resumo - {{ sector|title }}{% endblock %}
 
@@ -31,7 +32,7 @@
             <div class="card border-success shadow-sm bg-azul-forte">
                 <div class="card-body">
                     <h5 class="text-success"><i class="fas fa-arrow-down"></i> Entradas</h5>
-                    <p class="fs-4 fw-bold text-success">{{ total_entradas }} Kz</p>
+                    <p class="fs-4 fw-bold text-success">{% localize on %}{{ total_entradas|default:0|floatformat:2 }}{% endlocalize %} Kz</p>
                 </div>
             </div>
         </div>
@@ -39,7 +40,7 @@
                 <div class="card border-danger shadow-sm bg-azul-forte">
                 <div class="card-body">
                     <h5 class="text-danger"><i class="fas fa-arrow-up"></i> Saídas</h5>
-                    <p class="fs-4 fw-bold text-danger">{{ total_saidas }} Kz</p>
+                    <p class="fs-4 fw-bold text-danger">{% localize on %}{{ total_saidas|default:0|floatformat:2 }}{% endlocalize %} Kz</p>
                 </div>
             </div>
         </div>
@@ -47,7 +48,7 @@
             <div class="card border-warning shadow-sm bg-azul-forte">
                 <div class="card-body">
                     <h5 class="text-warning"><i class="fas fa-wallet"></i> Resto</h5>
-                    <p class="fs-4 fw-bold text-warning">{{ resto }} Kz</p>
+                    <p class="fs-4 fw-bold text-warning">{% localize on %}{{ resto|default:0|floatformat:2 }}{% endlocalize %} Kz</p>
                 </div>
             </div>
         </div>
@@ -55,7 +56,7 @@
             <div class="card border-info shadow-sm bg-azul-forte">
                 <div class="card-body">
                     <h5 class="text-info"><i class="fas fa-road"></i> KM</h5>
-                    <p class="fs-4 fw-bold">{{ total_km }} km</p>
+                    <p class="fs-4 fw-bold">{% if total_km is not None %}{{ total_km|intcomma }}{% else %}0{% endif %} km</p>
                 </div>
             </div>
         </div>
@@ -95,7 +96,7 @@
             <div class="card border-danger shadow-sm bg-azul-forte">
                 <div class="card-body">
                     <h5 class="text-danger"><i class="fas fa-gas-pump"></i> Combustível</h5>
-                    <p class="fs-5 fw-bold text-danger">{{ total_combustivel_valor|floatformat:2 }} Kz</p>
+                    <p class="fs-5 fw-bold text-danger">{% localize on %}{{ total_combustivel_valor|default:0|floatformat:2 }}{% endlocalize %} Kz</p>
                 </div>
             </div>
         </div>
@@ -103,7 +104,7 @@
             <div class="card border-info shadow-sm bg-azul-forte">
                 <div class="card-body">
                     <h5 class="text-info"><i class="fas fa-tint"></i> Litros (ilustr.)</h5>
-                    <p class="fs-5 fw-bold">{{ total_combustivel_litros|floatformat:2 }}</p>
+                    <p class="fs-5 fw-bold">{% localize on %}{{ total_combustivel_litros|default:0|floatformat:2 }}{% endlocalize %}</p>
                 </div>
             </div>
         </div>
@@ -111,7 +112,7 @@
             <div class="card border-warning shadow-sm bg-azul-forte">
                 <div class="card-body">
                     <h5 class="text-warning"><i class="fas fa-filter"></i> Sobragem</h5>
-                    <p class="fs-5 fw-bold text-warning">{{ total_combustivel_sobragem|floatformat:2 }} Kz</p>
+                    <p class="fs-5 fw-bold text-warning">{% localize on %}{{ total_combustivel_sobragem|default:0|floatformat:2 }}{% endlocalize %} Kz</p>
                 </div>
             </div>
         </div>
@@ -119,7 +120,7 @@
             <div class="card border-info shadow-sm bg-azul-forte">
                 <div class="card-body">
                     <h5 class="text-info"><i class="fas fa-bucket"></i> Lavagem</h5>
-                    <p class="fs-5 fw-bold">{{ total_combustivel_lavagem|floatformat:2 }} Kz</p>
+                    <p class="fs-5 fw-bold">{% localize on %}{{ total_combustivel_lavagem|default:0|floatformat:2 }}{% endlocalize %} Kz</p>
                 </div>
             </div>
         </div>
@@ -132,7 +133,7 @@
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div>
                         <h5 class="text-danger"><i class="fas fa-file-invoice-dollar"></i> Despesas do Sector</h5>
-                        <p class="fs-4 fw-bold text-danger">{{ total_despesas_sector|floatformat:2 }} Kz</p>
+                        <p class="fs-4 fw-bold text-danger">{% localize on %}{{ total_despesas_sector|default:0|floatformat:2 }}{% endlocalize %} Kz</p>
                         <small class="text-muted">Inclui despesas gerais (não combustível) e comprovativos.</small>
                     </div>
                     <div style="width:220px;">
@@ -143,7 +144,7 @@
         </div>
     </div>
 
-    <!-- � Enviar resumo por WhatsApp -->
+    <!-- Enviar resumo por WhatsApp -->
     <div class="row mt-4">
         <div class="col-12">
             <div class="card shadow-sm bg-azul-forte">
@@ -181,7 +182,7 @@
     });
     </script>
 
-    <!-- �📊 Resumo por Autocarro -->
+    <!-- Resumo por Autocarro -->
     <h4 class="mt-5">Resumo por Autocarro</h4>
     <div class="row mt-3">
         {% for stats in autocarros_stats %}
@@ -193,17 +194,17 @@
                         <p class="text-muted">{{ stats.autocarro.modelo }}</p>
 
                         <p class="text-success fw-bold">
-                            <i class="fas fa-arrow-down"></i> {{ stats.total_entradas }} Kz
+                            <i class="fas fa-arrow-down"></i> {% localize on %}{{ stats.total_entradas|default:0|floatformat:2 }}{% endlocalize %} Kz
                         </p>
                         <p class="text-danger fw-bold">
-                            <i class="fas fa-arrow-up"></i> {{ stats.total_saidas }} Kz
+                            <i class="fas fa-arrow-up"></i> {% localize on %}{{ stats.total_saidas|default:0|floatformat:2 }}{% endlocalize %} Kz
                         </p>
                         <p class="{% if stats.resto >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
-                            <i class="fas fa-wallet"></i> {{ stats.resto }} Kz
+                            <i class="fas fa-wallet"></i> {% localize on %}{{ stats.resto|default:0|floatformat:2 }}{% endlocalize %} Kz
                         </p>
-                        <p><i class="fas fa-road"></i> {{ stats.total_km }} km</p>
-                        <p><i class="fas fa-users"></i> {{ stats.total_passageiros }}</p>
-                        <p><i class="fas fa-route"></i> {{ stats.total_viagens }}</p>
+                        <p><i class="fas fa-road"></i> {{ stats.total_km|default:0|intcomma }} km</p>
+                        <p><i class="fas fa-users"></i> {{ stats.total_passageiros|default:0|intcomma }}</p>
+                        <p><i class="fas fa-route"></i> {{ stats.total_viagens|default:0|intcomma }}</p>
                     </div>
                     <div class="card-footer text-center">
                         <a href="{% url 'detalhe_autocarro' stats.autocarro.id %}" class="btn btn-sm btn-outline-primary">
@@ -218,4 +219,5 @@
             </div>
         {% endfor %}
     </div>
+</div>
 {% endblock %}

@@ -1,6 +1,9 @@
 from pathlib import Path
 import os
-from django.core.management.utils import get_random_secret_key
+try:
+    from django.core.management.utils import get_random_secret_key
+except ImportError:
+    from django.core.management.base import get_random_secret_key
 import dj_database_url  # garante que você importou
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -45,6 +48,14 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/login/'
+
+# 🔹 Localização / formatação de números
+LANGUAGE_CODE = 'pt-br'
+USE_I18N = True
+USE_L10N = True
+USE_THOUSAND_SEPARATOR = True
+THOUSAND_SEPARATOR = '.'
+DECIMAL_SEPARATOR = ','
 
 # 🔹 Installed apps, middleware, templates...
 INSTALLED_APPS = [

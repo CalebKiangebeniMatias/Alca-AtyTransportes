@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load l10n humanize %}
 
 {% block title %}Despesas - Sistema de Gestão{% endblock %}
 
@@ -82,7 +83,7 @@
 
                       <td>
                         <span class="badge bg-warning text-dark fs-6">
-                          {{ despesa.valor|floatformat:2 }} Kz
+                          {% localize on %}{{ despesa.valor|default:0|floatformat:2 }}{% endlocalize %} Kz
                         </span>
                       </td>
 
@@ -138,28 +139,11 @@
 
                           <!-- WhatsApp -->
                           {% if item.tipo == "combustivel" %}
-                            <a href="https://wa.me/?text=
-                              📅 DATA: {{ despesa.data|date:'d/m/Y' }}%0A
-                              🏢 SECTOR: {{ despesa.sector.nome }}%0A
-                              🚌 Autocarro: {{ despesa.autocarro.numero }} - {{ despesa.autocarro.modelo }}%0A
-                              ⛽ Valor do Combustível: {{ despesa.valor|floatformat:2 }} Kz%0A
-                              {% if despesa.comprovativo %}📎 Comprovativo: {{ despesa.comprovativo.url }}{% endif %}"
-                              target="_blank"
-                              class="btn btn-sm btn-outline-success" title="Enviar para WhatsApp">
+                            <a href="https://wa.me/?text={{ ('📅 DATA: ' ~ despesa.data|date:'d/m/Y' ~ '\n🏢 SECTOR: ' ~ despesa.sector.nome ~ '\n🚌 Autocarro: ' ~ despesa.autocarro.numero ~ ' - ' ~ despesa.autocarro.modelo ~ '\n⛽ Valor do Combustível: ' ~ (despesa.valor|default:0|floatformat:2) ~ ' Kz' ~ (despesa.comprovativo and '\n📎 Comprovativo: ' ~ despesa.comprovativo.url or ''))|urlencode }}" target="_blank" class="btn btn-sm btn-outline-success" title="Enviar para WhatsApp">
                               <i class="fab fa-whatsapp"></i>
                             </a>
                           {% else %}
-                            <a href="https://wa.me/?text=
-                              📅 DATA: {{ despesa.data|date:'d/m/Y' }}%0A
-                              📝 DESCRIÇÃO: {{ despesa.descricao|urlencode }}%0A
-                              💰 Valor: {{ despesa.valor|floatformat:2 }} Kz%0A
-                              Nº Transação: {{ despesa.numero_transacao|default:'N/A' }}%0A
-                              Nº Requisição: {{ despesa.numero_requisicao|default:'N/A' }}%0A
-                              {% if despesa.registo %}📌 Registo: {{ despesa.registo.id }}%0A{% endif %}
-                              {% for comprovativo in despesa.comprovativos.all %}📎 Comprovativo: {{ comprovativo.full_url }}%0A{% endfor %}"
-                              
-                              target="_blank"
-                              class="btn btn-sm btn-outline-success" title="Enviar para WhatsApp">
+                            <a href="https://wa.me/?text={{ ('📅 DATA: ' ~ despesa.data|date:'d/m/Y' ~ '\n📝 DESCRIÇÃO: ' ~ despesa.descricao ~ '\n💰 Valor: ' ~ (despesa.valor|default:0|floatformat:2) ~ ' Kz\nNº Transação: ' ~ (despesa.numero_transacao|default:'N/A') ~ '\nNº Requisição: ' ~ (despesa.numero_requisicao|default:'N/A') ~ (despesa.registo and '\n📌 Registo: ' ~ despesa.registo.id or '') ~ (despesa.comprovativos.all and '\n' or ''))|urlencode }}" target="_blank" class="btn btn-sm btn-outline-success" title="Enviar para WhatsApp">
                               <i class="fab fa-whatsapp"></i>
                             </a>
                           {% endif %}
@@ -177,7 +161,7 @@
                           </div>
                           <div class="modal-body">
                             Tem certeza que deseja excluir a despesa de 
-                            <strong>{{ despesa.valor }} Kz</strong> ({{ item.tipo|title }})?
+                            <strong>{% localize on %}{{ despesa.valor|default:0|floatformat:2 }}{% endlocalize %} Kz</strong> ({{ item.tipo|title }})?
                           </div>
                           <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>

@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load l10n humanize %}
+
 {% block title %}Gerência de Finanças{% endblock %}
 
 {% block content %}
@@ -35,6 +37,9 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // Formatter pt-BR para eixos/tooltips (separador de milhares e vírgula decimal)
+    const numberFormatter = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
     // 🔹 Gráfico de Lucros
     new Chart(document.getElementById('graficoLucros'), {
         type: 'bar',
@@ -48,7 +53,26 @@
                 borderWidth: 1
             }]
         },
-        options: { responsive: true }
+        options: { 
+            responsive: true,
+            scales: {
+                y: {
+                    ticks: {
+                        callback: function(value) { return numberFormatter.format(value) + ' Kz'; }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const v = context.parsed.y ?? context.parsed;
+                            return context.dataset.label + ': ' + numberFormatter.format(v) + ' Kz';
+                        }
+                    }
+                }
+            }
+        }
     });
 
     // 🔹 Gráfico de Custos
@@ -83,7 +107,26 @@
                 }
             ]
         },
-        options: { responsive: true }
+        options: { 
+            responsive: true,
+            scales: {
+                y: {
+                    ticks: {
+                        callback: function(value) { return numberFormatter.format(value) + ' Kz'; }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const v = context.parsed.y ?? context.parsed;
+                            return context.dataset.label + ': ' + numberFormatter.format(v) + ' Kz';
+                        }
+                    }
+                }
+            }
+        }
     });
 </script>
 {% endblock %}

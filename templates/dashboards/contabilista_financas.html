@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load l10n humanize %}
+
 {% block title %}Contabilidade & Finanças{% endblock %}
 
 {% block content %}
@@ -11,7 +13,7 @@
             <div class="card text-center">
                 <div class="card-header"><i class="fas fa-wallet"></i> Entradas</div>
                 <div class="card-body">
-                    <h3 class="fw-bold">{{ totais.total_entradas|default:"0" }} Kz</h3>
+                    <h3 class="fw-bold">{% localize on %}{{ totais.total_entradas|default:0|floatformat:2 }}{% endlocalize %} Kz</h3>
                 </div>
             </div>
         </div>
@@ -20,7 +22,7 @@
             <div class="card text-center">
                 <div class="card-header"><i class="fas fa-receipt"></i> Saídas (incl. Combustível)</div>
                 <div class="card-body">
-                    <h3 class="fw-bold text-danger">{{ totais.total_saidas|default:"0" }} Kz</h3>
+                    <h3 class="fw-bold text-danger">{% localize on %}{{ totais.total_saidas|default:0|floatformat:2 }}{% endlocalize %} Kz</h3>
                 </div>
             </div>
         </div>
@@ -29,7 +31,7 @@
             <div class="card text-center">
                 <div class="card-header"><i class="fas fa-balance-scale"></i> Saldo</div>
                 <div class="card-body">
-                    <h3 class="fw-bold text-success">{{ totais.total_saldo|default:"0" }} Kz</h3>
+                    <h3 class="fw-bold text-success">{% localize on %}{{ totais.total_saldo|default:0|floatformat:2 }}{% endlocalize %} Kz</h3>
                 </div>
             </div>
         </div>
@@ -53,9 +55,9 @@
                 <tbody>
                     {% for despesa in despesas %}
                         <tr>
-                            <td>{{ despesa.data }}</td>
+                            <td>{{ despesa.data|date:"d/m/Y" }}</td>
                             <td>{{ despesa.descricao }}</td>
-                            <td>{{ despesa.valor }} Kz</td>
+                            <td>{% localize on %}{{ despesa.valor|default:0|floatformat:2 }}{% endlocalize %} Kz</td>
                             <td>
                                 {% if despesa.comprovativos.first %}
                                     <a href="{{ despesa.comprovativos.first.arquivo.url }}" target="_blank" class="btn btn-sm btn-info">

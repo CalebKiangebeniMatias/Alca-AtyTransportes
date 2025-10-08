@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% load custom_filters %}
+{% load custom_filters l10n humanize %}
 
 {% block content %}
 <div class="container mt-4">
@@ -20,24 +20,24 @@
             <div class="row">
                 <div class="col-md-3 text-center">
                     <div class="border-end">
-                        <h3 class="text-success mb-1">{{ registros_agrupados|length }}</h3>
+                        <h3 class="text-success mb-1">{{ registros_agrupados|length|intcomma }}</h3>
                         <small class="text-muted">Grupos de Registo</small>
                     </div>
                 </div>
                 <div class="col-md-3 text-center">
                     <div class="border-end">
-                        <h3 class="text-info mb-1">{{ totais.total_autocarros }}</h3>
+                        <h3 class="text-info mb-1">{{ totais.total_autocarros|intcomma }}</h3>
                         <small class="text-muted">Registos</small>
                     </div>
                 </div>
                 <div class="col-md-3 text-center">
                     <div class="border-end">
-                        <h3 class="text-warning mb-1">{{ totais.total_entradas|floatformat:2 }} Kz</h3>
+                        <h3 class="text-warning mb-1">{% localize on %}{{ totais.total_entradas|floatformat:2 }}{% endlocalize %} Kz</h3>
                         <small class="text-muted">Total Entradas</small>
                     </div>
                 </div>
                 <div class="col-md-3 text-center">
-                    <h3 class="text-danger mb-1">{{ totais.total_saldo|floatformat:2 }} Kz</h3>
+                    <h3 class="text-danger mb-1">{% localize on %}{{ totais.total_saldo|floatformat:2 }}{% endlocalize %} Kz</h3>
                     <small class="text-muted">Saldo Geral</small>
                 </div>
             </div>
@@ -99,7 +99,7 @@
                 </div>
                 <div class="d-flex align-items-center">
                     <span class="badge bg-success me-2">
-                        <i class="fas fa-file-invoice me-1"></i> {{ grupo.registos|length }} Registos
+                        <i class="fas fa-file-invoice me-1"></i> {{ grupo.registos|length|intcomma }} Registos
                     </span>
                     
                     <div class="btn-group">
@@ -126,13 +126,13 @@
                             </h5>
                             <div class="row small">
                                 <div class="col-4">
-                                    <i class="fas fa-bus text-primary"></i> <strong>{{ grupo.registos|length }}</strong> Autocarros
+                                    <i class="fas fa-bus text-primary"></i> <strong>{{ grupo.registos|length|intcomma }}</strong> Autocarros
                                 </div>
                                 <div class="col-4">
-                                    <i class="fas fa-users text-info"></i> <strong>{{ grupo.registos|soma_campo:'numero_passageiros' }}</strong> Passageiros
+                                    <i class="fas fa-users text-info"></i> <strong>{{ grupo.registos|soma_campo:'numero_passageiros'|intcomma }}</strong> Passageiros
                                 </div>
                                 <div class="col-4">
-                                    <i class="fas fa-route text-warning"></i> <strong>{{ grupo.registos|soma_campo:'numero_viagens' }}</strong> Viagens
+                                    <i class="fas fa-route text-warning"></i> <strong>{{ grupo.registos|soma_campo:'numero_viagens'|intcomma }}</strong> Viagens
                                 </div>
                             </div>
                         </div>
@@ -141,21 +141,21 @@
                                 <div class="col-4">
                                     <div class="p-3 bg-white rounded shadow-sm">
                                         <small class="d-block mb-1" style="color: #2e7d32; font-weight: 600;">Entradas</small>
-                                        <h5 class="mb-0" style="color: #1b5e20; font-weight: 700;">{{ grupo.total_entradas|floatformat:2 }}</h5>
+                                        <h5 class="mb-0" style="color: #1b5e20; font-weight: 700;">{% localize on %}{{ grupo.total_entradas|floatformat:2 }}{% endlocalize %}</h5>
                                         <small style="color: #2e7d32;">Kz</small>
                                     </div>
                                 </div>
                                 <div class="col-4">
                                     <div class="p-3 bg-white rounded shadow-sm">
                                         <small class="d-block mb-1" style="color: #c62828; font-weight: 600;">Saídas</small>
-                                        <h5 class="mb-0" style="color: #b71c1c; font-weight: 700;">{{ grupo.total_saidas|floatformat:2 }}</h5>
+                                        <h5 class="mb-0" style="color: #b71c1c; font-weight: 700;">{% localize on %}{{ grupo.total_saidas|floatformat:2 }}{% endlocalize %}</h5>
                                         <small style="color: #c62828;">Kz</small>
                                     </div>
                                 </div>
                                 <div class="col-4">
                                     <div class="p-3 bg-white rounded shadow-sm">
                                         <small class="d-block mb-1" style="color: #1565c0; font-weight: 600;">Saldo</small>
-                                        <h5 class="mb-0" style="color: #0d47a1; font-weight: 700;">{{ grupo.total_saldo|floatformat:2 }}</h5>
+                                        <h5 class="mb-0" style="color: #0d47a1; font-weight: 700;">{% localize on %}{{ grupo.total_saldo|floatformat:2 }}{% endlocalize %}</h5>
                                         <small style="color: #1565c0;">Kz</small>
                                     </div>
                                 </div>
@@ -208,20 +208,20 @@
                                             <div class="col-4">
                                                 <div class="border-end">
                                                     <small class="text-muted d-block">Entrada</small>
-                                                    <strong class="text-success d-block">{{ reg.entradas_total|floatformat:2 }}</strong>
+                                                    <strong class="text-success d-block">{% localize on %}{{ reg.entradas_total|floatformat:2 }}{% endlocalize %}</strong>
                                                     <small class="text-muted">Kz</small>
                                                 </div>
                                             </div>
                                             <div class="col-4">
                                                 <div class="border-end">
                                                     <small class="text-muted d-block">Saída (incl. Combustível)</small>
-                                                    <strong class="text-danger d-block">{{ reg.saidas_total_incl_combustivel|floatformat:2 }}</strong>
+                                                    <strong class="text-danger d-block">{% localize on %}{{ reg.saidas_total_incl_combustivel|floatformat:2 }}{% endlocalize %}</strong>
                                                     <small class="text-muted">Kz</small>
                                                 </div>
                                             </div>
                                             <div class="col-4">
                                                 <small class="text-muted d-block">Saldo (incl. Combustível)</small>
-                                                <strong class="text-primary d-block">{{ reg.saldo_liquido_incl_combustivel|floatformat:2 }}</strong>
+                                                <strong class="text-primary d-block">{% localize on %}{{ reg.saldo_liquido_incl_combustivel|floatformat:2 }}{% endlocalize %}</strong>
                                                 <small class="text-muted">Kz</small>
                                             </div>
                                         </div>
@@ -251,23 +251,23 @@
                                         <div class="row small">
                                             <div class="col-6">
                                                 {% if grupo.sector.nome == "Luanda" %}
-                                                    <i class="fas fa-sun text-success"></i> Manhã: <strong>{{ reg.normal|floatformat:2 }} Kz</strong>
+                                                    <i class="fas fa-sun text-success"></i> Manhã: <strong>{% localize on %}{{ reg.normal|floatformat:2 }}{% endlocalize %} Kz</strong>
                                                 {% else %}
-                                                    <i class="fas fa-ticket-alt text-success"></i> Normal: <strong>{{ reg.normal|floatformat:2 }} Kz</strong>
+                                                    <i class="fas fa-ticket-alt text-success"></i> Normal: <strong>{% localize on %}{{ reg.normal|floatformat:2 }}{% endlocalize %} Kz</strong>
                                                 {% endif %}
                                             </div>
                                             <div class="col-6">
                                                 {% if grupo.sector.nome == "Luanda" %}
-                                                    <i class="fas fa-moon text-success"></i> Tarde: <strong>{{ reg.alunos|floatformat:2 }} Kz</strong>
+                                                    <i class="fas fa-moon text-success"></i> Tarde: <strong>{% localize on %}{{ reg.alunos|floatformat:2 }}{% endlocalize %} Kz</strong>
                                                 {% else %}
-                                                    <i class="fas fa-graduation-cap text-success"></i> Alunos: <strong>{{ reg.alunos|floatformat:2 }} Kz</strong>
+                                                    <i class="fas fa-graduation-cap text-success"></i> Alunos: <strong>{% localize on %}{{ reg.alunos|floatformat:2 }}{% endlocalize %} Kz</strong>
                                                 {% endif %}
                                             </div>
                                             <div class="col-6">
-                                                <i class="fas fa-coins text-success"></i> Luvu: <strong>{{ reg.luvu|floatformat:2 }} Kz</strong>
+                                                <i class="fas fa-coins text-success"></i> Luvu: <strong>{% localize on %}{{ reg.luvu|floatformat:2 }}{% endlocalize %} Kz</strong>
                                             </div>
                                             <div class="col-6">
-                                                <i class="fas fa-box text-success"></i> Frete: <strong>{{ reg.frete|floatformat:2 }} Kz</strong>
+                                                <i class="fas fa-box text-success"></i> Frete: <strong>{% localize on %}{{ reg.frete|floatformat:2 }}{% endlocalize %} Kz</strong>
                                             </div>
                                         </div>
                                     </div>
@@ -279,25 +279,25 @@
                                         </h6>
                                         <div class="row small">
                                             <div class="col-6">
-                                                <i class="fas fa-utensils text-danger"></i> Alimentação: <strong>{{ reg.alimentacao|floatformat:2 }} Kz</strong>
+                                                <i class="fas fa-utensils text-danger"></i> Alimentação: <strong>{% localize on %}{{ reg.alimentacao|floatformat:2 }}{% endlocalize %} Kz</strong>
                                             </div>
                                             <div class="col-6">
-                                                <i class="fas fa-parking text-danger"></i> Parqueamento: <strong>{{ reg.parqueamento|floatformat:2 }} Kz</strong>
+                                                <i class="fas fa-parking text-danger"></i> Parqueamento: <strong>{% localize on %}{{ reg.parqueamento|floatformat:2 }}{% endlocalize %} Kz</strong>
                                             </div>
                                             <div class="col-6">
-                                                <i class="fas fa-file-invoice-dollar text-danger"></i> Taxa: <strong>{{ reg.taxa|floatformat:2 }} Kz</strong>
+                                                <i class="fas fa-file-invoice-dollar text-danger"></i> Taxa: <strong>{% localize on %}{{ reg.taxa|floatformat:2 }}{% endlocalize %} Kz</strong>
                                             </div>
                                             <div class="col-6">
-                                                <i class="fas fa-ellipsis-h text-danger"></i> Outros: <strong>{{ reg.outros|floatformat:2 }} Kz</strong>
+                                                <i class="fas fa-ellipsis-h text-danger"></i> Outros: <strong>{% localize on %}{{ reg.outros|floatformat:2 }}{% endlocalize %} Kz</strong>
                                             </div>
                                             <div class="col-6">
-                                                <i class="fas fa-gas-pump text-danger"></i> Combustível: <strong>{{ reg.combustivel_total|floatformat:2 }} Kz</strong>
+                                                <i class="fas fa-gas-pump text-danger"></i> Combustível: <strong>{% localize on %}{{ reg.combustivel_total|floatformat:2 }}{% endlocalize %} Kz</strong>
                                             </div>
                                             <div class="col-6">
-                                                <i class="fas fa-filter text-danger"></i> Sobragem Filtros: <strong>{{ reg.combustivel_sobragem|floatformat:2 }} Kz</strong>
+                                                <i class="fas fa-filter text-danger"></i> Sobragem Filtros: <strong>{% localize on %}{{ reg.combustivel_sobragem|floatformat:2 }}{% endlocalize %} Kz</strong>
                                             </div>
                                             <div class="col-6">
-                                                <i class="fas fa-bucket text-danger"></i> Lavagem: <strong>{{ reg.combustivel_lavagem|floatformat:2 }} Kz</strong>
+                                                <i class="fas fa-bucket text-danger"></i> Lavagem: <strong>{% localize on %}{{ reg.combustivel_lavagem|floatformat:2 }}{% endlocalize %} Kz</strong>
                                             </div>
                                         </div>
                                     </div>
@@ -308,9 +308,9 @@
                                             <i class="fas fa-chart-bar me-1"></i> Dados Operacionais
                                         </h6>
                                         <div class="row small">
-                                            <div class="col-4">🚀 Viagens: <strong>{{ reg.numero_viagens }}</strong></div>
-                                            <div class="col-4">👥 Passageiros: <strong>{{ reg.numero_passageiros }}</strong></div>
-                                            <div class="col-4">🛣️ Kms: <strong>{{ reg.km_percorridos }}</strong></div>
+                                            <div class="col-4">🚀 Viagens: <strong>{{ reg.numero_viagens|intcomma }}</strong></div>
+                                            <div class="col-4">👥 Passageiros: <strong>{{ reg.numero_passageiros|intcomma }}</strong></div>
+                                            <div class="col-4">🛣️ Kms: <strong>{{ reg.km_percorridos|intcomma }}</strong></div>
                                         </div>
                                     </div>
 
@@ -318,7 +318,7 @@
                                     <div class="text-center p-3 rounded saldo-box">
                                         <small class="d-block text-dark mb-1" style="font-weight: 500;">💰 SALDO LÍQUIDO</small>
                                         <h4 class="mb-0" style="color: #1a237e; font-weight: 700;">
-                                            {{ reg.saldo_liquido_incl_combustivel|floatformat:2 }} Kz
+                                            {% localize on %}{{ reg.saldo_liquido_incl_combustivel|floatformat:2 }}{% endlocalize %} Kz
                                         </h4>
                                     </div>
 
@@ -417,28 +417,28 @@
                     <div class="col-md-3">
                         <div class="p-3 bg-white rounded shadow-sm h-100">
                             <small class="d-block mb-2" style="color: #2e7d32; font-weight: 600;">💰 Total Entradas</small>
-                            <h3 class="mb-0" style="color: #1b5e20; font-weight: 700;">{{ totais.total_entradas|floatformat:2 }}</h3>
+                            <h3 class="mb-0" style="color: #1b5e20; font-weight: 700;">{% localize on %}{{ totais.total_entradas|floatformat:2 }}{% endlocalize %}</h3>
                             <small style="color: #2e7d32;">Kz</small>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="p-3 bg-white rounded shadow-sm h-100">
                             <small class="d-block mb-2" style="color: #c62828; font-weight: 600;">📤 Total Saídas</small>
-                            <h3 class="mb-0" style="color: #b71c1c; font-weight: 700;">{{ totais.total_saidas|floatformat:2 }}</h3>
+                            <h3 class="mb-0" style="color: #b71c1c; font-weight: 700;">{% localize on %}{{ totais.total_saidas|floatformat:2 }}{% endlocalize %}</h3>
                             <small style="color: #c62828;">Kz</small>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="p-3 bg-white rounded shadow-sm h-100">
                             <small class="d-block mb-2" style="color: #f57c00; font-weight: 600;">📊 Total Registos</small>
-                            <h3 class="mb-0" style="color: #e65100; font-weight: 700;">{{ totais.total_autocarros }}</h3>
+                            <h3 class="mb-0" style="color: #e65100; font-weight: 700;">{{ totais.total_autocarros|intcomma }}</h3>
                             <small style="color: #f57c00;">Autocarros</small>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="p-3 bg-white rounded shadow-sm h-100">
                             <small class="d-block mb-2" style="color: #1565c0; font-weight: 600;">💵 Saldo Líquido</small>
-                            <h3 class="mb-0" style="color: #0d47a1; font-weight: 700;">{{ totais.total_saldo|floatformat:2 }}</h3>
+                            <h3 class="mb-0" style="color: #0d47a1; font-weight: 700;">{% localize on %}{{ totais.total_saldo|floatformat:2 }}{% endlocalize %}</h3>
                             <small style="color: #1565c0;">Kz</small>
                         </div>
                     </div>

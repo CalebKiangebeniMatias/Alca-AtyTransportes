@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% load custom_filters %}
+{% load custom_filters l10n humanize %}
 
 {% block content %}
 <div class="container mt-4">
@@ -13,7 +13,7 @@
                 </h4>
                 <div>
                     <span class="badge bg-light text-success me-2">
-                        {{ registos_agrupados|length }} Grupos
+                        {{ registos_agrupados|length|intcomma }} Grupos
                     </span>
                     <a href="{% url 'listar_registros' %}" class="btn btn-light btn-sm">
                         <i class="fas fa-arrow-left me-1"></i> Voltar
@@ -25,24 +25,24 @@
             <div class="row">
                 <div class="col-md-3 text-center">
                     <div class="border-end">
-                        <h3 class="text-success mb-1">{{ totais.total_autocarros }}</h3>
+                        <h3 class="text-success mb-1">{{ totais.total_autocarros|intcomma }}</h3>
                         <small class="text-muted">Registos Validados</small>
                     </div>
                 </div>
                 <div class="col-md-3 text-center">
                     <div class="border-end">
-                        <h3 class="text-warning mb-1">{{ totais.total_entradas|default_if_none:0|floatformat:2 }} Kz</h3>
+                        <h3 class="text-warning mb-1">{% localize on %}{{ totais.total_entradas|default_if_none:0|floatformat:2 }}{% endlocalize %} Kz</h3>
                         <small class="text-muted">Total Entradas</small>
                     </div>
                 </div>
                     <div class="col-md-3 text-center">
                     <div class="border-end">
-                        <h3 class="text-danger mb-1">{{ totais.total_saidas|floatformat:2 }} Kz</h3>
+                        <h3 class="text-danger mb-1">{% localize on %}{{ totais.total_saidas|default:0|floatformat:2 }}{% endlocalize %} Kz</h3>
                         <small class="text-muted">Total Saídas</small>
                     </div>
                 </div>
                 <div class="col-md-3 text-center">
-                    <h3 class="text-primary mb-1">{{ totais.total_saldo|floatformat:2 }} Kz</h3>
+                    <h3 class="text-primary mb-1">{% localize on %}{{ totais.total_saldo|default:0|floatformat:2 }}{% endlocalize %} Kz</h3>
                     <small class="text-muted">Saldo Líquido</small>
                 </div>
             </div>
@@ -108,18 +108,18 @@
                             <div>
                                 <small class="text-muted">Entradas:</small>
                                 {% if grupo.total_entradas is not None %}
-                                    <strong class="ms-2 text-success">{{ grupo.total_entradas|floatformat:2 }} Kz</strong>
+                                    <strong class="ms-2 text-success">{% localize on %}{{ grupo.total_entradas|floatformat:2 }}{% endlocalize %} Kz</strong>
                                 {% else %}
-                                    <strong class="ms-2">0.00 Kz</strong>
+                                    <strong class="ms-2">{% localize on %}0.00{% endlocalize %} Kz</strong>
                                 {% endif %}
                             </div>
                             <div>
                                 <small class="text-muted">Saídas (incl. combustível):</small>
-                                <strong class="ms-2 text-danger">{{ grupo.total_saidas|default:0|floatformat:2 }} Kz</strong>
+                                <strong class="ms-2 text-danger">{% localize on %}{{ grupo.total_saidas|default:0|floatformat:2 }}{% endlocalize %} Kz</strong>
                             </div>
                             <div>
                                 <small class="text-muted">Saldo:</small>
-                                <strong class="ms-2 text-primary">{{ grupo.total_saldo|default:0|floatformat:2 }} Kz</strong>
+                                <strong class="ms-2 text-primary">{% localize on %}{{ grupo.total_saldo|default:0|floatformat:2 }}{% endlocalize %} Kz</strong>
                             </div>
                             {# Combustível agregado não exibido aqui por solicitação #}
                         </div>
@@ -137,14 +137,14 @@
                             </div>
                             <div class="card-body">
                                 <div class="row small">
-                                    <div class="col-6"><strong>Entradas:</strong> {{ reg.entradas_total }} Kz</div>
-                                    <div class="col-6"><strong>Saídas (incl. combustível):</strong> {{ reg.saidas_total_incl_combustivel }} Kz</div>
-                                    <div class="col-6"><strong>Saldo (incl. combustível):</strong> {{ reg.saldo_liquido_incl_combustivel }} Kz</div>
-                                    <div class="col-6"><strong>Viagens:</strong> {{ reg.numero_viagens }}</div>
+                                    <div class="col-6"><strong>Entradas:</strong> {% localize on %}{{ reg.entradas_total|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+                                    <div class="col-6"><strong>Saídas (incl. combustível):</strong> {% localize on %}{{ reg.saidas_total_incl_combustivel|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+                                    <div class="col-6"><strong>Saldo (incl. combustível):</strong> {% localize on %}{{ reg.saldo_liquido_incl_combustivel|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+                                    <div class="col-6"><strong>Viagens:</strong> {{ reg.numero_viagens|intcomma }}</div>
                                     <div class="col-12 mt-2">
                                         <small class="text-muted">
                                             👤 {{ reg.motorista|default:"N/A" }} | 
-                                            👥 {{ reg.numero_passageiros }} passageiros
+                                            👥 {{ reg.numero_passageiros|intcomma }} passageiros
                                         </small>
                                     </div>
                                 </div>
