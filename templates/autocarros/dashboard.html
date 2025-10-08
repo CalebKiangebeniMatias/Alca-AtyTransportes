@@ -30,7 +30,7 @@
                 <div class="card-body">
                     <i class="fas fa-coins icon-stat text-success"></i>
                     <div class="stats-number text-success">
-                        {% localize on %}{{ total_entradas|floatformat:2 }}{% endlocalize %} Kz
+                        {% localize on %}<strong>{{ total_entradas|floatformat:2 }}{% endlocalize %} Kz</strong>
                     </div>
                     <h5 class="card-title">Total Entradas</h5>
                 </div>
@@ -40,7 +40,7 @@
             <div class="card stats-card text-center bg-azul-forte">
                 <div class="card-body">
                     <i class="fas fa-money-bill-wave icon-stat text-danger"></i>
-                    <div class="stats-number text-danger">{% localize on %}{{ total_saidas|floatformat:2 }}{% endlocalize %} Kz</div>
+                    <div class="stats-number text-danger">{% localize on %}<strong>{{ total_saidas|floatformat:2 }}{% endlocalize %} Kz</strong></div>
                     <h5 class="card-title">Total Saídas</h5>
                 </div>
             </div>
@@ -49,7 +49,7 @@
             <div class="card stats-card text-center bg-azul-forte">
                 <div class="card-body">
                     <i class="fas fa-piggy-bank icon-stat text-warning"></i>
-                    <div class="stats-number text-warning">{% localize on %}{{ total_resto|floatformat:2 }}{% endlocalize %} Kz</div>
+                    <div class="stats-number text-warning">{% localize on %}<strong>{{ total_resto|floatformat:2 }}{% endlocalize %} Kz</strong></div>
                     <h5 class="card-title">Resto Total</h5>
                 </div>
             </div>
