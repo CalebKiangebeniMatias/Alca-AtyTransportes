@@ -28,23 +28,24 @@
         <tbody>
             {% for setor in sectores %}
                 <tr>
-                   <td>
-                    <a href="{% url 'editar_sector' setor.id %}" class="btn btn-warning btn-sm">
-                        <i class="fas fa-edit"></i> Editar
-                    </a>
-                    <a href="{% url 'apagar_sector' setor.id %}" class="btn btn-danger btn-sm">
-                        <i class="fas fa-trash"></i> Apagar
-                    </a>
-                    <a href="{% url 'resumo_sector' setor.slug %}" class="btn btn-info btn-sm">
-                        <i class="fas fa-eye"></i> Resumo
-                    </a>
-                    {% if setor.id %}
-                        <a href="{% url 'associar_gestor' setor.id %}" class="btn btn-sm btn-primary">
-                            <i class="fas fa-user-cog me-1"></i> Associar Gestor
+                    <td class="align-middle">{{ setor.id }}</td>
+                    <td class="align-middle">{{ setor.nome }}</td>
+                    <td class="align-middle">
+                        <a href="{% url 'editar_sector' setor.id %}" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit"></i> Editar
                         </a>
-                    {% endif %}
-                </td>
-
+                        <a href="{% url 'apagar_sector' setor.id %}" class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash"></i> Apagar
+                        </a>
+                        <a href="{% url 'resumo_sector' setor.slug %}" class="btn btn-info btn-sm">
+                            <i class="fas fa-eye"></i> Resumo
+                        </a>
+                        {% if setor.id %}
+                            <a href="{% url 'associar_gestor' setor.id %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-user-cog me-1"></i> Associar Gestor
+                            </a>
+                        {% endif %}
+                    </td>
                 </tr>
             {% empty %}
                 <tr>
