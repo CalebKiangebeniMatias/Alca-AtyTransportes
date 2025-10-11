@@ -2,22 +2,125 @@
 {% block title %}Login - Gestão de Autocarros{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-    <div class="card p-5 shadow-lg text-center" style="max-width: 420px; width: 100%;">
-        <h3 class="mb-4 text-white"><i class="fas fa-bus me-2"></i>Iniciar Sessão</h3>
-        <form method="POST">
-            {% csrf_token %}
-            <div class="mb-3">
-                <input type="text" class="form-control text-center" name="username" placeholder="Usuário" required>
-            </div>
-            <div class="mb-3">
-                <input type="password" class="form-control text-center" name="password" placeholder="Senha" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100 py-2 mt-3">
-                <i class="fas fa-sign-in-alt me-2"></i> Entrar
-            </button>
-            <p class="mt-4 mb-0">Não tem conta? <a href="{% url 'register' %}" class="text-info">Registre-se</a></p>
-        </form>
+<style>
+  body {
+    background: linear-gradient(135deg, #e8f0ff, #f5f9ff);
+  }
+
+  .login-card {
+    border: none;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s ease;
+    animation: fadeInUp 0.7s ease forwards;
+  }
+
+  .login-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+  }
+
+  .login-card h3 {
+    font-weight: 600;
+    color: #0d6efd;
+  }
+
+  .form-control {
+    border-radius: 12px;
+    border: 1.5px solid #ced4da;
+    padding: 10px 15px;
+    transition: all 0.3s ease;
+  }
+
+  .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+  }
+
+  .btn-primary {
+    border-radius: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary:hover {
+    background-color: #0b5ed7;
+    transform: scale(1.02);
+  }
+
+  .avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d6efd, #007bff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 35px;
+    margin: 0 auto 15px;
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4);
+    animation: pulse 2s infinite ease-in-out;
+  }
+
+  .card-footer {
+    border-top: none;
+    background: none;
+    margin-top: 10px;
+    font-size: 0.9rem;
+  }
+
+  .card-footer a {
+    color: #0d6efd;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .card-footer a:hover {
+    text-decoration: underline;
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.4); }
+    70% { box-shadow: 0 0 0 12px rgba(13, 110, 253, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0); }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 90vh;">
+  <div class="card login-card p-5 text-center" style="max-width: 420px; width: 100%;">
+    <div class="avatar mb-3">
+      <i class="fas fa-bus"></i>
     </div>
+
+    <h3 class="mb-4">Iniciar Sessão</h3>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <input type="text" class="form-control text-center" name="username" placeholder="Usuário" required>
+      </div>
+
+      <div class="mb-3">
+        <input type="password" class="form-control text-center" name="password" placeholder="Senha" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100 py-2 mt-3">
+        <i class="fas fa-sign-in-alt me-2"></i> Entrar
+      </button>
+    </form>
+
+    <div class="card-footer mt-4">
+      <p>Não tem conta? <a href="{% url 'register' %}">Registre-se</a></p>
+    </div>
+  </div>
 </div>
 {% endblock %}

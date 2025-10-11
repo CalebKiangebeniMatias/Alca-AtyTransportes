@@ -44,10 +44,10 @@
     new Chart(document.getElementById('graficoLucros'), {
         type: 'bar',
         data: {
-            labels: {{ labels_json|safe }},
+            labels: {{ labels_json|default:"[]"|safe }},
             datasets: [{
                 label: 'Lucros (Kz)',
-                data: {{ lucros_json|safe }},
+                data: {{ lucros_json|default:"[]"|safe }},
                 backgroundColor: 'rgba(36,99,163,0.7)',
                 borderColor: 'rgba(36,99,163,1)',
                 borderWidth: 1
@@ -79,11 +79,11 @@
     new Chart(document.getElementById('graficoCustos'), {
         type: 'line',
         data: {
-            labels: {{ custos_labels_json|safe }},
+            labels: {{ custos_labels_json|default:"[]"|safe }},
             datasets: [
                 {
                     label: 'Salários',
-                    data: {{ salarios_json|safe }},
+                    data: {{ salarios_json|default:"[]"|safe }},
                     borderColor: 'rgba(255,99,132,1)',
                     backgroundColor: 'rgba(255,99,132,0.2)',
                     fill: true,
@@ -91,7 +91,7 @@
                 },
                 {
                     label: 'Combustível',
-                    data: {{ combustivel_json|safe }},
+                    data: {{ combustivel_json|default:"[]"|safe }},
                     borderColor: 'rgba(54,162,235,1)',
                     backgroundColor: 'rgba(54,162,235,0.2)',
                     fill: true,
@@ -99,7 +99,7 @@
                 },
                 {
                     label: 'Manutenção',
-                    data: {{ manutencao_json|safe }},
+                    data: {{ manutencao_json|default:"[]"|safe }},
                     borderColor: 'rgba(255,206,86,1)',
                     backgroundColor: 'rgba(255,206,86,0.2)',
                     fill: true,

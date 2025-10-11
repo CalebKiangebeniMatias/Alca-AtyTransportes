@@ -1,34 +1,121 @@
 {% extends 'base.html' %}
-
 {% block title %}Perfil - {{ user.username }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-    <div class="card shadow-lg border-0 p-4" style="max-width: 480px; width: 100%;">
-        <div class="text-center mb-4">
-            <div class="rounded-circle mx-auto mb-3 d-flex justify-content-center align-items-center" 
-                 style="width: 100px; height: 100px; background: var(--secondary-color); color: var(--accent-color); font-size: 2.5rem; font-weight: 700;">
-                {{ user.username|first|upper }}
-            </div>
-            <h4 class="fw-bold text-primary">{{ user.username }}</h4>
-            <span class="badge bg-success px-3 py-2">
-                {{ user.get_nivel_acesso_display }}
-            </span>
-        </div>
+<style>
+  body {
+    background: linear-gradient(135deg, #f3f9ff, #e8f7f1);
+  }
 
-        <hr>
+  .profile-card {
+    border: none;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s ease;
+    animation: fadeInUp 0.8s ease forwards;
+  }
 
-        <div class="px-2">
-            <p class="mb-2"><i class="fas fa-envelope text-primary me-2"></i><strong>Email:</strong> {{ user.email }}</p>
-            <p class="mb-2"><i class="fas fa-phone text-primary me-2"></i><strong>Telefone:</strong> {{ user.telefone|default:"—" }}</p>
-            <p class="mb-2"><i class="fas fa-calendar-alt text-primary me-2"></i><strong>Data de Registro:</strong> {{ user.data_registro|date:"d/m/Y H:i" }}</p>
-        </div>
+  .profile-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+  }
 
-        <div class="text-center mt-4">
-            <a href="{% url 'logout' %}" class="btn btn-outline-danger px-4">
-                <i class="fas fa-sign-out-alt me-2"></i> Sair
-            </a>
-        </div>
+  .profile-avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d6efd, #28a745);
+    color: #ffffff;
+    font-size: 2.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .profile-avatar::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    animation: shine 3s infinite linear;
+  }
+
+  @keyframes shine {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .profile-card h4 {
+    font-weight: 700;
+    color: #0d6efd;
+  }
+
+  .badge {
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .profile-info p {
+    font-size: 0.95rem;
+    padding: 8px 0;
+    margin-bottom: 6px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .profile-info i {
+    color: #0d6efd;
+  }
+
+  .btn-outline-danger {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+  }
+
+  .btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: #fff;
+    transform: scale(1.05);
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 90vh;">
+  <div class="card profile-card p-4 text-center" style="max-width: 480px; width: 100%;">
+    
+    <div class="profile-avatar">
+      {{ user.username|first|upper }}
     </div>
+
+    <h4 class="mb-1">{{ user.username }}</h4>
+    <span class="badge bg-success mb-3">
+      {{ user.get_nivel_acesso_display }}
+    </span>
+
+    <div class="profile-info text-start px-3">
+      <p><i class="fas fa-envelope me-2"></i><strong>Email:</strong> {{ user.email }}</p>
+      <p><i class="fas fa-phone me-2"></i><strong>Telefone:</strong> {{ user.telefone|default:"—" }}</p>
+      <p><i class="fas fa-calendar-alt me-2"></i><strong>Data de Registro:</strong> {{ user.data_registro|date:"d/m/Y H:i" }}</p>
+    </div>
+
+    <div class="text-center mt-4">
+      <a href="{% url 'logout' %}" class="btn btn-outline-danger px-4">
+        <i class="fas fa-sign-out-alt me-2"></i> Sair
+      </a>
+    </div>
+  </div>
 </div>
 {% endblock %}
