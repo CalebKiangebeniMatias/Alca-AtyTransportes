@@ -1906,7 +1906,7 @@ def gerencia_financas(request):
         .order_by("mes")
     )
 
-    labels = [r["mes"].strftime("%b/%Y") for r in registros]
+    labels = [r["mes"].strftime("%b/%Y") if r["mes"] else "N/A" for r in registros]
     lucros = [(r["total_entradas"] or 0) - (r["total_saidas"] or 0) for r in registros]
 
     custos_mensais = (
@@ -1921,7 +1921,7 @@ def gerencia_financas(request):
         .order_by("mes")
     )
 
-    custos_labels = [c["mes"].strftime("%b/%Y") for c in custos_mensais]
+    custos_labels = [c["mes"].strftime("%b/%Y") if c["mes"] else "N/A" for c in custos_mensais]
     salarios = [c["salarios"] or 0 for c in custos_mensais]
     combustivel = [c["combustivel"] or 0 for c in custos_mensais]
     manutencao = [c["manutencao"] or 0 for c in custos_mensais]
