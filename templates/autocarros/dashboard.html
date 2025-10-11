@@ -32,7 +32,7 @@
                     <div class="stats-number text-success">
                         {% localize on %}<strong>{{ total_entradas|floatformat:2 }}{% endlocalize %} Kz</strong>
                     </div>
-                    <h5 class="card-title">Total Entradas</h5>
+                    <h5 class="card-title">Entradas</h5>
                 </div>
             </div>
         </div>
@@ -41,7 +41,7 @@
                 <div class="card-body">
                     <i class="fas fa-money-bill-wave icon-stat text-danger"></i>
                     <div class="stats-number text-danger">{% localize on %}<strong>{{ total_saidas|floatformat:2 }}{% endlocalize %} Kz</strong></div>
-                    <h5 class="card-title">Total Saídas</h5>
+                    <h5 class="card-title">Despesas</h5>
                 </div>
             </div>
         </div>
@@ -50,7 +50,7 @@
                 <div class="card-body">
                     <i class="fas fa-piggy-bank icon-stat text-warning"></i>
                     <div class="stats-number text-warning">{% localize on %}<strong>{{ total_resto|floatformat:2 }}{% endlocalize %} Kz</strong></div>
-                    <h5 class="card-title">Resto Total</h5>
+                    <h5 class="card-title">Remanescente</h5>
                 </div>
             </div>
         </div>
@@ -63,7 +63,7 @@
                 <div class="card-body">
                     <i class="fas fa-gas-pump icon-stat text-danger"></i>
                     <div class="stats-number text-danger">{% localize on %}{{ total_combustivel_valor|floatformat:2 }}{% endlocalize %} Kz</div>
-                    <h5 class="card-title">Total Combustível</h5>
+                    <h5 class="card-title">Combustível</h5>
                 </div>
             </div>
         </div>
@@ -72,7 +72,7 @@
                 <div class="card-body">
                     <i class="fas fa-tint icon-stat text-info"></i>
                     <div class="stats-number text-info">{% localize on %}{{ total_combustivel_litros|floatformat:2 }}{% endlocalize %}</div>
-                    <h5 class="card-title">Total Litros (ilustr.)</h5>
+                    <h5 class="card-title">Por Litros (ilustr.)</h5>
                 </div>
             </div>
         </div>
@@ -81,7 +81,7 @@
                 <div class="card-body">
                     <i class="fas fa-filter icon-stat text-warning"></i>
                     <div class="stats-number text-warning">{% localize on %}{{ total_combustivel_sobragem|floatformat:2 }}{% endlocalize %} Kz</div>
-                    <h5 class="card-title">Sobragem Filtros</h5>
+                    <h5 class="card-title">Sopragem De Filtros</h5>
                 </div>
             </div>
         </div>
@@ -111,7 +111,7 @@
                             <strong>Entradas:</strong> {% localize on %}{{ stats.total_entradas|floatformat:2 }}{% endlocalize %} Kz
                         </p>
                         <p class="text-danger">
-                            <strong>Saídas:</strong> {% localize on %}{{ stats.total_saidas|floatformat:2 }}{% endlocalize %} Kz
+                            <strong>Despesas:</strong> {% localize on %}{{ stats.total_saidas|floatformat:2 }}{% endlocalize %} Kz
                         </p>
                         {% if stats.total_combustivel %}
                         <p class="text-danger">
@@ -119,7 +119,7 @@
                         </p>
                         {% endif %}
                         <p class="{% if stats.resto >= 0 %}text-success{% else %}text-danger{% endif %}">
-                            <strong>Resto:</strong> {% localize on %}{{ stats.resto|floatformat:2 }}{% endlocalize %} Kz
+                            <strong>Remanescente:</strong> {% localize on %}{{ stats.resto|floatformat:2 }}{% endlocalize %} Kz
                         </p>
                         <p><strong>Passageiros:</strong> {{ stats.total_passageiros|intcomma }}</p>
                         <p><strong>Viagens:</strong> {{ stats.total_viagens|intcomma }}</p>
@@ -133,8 +133,6 @@
             </div>
         {% endfor %}
     </div>
-
-    {# Últimos registos removidos por solicitação do usuário #}
 
     <div class="text-center mt-4">
         <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-primary">

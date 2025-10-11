@@ -29,6 +29,7 @@ class CustomUserCreationForm(UserCreationForm):
             user.save()
         return user
 
+
 class CustomAuthenticationForm(AuthenticationForm):
     username = forms.CharField(
         label='Username ou Email',
@@ -39,10 +40,12 @@ class CustomAuthenticationForm(AuthenticationForm):
         widget=forms.PasswordInput(attrs={'class': 'form-control'})
     )
 
+
 class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'email']
+
 
 # ==================== FORMULÁRIOS ==================== #
 
@@ -69,7 +72,6 @@ class SectorGestorForm(forms.ModelForm):
     class Meta:
         model = Sector
         fields = ['gestor']
-
 
 
 # ---- Widget para múltiplos arquivos ---- #
@@ -257,12 +259,13 @@ class DespesaCombustivelForm(forms.ModelForm):
 
 # ---- Comprovativos do Relatório ---- #
 
-
 from django import forms
+
 
 # 🔹 WIDGET PERSONALIZADO PARA MÚLTIPLOS ARQUIVOS
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
+
 
 class MultipleFileField(forms.FileField):
     def __init__(self, *args, **kwargs):
@@ -276,6 +279,7 @@ class MultipleFileField(forms.FileField):
         else:
             result = single_file_clean(data, initial)
         return result
+
 
 # 🔹 FORMULÁRIO SIMPLES PARA MÚLTIPLOS ARQUIVOS
 class MultiFileForm(forms.Form):

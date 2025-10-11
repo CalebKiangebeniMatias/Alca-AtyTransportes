@@ -23,7 +23,7 @@
         <div class="card stats-card bg-azul-forte">
             <div class="card-body">
                 <h4 class="text-success">{{ total_entradas|floatformat:2|intcomma }} Kz</h4>
-                <p>Total Entradas</p>
+                <p>Entradas</p>
             </div>
         </div>
     </div>
@@ -31,7 +31,7 @@
         <div class="card stats-card bg-azul-forte">
             <div class="card-body">
                 <h4 class="text-danger">{{ total_saidas|floatformat:2|intcomma }} Kz</h4>
-                <p>Total Saídas (incl. combustível)</p>
+                <p>Despesas (incl. combustível)</p>
             </div>
         </div>
     </div>
@@ -41,7 +41,7 @@
                 <h4 class="{% if resto >= 0 %}text-success{% else %}text-danger{% endif %}">
                     {{ resto|floatformat:2|intcomma }} Kz
                 </h4>
-                <p>Resto</p>
+                <p>Remanescente</p>
             </div>
         </div>
     </div>
@@ -53,7 +53,7 @@
         <div class="card stats-card bg-azul-forte">
             <div class="card-body">
                 <h5 class="text-danger">{{ total_combustivel_valor|floatformat:2|intcomma }} Kz</h5>
-                <p>Total Combustível</p>
+                <p>Combustível</p>
             </div>
         </div>
     </div>
@@ -61,7 +61,7 @@
         <div class="card stats-card bg-azul-forte">
             <div class="card-body">
                 <h5 class="text-info">{{ total_combustivel_litros|floatformat:2|intcomma }}</h5>
-                <p>Litros (ilustr.)</p>
+                <p>Por Litros (ilustr.)</p>
             </div>
         </div>
     </div>
@@ -69,7 +69,7 @@
         <div class="card stats-card bg-azul-forte">
             <div class="card-body">
                 <h5 class="text-warning">{{ total_combustivel_sobragem|floatformat:2|intcomma }} Kz</h5>
-                <p>Sobragem Filtros</p>
+                <p>Sopragem Filtros</p>
             </div>
         </div>
     </div>
