@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Investimento - {{ sector.nome }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3><i class="fas fa-city me-2"></i>Investimento: {{ sector.nome }}</h3>
+    <a href="{% url 'investimentos_demo' %}" class="btn btn-secondary">Voltar</a>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <div class="card p-3 text-center">
+        <div class="card-title">Despesas</div>
+        <div class="fs-4 fw-bold">{% localize on %}{{ total_despesas|floatformat:2 }}{% endlocalize %} Kz</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3 text-center">
+        <div class="card-title">Combustível</div>
+        <div class="fs-4 fw-bold">{% localize on %}{{ total_combustivel|floatformat:2 }}{% endlocalize %} Kz</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3 text-center">
+        <div class="card-title">Total</div>
+        <div class="fs-4 fw-bold">{% localize on %}{{ total|floatformat:2 }}{% endlocalize %} Kz</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Últimas Despesas do Sector</div>
+    <div class="card-body">
+      <ul class="list-group">
+        {% for d in despesas %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <strong>{{ d.data|date:"d/m/Y" }}</strong> — {{ d.descricao }}
+            </div>
+            <span class="badge bg-warning text-dark">{% localize on %}{{ d.valor|floatformat:2 }}{% endlocalize %} Kz</span>
+          </li>
+        {% empty %}
+          <li class="list-group-item text-center text-muted">Nenhuma despesa registada</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="card mt-3">
+    <div class="card-header">Últimas Despesas de Combustível</div>
+    <div class="card-body">
+      <ul class="list-group">
+        {% for c in combustiveis %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <strong>{{ c.data|date:"d/m/Y" }}</strong> — Autocarro {{ c.autocarro.numero }} ({{ c.autocarro.modelo }})
+            </div>
+            <span class="badge bg-warning text-dark">{% localize on %}{{ c.valor|floatformat:2 }}{% endlocalize %} Kz</span>
+          </li>
+        {% empty %}
+          <li class="list-group-item text-center text-muted">Nenhum registo de combustível</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

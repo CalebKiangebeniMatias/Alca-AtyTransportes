@@ -95,3 +95,10 @@ urlpatterns = [
 # Servir arquivos de mídia em modo DEBUG
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# rota(s) da app autocarros (adicionar outras já existentes aqui)
+urlpatterns += [
+    path('investimentos/', views.investimentos_demo, name='investimentos_demo'),
+    path('investimentos/sector/<slug:slug>/', views.investimento_sector, name='investimento_sector'),
+    # ... outras rotas da sua app ...
+]
