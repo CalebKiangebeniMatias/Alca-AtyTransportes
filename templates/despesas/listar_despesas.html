@@ -73,26 +73,30 @@
                   {% with despesa=item.obj %}
                     <tr>
                       <td><strong>{{ despesa.data|date:"d/m/Y" }}</strong></td>
+
                       <td class="text-start">
                         {% if item.tipo == "combustivel" %}
-                          ⛽ Combustível – Autocarro {{ despesa.autocarro.numero }}
+                          ⛽ Combustível – Autocarro {{ despesa.autocarro.numero|default:"—" }}
                         {% else %}
-                          {{ despesa.descricao }}
+                          {{ despesa.descricao|default:"(sem descrição)" }}
                         {% endif %}
                       </td>
+
                       <td>
                         <span class="badge bg-warning text-dark fs-6">
                           {{ despesa.valor|floatformat:2 }} Kz
                         </span>
                       </td>
+
                       <td>
                         {% if item.tipo == "combustivel" %}
-                          Sector: {{ despesa.sector.nome }}
+                          Sector: {{ despesa.sector.nome|default:"—" }}
                         {% else %}
                           Nº Transação: {{ despesa.numero_transacao|default:"—" }}<br>
                           Nº Requisição: {{ despesa.numero_requisicao|default:"—" }}
                         {% endif %}
                       </td>
+
                       <td>
                         {% if item.tipo == "combustivel" %}
                           {% if despesa.comprovativo %}
@@ -105,18 +109,23 @@
                             <span class="text-muted">Nenhum</span>
                           {% endif %}
                         {% else %}
-                          {% for comprovativo in despesa.comprovativos.all %}
-                            <a href="{{ comprovativo.arquivo.url }}" target="_blank"
-                               rel="noopener noreferrer"
-                               class="btn btn-sm btn-outline-info me-1"
-                               title="{{ comprovativo.descricao|default:'Comprovativo' }}" download>
-                              <i class="fas fa-file"></i>
-                            </a>
-                          {% empty %}
+                          {% if despesa.comprovativos.all %}
+                            {% for comprovativo in despesa.comprovativos.all %}
+                              <a href="{{ comprovativo.arquivo.url }}" target="_blank"
+                                 rel="noopener noreferrer"
+                                 class="btn btn-sm btn-outline-info me-1"
+                                 title="{{ comprovativo.descricao|default:'Comprovativo' }}" download>
+                                <i class="fas fa-file"></i>
+                              </a>
+                            {% empty %}
+                              <span class="text-muted">Nenhum</span>
+                            {% endfor %}
+                          {% else %}
                             <span class="text-muted">Nenhum</span>
-                          {% endfor %}
+                          {% endif %}
                         {% endif %}
                       </td>
+
                       <td>
                         <div class="btn-group">
                           {% if item.tipo == "combustivel" %}
@@ -137,13 +146,13 @@
                           
                           <!-- WhatsApp -->
                           {% if item.tipo == "combustivel" %}
-                            <a href="https://wa.me/?text={{ ('📅 DATA: ' ~ despesa.data|date:'d/m/Y' ~ ' - SECTOR: ' ~ despesa.sector.nome ~ ' - Autocarro: ' ~ despesa.autocarro.numero ~ ' - Valor: ' ~ despesa.valor|floatformat:2 ~ ' Kz')|urlencode }}"
+                            <a href="https://wa.me/?text={{ ('📅 DATA: ' ~ despesa.data|date:'d/m/Y' ~ ' - SECTOR: ' ~ despesa.sector.nome|default:'—' ~ ' - Autocarro: ' ~ despesa.autocarro.numero|default:'—' ~ ' - Valor: ' ~ despesa.valor|floatformat:2 ~ ' Kz')|urlencode }}"
                                target="_blank" rel="noopener noreferrer"
                                class="btn btn-sm btn-outline-success">
                               <i class="fab fa-whatsapp"></i>
                             </a>
                           {% else %}
-                            <a href="https://wa.me/?text={{ ('📅 DATA: ' ~ despesa.data|date:'d/m/Y' ~ ' - DESCRIÇÃO: ' ~ despesa.descricao ~ ' - Valor: ' ~ despesa.valor|floatformat:2 ~ ' Kz')|urlencode }}"
+                            <a href="https://wa.me/?text={{ ('📅 DATA: ' ~ despesa.data|date:'d/m/Y' ~ ' - DESCRIÇÃO: ' ~ despesa.descricao|default:'—' ~ ' - Valor: ' ~ despesa.valor|floatformat:2 ~ ' Kz')|urlencode }}"
                                target="_blank" rel="noopener noreferrer"
                                class="btn btn-sm btn-outline-success">
                               <i class="fab fa-whatsapp"></i>
@@ -162,7 +171,7 @@
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                           </div>
                           <div class="modal-body">
-                            Tem certeza que deseja excluir a despesa de <strong>{{ despesa.valor }} Kz</strong> ({{ item.tipo|title }})?
+                            Tem certeza que deseja excluir a despesa de <strong>{{ despesa.valor|floatformat:2 }} Kz</strong> ({{ item.tipo|title }})?
                           </div>
                           <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
