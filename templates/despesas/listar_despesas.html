@@ -96,24 +96,23 @@
                       </td>
 
                       <td>
+                        {# Comprovativos: mostrar links individuais; usar for..empty para casos vazios #}
                         {% if item.tipo == "combustivel" %}
                           {% if despesa.comprovativo %}
-                            <a href="{{ despesa.comprovativo.url }}" target="_blank" class="btn btn-sm btn-outline-info">
-                              <i class="fas fa-file"></i>
+                            <a href="{{ despesa.comprovativo.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info" title="Ver comprovativo">
+                              <i class="fas fa-file"></i> Ver
                             </a>
                           {% else %}
                             <span class="text-muted">Nenhum</span>
                           {% endif %}
                         {% else %}
-                          {% if despesa.comprovativos.all %}
-                            {% for comprovativo in despesa.comprovativos.all %}
-                              <a href="{{ comprovativo.arquivo.url }}" target="_blank" class="btn btn-sm btn-outline-info me-1">
-                                <i class="fas fa-file"></i>
-                              </a>
-                            {% endfor %}
-                          {% else %}
+                          {% for comprovativo in despesa.comprovativos.all %}
+                            <a href="{{ comprovativo.arquivo.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info me-1" title="{{ comprovativo.descricao|default:'Comprovativo' }}" download>
+                              <i class="fas fa-file"></i>
+                            </a>
+                          {% empty %}
                             <span class="text-muted">Nenhum</span>
-                          {% endif %}
+                          {% endfor %}
                         {% endif %}
                       </td>
 
@@ -138,28 +137,13 @@
 
                           <!-- WhatsApp -->
                           {% if item.tipo == "combustivel" %}
-                            <a href="https://wa.me/?text=
-                              📅 DATA: {{ despesa.data|date:'d/m/Y' }}%0A
-                              🏢 SECTOR: {{ despesa.sector.nome }}%0A
-                              🚌 Autocarro: {{ despesa.autocarro.numero }} - {{ despesa.autocarro.modelo }}%0A
-                              ⛽ Valor do Combustível: {{ despesa.valor|floatformat:2 }} Kz%0A
-                              {% if despesa.comprovativo %}📎 Comprovativo: {{ despesa.comprovativo.url }}{% endif %}"
-                              target="_blank"
-                              class="btn btn-sm btn-outline-success" title="Enviar para WhatsApp">
+                            {# mensagem mais simples e segura para combustível (urlencoded) #}
+                            <a href="https://wa.me/?text={{ ('📅 DATA: ' ~ despesa.data|date:'d/m/Y' ~ ' - SECTOR: ' ~ despesa.sector.nome ~ ' - Autocarro: ' ~ despesa.autocarro.numero ~ ' - Valor: ' ~ despesa.valor|floatformat:2 ~ ' Kz')|urlencode }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success" title="Enviar para WhatsApp">
                               <i class="fab fa-whatsapp"></i>
                             </a>
                           {% else %}
-                            <a href="https://wa.me/?text=
-                              📅 DATA: {{ despesa.data|date:'d/m/Y' }}%0A
-                              📝 DESCRIÇÃO: {{ despesa.descricao|urlencode }}%0A
-                              💰 Valor: {{ despesa.valor|floatformat:2 }} Kz%0A
-                              Nº Transação: {{ despesa.numero_transacao|default:'N/A' }}%0A
-                              Nº Requisição: {{ despesa.numero_requisicao|default:'N/A' }}%0A
-                              {% if despesa.registo %}📌 Registo: {{ despesa.registo.id }}%0A{% endif %}
-                              {% for comprovativo in despesa.comprovativos.all %}📎 Comprovativo: {{ comprovativo.full_url }}%0A{% endfor %}"
-                              
-                              target="_blank"
-                              class="btn btn-sm btn-outline-success" title="Enviar para WhatsApp">
+                            {# mensagem para despesas normais (evitar linhas/quebras dentro do atributo) #}
+                            <a href="https://wa.me/?text={{ ('📅 DATA: ' ~ despesa.data|date:'d/m/Y' ~ ' - DESCRIÇÃO: ' ~ despesa.descricao ~ ' - Valor: ' ~ despesa.valor|floatformat:2 ~ ' Kz')|urlencode }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success" title="Enviar para WhatsApp">
                               <i class="fab fa-whatsapp"></i>
                             </a>
                           {% endif %}
