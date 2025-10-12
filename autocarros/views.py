@@ -488,7 +488,8 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.utils.formats import number_format
 from .models import RegistoDiario, Despesa, DespesaCombustivel, Autocarro
-from .decorators import acesso_restrito  # se usar este decorador
+from .decorators import acesso_restrito
+
 
 @login_required
 @acesso_restrito(['admin'])
