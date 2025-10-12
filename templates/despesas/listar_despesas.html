@@ -98,9 +98,9 @@
                         <a href="{% url 'editar_despesa' despesa.id %}" class="btn btn-sm btn-warning">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <a href="{% url 'eliminar_despesa' despesa.id %}" class="btn btn-sm btn-danger"
-                           onclick="return confirm('Tens certeza que desejas eliminar esta despesa?')">
-                            <i class="fas fa-trash-alt"></i>
+                        <a href="{% url 'deletar_despesa' despesa.id %}" class="btn btn-sm btn-danger"
+                          onclick="return confirm('Tem certeza que deseja eliminar esta despesa?')">
+                          <i class="fas fa-trash-alt"></i>
                         </a>
                     </td>
                 </tr>
