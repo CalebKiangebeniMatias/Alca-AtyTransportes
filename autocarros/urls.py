@@ -88,6 +88,10 @@ urlpatterns = [
     path("gerencia-campo/", views.gerencia_campo, name="gerencia_campo"),
 
     path('', lambda request: redirect('login')),
+
+    #exportar relatório mensal
+    path("exportar-relatorio-dashboard/", views.exportar_relatorio_dashboard, name="exportar_relatorio_dashboard"),
+
 ]
 
 

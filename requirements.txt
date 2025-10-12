@@ -46,3 +46,13 @@ Pillow==10.4.0
 PyYAML==6.0.1
 psycopg[binary]==3.2.10
 psycopg2-binary==2.9.9
+
+
+# Biblioteca para gerar documentos Word (.docx)
+python-docx==1.1.2
+
+# Para timezone e manipulação de datas (Django já inclui, mas é bom garantir)
+pytz==2023.3
+
+# Dependência comum em projetos Django com F, Sum, DecimalField (já vem com Django)
+# portanto não precisa instalar nada extra para esses — estão no core do Django.
