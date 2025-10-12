@@ -345,32 +345,6 @@ def investimentos_demo(request):
 
 
 @login_required
-def investimento_sector(request, slug):
-    """
-    Detalhe temporário do investimento de um sector identificado pelo slug.
-    Mostra breakdown de despesas e combustível e últimas despesas.
-    """
-    sector = get_object_or_404(Sector, nome__iexact=slug.replace('-', ' '))
-    despesas = Despesa.objects.filter(sector=sector).order_by('-data')[:20]
-    combustiveis = DespesaCombustivel.objects.filter(autocarro__sector=sector).order_by('-data')[:20]
-
-    total_despesas = despesas.aggregate(total=Sum('valor'))['total'] or 0
-    total_combustivel = combustiveis.aggregate(total=Sum('valor'))['total'] or 0
-    total = total_despesas + total_combustivel
-
-    context = {
-        'sector': sector,
-        'despesas': despesas,
-        'combustiveis': combustiveis,
-        'total_despesas': total_despesas,
-        'total_combustivel': total_combustivel,
-        'total': total,
-    }
-    return render(request, 'investimentos/investimento_sector.html', context)
-# ...existing code...
-
-
-@login_required
 @acesso_restrito(['admin'])
 def dashboard(request):
     hoje = timezone.now().date()
@@ -1815,6 +1789,7 @@ def deletar_combustivel(request, pk):
 
 
 @login_required
+@login_required
 def listar_despesas(request):
     data_inicio = request.GET.get("data_inicio")
     data_fim = request.GET.get("data_fim")
@@ -1822,25 +1797,28 @@ def listar_despesas(request):
     despesas = Despesa.objects.all()
     combustiveis = DespesaCombustivel.objects.all()
 
-    if data_inicio:
-        despesas = despesas.filter(data__gte=data_inicio)
-        combustiveis = combustiveis.filter(data__gte=data_inicio)
-    if data_fim:
-        despesas = despesas.filter(data__lte=data_fim)
-        combustiveis = combustiveis.filter(data__lte=data_fim)
+    # 🔹 Converter as datas se estiverem preenchidas (evita erros com strings)
+    try:
+        if data_inicio:
+            data_inicio_obj = datetime.strptime(data_inicio, "%Y-%m-%d").date()
+            despesas = despesas.filter(data__gte=data_inicio_obj)
+            combustiveis = combustiveis.filter(data__gte=data_inicio_obj)
+        if data_fim:
+            data_fim_obj = datetime.strptime(data_fim, "%Y-%m-%d").date()
+            despesas = despesas.filter(data__lte=data_fim_obj)
+            combustiveis = combustiveis.filter(data__lte=data_fim_obj)
+    except ValueError:
+        # Caso o usuário altere manualmente a data no URL e cause erro
+        data_inicio_obj = data_fim_obj = None
 
-    todas_despesas = []
-    for d in despesas:
-        todas_despesas.append({
-            "tipo": "normal",
-            "obj": d
-        })
-    for c in combustiveis:
-        todas_despesas.append({
-            "tipo": "combustivel",
-            "obj": c
-        })
+    # 🔹 Combina ambas as listas em uma única estrutura para o template
+    todas_despesas = [
+        {"tipo": "normal", "obj": d} for d in despesas
+    ] + [
+        {"tipo": "combustivel", "obj": c} for c in combustiveis
+    ]
 
+    # 🔹 Ordenar por data (mais recente primeiro)
     todas_despesas.sort(key=lambda x: x["obj"].data, reverse=True)
 
     return render(request, "despesas/listar_despesas.html", {

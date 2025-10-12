@@ -1,77 +1,78 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Despesas - Sistema de Gestão{% endblock %}
 
 {% block content %}
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="d-flex justify-content-between align-items-center">
-        <h1 class="text-white mb-0">
-          <i class="fas fa-money-check me-2"></i>
-          Gestão de Despesas
-        </h1>
-        <a href="{% url 'adicionar_despesa' %}" class="btn btn-success">
-          <i class="fas fa-plus me-2"></i>
-          Adicionar Nova Despesa
-        </a>
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="d-flex justify-content-between align-items-center">
+      <h1 class="text-white mb-0">
+        <i class="fas fa-money-check me-2"></i>
+        Gestão de Despesas
+      </h1>
+      <a href="{% url 'adicionar_despesa' %}" class="btn btn-success">
+        <i class="fas fa-plus me-2"></i>Adicionar Nova Despesa
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- 🔹 Filtro de intervalo de datas -->
+<div class="row mb-4">
+  <div class="col-md-12">
+    <form method="get" class="card card-body bg-dark text-white">
+      <div class="row">
+        <div class="col-md-4 mb-2">
+          <label for="data_inicio" class="form-label">Data Início</label>
+          <input type="date" id="data_inicio" name="data_inicio"
+                 class="form-control"
+                 value="{{ data_inicio|default:'' }}">
+        </div>
+        <div class="col-md-4 mb-2">
+          <label for="data_fim" class="form-label">Data Fim</label>
+          <input type="date" id="data_fim" name="data_fim"
+                 class="form-control"
+                 value="{{ data_fim|default:'' }}">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="fas fa-filter me-2"></i>Filtrar
+          </button>
+        </div>
       </div>
-    </div>
+    </form>
   </div>
+</div>
 
-  <!-- 🔹 Filtro de intervalo de datas -->
-  <div class="row mb-4">
-    <div class="col-md-12">
-      <form method="get" class="card card-body bg-dark text-white">
-        <div class="row">
-          <div class="col-md-4 mb-2">
-            <label for="data_inicio" class="form-label">Data Início</label>
-            <input type="date" id="data_inicio" name="data_inicio" 
-                  class="form-control" value="{{ data_inicio|default:'' }}">
-          </div>
-          <div class="col-md-4 mb-2">
-            <label for="data_fim" class="form-label">Data Fim</label>
-            <input type="date" id="data_fim" name="data_fim" 
-                  class="form-control" value="{{ data_fim|default:'' }}">
-          </div>
-          <div class="col-md-4 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary w-100">
-              <i class="fas fa-filter me-2"></i>Filtrar
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header">
-          <h4 class="card-title mb-0">
-            <i class="fas fa-list me-2"></i>
-            Lista de Despesas
-          </h4>
-        </div>
-        <div class="card-body">
-          {% if despesas %}
-            <div class="table-responsive">
-              <table class="table table-bordered table-striped align-middle text-center" id="tabelaDespesas">
-                <thead class="table-dark">
-                  <tr>
-                    <th>Data</th>
-                    <th>Descrição</th>
-                    <th>Valor</th>
-                    <th>Extra</th>
-                    <th>Comprovativos</th>
-                    <th class="text-center">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for item in despesas %}
-                    {% with despesa=item.obj %}
+<!-- 🔹 Tabela -->
+<div class="row">
+  <div class="col-12">
+    <div class="card shadow-lg border-0">
+      <div class="card-header bg-dark text-white">
+        <h4 class="card-title mb-0">
+          <i class="fas fa-list me-2"></i>Lista de Despesas
+        </h4>
+      </div>
+      <div class="card-body bg-light">
+        {% if despesas %}
+          <div class="table-responsive">
+            <table class="table table-bordered table-striped align-middle text-center" id="tabelaDespesas">
+              <thead class="table-dark">
+                <tr>
+                  <th>Data</th>
+                  <th>Descrição</th>
+                  <th>Valor</th>
+                  <th>Extra</th>
+                  <th>Comprovativos</th>
+                  <th class="text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in despesas %}
+                  {% with despesa=item.obj %}
                     <tr>
                       <td><strong>{{ despesa.data|date:"d/m/Y" }}</strong></td>
-                      
                       <td class="text-start">
                         {% if item.tipo == "combustivel" %}
                           ⛽ Combustível – Autocarro {{ despesa.autocarro.numero }}
@@ -79,13 +80,11 @@
                           {{ despesa.descricao }}
                         {% endif %}
                       </td>
-
                       <td>
                         <span class="badge bg-warning text-dark fs-6">
                           {{ despesa.valor|floatformat:2 }} Kz
                         </span>
                       </td>
-
                       <td>
                         {% if item.tipo == "combustivel" %}
                           Sector: {{ despesa.sector.nome }}
@@ -94,12 +93,12 @@
                           Nº Requisição: {{ despesa.numero_requisicao|default:"—" }}
                         {% endif %}
                       </td>
-
                       <td>
-                        {# Comprovativos: mostrar links individuais; usar for..empty para casos vazios #}
                         {% if item.tipo == "combustivel" %}
                           {% if despesa.comprovativo %}
-                            <a href="{{ despesa.comprovativo.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info" title="Ver comprovativo">
+                            <a href="{{ despesa.comprovativo.url }}" target="_blank"
+                               rel="noopener noreferrer"
+                               class="btn btn-sm btn-outline-info" title="Ver comprovativo">
                               <i class="fas fa-file"></i> Ver
                             </a>
                           {% else %}
@@ -107,7 +106,10 @@
                           {% endif %}
                         {% else %}
                           {% for comprovativo in despesa.comprovativos.all %}
-                            <a href="{{ comprovativo.arquivo.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info me-1" title="{{ comprovativo.descricao|default:'Comprovativo' }}" download>
+                            <a href="{{ comprovativo.arquivo.url }}" target="_blank"
+                               rel="noopener noreferrer"
+                               class="btn btn-sm btn-outline-info me-1"
+                               title="{{ comprovativo.descricao|default:'Comprovativo' }}" download>
                               <i class="fas fa-file"></i>
                             </a>
                           {% empty %}
@@ -115,10 +117,8 @@
                           {% endfor %}
                         {% endif %}
                       </td>
-
                       <td>
                         <div class="btn-group">
-                          <!-- Editar -->
                           {% if item.tipo == "combustivel" %}
                             <a href="{% url 'editar_combustivel' despesa.pk %}" class="btn btn-sm btn-outline-warning" title="Editar">
                               <i class="fas fa-edit"></i>
@@ -128,22 +128,24 @@
                               <i class="fas fa-edit"></i>
                             </a>
                           {% endif %}
-
+                          
                           <!-- Apagar -->
-                          <button type="button" class="btn btn-sm btn-outline-danger" 
-                                  data-bs-toggle="modal" data-bs-target="#deleteModal{{ item.tipo }}{{ despesa.pk }}" title="Apagar">
+                          <button type="button" class="btn btn-sm btn-outline-danger"
+                                  data-bs-toggle="modal" data-bs-target="#deleteModal{{ item.tipo }}{{ despesa.pk }}">
                             <i class="fas fa-trash"></i>
                           </button>
-
+                          
                           <!-- WhatsApp -->
                           {% if item.tipo == "combustivel" %}
-                            {# mensagem mais simples e segura para combustível (urlencoded) #}
-                            <a href="https://wa.me/?text={{ ('📅 DATA: ' ~ despesa.data|date:'d/m/Y' ~ ' - SECTOR: ' ~ despesa.sector.nome ~ ' - Autocarro: ' ~ despesa.autocarro.numero ~ ' - Valor: ' ~ despesa.valor|floatformat:2 ~ ' Kz')|urlencode }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success" title="Enviar para WhatsApp">
+                            <a href="https://wa.me/?text={{ ('📅 DATA: ' ~ despesa.data|date:'d/m/Y' ~ ' - SECTOR: ' ~ despesa.sector.nome ~ ' - Autocarro: ' ~ despesa.autocarro.numero ~ ' - Valor: ' ~ despesa.valor|floatformat:2 ~ ' Kz')|urlencode }}"
+                               target="_blank" rel="noopener noreferrer"
+                               class="btn btn-sm btn-outline-success">
                               <i class="fab fa-whatsapp"></i>
                             </a>
                           {% else %}
-                            {# mensagem para despesas normais (evitar linhas/quebras dentro do atributo) #}
-                            <a href="https://wa.me/?text={{ ('📅 DATA: ' ~ despesa.data|date:'d/m/Y' ~ ' - DESCRIÇÃO: ' ~ despesa.descricao ~ ' - Valor: ' ~ despesa.valor|floatformat:2 ~ ' Kz')|urlencode }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success" title="Enviar para WhatsApp">
+                            <a href="https://wa.me/?text={{ ('📅 DATA: ' ~ despesa.data|date:'d/m/Y' ~ ' - DESCRIÇÃO: ' ~ despesa.descricao ~ ' - Valor: ' ~ despesa.valor|floatformat:2 ~ ' Kz')|urlencode }}"
+                               target="_blank" rel="noopener noreferrer"
+                               class="btn btn-sm btn-outline-success">
                               <i class="fab fa-whatsapp"></i>
                             </a>
                           {% endif %}
@@ -151,7 +153,7 @@
                       </td>
                     </tr>
 
-                    <!-- Modal de confirmação de exclusão -->
+                    <!-- Modal de exclusão -->
                     <div class="modal fade" id="deleteModal{{ item.tipo }}{{ despesa.pk }}" tabindex="-1">
                       <div class="modal-dialog">
                         <div class="modal-content bg-dark text-white">
@@ -160,8 +162,7 @@
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                           </div>
                           <div class="modal-body">
-                            Tem certeza que deseja excluir a despesa de 
-                            <strong>{{ despesa.valor }} Kz</strong> ({{ item.tipo|title }})?
+                            Tem certeza que deseja excluir a despesa de <strong>{{ despesa.valor }} Kz</strong> ({{ item.tipo|title }})?
                           </div>
                           <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -175,24 +176,23 @@
                         </div>
                       </div>
                     </div>
-
-                    {% endwith %}
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          {% else %}
-            <div class="text-center py-5">
-              <i class="fas fa-money-bill-wave fa-5x text-muted mb-4"></i>
-              <h4 class="text-muted">Nenhuma Despesa Registrada</h4>
-              <p class="text-muted">Use o filtro de datas acima ou adicione uma nova despesa.</p>
-              <a href="{% url 'adicionar_despesa' %}" class="btn btn-primary btn-lg">
-                <i class="fas fa-plus me-2"></i>Adicionar Primeira Despesa
-              </a>
-            </div>
-          {% endif %}
-        </div>
+                  {% endwith %}
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-money-bill-wave fa-5x text-muted mb-4"></i>
+            <h4 class="text-muted">Nenhuma Despesa Registrada</h4>
+            <p class="text-muted">Use o filtro de datas acima ou adicione uma nova despesa.</p>
+            <a href="{% url 'adicionar_despesa' %}" class="btn btn-primary btn-lg">
+              <i class="fas fa-plus me-2"></i>Adicionar Primeira Despesa
+            </a>
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>
+</div>
 {% endblock %}
