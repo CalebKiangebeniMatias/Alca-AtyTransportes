@@ -305,46 +305,6 @@ def apagar_sector(request, pk):
 
 
 @login_required
-# ...existing code...
-@login_required
-def investimentos_demo(request):
-    """
-    Demonstração temporária: agrega investimentos por sector (despesas + combustível).
-    Exibe tabela e um gráfico simples.
-    """
-    sectores = Sector.objects.all().order_by('nome')
-    sectores_data = []
-    total_geral = 0
-
-    for s in sectores:
-        total_despesas = Despesa.objects.filter(sector=s).aggregate(total=Sum('valor'))['total'] or 0
-        total_combustivel = DespesaCombustivel.objects.filter(autocarro__sector=s).aggregate(total=Sum('valor'))['total'] or 0
-        total = (total_despesas or 0) + (total_combustivel or 0)
-        sectores_data.append({
-            'id': s.id,
-            'nome': s.nome,
-            'slug': slugify(s.nome),
-            'total_despesas': total_despesas,
-            'total_combustivel': total_combustivel,
-            'total': total,
-        })
-        total_geral += total
-
-    # preparar dados para gráfico (labels + valores)
-    labels = [s['nome'] for s in sectores_data]
-    valores = [float(s['total']) for s in sectores_data]
-
-    context = {
-        'sectores_data': sectores_data,
-        'total_geral': total_geral,
-        'labels_json': json.dumps(labels),
-        'valores_json': json.dumps(valores),
-    }
-    return render(request, 'investimentos/investimentos_demo.html', context)
-# ...existing code...
-
-
-@login_required
 @acesso_restrito(['admin'])
 def dashboard(request):
     hoje = timezone.now().date()

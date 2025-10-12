@@ -140,4 +140,12 @@
         </a>
     </div>
 
+    <!-- Botão para gerar relatório detalhado em PDF -->
+    <div class="text-center mt-4">
+        <a href="{% url 'exportar_relatorio_dashboard' %}?mes={{ mes }}" 
+        class="btn btn-success btn-lg">
+            <i class="fas fa-file-pdf"></i> Gerar Relatório Detalhado
+        </a>
+    </div>
+
 {% endblock %}
