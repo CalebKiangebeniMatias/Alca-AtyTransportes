@@ -478,17 +478,19 @@ def dashboard(request):
 
 
 from django.http import HttpResponse
-from docx import Document
-from docx.shared import Pt
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from django.db.models import Sum, F, DecimalField
-from decimal import Decimal
-from datetime import datetime
 from django.utils import timezone
-from django.contrib.auth.decorators import login_required
-from django.utils.formats import number_format
+from django.db.models import Sum, F, DecimalField
+from django.contrib.humanize.templatetags.humanize import intcomma
+from decimal import Decimal
+from docx import Document
+from docx.shared import Pt, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import parse_xml
+from docx.oxml.ns import nsdecls
+from datetime import datetime
 from .models import RegistoDiario, Despesa, DespesaCombustivel, Autocarro
 from .decorators import acesso_restrito
+from django.contrib.auth.decorators import login_required
 
 
 @login_required
@@ -502,7 +504,6 @@ def exportar_relatorio_dashboard(request):
     except ValueError:
         ano, mes = hoje.year, hoje.month
 
-    # --- Mesmos cálculos do dashboard ---
     registos = RegistoDiario.objects.filter(data__year=ano, data__month=mes)
 
     total_entradas = registos.aggregate(
@@ -521,13 +522,11 @@ def exportar_relatorio_dashboard(request):
         data__year=ano, data__month=mes
     ).aggregate(
         total_valor=Sum('valor', output_field=DecimalField()),
-        total_litros=Sum('valor_litros', output_field=DecimalField()),
         total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
         total_lavagem=Sum('lavagem', output_field=DecimalField()),
     )
 
     total_combustivel_valor = total_combustivel.get('total_valor') or Decimal('0')
-    total_combustivel_litros = total_combustivel.get('total_litros') or Decimal('0')
     total_combustivel_sobragem = total_combustivel.get('total_sobragem') or Decimal('0')
     total_combustivel_lavagem = total_combustivel.get('total_lavagem') or Decimal('0')
 
@@ -540,7 +539,7 @@ def exportar_relatorio_dashboard(request):
     )
     total_resto = total_entradas - total_saidas
 
-    # --- Estatísticas por autocarro ---
+    # Estatísticas por autocarro
     autocarros_stats = []
     for autocarro in Autocarro.objects.all():
         registos_auto = registos.filter(autocarro=autocarro)
@@ -564,7 +563,6 @@ def exportar_relatorio_dashboard(request):
             autocarro=autocarro, data__year=ano, data__month=mes
         ).aggregate(
             total_valor=Sum('valor', output_field=DecimalField()),
-            total_litros=Sum('valor_litros', output_field=DecimalField()),
             total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
             total_lavagem=Sum('lavagem', output_field=DecimalField()),
         )
@@ -573,7 +571,6 @@ def exportar_relatorio_dashboard(request):
         comb_lav = comb_auto.get('total_lavagem') or Decimal('0')
 
         stats['total_combustivel'] = comb_val
-        stats['total_combustivel_litros'] = comb_auto.get('total_litros') or Decimal('0')
         stats['total_combustivel_sobragem'] = comb_sobr
         stats['total_combustivel_lavagem'] = comb_lav
 
@@ -582,66 +579,97 @@ def exportar_relatorio_dashboard(request):
 
         autocarros_stats.append(stats)
 
-    # --- Criar documento Word ---
+    # Criar documento Word
     doc = Document()
+
+    # Cabeçalho
     titulo = doc.add_heading(f"Relatório Mensal - {mes_param}", level=1)
     titulo.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    doc.add_paragraph(f"Gerado em: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
+    run = titulo.runs[0]
+    run.font.color.rgb = RGBColor(13, 27, 42)
+    run.font.size = Pt(20)
 
-    # 📊 Totais Gerais
+    data = doc.add_paragraph(f"Gerado em: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
+    data.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    data.runs[0].font.size = Pt(10)
+
+    doc.add_paragraph()
+
+    # --- Resumo Geral ---
     doc.add_heading("Resumo Geral", level=2)
     tabela_resumo = doc.add_table(rows=4, cols=2)
     tabela_resumo.style = "Table Grid"
-    tabela_resumo.cell(0, 0).text = "Total de Entradas"
-    tabela_resumo.cell(0, 1).text = f"{number_format(total_entradas, use_l10n=True)} Kz"
-    tabela_resumo.cell(1, 0).text = "Total de Despesas"
-    tabela_resumo.cell(1, 1).text = f"{number_format(total_saidas, use_l10n=True)} Kz"
-    tabela_resumo.cell(2, 0).text = "Remanescente"
-    tabela_resumo.cell(2, 1).text = f"{number_format(total_resto, use_l10n=True)} Kz"
-    tabela_resumo.cell(3, 0).text = "Período"
-    tabela_resumo.cell(3, 1).text = mes_param
+    dados_resumo = [
+        ("Entradas Totais", f"{intcomma(int(total_entradas))} Kz"),
+        ("Despesas Totais", f"{intcomma(int(total_saidas))} Kz"),
+        ("Remanescente", f"{intcomma(int(total_resto))} Kz"),
+        ("Período", mes_param),
+    ]
+    for i, (campo, valor) in enumerate(dados_resumo):
+        tabela_resumo.cell(i, 0).text = campo
+        tabela_resumo.cell(i, 1).text = valor
+        for c in tabela_resumo.rows[i].cells:
+            c.paragraphs[0].runs[0].font.size = Pt(11)
+        if i % 2 == 0:
+            c._element.get_or_add_tcPr().append(
+                parse_xml(r'<w:shd {} w:fill="E9EEF5"/>'.format(nsdecls('w')))
+            )
 
     doc.add_paragraph()
 
-    # ⛽ Totais de Combustível
-    doc.add_heading("Totais de Combustível", level=2)
-    tabela_comb = doc.add_table(rows=4, cols=2)
+    # --- Totais de Combustível ---
+    doc.add_heading("Despesas Específicas (Combustível / Lavagem / Sopragem)", level=2)
+    tabela_comb = doc.add_table(rows=3, cols=2)
     tabela_comb.style = "Table Grid"
-    tabela_comb.cell(0, 0).text = "Valor Total"
-    tabela_comb.cell(0, 1).text = f"{number_format(total_combustivel_valor, use_l10n=True)} Kz"
-    tabela_comb.cell(1, 0).text = "Litros (Estimado)"
-    tabela_comb.cell(1, 1).text = f"{number_format(total_combustivel_litros, use_l10n=True)} L"
-    tabela_comb.cell(2, 0).text = "Sopragem de Filtros"
-    tabela_comb.cell(2, 1).text = f"{number_format(total_combustivel_sobragem, use_l10n=True)} Kz"
-    tabela_comb.cell(3, 0).text = "Lavagem"
-    tabela_comb.cell(3, 1).text = f"{number_format(total_combustivel_lavagem, use_l10n=True)} Kz"
+    dados_comb = [
+        ("Combustível", f"{intcomma(int(total_combustivel_valor))} Kz"),
+        ("Sopragem de Filtros", f"{intcomma(int(total_combustivel_sobragem))} Kz"),
+        ("Lavagem", f"{intcomma(int(total_combustivel_lavagem))} Kz"),
+    ]
+    for i, (campo, valor) in enumerate(dados_comb):
+        tabela_comb.cell(i, 0).text = campo
+        tabela_comb.cell(i, 1).text = valor
+        for c in tabela_comb.rows[i].cells:
+            c.paragraphs[0].runs[0].font.size = Pt(11)
+        if i % 2 == 0:
+            c._element.get_or_add_tcPr().append(
+                parse_xml(r'<w:shd {} w:fill="D9E1F2"/>'.format(nsdecls('w')))
+            )
 
     doc.add_paragraph()
 
-    # 🚌 Estatísticas por Autocarro
-    doc.add_heading("Estatísticas por Autocarro", level=2)
-    tabela = doc.add_table(rows=1, cols=8)
+    # --- Estatísticas por Autocarro ---
+    doc.add_heading("Resumo por Autocarro", level=2)
+    tabela = doc.add_table(rows=1, cols=7)
     tabela.style = "Table Grid"
 
-    hdr = ["Nº", "Modelo", "KM", "Entradas (Kz)", "Despesas (Kz)", "Combustível (Kz)", "Remanescente (Kz)", "Passag./Viagens"]
+    hdr = ["Nº", "Modelo", "KM", "Entradas", "Despesas", "Remanescente", "Passag./Viagens"]
     for i, h in enumerate(hdr):
-        tabela.rows[0].cells[i].text = h
+        cell = tabela.rows[0].cells[i]
+        cell.text = h
+        cell.paragraphs[0].runs[0].font.bold = True
+        cell._element.get_or_add_tcPr().append(
+            parse_xml(r'<w:shd {} w:fill="1B263B"/>'.format(nsdecls('w')))
+        )
+        cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(255, 255, 255)
 
     for s in autocarros_stats:
         row = tabela.add_row().cells
         row[0].text = s["autocarro"].numero
         row[1].text = s["autocarro"].modelo or "-"
-        row[2].text = f"{s['total_km']:.2f}"
-        row[3].text = f"{number_format(s['total_entradas'], use_l10n=True)}"
-        row[4].text = f"{number_format(s['total_saidas'], use_l10n=True)}"
-        row[5].text = f"{number_format(s['total_combustivel'], use_l10n=True)}"
-        row[6].text = f"{number_format(s['resto'], use_l10n=True)}"
-        row[7].text = f"{s['total_passageiros']} / {s['total_viagens']}"
+        row[2].text = f"{s['total_km']:.0f}"
+        row[3].text = f"{intcomma(int(s['total_entradas']))} Kz"
+        row[4].text = f"{intcomma(int(s['total_saidas']))} Kz"
+        row[5].text = f"{intcomma(int(s['resto']))} Kz"
+        row[6].text = f"{s['total_passageiros']} / {s['total_viagens']}"
 
     doc.add_paragraph()
-    doc.add_paragraph("Relatório gerado automaticamente pelo Sistema de Gestão de Autocarros.", style='Intense Quote')
+    rodape = doc.add_paragraph("Relatório gerado automaticamente pelo Sistema de Gestão de Autocarros")
+    rodape.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    rodape.runs[0].font.size = Pt(9)
+    rodape.runs[0].italic = True
+    rodape.runs[0].font.color.rgb = RGBColor(120, 120, 120)
 
-    # --- Resposta HTTP ---
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
