@@ -1,10 +1,11 @@
+{% load l10n %}
 {% extends "base.html" %}
-{% block title %}Investimentos - Demonstração{% endblock %}
+{% block title %}Investimentos - Demonstração (Estática){% endblock %}
 
 {% block content %}
 <div class="container">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3><i class="fas fa-piggy-bank me-2"></i>Investimentos por Sector (Demo)</h3>
+    <h3><i class="fas fa-piggy-bank me-2"></i>Investimentos por Sector (Demo Estática)</h3>
     <a href="{% url 'dashboard' %}" class="btn btn-secondary">Voltar</a>
   </div>
 
@@ -15,7 +16,7 @@
   </div>
 
   <div class="card">
-    <div class="card-header">Resumo por Sector</div>
+    <div class="card-header">Resumo por Sector (Demo)</div>
     <div class="card-body">
       <table class="table table-striped">
         <thead class="table-dark">
@@ -28,24 +29,32 @@
           </tr>
         </thead>
         <tbody>
-          {% for s in sectores_data %}
-            <tr>
-              <td>{{ s.nome }}</td>
-              <td class="text-end">{% localize on %}{{ s.total_despesas|floatformat:2 }}{% endlocalize %}</td>
-              <td class="text-end">{% localize on %}{{ s.total_combustivel|floatformat:2 }}{% endlocalize %}</td>
-              <td class="text-end fw-bold">{% localize on %}{{ s.total|floatformat:2 }}{% endlocalize %}</td>
-              <td>
-                <a href="{% url 'investimento_sector' s.slug %}" class="btn btn-sm btn-info">Ver Detalhe</a>
-              </td>
-            </tr>
-          {% empty %}
-            <tr><td colspan="5" class="text-center text-muted">Sem sectores</td></tr>
-          {% endfor %}
+          <tr>
+            <td>Luanda</td>
+            <td class="text-end">500.000,00</td>
+            <td class="text-end">200.000,00</td>
+            <td class="text-end fw-bold">700.000,00</td>
+            <td><a href="#" class="btn btn-sm btn-info disabled">Ver Detalhe</a></td>
+          </tr>
+          <tr>
+            <td>Benguela</td>
+            <td class="text-end">180.000,00</td>
+            <td class="text-end">120.000,00</td>
+            <td class="text-end fw-bold">300.000,00</td>
+            <td><a href="#" class="btn btn-sm btn-info disabled">Ver Detalhe</a></td>
+          </tr>
+          <tr>
+            <td>Huambo</td>
+            <td class="text-end">100.000,00</td>
+            <td class="text-end">50.000,00</td>
+            <td class="text-end fw-bold">150.000,00</td>
+            <td><a href="#" class="btn btn-sm btn-info disabled">Ver Detalhe</a></td>
+          </tr>
         </tbody>
       </table>
 
       <div class="mt-3 text-end">
-        <strong>Total Geral:</strong> {% localize on %}{{ total_geral|floatformat:2 }}{% endlocalize %} Kz
+        <strong>Total Geral:</strong> 1.150.000,00 Kz
       </div>
     </div>
   </div>
@@ -53,8 +62,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const labels = {{ labels_json|default:"[]"|safe }};
-const dataValues = {{ valores_json|default:"[]"|safe }};
+// Dados estáticos de demonstração (não usam o banco)
+const labels = ['Luanda', 'Benguela', 'Huambo'];
+const dataValues = [700000, 300000, 150000];
 
 new Chart(document.getElementById('chartInvestimentos'), {
   type: 'bar',
@@ -63,15 +73,28 @@ new Chart(document.getElementById('chartInvestimentos'), {
     datasets: [{
       label: 'Total Investido (Kz)',
       data: dataValues,
-      backgroundColor: 'rgba(36,99,163,0.7)',
-      borderColor: 'rgba(36,99,163,1)',
+      backgroundColor: ['rgba(36,99,163,0.7)', 'rgba(75,192,192,0.7)', 'rgba(255,159,64,0.7)'],
+      borderColor: ['rgba(36,99,163,1)', 'rgba(75,192,192,1)', 'rgba(255,159,64,1)'],
       borderWidth: 1
     }]
   },
   options: {
     responsive: true,
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return context.dataset.label + ': ' + new Intl.NumberFormat('pt-BR').format(context.parsed.y) + ' Kz';
+          }
+        }
+      }
+    },
     scales: {
-      y: { ticks: { callback: v => new Intl.NumberFormat('pt-BR').format(v) + ' Kz' } }
+      y: {
+        ticks: {
+          callback: v => new Intl.NumberFormat('pt-BR').format(v) + ' Kz'
+        }
+      }
     }
   }
 });

@@ -305,6 +305,8 @@ def apagar_sector(request, pk):
 
 
 @login_required
+# ...existing code...
+@login_required
 def investimentos_demo(request):
     """
     Demonstração temporária: agrega investimentos por sector (despesas + combustível).
@@ -339,6 +341,7 @@ def investimentos_demo(request):
         'valores_json': json.dumps(valores),
     }
     return render(request, 'investimentos/investimentos_demo.html', context)
+# ...existing code...
 
 
 @login_required
