@@ -39,7 +39,7 @@
         <div class="col-md-3">
                 <div class="card border-danger shadow-sm bg-azul-forte">
                 <div class="card-body">
-                    <h5 class="text-danger"><i class="fas fa-arrow-up"></i>Despesas</h5>
+                    <h5 class="text-danger"><i class="fas fa-arrow-up"></i> Despesas</h5>
                     <p class="fs-4 fw-bold text-danger">{% localize on %}{{ total_saidas|default:0|floatformat:2 }}{% endlocalize %} Kz</p>
                 </div>
             </div>
@@ -47,7 +47,7 @@
         <div class="col-md-3">
             <div class="card border-warning shadow-sm bg-azul-forte">
                 <div class="card-body">
-                    <h5 class="text-warning"><i class="fas fa-wallet"></i>Remanescente</h5>
+                    <h5 class="text-warning"><i class="fas fa-wallet"></i> Remanescente</h5>
                     <p class="fs-4 fw-bold text-warning">{% localize on %}{{ resto|default:0|floatformat:2 }}{% endlocalize %} Kz</p>
                 </div>
             </div>
@@ -95,7 +95,7 @@
         <div class="col-md-3">
             <div class="card border-danger shadow-sm bg-azul-forte">
                 <div class="card-body">
-                    <h5 class="text-danger"><i class="fas fa-gas-pump"></i>Combustível</h5>
+                    <h5 class="text-danger"><i class="fas fa-gas-pump"></i> Combustível</h5>
                     <p class="fs-5 fw-bold text-danger">{% localize on %}{{ total_combustivel_valor|default:0|floatformat:2 }}{% endlocalize %} Kz</p>
                 </div>
             </div>
@@ -103,7 +103,7 @@
         <div class="col-md-3">
             <div class="card border-info shadow-sm bg-azul-forte">
                 <div class="card-body">
-                    <h5 class="text-info"><i class="fas fa-tint"></i>Por Litros (ilustr.)</h5>
+                    <h5 class="text-info"><i class="fas fa-tint"></i> Por Litros (ilustr.)</h5>
                     <p class="fs-5 fw-bold">{% localize on %}{{ total_combustivel_litros|default:0|floatformat:2 }}{% endlocalize %}</p>
                 </div>
             </div>
