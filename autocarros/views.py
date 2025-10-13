@@ -1991,7 +1991,12 @@ def listar_despesas(request):
 
 @login_required
 def editar_despesa(request, pk):
-    despesa = get_object_or_404(Despesa, pk=pk)
+    try:
+        despesa = Despesa.objects.get(pk=pk)
+    except Despesa.DoesNotExist:
+        messages.error(request, "A despesa que tentou editar não existe ou foi removida.")
+        return redirect('listar_despesas')
+    
     if request.method == 'POST':
         form = DespesaForm(request.POST, instance=despesa)
         if form.is_valid():
@@ -2010,20 +2015,25 @@ def editar_despesa(request, pk):
 
 @login_required
 def deletar_despesa(request, pk):
-    despesa = get_object_or_404(Despesa, pk=pk)
+    try:
+        despesa = Despesa.objects.get(pk=pk)
+    except Despesa.DoesNotExist:
+        messages.error(request, "A despesa que tentou eliminar não existe ou já foi removida.")
+        return redirect('listar_despesas')
+
     if request.method == 'POST':
         try:
             despesa.delete()
-            messages.success(request, '✅ Despesa deletada com sucesso!')
+            messages.success(request, "✅ Despesa eliminada com sucesso!")
             return redirect('listar_despesas')
         except Exception as e:
-            messages.error(request, f'❌ Erro ao deletar despesa: {str(e)}')
+            messages.error(request, f"❌ Erro ao eliminar a despesa: {str(e)}")
+
     return render(request, 'despesas/deletar_despesa.html', {'despesa': despesa})
+
 
 # 🔹 Dashboards Especializados
 from django.db.models import ExpressionWrapper
-
-
 @login_required
 def decimal_default(obj):
     if isinstance(obj, Decimal):
