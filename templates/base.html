@@ -394,12 +394,12 @@
                         <ul class="dropdown-menu">
                             <li>
                                 <a class="dropdown-item" href="{% url 'listar_registros' %}">
-                                    <i class="fas fa-list me-1"></i>Listar Registros
+                                    <i class="fas fa-list me-1"></i>Listar Relatórios
                                 </a>
                             </li>
                             <li>
                                 <a class="dropdown-item" href="{% url 'adicionar_relatorio_sector' %}">
-                                    <i class="fas fa-plus me-1"></i>Adicionar Relatório por Sector
+                                    <i class="fas fa-plus me-1"></i>Adicionar Relatório Diário
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -407,6 +407,17 @@
                                     <i class="fas fa-check-circle me-2"></i>Relatórios Validados
                                 </a>
                             </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'selc_sector_cumb' %}">
+                                    <i class="fas fa-plus me-1"></i>Add Despesa Combústivel
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'listar_combustivel' %}">
+                                    <i class="fas fa-list me-1"></i>Listar Despesas De Combústivel
+                                </a>
+                            </li>
+
                         </ul>
                     </div>
 
@@ -423,13 +434,8 @@
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="{% url 'selc_sector_cumb' %}">
-                                    <i class="fas fa-plus me-1"></i>Add Despesa Combústivel
-                                </a>
-                            </li>
-                            <li>
                                 <a class="dropdown-item" href="{% url 'adicionar_despesa' %}">
-                                    <i class="fas fa-plus me-1"></i>Add Despesa Normal
+                                    <i class="fas fa-plus me-1"></i>Add Despesa Variavel
                                 </a>
                             </li>
                             <li>

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load l10n %}
+{% load static %}
+
+{% block title %}Despesas de Combustível{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold"><i class="fas fa-gas-pump me-2"></i>Despesas de Combustível</h3>
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <select name="autocarro" class="form-select form-select-sm">
+        <option value="">Todos os autocarros</option>
+        {% for a in autocarros %}
+          <option value="{{ a.id }}" {% if a.id|stringformat:"s" == autocarro_selected %}selected{% endif %}>{{ a.numero }} — {{ a.modelo }}</option>
+        {% endfor %}
+      </select>
+      <input type="date" name="data_inicio" value="{{ data_inicio }}" class="form-control form-control-sm">
+      <input type="date" name="data_fim" value="{{ data_fim }}" class="form-control form-control-sm">
+      <button class="btn btn-sm btn-primary" type="submit"><i class="fas fa-filter me-1"></i>Filtrar</button>
+    </form>
+  </div>
+
+  <div class="table-responsive shadow-sm rounded">
+    <table class="table table-hover align-middle">
+      <thead class="table-dark text-center">
+        <tr>
+          <th>Data</th>
+          <th>Autocarro</th>
+          <th>Litros</th>
+          <th class="text-end">Valor (Kz)</th>
+          <th>Outros</th>
+          <th>Comprovativo</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody class="text-center">
+        {% for c in combustiveis %}
+        <tr>
+          <td>{{ c.data|date:"d/m/Y" }}</td>
+          <td class="text-start">Autocarro {{ c.autocarro.numero }} — {{ c.autocarro.modelo }}</td>
+          <td>{{ c.valor_litros|default:"—" }}</td>
+          <td class="text-end fw-semibold">{{ c.valor|floatformat:2 }} Kz</td>
+          <td>
+            {% if c.sobragem_filtros %}Sobragem: {{ c.sobragem_filtros }}{% endif %}
+            {% if c.lavagem %}{% if c.sobragem_filtros %}<br>{% endif %}Lavagem: {{ c.lavagem }}{% endif %}
+            {% if not c.sobragem_filtros and not c.lavagem %}—{% endif %}
+          </td>
+          <td>
+            {% if c.comprovativo %}
+              <a href="{{ c.comprovativo.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info" title="Ver comprovativo">
+                <i class="fas fa-file-alt"></i>
+              </a>
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'editar_combustivel' c.id %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
+            <a href="{% url 'deletar_combustivel' c.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Eliminar este registo de combustível?')"><i class="fas fa-trash-alt"></i></a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-muted py-4">Nenhum registo de combustível encontrado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

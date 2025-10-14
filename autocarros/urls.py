@@ -39,19 +39,23 @@ urlpatterns = [
     # ... outras URLs
     path('verificar-integridade/', views.verificar_integridade, name='verificar_integridade'),
 
+    # Setores
     path("sectores/", views.lista_sectores, name="lista_sectores"),
     path("sectores/adicionar/", views.adicionar_sector, name="adicionar_sector"),
     path("sectores/<int:pk>/editar/", views.editar_sector, name="editar_sector"),
     path("sectores/<int:pk>/apagar/", views.apagar_sector, name="apagar_sector"),
 
-
+    # Painel de Controle
     path('', views.dashboard, name='dashboard'),
     path('autocarro/<int:autocarro_id>/', views.detalhe_autocarro, name='detalhe_autocarro'),
 
+    # Relatórios Diários por Sector
     path("registros/", views.listar_registros, name="listar_registros"),
     path("relatorios/adicionar/", views.adicionar_relatorio_sector, name="adicionar_relatorio_sector"),
     path('registros/editar/<int:pk>/', views.editar_relatorio_sector, name='editar_relatorio_sector'),
     path('registos/<int:pk>/deletar/', views.deletar_relatorio_sector, name='deletar_relatorio_sector'),
+
+    # Detalhes do Relatório Diário por Sector
     path('relatorios/<int:pk>/adicionar-comprovativos/', views.adicionar_comprovativos, name='adicionar_comprovativos'),
     path('comprovativos/<int:pk>/deletar/', views.deletar_comprovativo, name='deletar_comprovativo'),
     path('relatorios/<int:pk>/concluir/', views.concluir_relatorio, name='concluir_relatorio'),
@@ -69,12 +73,15 @@ urlpatterns = [
     path("autocarros/<int:pk>/status/", views.alterar_status_autocarro, name="alterar_status_autocarro"),
 
 
-    # Despesas
+    # Despesas normais ou variavéis
     path('despesas/adicionar/', views.adicionar_despesa, name='adicionar_despesa'),
     path('despesas/', views.listar_despesas, name='listar_despesas'),
     path('despesas/<int:pk>/editar/', views.editar_despesa, name='editar_despesa'),
     path('despesas/<int:pk>/deletar/', views.deletar_despesa, name='deletar_despesa'),
+    
+    # Despesas Combústivel
     path("despesas/selecionar-sector/", views.selecionar_sector_combustivel, name="selc_sector_cumb"),
+    path('despesas/combustivel/', views.listar_combustivel, name='listar_combustivel'),
     path("despesas/adicionar/<int:pk>/", views.adicionar_combustivel, name="adicionar_combustivel"),
     path("despesas/combustivel/<int:pk>/editar/", views.editar_combustivel, name="editar_combustivel"),
     path("despesas/combustivel/<int:pk>/deletar/", views.deletar_combustivel, name="deletar_combustivel"),

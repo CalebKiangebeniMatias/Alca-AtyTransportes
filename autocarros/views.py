@@ -1245,6 +1245,8 @@ def listar_registros(request):
         parts.append(f"❌ Saida Geral: {total_saidas}")
         parts.append("")
         parts.append(f"💰 Liquído Geral: {total_saldo}")
+        parts.append("")
+        parts.append(f"Suporte tecnico: @Kiangebeni Mataias, +244 944 790 744 (WhatsApp)")
 
         message = '\n'.join(parts)
         g['whatsapp_link'] = f"https://wa.me/?text={quote_plus(message)}"
@@ -1768,6 +1770,7 @@ def cadastrar_autocarro(request):
 
 
 @login_required
+# Atualizar estado do autocarro
 def atualizar_estado(request):
     if request.method == "POST":
         form = EstadoAutocarroForm(request.POST)
@@ -1786,6 +1789,7 @@ def atualizar_estado(request):
 
 
 @login_required
+# editar autocarro
 def editar_autocarro(request, pk):
     autocarro = get_object_or_404(Autocarro, pk=pk)
     if request.method == 'POST':
@@ -1806,6 +1810,7 @@ def editar_autocarro(request, pk):
 
 
 @login_required
+# deletar autocarro
 def deletar_autocarro(request, pk):
     autocarro = get_object_or_404(Autocarro, pk=pk)
     if request.method == 'POST':
@@ -1818,33 +1823,46 @@ def deletar_autocarro(request, pk):
     return render(request, 'autocarros/deletar_autocarro.html', {'autocarro': autocarro})
 
 
-@login_required
-def adicionar_despesa(request):
-    if request.method == 'POST':
-        form = DespesaForm(request.POST)
-        multi = MultiFileForm(request.POST, request.FILES)
-
-        if form.is_valid() and multi.is_valid():
-            try:
-                despesa = form.save()
-                arquivos = request.FILES.getlist('arquivos')
-                for arquivo in arquivos:
-                    if arquivo:
-                        Comprovativo.objects.create(despesa=despesa, arquivo=arquivo)
-                messages.success(request, '✅ Despesa adicionada com sucesso!')
-                return redirect('listar_despesas')
-            except Exception as e:
-                messages.error(request, f'❌ Erro ao adicionar despesa: {str(e)}')
-        else:
-            messages.error(request, '❌ Erro no formulário. Verifique os dados.')
-    else:
-        form = DespesaForm()
-        multi = MultiFileForm()
-
-    return render(request, 'despesas/adicionar_despesa.html', {'form': form, 'multi': multi})
+# ---------- Despesa Combustível Views ----------#
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import DespesaCombustivel, Autocarro
 
 
 @login_required
+# Listar despesas de combustível
+def listar_combustivel(request):
+    """
+    Listagem de despesas de combustível (filtro por intervalo de datas e por autocarro).
+    """
+    data_inicio = request.GET.get("data_inicio")
+    data_fim = request.GET.get("data_fim")
+    autocarro_id = request.GET.get("autocarro")
+
+    qs = DespesaCombustivel.objects.select_related("autocarro", "autocarro__sector").all()
+    if data_inicio:
+        qs = qs.filter(data__gte=data_inicio)
+    if data_fim:
+        qs = qs.filter(data__lte=data_fim)
+    if autocarro_id:
+        qs = qs.filter(autocarro_id=autocarro_id)
+
+    qs = qs.order_by("-data")
+
+    autocarros = Autocarro.objects.all().order_by("numero")
+
+    context = {
+        "combustiveis": qs,
+        "autocarros": autocarros,
+        "data_inicio": data_inicio,
+        "data_fim": data_fim,
+        "autocarro_selected": autocarro_id,
+    }
+    return render(request, "despesas/listar_combustivel.html", context)
+
+
+@login_required
+# selecionar sector antes de adicionar despesas de combustível
 def selecionar_sector_combustivel(request):
     if request.method == "POST":
         form = SelecionarSectorCombustivelForm(request.POST)
@@ -1858,6 +1876,7 @@ def selecionar_sector_combustivel(request):
 
 
 @login_required
+# adicionar despesas de combustível para todos os autocarros de um sector
 def adicionar_combustivel(request, pk):
     sector = get_object_or_404(Sector, pk=pk)
     autocarros = Autocarro.objects.filter(sector=sector).order_by("numero")
@@ -1908,6 +1927,7 @@ def adicionar_combustivel(request, pk):
 
 
 @login_required
+# editar despesas de combustível
 def editar_combustivel(request, pk):
     despesa = get_object_or_404(DespesaCombustivel, pk=pk)
 
@@ -1932,6 +1952,7 @@ def editar_combustivel(request, pk):
 
 
 @login_required
+# deletar despesas de combustível
 def deletar_combustivel(request, pk):
     despesa = get_object_or_404(DespesaCombustivel, pk=pk)
 
@@ -1948,48 +1969,60 @@ def deletar_combustivel(request, pk):
     })
 
 
-
+# ------------ Despesas normais ou variavéis ----------#
 @login_required
-@login_required
+# Despesas 'normais ou variáveis' (não combustível)
 def listar_despesas(request):
+    """
+    Listar apenas despesas 'normais' (classificadas aqui como 'variáveis').
+    Filtra por intervalo de datas se fornecido.
+    """
     data_inicio = request.GET.get("data_inicio")
     data_fim = request.GET.get("data_fim")
 
-    despesas = Despesa.objects.all()
-    combustiveis = DespesaCombustivel.objects.all()
+    despesas_qs = Despesa.objects.all()
+    if data_inicio:
+        despesas_qs = despesas_qs.filter(data__gte=data_inicio)
+    if data_fim:
+        despesas_qs = despesas_qs.filter(data__lte=data_fim)
 
-    # 🔹 Converter as datas se estiverem preenchidas (evita erros com strings)
-    try:
-        if data_inicio:
-            data_inicio_obj = datetime.strptime(data_inicio, "%Y-%m-%d").date()
-            despesas = despesas.filter(data__gte=data_inicio_obj)
-            combustiveis = combustiveis.filter(data__gte=data_inicio_obj)
-        if data_fim:
-            data_fim_obj = datetime.strptime(data_fim, "%Y-%m-%d").date()
-            despesas = despesas.filter(data__lte=data_fim_obj)
-            combustiveis = combustiveis.filter(data__lte=data_fim_obj)
-    except ValueError:
-        # Caso o usuário altere manualmente a data no URL e cause erro
-        data_inicio_obj = data_fim_obj = None
+    # Ordenar por data decrescente e empacotar para o template
+    despesas_qs = despesas_qs.order_by('-data')
+    despesas = [{"tipo": "variavel", "obj": d} for d in despesas_qs]
 
-    # 🔹 Combina ambas as listas em uma única estrutura para o template
-    todas_despesas = [
-        {"tipo": "normal", "obj": d} for d in despesas
-    ] + [
-        {"tipo": "combustivel", "obj": c} for c in combustiveis
-    ]
-
-    # 🔹 Ordenar por data (mais recente primeiro)
-    todas_despesas.sort(key=lambda x: x["obj"].data, reverse=True)
-
-    return render(request, "despesas/listar_despesas.html", {
-        "despesas": todas_despesas,
-        "data_inicio": data_inicio,
-        "data_fim": data_fim,
-    })
+    return render(request, "despesas/listar_despesas.html", {"despesas": despesas, "data_inicio": data_inicio, "data_fim": data_fim})
 
 
 @login_required
+# adicionar despesas 'normais ou variáveis'
+def adicionar_despesa(request):
+    if request.method == 'POST':
+        form = DespesaForm(request.POST)
+        multi = MultiFileForm(request.POST, request.FILES)
+
+        if form.is_valid() and multi.is_valid():
+            try:
+                despesa = form.save()
+                arquivos = request.FILES.getlist('arquivos')
+                for arquivo in arquivos:
+                    if arquivo:
+                        Comprovativo.objects.create(despesa=despesa, arquivo=arquivo)
+                messages.success(request, '✅ Despesa adicionada com sucesso!')
+                return redirect('listar_despesas')
+            except Exception as e:
+                messages.error(request, f'❌ Erro ao adicionar despesa: {str(e)}')
+        else:
+            messages.error(request, '❌ Erro no formulário. Verifique os dados.')
+    else:
+        form = DespesaForm()
+        multi = MultiFileForm()
+
+    return render(request, 'despesas/adicionar_despesa.html', {'form': form, 'multi': multi})
+
+
+
+@login_required
+# editar despesas 'normais ou variáveis'
 def editar_despesa(request, pk):
     try:
         despesa = Despesa.objects.get(pk=pk)
@@ -2014,6 +2047,7 @@ def editar_despesa(request, pk):
 
 
 @login_required
+# deletar despesas 'normais ou variáveis'
 def deletar_despesa(request, pk):
     try:
         despesa = Despesa.objects.get(pk=pk)
