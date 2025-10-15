@@ -428,19 +428,27 @@
                             <i class="fas fa-money-check me-1"></i>Despesas
                         </a>
                         <ul class="dropdown-menu">
+                            <!--- Despesas Variáveis -->
                             <li>
                                 <a class="dropdown-item" href="{% url 'listar_despesas' %}">
-                                    <i class="fas fa-list me-1"></i>Listar Despesas
+                                    <i class="fas fa-list me-1"></i>Listar Despesas Variáveis
                                 </a>
                             </li>
                             <li>
                                 <a class="dropdown-item" href="{% url 'adicionar_despesa' %}">
-                                    <i class="fas fa-plus me-1"></i>Add Despesa Variavel
+                                    <i class="fas fa-plus me-1"></i>Add Despesas Variáveis
+                                </a>
+                            </li>
+
+                            <!--- Despesas Fixas (em desenvolvimento) -->
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-list me-1"></i>Listar Despesas Fixas
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="{% url 'adicionar_despesa' %}">
-                                    <i class="fas fa-plus me-1"></i>Add Despesas Salários
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-plus me-1"></i>Add Despesas Fixas
                                 </a>
                             </li>
                         </ul>
