@@ -26,12 +26,12 @@
 <!-- 📊 Resumo Geral -->
 <div class="row mb-4">
     <div class="col-md-4">
-        <div class="card stats-card text-center bg-gradient-entradas">
+        <div class="card stats-card text-center">
             <div class="card-body">
-                <div class="icon-container">
+                <div class="icon-container text-success">
                     <i class="fas fa-coins icon-stat"></i>
                 </div>
-                <div class="stats-number">
+                <div class="stats-number text-success">
                     {% localize on %}<strong>{{ total_entradas|floatformat:2 }}{% endlocalize %} Kz</strong>
                 </div>
                 <h5 class="card-title">Entradas</h5>
@@ -39,12 +39,12 @@
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card stats-card text-center bg-gradient-despesas">
+        <div class="card stats-card text-center">
             <div class="card-body">
-                <div class="icon-container">
+                <div class="icon-container text-danger">
                     <i class="fas fa-money-bill-wave icon-stat"></i>
                 </div>
-                <div class="stats-number">
+                <div class="stats-number text-danger">
                     {% localize on %}<strong>{{ total_saidas|floatformat:2 }}{% endlocalize %} Kz</strong>
                 </div>
                 <h5 class="card-title">Despesas</h5>
@@ -52,12 +52,12 @@
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card stats-card text-center bg-gradient-saldo">
+        <div class="card stats-card text-center">
             <div class="card-body">
-                <div class="icon-container">
+                <div class="icon-container text-warning">
                     <i class="fas fa-piggy-bank icon-stat"></i>
                 </div>
-                <div class="stats-number">
+                <div class="stats-number text-warning">
                     {% localize on %}<strong>{{ total_resto|floatformat:2 }}{% endlocalize %} Kz</strong>
                 </div>
                 <h5 class="card-title">Saldo</h5>
@@ -69,12 +69,12 @@
 <!-- ⛽ Total Combustível -->
 <div class="row mb-4">
     <div class="col-md-3">
-        <div class="card stats-card text-center bg-gradient-combustivel">
+        <div class="card stats-card text-center">
             <div class="card-body">
-                <div class="icon-container">
+                <div class="icon-container text-primary">
                     <i class="fas fa-gas-pump icon-stat"></i>
                 </div>
-                <div class="stats-number">
+                <div class="stats-number text-primary">
                     {% localize on %}{{ total_combustivel_valor|floatformat:2 }}{% endlocalize %} Kz
                 </div>
                 <h5 class="card-title">Combustível</h5>
@@ -82,12 +82,12 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card stats-card text-center bg-gradient-litros">
+        <div class="card stats-card text-center">
             <div class="card-body">
-                <div class="icon-container">
+                <div class="icon-container text-info">
                     <i class="fas fa-tint icon-stat"></i>
                 </div>
-                <div class="stats-number">
+                <div class="stats-number text-info">
                     {% localize on %}{{ total_combustivel_litros|floatformat:2 }}{% endlocalize %}
                 </div>
                 <h5 class="card-title">Por Litros</h5>
@@ -95,12 +95,12 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card stats-card text-center bg-gradient-sobragem">
+        <div class="card stats-card text-center">
             <div class="card-body">
-                <div class="icon-container">
+                <div class="icon-container text-secondary">
                     <i class="fas fa-filter icon-stat"></i>
                 </div>
-                <div class="stats-number">
+                <div class="stats-number text-secondary">
                     {% localize on %}{{ total_combustivel_sobragem|floatformat:2 }}{% endlocalize %} Kz
                 </div>
                 <h5 class="card-title">Sobragem</h5>
@@ -108,12 +108,12 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card stats-card text-center bg-gradient-lavagem">
+        <div class="card stats-card text-center">
             <div class="card-body">
-                <div class="icon-container">
+                <div class="icon-container text-dark">
                     <i class="fas fa-bucket icon-stat"></i>
                 </div>
-                <div class="stats-number">
+                <div class="stats-number text-dark">
                     {% localize on %}{{ total_combustivel_lavagem|floatformat:2 }}{% endlocalize %} Kz
                 </div>
                 <h5 class="card-title">Lavagem</h5>
@@ -127,38 +127,43 @@
 <div class="row mb-4">
     {% for stats in autocarros_stats|dictsort:"resto" %}
         <div class="col-md-4 col-sm-6 mb-3">
-            <div class="card h-100 shadow-sm text-center autocarro-card
-                {% if stats.resto == melhor.resto %} destaque-verde
-                {% elif stats.resto >= 500000 %} destaque-laranja
-                {% elif stats.resto > 0 %} destaque-amarelo
-                {% else %} destaque-vermelho
+            <div class="card h-100 shadow-sm autocarro-card
+                {% if stats.resto == melhor.resto %} border-success bg-light-success
+                {% elif stats.resto >= 500000 %} border-warning bg-light-warning
+                {% elif stats.resto > 0 %} border-info bg-light-info
+                {% else %} border-danger bg-light-danger
                 {% endif %}
             ">
-                <div class="card-body">
+                <div class="card-header bg-transparent border-bottom-0 text-center">
                     <div class="bus-icon-container">
-                        <i class="fas fa-bus fa-2x mb-2"></i>
+                        <i class="fas fa-bus fa-lg text-muted"></i>
                         {% if stats.resto == melhor.resto %}
-                        <span class="badge bg-success">Melhor</span>
+                        <span class="badge bg-success ms-2">Melhor Performance</span>
                         {% endif %}
                     </div>
-                    <h5 class="card-title">{{ stats.autocarro.numero }}</h5>
-                    <p class="text-muted">{{ stats.autocarro.modelo }}</p>
+                    <h5 class="card-title mt-2 mb-1">{{ stats.autocarro.numero }}</h5>
+                    <p class="text-muted small mb-0">{{ stats.autocarro.modelo }}</p>
+                </div>
+                <div class="card-body">
                     <div class="stats-grid">
                         <div class="stat-item">
-                            <span class="stat-label">KMs:</span>
+                            <span class="stat-label">KMs Percorridos:</span>
                             <span class="stat-value">{{ stats.total_km|floatformat:2 }} km</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">Entradas:</span>
-                            <span class="stat-value">{{ stats.total_entradas|floatformat:2 }} Kz</span>
+                            <span class="stat-value text-success">{{ stats.total_entradas|floatformat:2 }} Kz</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">Despesas:</span>
-                            <span class="stat-value">{{ stats.total_saidas|floatformat:2 }} Kz</span>
+                            <span class="stat-value text-danger">{{ stats.total_saidas|floatformat:2 }} Kz</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">Saldo:</span>
-                            <span class="stat-value">{{ stats.resto|floatformat:2 }} Kz</span>
+                            <span class="stat-value 
+                                {% if stats.resto > 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ stats.resto|floatformat:2 }} Kz
+                            </span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">Passageiros:</span>
@@ -170,9 +175,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-footer text-center">
-                    <a href="{% url 'detalhe_autocarro' stats.autocarro.id %}" class="btn btn-outline-light btn-sm">
-                        <i class="fas fa-eye"></i> Detalhes
+                <div class="card-footer text-center bg-transparent border-top-0">
+                    <a href="{% url 'detalhe_autocarro' stats.autocarro.id %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-chart-line me-1"></i> Ver Detalhes
                     </a>
                 </div>
             </div>
@@ -181,239 +186,201 @@
 </div>
 {% endwith %}
 
-<!-- ⚙️ Botões -->
-<div class="text-center mt-4">
-    <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-primary btn-action">
-        <i class="fas fa-plus me-1"></i> Adicionar Relatório por Sector
-    </a>
-</div>
-
-<div class="text-center mt-3">
-    <a href="{% url 'exportar_relatorio_dashboard' %}?mes={{ mes }}" class="btn btn-success btn-lg btn-action">
-        <i class="fas fa-file-word"></i> Gerar Relatório Detalhado (Word)
-    </a>
+<!-- ⚙️ Botões de Ação -->
+<div class="row mt-4">
+    <div class="col-md-6 text-center mb-3">
+        <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-primary btn-action">
+            <i class="fas fa-plus-circle me-2"></i> Adicionar Relatório por Sector
+        </a>
+    </div>
+    <div class="col-md-6 text-center mb-3">
+        <a href="{% url 'exportar_relatorio_dashboard' %}?mes={{ mes }}" class="btn btn-success btn-action">
+            <i class="fas fa-file-word me-2"></i> Gerar Relatório Detalhado
+        </a>
+    </div>
 </div>
 
 <style>
-    /* 🎨 Paleta de cores suaves e harmoniosas */
+    /* 🎨 Cores profissionais e sóbrias */
     :root {
-        --azul-primario: #0d1b2a;
-        --azul-secundario: #1b263b;
-        --verde-primario: #2ecc71;
-        --verde-secundario: #27ae60;
-        --laranja-primario: #e67e22;
-        --laranja-secundario: #d35400;
-        --amarelo-primario: #f1c40f;
-        --amarelo-secundario: #f39c12;
-        --vermelho-primario: #e74c3c;
-        --vermelho-secundario: #c0392b;
-        --roxo-primario: #9b59b6;
-        --roxo-secundario: #8e44ad;
-        --azul-claro-primario: #3498db;
-        --azul-claro-secundario: #2980b9;
-        --turquesa-primario: #1abc9c;
-        --turquesa-secundario: #16a085;
+        --cinza-claro: #f8f9fa;
+        --cinza-medio: #e9ecef;
+        --cinza-escuro: #6c757d;
+        --azul-profissional: #2c3e50;
+        --verde-suave: #28a745;
+        --vermelho-suave: #dc3545;
+        --laranja-suave: #fd7e14;
+        --azul-suave: #17a2b8;
     }
 
-    /* 💎 Estilo visual dos cartões de estatísticas */
+    /* 💎 Estilo profissional para cartões de estatísticas */
     .stats-card {
-        border-radius: 15px;
-        transition: all 0.4s ease;
-        border: none;
-        overflow: hidden;
-        position: relative;
-        color: white;
-    }
-    
-    .stats-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: rgba(255,255,255,0.3);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        border: 1px solid #e0e0e0;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     
     .stats-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        border-color: #d0d0d0;
     }
     
     .icon-container {
         margin-bottom: 15px;
         display: inline-block;
-        padding: 15px;
-        border-radius: 50%;
-        background: rgba(255,255,255,0.2);
+        padding: 12px;
+        border-radius: 8px;
+        background: var(--cinza-claro);
     }
     
     .icon-stat {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
     }
     
     .stats-number {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
         font-weight: 700;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
     }
     
-    /* Gradientes para os cartões de estatísticas */
-    .bg-gradient-entradas {
-        background: linear-gradient(135deg, var(--verde-primario), var(--verde-secundario));
+    .card-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--cinza-escuro);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
-    
-    .bg-gradient-despesas {
-        background: linear-gradient(135deg, var(--vermelho-primario), var(--vermelho-secundario));
-    }
-    
-    .bg-gradient-saldo {
-        background: linear-gradient(135deg, var(--amarelo-primario), var(--amarelo-secundario));
-        color: #333;
-    }
-    
-    .bg-gradient-combustivel {
-        background: linear-gradient(135deg, var(--laranja-primario), var(--laranja-secundario));
-    }
-    
-    .bg-gradient-litros {
-        background: linear-gradient(135deg, var(--azul-claro-primario), var(--azul-claro-secundario));
-    }
-    
-    .bg-gradient-sobragem {
-        background: linear-gradient(135deg, var(--roxo-primario), var(--roxo-secundario));
-    }
-    
-    .bg-gradient-lavagem {
-        background: linear-gradient(135deg, var(--turquesa-primario), var(--turquesa-secundario));
-    }
-    
-    /* 🚍 Estilo visual dos cartões de autocarros */
+
+    /* 🚍 Estilo profissional para cartões de autocarros */
     .autocarro-card {
-        border-radius: 12px;
+        border-radius: 8px;
         transition: all 0.3s ease;
-        border: none;
-        overflow: hidden;
+        border-width: 2px;
     }
     
     .autocarro-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
     }
     
     .bus-icon-container {
         position: relative;
-        margin-bottom: 15px;
     }
     
     .bus-icon-container .badge {
-        position: absolute;
-        top: -5px;
-        right: -5px;
         font-size: 0.7rem;
+        font-weight: 500;
     }
     
     .stats-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-top: 15px;
+        grid-template-columns: 1fr;
+        gap: 8px;
     }
     
     .stat-item {
-        text-align: left;
-        padding: 5px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--cinza-medio);
+    }
+    
+    .stat-item:last-child {
+        border-bottom: none;
     }
     
     .stat-label {
-        display: block;
         font-size: 0.85rem;
-        color: rgba(255,255,255,0.8);
+        color: var(--cinza-escuro);
+        font-weight: 500;
     }
     
     .stat-value {
-        display: block;
+        font-size: 0.9rem;
         font-weight: 600;
-        font-size: 0.95rem;
+    }
+
+    /* 🎨 Cores de fundo suaves para os cartões de autocarros */
+    .bg-light-success {
+        background: linear-gradient(135deg, #f8fff8, #f0f9f0);
     }
     
-    /* 🎨 Destaques por desempenho */
-    .destaque-verde { 
-        background: linear-gradient(135deg, var(--verde-primario), var(--verde-secundario)); 
-        color: white; 
+    .bg-light-warning {
+        background: linear-gradient(135deg, #fffbf0, #fef9e7);
     }
     
-    .destaque-laranja { 
-        background: linear-gradient(135deg, var(--laranja-primario), var(--laranja-secundario)); 
-        color: white; 
+    .bg-light-info {
+        background: linear-gradient(135deg, #f0f9ff, #e8f4fe);
     }
     
-    .destaque-amarelo { 
-        background: linear-gradient(135deg, var(--amarelo-primario), var(--amarelo-secundario)); 
-        color: #333; 
+    .bg-light-danger {
+        background: linear-gradient(135deg, #fff5f5, #feebeb);
     }
-    
-    .destaque-vermelho { 
-        background: linear-gradient(135deg, var(--vermelho-primario), var(--vermelho-secundario)); 
-        color: white; 
-    }
-    
-    /* 💎 Destaque especial para o mais lucrativo */
-    .destaque-verde {
-        box-shadow: 0 0 25px rgba(46, 204, 113, 0.7);
-        animation: pulse 1.8s infinite;
-        position: relative;
-    }
-    
-    .destaque-verde::after {
-        content: '🌟';
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        font-size: 1.2rem;
-        animation: twinkle 2s infinite;
-    }
-    
-    @keyframes pulse {
-        0% { box-shadow: 0 0 10px rgba(46, 204, 113, 0.6); }
-        50% { box-shadow: 0 0 35px rgba(46, 204, 113, 0.9); }
-        100% { box-shadow: 0 0 10px rgba(46, 204, 113, 0.6); }
-    }
-    
-    @keyframes twinkle {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.7; transform: scale(1.1); }
-    }
-    
-    /* 🎯 Botões de ação */
+
+    /* 🎯 Botões de ação profissionais */
     .btn-action {
-        border-radius: 30px;
-        padding: 10px 25px;
+        border-radius: 6px;
+        padding: 12px 24px;
         font-weight: 600;
         transition: all 0.3s ease;
         border: none;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        min-width: 200px;
     }
     
     .btn-action:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
-    
-    /* 📱 Responsividade */
+
+    /* 📱 Responsividade melhorada */
     @media (max-width: 768px) {
         .stats-grid {
             grid-template-columns: 1fr;
         }
         
         .stats-number {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
         }
         
         .icon-stat {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
+        }
+        
+        .btn-action {
+            min-width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .stat-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+        }
+        
+        .stat-value {
+            align-self: flex-end;
         }
     }
+
+    /* 🔧 Ajustes finais para profissionalismo */
+    .card-header {
+        padding: 1rem 1rem 0.5rem 1rem;
+    }
+    
+    .text-success { color: var(--verde-suave) !important; }
+    .text-danger { color: var(--vermelho-suave) !important; }
+    .text-warning { color: var(--laranja-suave) !important; }
+    .text-info { color: var(--azul-suave) !important; }
+    
+    .border-success { border-color: var(--verde-suave) !important; }
+    .border-warning { border-color: var(--laranja-suave) !important; }
+    .border-info { border-color: var(--azul-suave) !important; }
+    .border-danger { border-color: var(--vermelho-suave) !important; }
 </style>
 
 {% endblock %}

@@ -22,6 +22,7 @@ from .forms import CustomUserCreationForm, CustomAuthenticationForm, UserUpdateF
 from .models import CustomUser
 from django.utils.text import slugify
 from django.contrib.auth.models import User
+from decimal import Decimal
 
 
 
@@ -304,6 +305,16 @@ def apagar_sector(request, pk):
     return render(request, "autocarros/confirmar_apagar_sector.html", {"sector": sector})
 
 
+
+from django.shortcuts import render
+from django.db.models import Sum, F, DecimalField
+from django.utils import timezone
+from decimal import Decimal
+from collections import defaultdict
+
+from .models import RegistoDiario, Despesa, DespesaCombustivel, Autocarro
+
+
 @login_required
 @acesso_restrito(['admin'])
 def dashboard(request):
@@ -316,77 +327,107 @@ def dashboard(request):
     except ValueError:
         ano, mes = hoje.year, hoje.month
 
-    # 🔹 anos disponíveis
-    anos_disponiveis = [
-        int(d.year) for d in RegistoDiario.objects.dates("data", "year", order="DESC")
-    ]
+    # 🔹 Anos disponíveis
+    anos_disponiveis = list(
+        set(RegistoDiario.objects.dates("data", "year", order="DESC").values_list("year", flat=True))
+    )
     if hoje.year not in anos_disponiveis:
         anos_disponiveis.insert(0, hoje.year)
 
-    # 🔹 registos filtrados
-    registos = RegistoDiario.objects.filter(
-        data__year=ano,
-        data__month=mes
-    ).select_related("autocarro")
+    # 🔹 Registos filtrados
+    registos = (
+        RegistoDiario.objects.filter(data__year=ano, data__month=mes)
+        .select_related("autocarro")
+    )
+
+    # Caso não haja registros, evita cálculos desnecessários
+    if not registos.exists():
+        context = {
+            "ano": ano,
+            "mes": f"{ano}-{mes:02d}",
+            "anos_disponiveis": anos_disponiveis,
+            "total_entradas": Decimal("0"),
+            "total_saidas": Decimal("0"),
+            "total_saidas_registos": Decimal("0"),
+            "total_saidas_despesas": Decimal("0"),
+            "total_resto": Decimal("0"),
+            "total_combustivel_valor": Decimal("0"),
+            "total_combustivel_litros": Decimal("0"),
+            "total_combustivel_sobragem": Decimal("0"),
+            "total_combustivel_lavagem": Decimal("0"),
+            "autocarros_stats": [],
+            "registos_recentes": [],
+            "max_saldo": Decimal("0"),
+        }
+        return render(request, "autocarros/dashboard.html", context)
 
     # 🔹 Combustível por autocarro/data
     combustivel_map_dashboard = {}
-    if registos.exists():
-        autocarro_ids = set(registos.values_list('autocarro_id', flat=True))
-        datas = set(registos.values_list('data', flat=True))
-        combustiveis_dash = DespesaCombustivel.objects.filter(
-            autocarro_id__in=autocarro_ids,
-            data__in=datas
-        )
-        from collections import defaultdict
-        from decimal import Decimal
-        agg_dash = defaultdict(lambda: {
-            'total_valor': Decimal('0'),
-            'total_valor_litros': Decimal('0'),
-            'total_sobragem': Decimal('0'),
-            'total_lavagem': Decimal('0')
-        })
-        for c in combustiveis_dash:
-            key = f"{c.autocarro_id}_{c.data.isoformat()}"
-            agg_dash[key]['total_valor'] += c.valor or Decimal('0')
-            agg_dash[key]['total_valor_litros'] += c.valor_litros or Decimal('0')
-            agg_dash[key]['total_sobragem'] += c.sobragem_filtros or Decimal('0')
-            agg_dash[key]['total_lavagem'] += c.lavagem or Decimal('0')
-        combustivel_map_dashboard.update(agg_dash)
+    autocarro_ids = set(registos.values_list("autocarro_id", flat=True))
+    datas = set(registos.values_list("data", flat=True))
+
+    combustiveis_dash = DespesaCombustivel.objects.filter(
+        autocarro_id__in=autocarro_ids,
+        data__in=datas
+    )
+
+    agg_dash = defaultdict(lambda: {
+        "total_valor": Decimal("0"),
+        "total_valor_litros": Decimal("0"),
+        "total_sobragem": Decimal("0"),
+        "total_lavagem": Decimal("0"),
+    })
+
+    for c in combustiveis_dash:
+        key = f"{c.autocarro_id}_{c.data.isoformat()}"
+        agg_dash[key]["total_valor"] += c.valor or Decimal("0")
+        agg_dash[key]["total_valor_litros"] += c.valor_litros or Decimal("0")
+        agg_dash[key]["total_sobragem"] += c.sobragem_filtros or Decimal("0")
+        agg_dash[key]["total_lavagem"] += c.lavagem or Decimal("0")
+
+    combustivel_map_dashboard.update(agg_dash)
 
     # 🔹 Totais gerais
-    total_entradas = registos.aggregate(
-        total=Sum(F("normal") + F("alunos") + F("luvu") + F("frete"), output_field=DecimalField())
-    )["total"] or Decimal("0")
+    total_entradas = (
+        registos.aggregate(
+            total=Sum(
+                F("normal") + F("alunos") + F("luvu") + F("frete"),
+                output_field=DecimalField(),
+            )
+        )["total"]
+        or Decimal("0")
+    )
 
-    total_saidas_registos = registos.aggregate(
-        total=Sum(
-            F("alimentacao") + F("parqueamento") + F("taxa") + F("outros"),
-            output_field=DecimalField()
-        )
-    )["total"] or Decimal("0")
+    total_saidas_registos = (
+        registos.aggregate(
+            total=Sum(
+                F("alimentacao") + F("parqueamento") + F("taxa") + F("outros"),
+                output_field=DecimalField(),
+            )
+        )["total"]
+        or Decimal("0")
+    )
 
-    total_saidas_despesas = Despesa.objects.filter(
-        data__year=ano,
-        data__month=mes
-    ).aggregate(
-        total=Sum("valor", output_field=DecimalField())
-    )["total"] or Decimal("0")
+    total_saidas_despesas = (
+        Despesa.objects.filter(data__year=ano, data__month=mes)
+        .aggregate(total=Sum("valor", output_field=DecimalField()))["total"]
+        or Decimal("0")
+    )
 
     total_combustivel = DespesaCombustivel.objects.filter(
         data__year=ano,
-        data__month=mes
+        data__month=mes,
     ).aggregate(
-        total_valor=Sum('valor', output_field=DecimalField()),
-        total_litros=Sum('valor_litros', output_field=DecimalField()),
-        total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
-        total_lavagem=Sum('lavagem', output_field=DecimalField()),
+        total_valor=Sum("valor", output_field=DecimalField()),
+        total_litros=Sum("valor_litros", output_field=DecimalField()),
+        total_sobragem=Sum("sobragem_filtros", output_field=DecimalField()),
+        total_lavagem=Sum("lavagem", output_field=DecimalField()),
     )
 
-    total_combustivel_valor = total_combustivel.get('total_valor') or Decimal('0')
-    total_combustivel_litros = total_combustivel.get('total_litros') or Decimal('0')
-    total_combustivel_sobragem = total_combustivel.get('total_sobragem') or Decimal('0')
-    total_combustivel_lavagem = total_combustivel.get('total_lavagem') or Decimal('0')
+    total_combustivel_valor = total_combustivel.get("total_valor") or Decimal("0")
+    total_combustivel_litros = total_combustivel.get("total_litros") or Decimal("0")
+    total_combustivel_sobragem = total_combustivel.get("total_sobragem") or Decimal("0")
+    total_combustivel_lavagem = total_combustivel.get("total_lavagem") or Decimal("0")
 
     total_saidas = (
         total_saidas_registos
@@ -395,21 +436,33 @@ def dashboard(request):
         + total_combustivel_sobragem
         + total_combustivel_lavagem
     )
+
     total_resto = total_entradas - total_saidas
 
     # 🔹 Estatísticas por autocarro
     autocarros_stats = []
     for autocarro in Autocarro.objects.all():
         registos_auto = registos.filter(autocarro=autocarro)
+        if not registos_auto.exists():
+            continue
+
         stats = {
             "autocarro": autocarro,
             "total_km": registos_auto.aggregate(Sum("km_percorridos"))["km_percorridos__sum"] or 0,
             "total_entradas": registos_auto.aggregate(
-                total=Sum(F("normal") + F("alunos") + F("luvu") + F("frete"), output_field=DecimalField())
-            )["total"] or Decimal('0'),
+                total=Sum(
+                    F("normal") + F("alunos") + F("luvu") + F("frete"),
+                    output_field=DecimalField(),
+                )
+            )["total"]
+            or Decimal("0"),
             "total_saidas": registos_auto.aggregate(
-                total=Sum(F("alimentacao") + F("parqueamento") + F("taxa") + F("outros"), output_field=DecimalField())
-            )["total"] or Decimal('0'),
+                total=Sum(
+                    F("alimentacao") + F("parqueamento") + F("taxa") + F("outros"),
+                    output_field=DecimalField(),
+                )
+            )["total"]
+            or Decimal("0"),
             "total_passageiros": registos_auto.aggregate(Sum("numero_passageiros"))["numero_passageiros__sum"] or 0,
             "total_viagens": registos_auto.aggregate(Sum("numero_viagens"))["numero_viagens__sum"] or 0,
         }
@@ -417,44 +470,49 @@ def dashboard(request):
         comb_auto = DespesaCombustivel.objects.filter(
             autocarro=autocarro,
             data__year=ano,
-            data__month=mes
+            data__month=mes,
         ).aggregate(
-            total_valor=Sum('valor', output_field=DecimalField()),
-            total_litros=Sum('valor_litros', output_field=DecimalField()),
-            total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
-            total_lavagem=Sum('lavagem', output_field=DecimalField()),
+            total_valor=Sum("valor", output_field=DecimalField()),
+            total_litros=Sum("valor_litros", output_field=DecimalField()),
+            total_sobragem=Sum("sobragem_filtros", output_field=DecimalField()),
+            total_lavagem=Sum("lavagem", output_field=DecimalField()),
         )
 
-        comb_val = comb_auto.get('total_valor') or Decimal('0')
-        stats['total_combustivel'] = comb_val
-        stats['total_combustivel_litros'] = comb_auto.get('total_litros') or Decimal('0')
-        stats['total_combustivel_sobragem'] = comb_auto.get('total_sobragem') or Decimal('0')
-        stats['total_combustivel_lavagem'] = comb_auto.get('total_lavagem') or Decimal('0')
+        stats["total_combustivel"] = comb_auto.get("total_valor") or Decimal("0")
+        stats["total_combustivel_litros"] = comb_auto.get("total_litros") or Decimal("0")
+        stats["total_combustivel_sobragem"] = comb_auto.get("total_sobragem") or Decimal("0")
+        stats["total_combustivel_lavagem"] = comb_auto.get("total_lavagem") or Decimal("0")
 
-        comb_sobr = stats['total_combustivel_sobragem']
-        comb_lav = stats['total_combustivel_lavagem']
-        stats['total_saidas'] += stats['total_combustivel'] + comb_sobr + comb_lav
+        stats["total_saidas"] += (
+            stats["total_combustivel"]
+            + stats["total_combustivel_sobragem"]
+            + stats["total_combustivel_lavagem"]
+        )
         stats["resto"] = stats["total_entradas"] - stats["total_saidas"]
 
         autocarros_stats.append(stats)
 
-    # 🔹 Calcular o maior saldo (mais lucrativo)
-    max_saldo = max((a["resto"] for a in autocarros_stats), default=Decimal('0'))
+    # 🔹 Calcular o mais lucrativo
+    max_saldo = max((a["resto"] for a in autocarros_stats), default=Decimal("0"))
 
     # 🔹 Registos recentes
-    registos_recentes_qs = registos.order_by("-data")[:10]
     registos_recentes = []
-    for reg in registos_recentes_qs:
+    for reg in registos.order_by("-data")[:10]:
         key = f"{reg.autocarro_id}_{reg.data.isoformat()}"
         comb = combustivel_map_dashboard.get(key, {})
-        reg.combustivel_total = comb.get('total_valor', Decimal('0'))
-        reg.combustivel_valor_litros = comb.get('total_valor_litros', Decimal('0'))
-        reg.combustivel_sobragem = comb.get('total_sobragem', Decimal('0'))
-        reg.combustivel_lavagem = comb.get('total_lavagem', Decimal('0'))
+        reg.combustivel_total = comb.get("total_valor", Decimal("0"))
+        reg.combustivel_valor_litros = comb.get("total_valor_litros", Decimal("0"))
+        reg.combustivel_sobragem = comb.get("total_sobragem", Decimal("0"))
+        reg.combustivel_lavagem = comb.get("total_lavagem", Decimal("0"))
         reg.saidas_total_incl_combustivel = (
-            reg.saidas_total() + reg.combustivel_total + reg.combustivel_sobragem + reg.combustivel_lavagem
+            reg.saidas_total()
+            + reg.combustivel_total
+            + reg.combustivel_sobragem
+            + reg.combustivel_lavagem
         )
-        reg.saldo_liquido_incl_combustivel = reg.entradas_total() - reg.saidas_total_incl_combustivel
+        reg.saldo_liquido_incl_combustivel = (
+            reg.entradas_total() - reg.saidas_total_incl_combustivel
+        )
         registos_recentes.append(reg)
 
     context = {
@@ -472,8 +530,9 @@ def dashboard(request):
         "total_combustivel_lavagem": total_combustivel_lavagem,
         "autocarros_stats": autocarros_stats,
         "registos_recentes": registos_recentes,
-        "max_saldo": max_saldo,  # ✅ Adicionada variável para o template
+        "max_saldo": max_saldo,
     }
+
     return render(request, "autocarros/dashboard.html", context)
 
 
