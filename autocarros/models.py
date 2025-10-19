@@ -7,7 +7,8 @@ from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
-
+from django.db import models
+from decimal import Decimal
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.contrib.auth.models import AbstractUser, Group, Permission
@@ -307,3 +308,53 @@ class Comprovativo(models.Model):
     class Meta:
         ordering = ['-enviado_em']
 
+
+# ...existing code...
+class CobradorViagem(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pendente'),
+        ('approved', 'Aprovada'),
+        ('rejected', 'Rejeitada'),
+    ]
+
+    autocarro = models.ForeignKey('Autocarro', on_delete=models.CASCADE, related_name='viagens_cobrador')
+    cobrador = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    data = models.DateField()
+    hora = models.TimeField(null=True, blank=True)
+    valor = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    passageiros = models.PositiveIntegerField(default=0)
+    observacao = models.TextField(blank=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    # Validação / auditoria
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    validado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='viagens_validas')
+    validado_em = models.DateTimeField(null=True, blank=True)
+    nota_validacao = models.TextField(blank=True, null=True)
+    valor_aprovado = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+
+    class Meta:
+        ordering = ['-data', '-hora', '-criado_em']
+
+    def __str__(self):
+        return f"Viagem {self.autocarro} {self.data} {self.hora} — {self.valor}"
+
+    def approve(self, user, valor_aprovado=None, nota=None):
+        from django.utils import timezone
+        self.status = 'approved'
+        self.validado_por = user
+        self.validado_em = timezone.now()
+        if valor_aprovado is not None:
+            self.valor_aprovado = Decimal(valor_aprovado)
+        if nota:
+            self.nota_validacao = nota
+        self.save(update_fields=['status', 'validado_por', 'validado_em', 'valor_aprovado', 'nota_validacao'])
+
+    def reject(self, user, nota=None):
+        from django.utils import timezone
+        self.status = 'rejected'
+        self.validado_por = user
+        self.validado_em = timezone.now()
+        if nota:
+            self.nota_validacao = nota
+        self.save(update_fields=['status', 'validado_por', 'validado_em', 'nota_validacao'])

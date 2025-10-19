@@ -2260,3 +2260,92 @@ def gerencia_campo(request):
         "autocarros": list(autocarros_map),
     }
     return render(request, "dashboards/gerencia_campo.html", context)
+
+
+# ---------- Cobrador Viagens Views ----------#
+
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.shortcuts import render, get_object_or_404
+from django.views.decorators.http import require_POST
+from django.db.models import Sum
+from decimal import Decimal
+import json
+from .models import Autocarro, CobradorViagem
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+
+@login_required
+def cobrador_viagens_validate_list(request):
+    """
+    Retorna viagens pendentes (ou filtro por autocarro_numero/data).
+    Apenas para users com nível 'gestor' ou 'admin'.
+    """
+    nivel = getattr(request.user, 'nivel_acesso', '').lower()
+    if nivel not in ['admin', 'gestor']:
+        return JsonResponse({'ok': False, 'error': 'Acesso negado'}, status=403)
+
+    numero = request.GET.get('autocarro_numero') or request.GET.get('autocarro_id')
+    data = request.GET.get('data')  # opcional
+    qs = CobradorViagem.objects.filter(status='pending')
+    if numero:
+        try:
+            aut = Autocarro.objects.get(numero=numero)
+            qs = qs.filter(autocarro=aut)
+        except Autocarro.DoesNotExist:
+            try:
+                qs = qs.filter(autocarro_id=int(numero))
+            except Exception:
+                return JsonResponse({'ok': False, 'error': 'Autocarro não encontrado'}, status=404)
+    if data:
+        qs = qs.filter(data=data)
+    viagens = []
+    for v in qs.order_by('data', 'hora'):
+        viagens.append({
+            'id': v.id,
+            'autocarro_numero': v.autocarro.numero,
+            'data': v.data.isoformat(),
+            'hora': v.hora.isoformat() if v.hora else '',
+            'valor': str(v.valor),
+            'passageiros': v.passageiros,
+            'observacao': v.observacao,
+            'cobrador': v.cobrador.get_full_name() if v.cobrador else '',
+            'criado_em': v.criado_em.isoformat(),
+        })
+    return JsonResponse({'ok': True, 'viagens': viagens})
+
+
+@login_required
+@require_POST
+def cobrador_viagens_validate_action(request):
+    """
+    Ação para aprovar/reprovar via POST JSON:
+    { "id": 123, "action": "approve"|"reject", "valor_aprovado": "1000.00", "nota": "..." }
+    Apenas 'admin' e 'gestor' podem executar.
+    """
+    nivel = getattr(request.user, 'nivel_acesso', '').lower()
+    if nivel not in ['admin', 'gestor']:
+        return JsonResponse({'ok': False, 'error': 'Acesso negado'}, status=403)
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        return HttpResponseBadRequest('JSON inválido')
+    vid = data.get('id')
+    action = data.get('action')
+    nota = data.get('nota')
+    valor_aprovado = data.get('valor_aprovado', None)
+    if not vid or action not in ['approve', 'reject']:
+        return JsonResponse({'ok': False, 'error': 'Parâmetros inválidos'}, status=400)
+    try:
+        viagem = CobradorViagem.objects.get(pk=vid)
+    except CobradorViagem.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Viagem não encontrada'}, status=404)
+
+    try:
+        if action == 'approve':
+            viagem.approve(request.user, valor_aprovado=valor_aprovado, nota=nota)
+        else:
+            viagem.reject(request.user, nota=nota)
+        return JsonResponse({'ok': True, 'status': viagem.status})
+    except Exception as e:
+        return JsonResponse({'ok': False, 'error': str(e)}, status=500)

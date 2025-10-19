@@ -99,6 +99,13 @@ urlpatterns = [
     #exportar relatório mensal
     path("exportar-relatorio-dashboard/", views.exportar_relatorio_dashboard, name="exportar_relatorio_dashboard"),
 
+    # Cobrador
+    path('cobrador/viagens/', views.cobrador_viagens, name='cobrador_viagens'),
+    path('cobrador/viagens/save/', views.cobrador_viagens_save, name='cobrador_viagens_save'),
+    path('cobrador/viagens/list/', views.cobrador_viagens_list, name='cobrador_viagens_list'),
+    path('cobrador/viagens/validate/list/', views.cobrador_viagens_validate_list, name='cobrador_viagens_validate_list'),
+    path('cobrador/viagens/validate/action/', views.cobrador_viagens_validate_action, name='cobrador_viagens_validate_action'),
+
 ]
 
 
