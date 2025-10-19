@@ -6,6 +6,74 @@
 
 {% block content %}
 
+    <style>
+        /* 🌟 Estilo especial para os cards de autocarro */
+        .card-autocarro {
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+            transition: all 0.4s ease;
+            background: linear-gradient(145deg, #0b2e59, #103d73);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+            color: #fff;
+        }
+
+        .card-autocarro::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                120deg,
+                rgba(255, 255, 255, 0.2),
+                rgba(255, 255, 255, 0)
+            );
+            transform: rotate(25deg);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .card-autocarro:hover::before {
+            opacity: 1;
+            animation: brilho-movimento 2s linear infinite;
+        }
+
+        @keyframes brilho-movimento {
+            0% {
+                transform: translateX(-100%) rotate(25deg);
+            }
+            100% {
+                transform: translateX(100%) rotate(25deg);
+            }
+        }
+
+        .card-autocarro:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 25px rgba(0, 150, 255, 0.4);
+        }
+
+        /* Cores de borda dinâmicas */
+        .card-autocarro.saldo-positivo {
+            border: 2px solid rgba(0, 255, 100, 0.4);
+        }
+
+        .card-autocarro.saldo-negativo {
+            border: 2px solid rgba(255, 60, 60, 0.4);
+        }
+
+        .card-autocarro .card-body i {
+            font-size: 2rem;
+        }
+
+        .card-autocarro .card-title {
+            color: #fff;
+            font-weight: 600;
+        }
+    </style>
+
+
     <!-- 🔎 Filtro de Ano e Mês -->
     <div class="row mb-4">
         <div class="col-md-4">
@@ -96,27 +164,21 @@
         </div>
     </div>
 
-    <!-- Cards Estatísticas por Autocarro -->
+    <!-- 🚍 Cards Estatísticas por Autocarro -->
     <div class="row mb-4">
         {% for stats in autocarros_stats %}
             <div class="col-md-4 col-sm-6 mb-3">
-                <div class="card card-autocarro h-100">
+                <div class="card card-autocarro {% if stats.resto >= 0 %}saldo-positivo{% else %}saldo-negativo{% endif %}">
                     <div class="card-body text-center">
-                        <i class="fas fa-bus fa-3x mb-2 text-info"></i>
+                        <i class="fas fa-bus mb-2 text-info"></i>
                         <h5 class="card-title">{{ stats.autocarro.numero }}</h5>
-                        <p class="text-muted">{{ stats.autocarro.modelo }}</p>
+                        <p class="text-light small">{{ stats.autocarro.modelo }}</p>
 
                         <p><strong>KMs:</strong> {% localize on %}{{ stats.total_km|floatformat:2 }}{% endlocalize %} km</p>
-                        <p class="text-success">
-                            <strong>Entradas:</strong> {% localize on %}{{ stats.total_entradas|floatformat:2 }}{% endlocalize %} Kz
-                        </p>
-                        <p class="text-danger">
-                            <strong>Despesas:</strong> {% localize on %}{{ stats.total_saidas|floatformat:2 }}{% endlocalize %} Kz
-                        </p>
+                        <p class="text-success"><strong>Entradas:</strong> {% localize on %}{{ stats.total_entradas|floatformat:2 }}{% endlocalize %} Kz</p>
+                        <p class="text-danger"><strong>Despesas:</strong> {% localize on %}{{ stats.total_saidas|floatformat:2 }}{% endlocalize %} Kz</p>
                         {% if stats.total_combustivel %}
-                        <p class="text-warning">
-                            <strong>Combustível:</strong> {% localize on %}{{ stats.total_combustivel|floatformat:2 }}{% endlocalize %} Kz
-                        </p>
+                            <p class="text-warning"><strong>Combustível:</strong> {% localize on %}{{ stats.total_combustivel|floatformat:2 }}{% endlocalize %} Kz</p>
                         {% endif %}
                         <p class="{% if stats.resto >= 0 %}text-success{% else %}text-danger{% endif %}">
                             <strong>Saldo:</strong> {% localize on %}{{ stats.resto|floatformat:2 }}{% endlocalize %} Kz
@@ -124,8 +186,8 @@
                         <p><strong>Passageiros:</strong> {{ stats.total_passageiros|intcomma }}</p>
                         <p><strong>Viagens:</strong> {{ stats.total_viagens|intcomma }}</p>
                     </div>
-                    <div class="card-footer text-center">
-                        <a href="{% url 'detalhe_autocarro' stats.autocarro.id %}" class="btn btn-sm btn-outline-primary">
+                    <div class="card-footer text-center bg-transparent border-0">
+                        <a href="{% url 'detalhe_autocarro' stats.autocarro.id %}" class="btn btn-outline-light btn-sm">
                             <i class="fas fa-eye"></i> Detalhes
                         </a>
                     </div>
@@ -133,7 +195,6 @@
             </div>
         {% endfor %}
     </div>
-
 
     <div class="text-center mt-4">
         <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-primary">
