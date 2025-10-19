@@ -6,146 +6,183 @@
 
 {% block content %}
 
-    <!-- 🔎 Filtro de Ano e Mês -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <form method="get" class="row g-2 align-items-end">
-                <div class="col-md-8">
-                    <label for="mes" class="form-label text-white">Selecionar Mês/Ano</label>
-                    <input type="month" name="mes" id="mes" value="{{ mes }}" class="form-control">
-                </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
+<!-- 🔎 Filtro de Ano e Mês -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-8">
+                <label for="mes" class="form-label text-white">Selecionar Mês/Ano</label>
+                <input type="month" name="mes" id="mes" value="{{ mes }}" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
     </div>
+</div>
 
-    <!-- Resumo Geral -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-coins icon-stat text-success"></i>
-                    <div class="stats-number">
-                        {% localize on %}<strong>{{ total_entradas|floatformat:2 }}{% endlocalize %} Kz</strong>
-                    </div>
-                    <h5 class="card-title">Entradas</h5>
+<!-- 📊 Resumo Geral -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card stats-card text-center bg-azul-forte">
+            <div class="card-body">
+                <i class="fas fa-coins icon-stat text-success"></i>
+                <div class="stats-number">
+                    {% localize on %}<strong>{{ total_entradas|floatformat:2 }}{% endlocalize %} Kz</strong>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-money-bill-wave icon-stat text-danger"></i>
-                    <div class="stats-number text-danger">{% localize on %}<strong>{{ total_saidas|floatformat:2 }}{% endlocalize %} Kz</strong></div>
-                    <h5 class="card-title">Despesas</h5>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-piggy-bank icon-stat text-warning"></i>
-                    <div class="stats-number text-warning">{% localize on %}<strong>{{ total_resto|floatformat:2 }}{% endlocalize %} Kz</strong></div>
-                    <h5 class="card-title">Saldo</h5>
-                </div>
+                <h5 class="card-title">Entradas</h5>
             </div>
         </div>
     </div>
+    <div class="col-md-4">
+        <div class="card stats-card text-center bg-azul-forte">
+            <div class="card-body">
+                <i class="fas fa-money-bill-wave icon-stat text-danger"></i>
+                <div class="stats-number text-danger">
+                    {% localize on %}<strong>{{ total_saidas|floatformat:2 }}{% endlocalize %} Kz</strong>
+                </div>
+                <h5 class="card-title">Despesas</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stats-card text-center bg-azul-forte">
+            <div class="card-body">
+                <i class="fas fa-piggy-bank icon-stat text-warning"></i>
+                <div class="stats-number text-warning">
+                    {% localize on %}<strong>{{ total_resto|floatformat:2 }}{% endlocalize %} Kz</strong>
+                </div>
+                <h5 class="card-title">Saldo</h5>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <!-- Total Combustível -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-gas-pump icon-stat text-danger"></i>
-                    <div class="stats-number text-danger">{% localize on %}{{ total_combustivel_valor|floatformat:2 }}{% endlocalize %} Kz</div>
-                    <h5 class="card-title">Combustível</h5>
+<!-- ⛽ Total Combustível -->
+<div class="row mb-4">
+    <div class="col-md-3" >
+        <div class="card stats-card text-center bg-azul-forte">
+            <div class="card-body">
+                <i class="fas fa-gas-pump icon-stat text-danger"></i>
+                <div class="stats-number text-danger">
+                    {% localize on %}{{ total_combustivel_valor|floatformat:2 }}{% endlocalize %} Kz
                 </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-tint icon-stat text-info"></i>
-                    <div class="stats-number text-info">{% localize on %}{{ total_combustivel_litros|floatformat:2 }}{% endlocalize %}</div>
-                    <h5 class="card-title">Por Litros (ilustr.)</h5>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-filter icon-stat text-warning"></i>
-                    <div class="stats-number text-warning">{% localize on %}{{ total_combustivel_sobragem|floatformat:2 }}{% endlocalize %} Kz</div>
-                    <h5 class="card-title">Sopragem De Filtros</h5>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-bucket icon-stat text-info"></i>
-                    <div class="stats-number text-info">{% localize on %}{{ total_combustivel_lavagem|floatformat:2 }}{% endlocalize %} Kz</div>
-                    <h5 class="card-title">Lavagem</h5>
-                </div>
+                <h5 class="card-title">Combustível</h5>
             </div>
         </div>
     </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-center bg-azul-forte">
+            <div class="card-body">
+                <i class="fas fa-tint icon-stat text-info"></i>
+                <div class="stats-number text-info">
+                    {% localize on %}{{ total_combustivel_litros|floatformat:2 }}{% endlocalize %}
+                </div>
+                <h5 class="card-title">Por Litros</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-center bg-azul-forte">
+            <div class="card-body">
+                <i class="fas fa-filter icon-stat text-warning"></i>
+                <div class="stats-number text-warning">
+                    {% localize on %}{{ total_combustivel_sobragem|floatformat:2 }}{% endlocalize %} Kz
+                </div>
+                <h5 class="card-title">Sopragem</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-center bg-azul-forte">
+            <div class="card-body">
+                <i class="fas fa-bucket icon-stat text-info"></i>
+                <div class="stats-number text-info">
+                    {% localize on %}{{ total_combustivel_lavagem|floatformat:2 }}{% endlocalize %} Kz
+                </div>
+                <h5 class="card-title">Lavagem</h5>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <!-- Cards Estatísticas por Autocarro -->
-    <div class="row mb-4">
-        {% for stats in autocarros_stats %}
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="card h-100 shadow-sm bg-azul-forte">
-                    <div class="card-body text-center">
-                        <i class="fas fa-bus fa-2x mb-2 text-primary"></i>
-                        <h5 class="card-title">{{ stats.autocarro.numero }}</h5>
-                        <p class="text-muted">{{ stats.autocarro.modelo }}</p>
-                        
-                        <p><strong>KMs:</strong> {% localize on %}{{ stats.total_km|floatformat:2 }}{% endlocalize %} km</p>
-                        <p class="text-success">
-                            <strong>Entradas:</strong> {% localize on %}{{ stats.total_entradas|floatformat:2 }}{% endlocalize %} Kz
-                        </p>
-                        <p class="text-danger">
-                            <strong>Despesas:</strong> {% localize on %}{{ stats.total_saidas|floatformat:2 }}{% endlocalize %} Kz
-                        </p>
-                        {% if stats.total_combustivel %}
-                        <p class="text-danger">
-                            <strong>Combustível:</strong> {% localize on %}{{ stats.total_combustivel|floatformat:2 }}{% endlocalize %} Kz
-                        </p>
-                        {% endif %}
-                        <p class="{% if stats.resto >= 0 %}text-success{% else %}text-danger{% endif %}">
-                            <strong>Saldo:</strong> {% localize on %}{{ stats.resto|floatformat:2 }}{% endlocalize %} Kz
-                        </p>
-                        <p><strong>Passageiros:</strong> {{ stats.total_passageiros|intcomma }}</p>
-                        <p><strong>Viagens:</strong> {{ stats.total_viagens|intcomma }}</p>
-                    </div>
-                    <div class="card-footer text-center">
-                        <a href="{% url 'detalhe_autocarro' stats.autocarro.id %}" class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-eye"></i> Detalhes
-                        </a>
-                    </div>
+<!-- 🚍 Estatísticas por Autocarro -->
+{% with melhor=autocarros_stats|dictsortreversed:"resto"|first %}
+<div class="row mb-4">
+    {% for stats in autocarros_stats|dictsort:"resto" %}
+        <div class="col-md-4 col-sm-6 mb-3">
+            <div class="card h-100 shadow-sm text-center
+                {% if stats.resto == melhor.resto %} destaque-verde
+                {% elif stats.resto >= 500000 %} destaque-laranja
+                {% elif stats.resto > 0 %} destaque-amarelo
+                {% else %} destaque-vermelho
+                {% endif %}
+            ">
+                <div class="card-body">
+                    <i class="fas fa-bus fa-2x mb-2"></i>
+                    <h5 class="card-title">{{ stats.autocarro.numero }}</h5>
+                    <p class="text-muted">{{ stats.autocarro.modelo }}</p>
+                    <p><strong>KMs:</strong> {{ stats.total_km|floatformat:2 }} km</p>
+                    <p><strong>Entradas:</strong> {{ stats.total_entradas|floatformat:2 }} Kz</p>
+                    <p><strong>Despesas:</strong> {{ stats.total_saidas|floatformat:2 }} Kz</p>
+                    <p><strong>Saldo:</strong> {{ stats.resto|floatformat:2 }} Kz</p>
+                    <p><strong>Passageiros:</strong> {{ stats.total_passageiros|intcomma }}</p>
+                    <p><strong>Viagens:</strong> {{ stats.total_viagens|intcomma }}</p>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{% url 'detalhe_autocarro' stats.autocarro.id %}" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-eye"></i> Detalhes
+                    </a>
                 </div>
             </div>
-        {% endfor %}
-    </div>
+        </div>
+    {% endfor %}
+</div>
+{% endwith %}
 
-    <div class="text-center mt-4">
-        <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-primary">
-            <i class="fas fa-plus me-1"></i>Adicionar Relatório por Sector
-        </a>
-    </div>
+<!-- ⚙️ Botões -->
+<div class="text-center mt-4">
+    <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Adicionar Relatório por Sector
+    </a>
+</div>
 
-    <!-- Botão para gerar relatório detalhado em PDF -->
-    <div class="text-center mt-3">
-        <a href="{% url 'exportar_relatorio_dashboard' %}?mes={{ mes }}" 
-        class="btn btn-success btn-lg">
-            <i class="fas fa-file-word"></i> Gerar Relatório Detalhado (Word)
-        </a>
-    </div>
+<div class="text-center mt-3">
+    <a href="{% url 'exportar_relatorio_dashboard' %}?mes={{ mes }}" class="btn btn-success btn-lg">
+        <i class="fas fa-file-word"></i> Gerar Relatório Detalhado (Word)
+    </a>
+</div>
+
+<style>
+    /* 🎨 Estilo visual dos cartões de desempenho */
+    .destaque-verde { background: linear-gradient(135deg, #00c851, #007e33); color: white; }
+    .destaque-laranja { background: linear-gradient(135deg, #ffbb33, #ff8800); color: #fff; }
+    .destaque-amarelo { background: linear-gradient(135deg, #ffeb3b, #fbc02d); color: #333; }
+    .destaque-vermelho { background: linear-gradient(135deg, #ff4444, #cc0000); color: white; }
+
+    /* 💎 Destaque especial para o mais lucrativo */
+    .destaque-verde {
+        box-shadow: 0 0 25px rgba(0, 255, 0, 0.7);
+        animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 10px rgba(0,255,0,0.6); }
+        50% { box-shadow: 0 0 35px rgba(0,255,0,1); }
+        100% { box-shadow: 0 0 10px rgba(0,255,0,0.6); }
+    }
+    .stats-card {
+        border-radius: 10px;
+        transition: 0.3s ease;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    .bg-azul-forte {
+        background-color: #0d1b2a !important;
+        color: #fff !important;
+    }
+</style>
 
 {% endblock %}
