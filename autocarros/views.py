@@ -1062,10 +1062,26 @@ def listar_registros(request):
     registros = registros.order_by('-data', 'autocarro__sector__nome', 'autocarro__numero')
 
     # 🔹 Agrupar registros por data e sector e anexar despesas variáveis
+    # ...existing code...
+    # 🔹 Agrupar registros por data e sector e anexar despesas variáveis
     registros_agrupados = {}
     for registro in registros:
         chave = f"{registro.data.isoformat()}_{registro.autocarro.sector.id}"
         if chave not in registros_agrupados:
+            # calcular despesas variáveis DO DIA NO SECTOR (apenas uma vez por grupo)
+            try:
+                total_variaveis_grupo = Despesa.objects.filter(
+                    sector=registro.autocarro.sector,
+                    data=registro.data
+                ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+                despesas_grupo_qs = Despesa.objects.filter(
+                    sector=registro.autocarro.sector,
+                    data=registro.data
+                ).order_by('-data')
+            except Exception:
+                total_variaveis_grupo = Decimal('0')
+                despesas_grupo_qs = Despesa.objects.none()
+
             registros_agrupados[chave] = {
                 'data': registro.data,
                 'sector': registro.autocarro.sector,
@@ -1073,7 +1089,8 @@ def listar_registros(request):
                 'total_entradas': Decimal('0'),
                 'total_saidas': Decimal('0'),
                 'total_saldo': Decimal('0'),
-                'total_variaveis': Decimal('0'),
+                'total_variaveis': total_variaveis_grupo,  # agora é por dia+sector
+                'despesas_variaveis_do_grupo': list(despesas_grupo_qs),
             }
 
         # anexar totais de combustível (se existirem) ao objeto registro
@@ -1118,64 +1135,40 @@ def listar_registros(request):
         except Exception:
             registro.preco_litro = None
 
-        # === Despesas "variáveis" (modelo Despesa) associadas ao mesmo dia/auto/sector ===
-        try:
-            filtros_desp = Q(data=registro.data) & (Q(autocarro=registro.autocarro) | Q(sector=registro.autocarro.sector))
-            despesas_qs = Despesa.objects.filter(filtros_desp).order_by('-data')
-            total_variaveis = despesas_qs.aggregate(total=Sum('valor'))['total'] or Decimal('0')
-        except Exception:
-            despesas_qs = Despesa.objects.none()
-            total_variaveis = Decimal('0')
-
-        registro.despesas_variaveis = list(despesas_qs)
-        registro.total_variaveis = total_variaveis
-
-        try:
-            saldo_base = getattr(registro, 'saldo_liquido_incl_combustivel', None)
-            if saldo_base is None:
-                saldo_base = registro.saldo_liquido() if callable(getattr(registro, 'saldo_liquido', None)) else Decimal('0')
-            registro.saldo_apos_variaveis = saldo_base - total_variaveis
-        except Exception:
-            registro.saldo_apos_variaveis = getattr(registro, 'saldo_liquido_incl_combustivel', Decimal('0'))
+        # anexar ao registro as despesas do grupo (dia+sector) para exibição
+        # OBS: estas despesas são por sector+dia — não adicionamos por registo para evitar duplicação
+        registro.despesas_variaveis = registros_agrupados[chave].get('despesas_variaveis_do_grupo', [])
+        registro.total_variaveis = registros_agrupados[chave].get('total_variaveis', Decimal('0'))
 
         # adicionar registro ao agrupamento e atualizar totais do grupo
         registros_agrupados[chave]['registos'].append(registro)
         registros_agrupados[chave]['total_entradas'] += registro.entradas_total()
         registros_agrupados[chave]['total_saidas'] += registro.saidas_total_incl_combustivel
-        registros_agrupados[chave]['total_variaveis'] += registro.total_variaveis
-        # recalcular saldo do grupo (entradas - (saídas incl. combustível) - variáveis)
-        registros_agrupados[chave]['total_saldo'] += registro.entradas_total() - registro.saidas_total_incl_combustivel - registro.total_variaveis
+        # NOTA: não somamos registro.total_variaveis por registro (já está no campo group total_variaveis)
 
-    # 🔹 Calcular totais gerais (incluindo combustível agregado e despesas variáveis nos registos)
-    total_entradas = Decimal('0')
-    total_saidas = Decimal('0')
-    total_saldo = Decimal('0')
-    total_combustivel = Decimal('0')
-    total_variaveis_geral = Decimal('0')
-    for reg in registros:
+        # recalcular saldo parcial do grupo (entradas - saídas (aqui ainda sem variáveis))
+        registros_agrupados[chave]['total_saldo'] += registro.entradas_total() - registro.saidas_total_incl_combustivel
+
+    # Depois de montar todos os registos, ajustar cada grupo para incluir as despesas variáveis DO DIA+SECTOR apenas uma vez
+    for g in registros_agrupados.values():
         try:
-            total_entradas += reg.entradas_total()
+            g_total_variaveis = g.get('total_variaveis', Decimal('0')) or Decimal('0')
+            g['total_saidas'] += g_total_variaveis
+            # recalcular saldo final do grupo
+            g['total_saldo'] = g['total_entradas'] - g['total_saidas']
         except Exception:
-            total_entradas += Decimal('0')
-        try:
-            total_saidas += getattr(reg, 'saidas_total_incl_combustivel', reg.saidas_total())
-        except Exception:
-            total_saidas += Decimal('0')
-        try:
-            total_saldo += getattr(reg, 'saldo_liquido_incl_combustivel', reg.saldo_liquido())
-        except Exception:
-            total_saldo += Decimal('0')
-        try:
-            total_combustivel += getattr(reg, 'combustivel_total', Decimal('0'))
-        except Exception:
-            total_combustivel += Decimal('0')
-        try:
-            tv = getattr(reg, 'total_variaveis', Decimal('0')) or Decimal('0')
-            total_variaveis_geral += tv
-            total_saidas += tv
-            total_saldo -= tv
-        except Exception:
-            pass
+            continue
+
+    # 🔹 Calcular totais gerais BASEADOS NOS GRUPOS (evita dupla contagem)
+    total_entradas = sum([g['total_entradas'] for g in registros_agrupados.values()]) if registros_agrupados else Decimal('0')
+    total_saidas = sum([g['total_saidas'] for g in registros_agrupados.values()]) if registros_agrupados else Decimal('0')
+    total_saldo = sum([g['total_saldo'] for g in registros_agrupados.values()]) if registros_agrupados else Decimal('0')
+
+    # total_combustivel: somar valores agregados no combustivel_map (já filtrado pelos registos)
+    total_combustivel = sum([v.get('total_valor', Decimal('0')) for v in combustivel_map.values()]) if combustivel_map else Decimal('0')
+
+    # total_variaveis_geral: soma única por grupo (sector+dia)
+    total_variaveis_geral = sum([g.get('total_variaveis', Decimal('0')) for g in registros_agrupados.values()]) if registros_agrupados else Decimal('0')
 
     totais = {
         'total_entradas': total_entradas,
@@ -1197,7 +1190,7 @@ def listar_registros(request):
         if g['registos'] and getattr(g['registos'][0], 'relatorio', None):
             descricao = g['registos'][0].relatorio.descricao or '-'
 
-        # ...existing code...
+      
         parts = []
         parts.append(f"📅 DATA: {data_str}")
         parts.append(f"🏢 RELATÓRIO DO DIA: {sector_name}")
