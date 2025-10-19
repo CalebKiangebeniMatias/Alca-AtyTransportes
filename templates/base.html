@@ -300,26 +300,50 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <div class="navbar-nav ms-auto">
 
-                    <!--- Investimentos -->
+                    <!-- Finanças -->
                     <div class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-piggy-bank me-1"></i>Investimentos
+                            <i class="fas fa-piggy-bank me-1"></i> Finanças
                         </a>
-                        <ul class="dropdown-menu">
+                        <ul class="dropdown-menu shadow-lg border-0 rounded-3">
+                            <!-- Crédito -->
                             <li>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-building-columns me-1"></i> Demostração
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-hand-holding-usd me-2 text-success"></i> Crédito
                                 </a>
                             </li>
-                            {% for sector in sectores %}
-                                <li>
-                                    <a class="dropdown-item" href="#">
-                                        <i class="fas fa-building-columns me-1"></i>{{ sector.nome }}
-                                    </a>
-                                </li>
-                            {% empty %}
-                                <li><span class="dropdown-item text-muted">Nenhum setor cadastrado</span></li>
-                            {% endfor %}
+                            <li><hr class="dropdown-divider"></li>
+
+                            <!-- Investimentos -->
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-chart-line me-2 text-primary"></i> Investimentos
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+
+                            <!-- Amortizações -->
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-coins me-2 text-warning"></i> Amortizações
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+
+                            <!-- Demonstração -->
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-file-invoice-dollar me-2 text-info"></i> Demonstração
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+
+                            <!-- Extratos -->
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-receipt me-2 text-secondary"></i> Extratos
+                                </a>
+                            </li>
                         </ul>
                     </div>
 

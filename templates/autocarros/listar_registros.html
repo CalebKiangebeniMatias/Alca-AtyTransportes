@@ -147,7 +147,7 @@
                                 </div>
                                 <div class="col-4">
                                     <div class="p-3 bg-white rounded shadow-sm">
-                                        <small class="d-block mb-1" style="color: #c62828; font-weight: 600;">Saídas</small>
+                                        <small class="d-block mb-1" style="color: #c62828; font-weight: 600;">Saídas (incl. Comb.& Variáveis)</small>
                                         <h5 class="mb-0" style="color: #b71c1c; font-weight: 700;">{% localize on %}{{ grupo.total_saidas|floatformat:2 }}{% endlocalize %}</h5>
                                         <small style="color: #c62828;">Kz</small>
                                     </div>
@@ -159,6 +159,11 @@
                                         <small style="color: #1565c0;">Kz</small>
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Mostrar total de despesas variáveis do grupo -->
+                            <div class="mt-2 text-end">
+                                <small class="text-muted">Despesas Variáveis do Grupo: <strong class="text-danger">{% localize on %}{{ grupo.total_variaveis|floatformat:2 }}{% endlocalize %} Kz</strong></small>
                             </div>
                         </div>
                     </div>
@@ -354,7 +359,12 @@
                                     <div class="text-center p-3 rounded saldo-box">
                                         <small class="d-block text-dark mb-1" style="font-weight: 500;">💰 SALDO LÍQUIDO</small>
                                         <h4 class="mb-0" style="color: #1a237e; font-weight: 700;">
-                                            {% localize on %}{{ reg.saldo_liquido_incl_combustivel|floatformat:2 }}{% endlocalize %} Kz
+                                            {% comment %}Mostrar saldo já com despesas variáveis, se disponível{% endcomment %}
+                                            {% if reg.saldo_apos_variaveis is not None %}
+                                                {% localize on %}{{ reg.saldo_apos_variaveis|floatformat:2 }}{% endlocalize %} Kz
+                                            {% else %}
+                                                {% localize on %}{{ reg.saldo_liquido_incl_combustivel|floatformat:2 }}{% endlocalize %} Kz
+                                            {% endif %}
                                         </h4>
                                     </div>
 
@@ -478,6 +488,11 @@
                             <small style="color: #1565c0;">Kz</small>
                         </div>
                     </div>
+                </div>
+
+                <!-- Mostrar Total de Despesas Variáveis gerais -->
+                <div class="mt-3 text-end">
+                    <small class="text-muted">Total Despesas Variáveis: <strong class="text-danger">{% localize on %}{{ totais.total_variaveis|floatformat:2 }}{% endlocalize %} Kz</strong></small>
                 </div>
             </div>
         </div>

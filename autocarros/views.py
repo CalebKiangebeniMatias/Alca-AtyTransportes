@@ -972,6 +972,8 @@ from .models import Despesa  # certifique-se que Despesa está importado
 
 # ...existing code...
 @login_required
+# ...existing code...
+@login_required
 def listar_registros(request):
     hoje = timezone.now().date()
 
@@ -1024,20 +1026,17 @@ def listar_registros(request):
 
     if data_inicio:
         registros = registros.filter(data__gte=data_inicio)
-    
+
     if data_fim:
         registros = registros.filter(data__lte=data_fim)
 
-
     # 🔹 Agregar despesas de combustível por autocarro/data
-    # Queremos que os totais de combustível façam parte das saídas de cada registo
     combustivel_map = {}
     if registros.exists():
         autocarro_ids = set(registros.values_list('autocarro_id', flat=True))
         datas = set(registros.values_list('data', flat=True))
         combustiveis = DespesaCombustivel.objects.filter(autocarro_id__in=autocarro_ids, data__in=datas)
 
-        # estruturar por chave autocarroid_data para agregação
         from collections import defaultdict
         agg = defaultdict(lambda: {
             'total_valor': Decimal('0'),
@@ -1056,14 +1055,13 @@ def listar_registros(request):
             if c.comprovativo:
                 agg[key]['comprovativos'].append(c.comprovativo.url if hasattr(c.comprovativo, 'url') else str(c.comprovativo))
 
-        # converter para combustivel_map para compatibilidade com templates existentes
         for k, v in agg.items():
             combustivel_map[k] = v
-    
+
     # 🔹 Ordenar por data (mais recente primeiro) e sector
     registros = registros.order_by('-data', 'autocarro__sector__nome', 'autocarro__numero')
-    
-    # 🔹 Agrupar registros por data e sector para simular a estrutura anterior
+
+    # 🔹 Agrupar registros por data e sector e anexar despesas variáveis
     registros_agrupados = {}
     for registro in registros:
         chave = f"{registro.data.isoformat()}_{registro.autocarro.sector.id}"
@@ -1075,12 +1073,13 @@ def listar_registros(request):
                 'total_entradas': Decimal('0'),
                 'total_saidas': Decimal('0'),
                 'total_saldo': Decimal('0'),
+                'total_variaveis': Decimal('0'),
             }
+
         # anexar totais de combustível (se existirem) ao objeto registro
         key = f"{registro.autocarro_id}_{registro.data.isoformat()}"
         comb = combustivel_map.get(key)
         if comb:
-            # se comb for um dict agregado (nosso formato), extrair
             if isinstance(comb, dict):
                 registro.combustivel_total = comb.get('total_valor', Decimal('0'))
                 registro.combustivel_valor_litros = comb.get('total_valor_litros', Decimal('0'))
@@ -1088,7 +1087,6 @@ def listar_registros(request):
                 registro.combustivel_lavagem = comb.get('total_lavagem', Decimal('0'))
                 registro.comprovativos_combustivel = comb.get('comprovativos', [])
             else:
-                # compatibilidade: se for um objeto DespesaCombustivel antigo
                 registro.combustivel_total = getattr(comb, 'valor', Decimal('0')) or Decimal('0')
                 registro.combustivel_valor_litros = getattr(comb, 'valor_litros', Decimal('0')) or Decimal('0')
                 registro.combustivel_sobragem = getattr(comb, 'sobragem_filtros', Decimal('0')) or Decimal('0')
@@ -1111,7 +1109,7 @@ def listar_registros(request):
             registro.saldo_liquido_incl_combustivel = registro.entradas_total() - registro.saidas_total_incl_combustivel
         except Exception:
             registro.saldo_liquido_incl_combustivel = registro.saldo_liquido()
-        # preco por litro ilustrativo (valor / valor_litros)
+
         try:
             if registro.combustivel_valor_litros and registro.combustivel_valor_litros != Decimal('0'):
                 registro.preco_litro = (registro.combustivel_total / registro.combustivel_valor_litros)
@@ -1120,7 +1118,7 @@ def listar_registros(request):
         except Exception:
             registro.preco_litro = None
 
-        # === Novo: anexar Despesas "variáveis" e ajustar saldos ===
+        # === Despesas "variáveis" (modelo Despesa) associadas ao mesmo dia/auto/sector ===
         try:
             filtros_desp = Q(data=registro.data) & (Q(autocarro=registro.autocarro) | Q(sector=registro.autocarro.sector))
             despesas_qs = Despesa.objects.filter(filtros_desp).order_by('-data')
@@ -1140,13 +1138,12 @@ def listar_registros(request):
         except Exception:
             registro.saldo_apos_variaveis = getattr(registro, 'saldo_liquido_incl_combustivel', Decimal('0'))
 
-        # adicionar registro ao agrupamento (existente)
+        # adicionar registro ao agrupamento e atualizar totais do grupo
         registros_agrupados[chave]['registos'].append(registro)
         registros_agrupados[chave]['total_entradas'] += registro.entradas_total()
-        # incluir combustível nas saídas do grupo
         registros_agrupados[chave]['total_saidas'] += registro.saidas_total_incl_combustivel
-        # incluir despesas variáveis nas saídas do grupo e ajustar saldo do grupo
-        registros_agrupados[chave]['total_saidas'] += registro.total_variaveis
+        registros_agrupados[chave]['total_variaveis'] += registro.total_variaveis
+        # recalcular saldo do grupo (entradas - (saídas incl. combustível) - variáveis)
         registros_agrupados[chave]['total_saldo'] += registro.entradas_total() - registro.saidas_total_incl_combustivel - registro.total_variaveis
 
     # 🔹 Calcular totais gerais (incluindo combustível agregado e despesas variáveis nos registos)
@@ -1161,7 +1158,6 @@ def listar_registros(request):
         except Exception:
             total_entradas += Decimal('0')
         try:
-            # usar saidas_total_incl_combustivel se estiver disponível
             total_saidas += getattr(reg, 'saidas_total_incl_combustivel', reg.saidas_total())
         except Exception:
             total_saidas += Decimal('0')
@@ -1173,7 +1169,6 @@ def listar_registros(request):
             total_combustivel += getattr(reg, 'combustivel_total', Decimal('0'))
         except Exception:
             total_combustivel += Decimal('0')
-        # somar despesas variáveis se existirem no registro
         try:
             tv = getattr(reg, 'total_variaveis', Decimal('0')) or Decimal('0')
             total_variaveis_geral += tv
@@ -1198,16 +1193,35 @@ def listar_registros(request):
         except Exception:
             data_str = str(g['data'])
         sector_name = g['sector'].nome if g.get('sector') else 'Geral'
-        # Descrição do relatório (usar primeiro registo se disponível)
         descricao = '-'
         if g['registos'] and getattr(g['registos'][0], 'relatorio', None):
             descricao = g['registos'][0].relatorio.descricao or '-'
 
+        # ...existing code...
         parts = []
         parts.append(f"📅 DATA: {data_str}")
         parts.append(f"🏢 RELATÓRIO DO DIA: {sector_name}")
         parts.append("")
         parts.append(f"📝 DESCRIÇÃO: {descricao}")
+
+        # helper local para formatar valores: milhar com ponto e centavos com vírgula
+        def fmt_money(valor):
+            try:
+                d = Decimal(valor)
+            except Exception:
+                try:
+                    return str(valor)
+                except Exception:
+                    return "0,00"
+            sign = '-' if d < 0 else ''
+            d = abs(d).quantize(Decimal('0.01'))
+            s = f"{d:.2f}"  # "1234.56"
+            integer, frac = s.split('.')
+            try:
+                integer_with_sep = '{:,}'.format(int(integer)).replace(',', '.')
+            except Exception:
+                integer_with_sep = integer
+            return f"{sign}{integer_with_sep},{frac}"
 
         for reg in g['registos']:
             parts.append("")
@@ -1218,84 +1232,79 @@ def listar_registros(request):
             parts.append(f"👨‍💼 Cobrador Principal: {reg.cobrador_principal or 'N/A'}")
             parts.append(f"👨‍💼 Cobrador Auxiliar: {reg.cobrador_auxiliar or 'N/A'}")
             parts.append("")
-            # Labels especiais para Luanda
             if sector_name.lower() == 'luanda':
                 parts.append("✅ Entradas (Manhã/Tarde)")
-                parts.append(f"Manhã (Normal): {reg.normal}")
-                parts.append(f"Tarde (Alunos): {reg.alunos}")
+                parts.append(f"Manhã (Normal): {fmt_money(getattr(reg, 'normal', 0))}kz")
+                parts.append(f"Tarde (Alunos): {fmt_money(getattr(reg, 'alunos', 0))}kz")
             else:
                 parts.append("✅ Entradas")
-                parts.append(f"Normal: {reg.normal}")
-                parts.append(f"Alunos: {reg.alunos}")
-            parts.append(f"Luvu: {reg.luvu}")
-            parts.append(f"Frete: {reg.frete}")
+                parts.append(f"Normal: {fmt_money(getattr(reg, 'normal', 0))}kz")
+                parts.append(f"Alunos: {fmt_money(getattr(reg, 'alunos', 0))}kz")
+            parts.append(f"Luvu: {fmt_money(getattr(reg, 'luvu', 0))}kz")
+            parts.append(f"Frete: {fmt_money(getattr(reg, 'frete', 0))}kz")
             try:
                 entradas_total = reg.entradas_total()
             except Exception:
-                entradas_total = 0
-            parts.append(f"➡️ Total Entradas: {entradas_total}")
+                entradas_total = Decimal('0')
+            parts.append(f"➡️ Total Entradas: {fmt_money(entradas_total)}kz")
             parts.append("")
             parts.append("❌ Saídas")
-            parts.append(f"Alimentação: {reg.alimentacao}")
-            parts.append(f"Parqueamento: {reg.parqueamento}")
-            parts.append(f"Taxa: {reg.taxa}")
-            parts.append(f"Outros: {reg.outros}")
-            # Incluir componentes de combustível (se houver)
+            parts.append(f"Alimentação: {fmt_money(getattr(reg, 'alimentacao', 0))}kz")
+            parts.append(f"Parqueamento: {fmt_money(getattr(reg, 'parqueamento', 0))}kz")
+            parts.append(f"Taxa: {fmt_money(getattr(reg, 'taxa', 0))}kz")
+            parts.append(f"Outros: {fmt_money(getattr(reg, 'outros', 0))}kz")
             try:
-                parts.append(f"Combustível (valor): {getattr(reg, 'combustivel_total', 0)}")
+                parts.append(f"Combustível (valor): {fmt_money(getattr(reg, 'combustivel_total', 0))}")
             except Exception:
-                parts.append(f"Combustível (valor): 0")
+                parts.append(f"Combustível (valor): {fmt_money(0)}")
             try:
-                parts.append(f"Sobragem/Filtros: {getattr(reg, 'combustivel_sobragem', 0)}")
+                parts.append(f"Sobragem/Filtros: {fmt_money(getattr(reg, 'combustivel_sobragem', 0))}")
             except Exception:
-                parts.append(f"Sobragem/Filtros: 0")
+                parts.append(f"Sobragem/Filtros: {fmt_money(0)}")
             try:
-                parts.append(f"Lavagem: {getattr(reg, 'combustivel_lavagem', 0)}")
+                parts.append(f"Lavagem: {fmt_money(getattr(reg, 'combustivel_lavagem', 0))}")
             except Exception:
-                parts.append(f"Lavagem: 0")
-            # Incluir despesas variáveis no texto
+                parts.append(f"Lavagem: {fmt_money(0)}")
             try:
-                parts.append(f"Despesas Variáveis (total): {getattr(reg, 'total_variaveis', 0)}")
+                parts.append(f"Despesas Variáveis (total): {fmt_money(getattr(reg, 'total_variaveis', 0))}")
             except Exception:
-                parts.append("Despesas Variáveis (total): 0")
+                parts.append(f"Despesas Variáveis (total): {fmt_money(0)}")
             try:
                 saidas_total = getattr(reg, 'saidas_total_incl_combustivel', reg.saidas_total()) + (getattr(reg, 'total_variaveis', Decimal('0')) or Decimal('0'))
             except Exception:
-                saidas_total = 0
-            parts.append(f"➡️ Total Saídas: {saidas_total}")
+                saidas_total = Decimal('0')
+            parts.append(f"➡️ Total Saídas: {fmt_money(saidas_total)}kz")
             parts.append("")
             parts.append("📊 Outros Dados")
-            parts.append(f"Kms: {reg.km_percorridos}")
-            parts.append(f"Passageiros: {reg.numero_passageiros}")
-            parts.append(f"Viagens: {reg.numero_viagens}")
+            parts.append(f"Kms: {getattr(reg, 'km_percorridos', 0)}")
+            parts.append(f"Passageiros: {getattr(reg, 'numero_passageiros', 0)}")
+            parts.append(f"Viagens: {getattr(reg, 'numero_viagens', 0)}")
             parts.append("")
             try:
                 saldo = getattr(reg, 'saldo_apos_variaveis', getattr(reg, 'saldo_liquido_incl_combustivel', reg.saldo_liquido()))
             except Exception:
-                saldo = 0
-            parts.append(f"💰 Saldo Liquído: {saldo}")
+                saldo = Decimal('0')
+            parts.append(f"💰 Saldo Liquído: {fmt_money(saldo)}kz")
 
         parts.append("")
         parts.append("__________________________________________")
         parts.append("")
-
         parts.append("📊 Resumo")
         parts.append("")
-        # usar variáveis escalares calculadas anteriormente para evitar UnboundLocalError
-        parts.append(f"✅ Entrada Geral: {total_entradas}")
+        parts.append(f"✅ Entrada Geral: {fmt_money(total_entradas)}kz")
         parts.append("")
-        parts.append(f"❌ Saida Geral: {total_saidas}")
+        parts.append(f"❌ Saida Geral: {fmt_money(total_saidas)}kz")
         parts.append("")
-        parts.append(f"💰 Liquído Geral: {total_saldo}")
+        parts.append(f"💰 Liquído Geral: {fmt_money(total_saldo)}kz")
         parts.append("")
         parts.append(f"Suporte tecnico: @kiangebenimatias4@gmail.com, +244 944 790 744 (WhatsApp)")
 
         message = '\n'.join(parts)
         g['whatsapp_link'] = f"https://wa.me/?text={quote_plus(message)}"
-    
+
     # 🔹 Obter sectores para o filtro
     sectores = Sector.objects.all()
-    
+
     context = {
         'registros_agrupados': list(registros_agrupados.values()),
         'sectores': sectores,
@@ -1305,9 +1314,8 @@ def listar_registros(request):
         'totais': totais,
         'hoje': hoje,
     }
-    # incluir mapa de combustíveis para o template (chave: "autocarroid_YYYY-MM-DD")
     context['combustivel_map'] = combustivel_map
-    
+
     return render(request, 'autocarros/listar_registros.html', context)
 
 
