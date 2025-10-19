@@ -100,12 +100,12 @@
     <div class="row mb-4">
         {% for stats in autocarros_stats %}
             <div class="col-md-4 col-sm-6 mb-3">
-                <div class="card h-100 shadow-sm bg-azul-forte">
+                <div class="card card-autocarro h-100">
                     <div class="card-body text-center">
-                        <i class="fas fa-bus fa-2x mb-2 text-primary"></i>
+                        <i class="fas fa-bus fa-3x mb-2 text-info"></i>
                         <h5 class="card-title">{{ stats.autocarro.numero }}</h5>
                         <p class="text-muted">{{ stats.autocarro.modelo }}</p>
-                        
+
                         <p><strong>KMs:</strong> {% localize on %}{{ stats.total_km|floatformat:2 }}{% endlocalize %} km</p>
                         <p class="text-success">
                             <strong>Entradas:</strong> {% localize on %}{{ stats.total_entradas|floatformat:2 }}{% endlocalize %} Kz
@@ -114,7 +114,7 @@
                             <strong>Despesas:</strong> {% localize on %}{{ stats.total_saidas|floatformat:2 }}{% endlocalize %} Kz
                         </p>
                         {% if stats.total_combustivel %}
-                        <p class="text-danger">
+                        <p class="text-warning">
                             <strong>Combustível:</strong> {% localize on %}{{ stats.total_combustivel|floatformat:2 }}{% endlocalize %} Kz
                         </p>
                         {% endif %}
@@ -133,6 +133,7 @@
             </div>
         {% endfor %}
     </div>
+
 
     <div class="text-center mt-4">
         <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-primary">
