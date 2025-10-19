@@ -2273,7 +2273,115 @@ from decimal import Decimal
 import json
 from .models import Autocarro, CobradorViagem
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+from .models import Autocarro, CobradorViagem
+
+@login_required
+def cobrador_viagens(request):
+    """
+    Página com formulário/abas para lançar e ver viagens do cobrador.
+    Template: templates/cobradores/cobrador_viagens.html
+    """
+    # enviar data inicial se quiser
+    context = {
+        "today": request.GET.get("data") or None
+    }
+    return render(request, "cobradores/cobrador_viagens.html", context)
+
+@login_required
+@require_POST
+def cobrador_viagens_save(request):
+    """
+    Salva uma viagem via POST JSON.
+    Espera JSON no body com: autocarro_numero | autocarro_id, data, hora, valor, passageiros, observacao
+    """
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return HttpResponseBadRequest("JSON inválido")
+
+    numero = data.get("autocarro_numero") or data.get("autocarro_id")
+    if not numero:
+        return JsonResponse({"ok": False, "error": "autocarro_numero obrigatório"}, status=400)
+
+    # localizar autocarro (tenta por número, depois por pk)
+    try:
+        try:
+            autocarro = Autocarro.objects.get(numero=numero)
+        except Autocarro.DoesNotExist:
+            autocarro = Autocarro.objects.get(pk=int(numero))
+    except Exception:
+        return JsonResponse({"ok": False, "error": "Autocarro não encontrado"}, status=404)
+
+    try:
+        valor = Decimal(str(data.get("valor") or "0"))
+    except Exception:
+        valor = Decimal("0")
+
+    try:
+        passageiros = int(data.get("passageiros") or 0)
+    except Exception:
+        passageiros = 0
+
+    viagem = CobradorViagem.objects.create(
+        autocarro=autocarro,
+        cobrador=request.user,
+        data=data.get("data"),
+        hora=data.get("hora") or None,
+        valor=valor,
+        passageiros=passageiros,
+        observacao=data.get("observacao") or ""
+    )
+
+    return JsonResponse({"ok": True, "viagem_id": viagem.id})
+
+
+@login_required
+def cobrador_viagens_list(request):
+    """
+    Retorna JSON com viagens e resumo para um autocarro (por número ou id).
+    GET params: autocarro_numero|autocarro_id, opcional data=YYYY-MM-DD
+    """
+    numero = request.GET.get("autocarro_numero") or request.GET.get("autocarro_id")
+    if not numero:
+        return JsonResponse({"ok": False, "error": "autocarro_numero obrigatório"}, status=400)
+
+    try:
+        try:
+            autocarro = Autocarro.objects.get(numero=numero)
+        except Autocarro.DoesNotExist:
+            autocarro = Autocarro.objects.get(pk=int(numero))
+    except Exception:
+        return JsonResponse({"ok": False, "error": "Autocarro não encontrado"}, status=404)
+
+    qs = CobradorViagem.objects.filter(autocarro=autocarro)
+    data_filtro = request.GET.get("data")
+    if data_filtro:
+        qs = qs.filter(data=data_filtro)
+
+    viagens = []
+    for v in qs.order_by("-data", "-hora"):
+        viagens.append({
+            "id": v.id,
+            "data": v.data.isoformat(),
+            "hora": v.hora.isoformat() if v.hora else "",
+            "valor": str(v.valor),
+            "passageiros": v.passageiros,
+            "observacao": v.observacao,
+            "cobrador": v.cobrador.get_full_name() if v.cobrador else "",
+            "status": getattr(v, "status", "pending"),
+        })
+
+    resumo = qs.aggregate(total_valor=Sum("valor"), total_passageiros=Sum("passageiros"))
+    total_valor = resumo.get("total_valor") or Decimal("0")
+    total_passageiros = resumo.get("total_passageiros") or 0
+
+    return JsonResponse({
+        "ok": True,
+        "autocarro": {"id": autocarro.id, "numero": autocarro.numero, "modelo": getattr(autocarro, "modelo", "")},
+        "viagens": viagens,
+        "resumo": {"total_valor": str(total_valor), "total_passageiros": int(total_passageiros)}
+    })
+
 
 @login_required
 def cobrador_viagens_validate_list(request):
