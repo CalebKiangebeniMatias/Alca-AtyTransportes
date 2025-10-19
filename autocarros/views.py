@@ -571,12 +571,14 @@ def exportar_relatorio_dashboard(request):
         comb_lav = comb_auto.get('total_lavagem') or Decimal('0')
 
         stats['total_combustivel'] = comb_val
-        stats['total_combustivel_sobragem'] = comb_sobr
-        stats['total_combustivel_lavagem'] = comb_lav
+        stats['total_combustivel_litros'] = comb_auto.get('total_litros') or Decimal('0')
+        stats['total_combustivel_sobragem'] = comb_auto.get('total_sobragem') or Decimal('0')
+        stats['total_combustivel_lavagem'] = comb_auto.get('total_lavagem') or Decimal('0')
 
-        stats['total_saidas'] += comb_val + comb_sobr + comb_lav
-        stats["resto"] = stats["total_entradas"] - stats["total_saidas"]
-
+        # Incluir combustível, sobragem e lavagem nas saídas por autocarro
+        stats['total_saidas'] = stats['total_saidas'] + stats.get('total_combustivel', Decimal('0')) + comb_sobr + comb_lav
+        # recalcular resto
+        stats["resto"] = stats["total_entradas"] - stats['total_saidas']
         autocarros_stats.append(stats)
 
     # Criar documento Word
@@ -964,10 +966,12 @@ def detalhe_autocarro(request, autocarro_id):
 from django.utils import timezone
 from datetime import date
 from decimal import Decimal
+from django.db.models import Q, Sum
+from .models import Despesa  # certifique-se que Despesa está importado
 
 
+# ...existing code...
 @login_required
-@acesso_restrito(['admin', 'gestor'])
 def listar_registros(request):
     hoje = timezone.now().date()
 
@@ -1116,17 +1120,41 @@ def listar_registros(request):
         except Exception:
             registro.preco_litro = None
 
+        # === Novo: anexar Despesas "variáveis" e ajustar saldos ===
+        try:
+            filtros_desp = Q(data=registro.data) & (Q(autocarro=registro.autocarro) | Q(sector=registro.autocarro.sector))
+            despesas_qs = Despesa.objects.filter(filtros_desp).order_by('-data')
+            total_variaveis = despesas_qs.aggregate(total=Sum('valor'))['total'] or Decimal('0')
+        except Exception:
+            despesas_qs = Despesa.objects.none()
+            total_variaveis = Decimal('0')
+
+        registro.despesas_variaveis = list(despesas_qs)
+        registro.total_variaveis = total_variaveis
+
+        try:
+            saldo_base = getattr(registro, 'saldo_liquido_incl_combustivel', None)
+            if saldo_base is None:
+                saldo_base = registro.saldo_liquido() if callable(getattr(registro, 'saldo_liquido', None)) else Decimal('0')
+            registro.saldo_apos_variaveis = saldo_base - total_variaveis
+        except Exception:
+            registro.saldo_apos_variaveis = getattr(registro, 'saldo_liquido_incl_combustivel', Decimal('0'))
+
+        # adicionar registro ao agrupamento (existente)
         registros_agrupados[chave]['registos'].append(registro)
         registros_agrupados[chave]['total_entradas'] += registro.entradas_total()
         # incluir combustível nas saídas do grupo
         registros_agrupados[chave]['total_saidas'] += registro.saidas_total_incl_combustivel
-        registros_agrupados[chave]['total_saldo'] += registro.entradas_total() - registro.saidas_total_incl_combustivel
+        # incluir despesas variáveis nas saídas do grupo e ajustar saldo do grupo
+        registros_agrupados[chave]['total_saidas'] += registro.total_variaveis
+        registros_agrupados[chave]['total_saldo'] += registro.entradas_total() - registro.saidas_total_incl_combustivel - registro.total_variaveis
 
-    # 🔹 Calcular totais gerais (incluindo combustível agregado nos registos)
+    # 🔹 Calcular totais gerais (incluindo combustível agregado e despesas variáveis nos registos)
     total_entradas = Decimal('0')
     total_saidas = Decimal('0')
     total_saldo = Decimal('0')
     total_combustivel = Decimal('0')
+    total_variaveis_geral = Decimal('0')
     for reg in registros:
         try:
             total_entradas += reg.entradas_total()
@@ -1145,6 +1173,14 @@ def listar_registros(request):
             total_combustivel += getattr(reg, 'combustivel_total', Decimal('0'))
         except Exception:
             total_combustivel += Decimal('0')
+        # somar despesas variáveis se existirem no registro
+        try:
+            tv = getattr(reg, 'total_variaveis', Decimal('0')) or Decimal('0')
+            total_variaveis_geral += tv
+            total_saidas += tv
+            total_saldo -= tv
+        except Exception:
+            pass
 
     totais = {
         'total_entradas': total_entradas,
@@ -1152,6 +1188,7 @@ def listar_registros(request):
         'total_saldo': total_saldo,
         'total_autocarros': registros.count(),
         'total_combustivel': total_combustivel,
+        'total_variaveis': total_variaveis_geral,
     }
 
     # Preparar link do WhatsApp para cada grupo (mensagem bem formatada)
@@ -1216,8 +1253,13 @@ def listar_registros(request):
                 parts.append(f"Lavagem: {getattr(reg, 'combustivel_lavagem', 0)}")
             except Exception:
                 parts.append(f"Lavagem: 0")
+            # Incluir despesas variáveis no texto
             try:
-                saidas_total = getattr(reg, 'saidas_total_incl_combustivel', reg.saidas_total())
+                parts.append(f"Despesas Variáveis (total): {getattr(reg, 'total_variaveis', 0)}")
+            except Exception:
+                parts.append("Despesas Variáveis (total): 0")
+            try:
+                saidas_total = getattr(reg, 'saidas_total_incl_combustivel', reg.saidas_total()) + (getattr(reg, 'total_variaveis', Decimal('0')) or Decimal('0'))
             except Exception:
                 saidas_total = 0
             parts.append(f"➡️ Total Saídas: {saidas_total}")
@@ -1228,7 +1270,7 @@ def listar_registros(request):
             parts.append(f"Viagens: {reg.numero_viagens}")
             parts.append("")
             try:
-                saldo = getattr(reg, 'saldo_liquido_incl_combustivel', reg.saldo_liquido())
+                saldo = getattr(reg, 'saldo_apos_variaveis', getattr(reg, 'saldo_liquido_incl_combustivel', reg.saldo_liquido()))
             except Exception:
                 saldo = 0
             parts.append(f"💰 Saldo Liquído: {saldo}")
@@ -1246,7 +1288,7 @@ def listar_registros(request):
         parts.append("")
         parts.append(f"💰 Liquído Geral: {total_saldo}")
         parts.append("")
-        parts.append(f"Suporte tecnico: @Kiangebeni Mataias, +244 944 790 744 (WhatsApp)")
+        parts.append(f"Suporte tecnico: @kiangebenimatias4@gmail.com, +244 944 790 744 (WhatsApp)")
 
         message = '\n'.join(parts)
         g['whatsapp_link'] = f"https://wa.me/?text={quote_plus(message)}"
@@ -2217,4 +2259,3 @@ def gerencia_campo(request):
         "autocarros": list(autocarros_map),
     }
     return render(request, "dashboards/gerencia_campo.html", context)
-
