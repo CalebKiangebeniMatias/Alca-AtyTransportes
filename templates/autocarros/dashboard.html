@@ -1,206 +1,202 @@
 {% extends 'base.html' %}
 {% load l10n %}
 {% load humanize %}
+{% load custom_tags %}
 
 {% block title %}Dashboard - Sistema de Autocarros{% endblock %}
 
 {% block content %}
 
-    <style>
-        .card-autocarro {
-            position: relative;
-            overflow: hidden;
-            border-radius: 15px;
-            background: linear-gradient(145deg, #0b2e59, #103d73);
-            transition: all 0.4s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-            color: #fff;
-        }
+<style>
+    .card-autocarro {
+        position: relative;
+        overflow: hidden;
+        border-radius: 15px;
+        background: linear-gradient(145deg, #0b2e59, #103d73);
+        transition: all 0.4s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+        color: #fff;
+    }
 
-        .card-autocarro::before {
-            content: "";
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(120deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0));
-            transform: rotate(25deg);
-            opacity: 0;
-            transition: opacity 0.5s;
-        }
+    .card-autocarro::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(120deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0));
+        transform: rotate(25deg);
+        opacity: 0;
+        transition: opacity 0.5s;
+    }
 
-        .card-autocarro:hover::before {
-            opacity: 1;
-            animation: brilho-movimento 2s linear infinite;
-        }
+    .card-autocarro:hover::before {
+        opacity: 1;
+        animation: brilho-movimento 2s linear infinite;
+    }
 
-        @keyframes brilho-movimento {
-            0% { transform: translateX(-100%) rotate(25deg); }
-            100% { transform: translateX(100%) rotate(25deg); }
-        }
+    @keyframes brilho-movimento {
+        0% { transform: translateX(-100%) rotate(25deg); }
+        100% { transform: translateX(100%) rotate(25deg); }
+    }
 
-        .card-autocarro.top-performer {
-            animation: destaque 2s infinite alternate;
-            box-shadow: 0 0 25px rgba(0, 255, 100, 0.5);
-        }
+    .card-autocarro.melhor-desempenho {
+        animation: destaque 2s infinite alternate;
+        box-shadow: 0 0 25px rgba(0, 255, 100, 0.5);
+    }
 
-        @keyframes destaque {
-            0% { box-shadow: 0 0 15px rgba(0, 255, 100, 0.6); }
-            100% { box-shadow: 0 0 30px rgba(0, 255, 180, 0.9); }
-        }
+    @keyframes destaque {
+        0% { box-shadow: 0 0 15px rgba(0, 255, 100, 0.6); }
+        100% { box-shadow: 0 0 30px rgba(0, 255, 180, 0.9); }
+    }
 
-        .saldo-verde { border: 2px solid rgba(0, 255, 100, 0.6); }
-        .saldo-laranja { border: 2px solid rgba(255, 140, 0, 0.6); }
-        .saldo-amarelo { border: 2px solid rgba(255, 255, 100, 0.6); }
-        .saldo-vermelho { border: 2px solid rgba(255, 60, 60, 0.6); }
+    .saldo-verde { border: 2px solid rgba(0, 255, 100, 0.6); }
+    .saldo-laranja { border: 2px solid rgba(255, 140, 0, 0.6); }
+    .saldo-amarelo { border: 2px solid rgba(255, 255, 100, 0.6); }
+    .saldo-vermelho { border: 2px solid rgba(255, 60, 60, 0.6); }
 
-        .card-autocarro .card-body i {
-            font-size: 2rem;
-        }
+    .card-autocarro .card-body i {
+        font-size: 2rem;
+    }
 
-        .card-autocarro .card-title {
-            font-weight: 600;
-            color: #fff;
-        }
-    </style>
+    .card-autocarro .card-title {
+        font-weight: 600;
+        color: #fff;
+    }
+</style>
 
-    <!-- 🔎 Filtro de Ano e Mês -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <form method="get" class="row g-2 align-items-end">
-                <div class="col-md-8">
-                    <label for="mes" class="form-label text-white">Selecionar Mês/Ano</label>
-                    <input type="month" name="mes" id="mes" value="{{ mes }}" class="form-control">
-                </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
+<!-- 🔎 Filtro de Ano e Mês -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-8">
+                <label for="mes" class="form-label text-white">Selecionar Mês/Ano</label>
+                <input type="month" name="mes" id="mes" value="{{ mes }}" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
     </div>
+</div>
 
-    <!-- 💰 Resumo Geral -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-coins icon-stat text-success"></i>
-                    <div class="stats-number">
-                        {% localize on %}<strong>{{ total_entradas|floatformat:2 }}{% endlocalize %} Kz</strong>
-                    </div>
-                    <h5 class="card-title">Entradas</h5>
+<!-- 💰 Resumo Geral -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card stats-card text-center bg-azul-forte">
+            <div class="card-body">
+                <i class="fas fa-coins icon-stat text-success"></i>
+                <div class="stats-number">
+                    {% localize on %}<strong>{{ total_entradas|floatformat:2 }}{% endlocalize %} Kz</strong>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-money-bill-wave icon-stat text-danger"></i>
-                    <div class="stats-number text-danger">
-                        {% localize on %}<strong>{{ total_saidas|floatformat:2 }}{% endlocalize %} Kz</strong>
-                    </div>
-                    <h5 class="card-title">Despesas</h5>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-piggy-bank icon-stat text-warning"></i>
-                    <div class="stats-number text-warning">
-                        {% localize on %}<strong>{{ total_resto|floatformat:2 }}{% endlocalize %} Kz</strong>
-                    </div>
-                    <h5 class="card-title">Saldo</h5>
-                </div>
+                <h5 class="card-title">Entradas</h5>
             </div>
         </div>
     </div>
-
-    <!-- ⛽ Combustível -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-gas-pump icon-stat text-danger"></i>
-                    <div class="stats-number text-danger">{% localize on %}{{ total_combustivel_valor|floatformat:2 }}{% endlocalize %} Kz</div>
-                    <h5 class="card-title">Combustível</h5>
+    <div class="col-md-4">
+        <div class="card stats-card text-center bg-azul-forte">
+            <div class="card-body">
+                <i class="fas fa-money-bill-wave icon-stat text-danger"></i>
+                <div class="stats-number text-danger">
+                    {% localize on %}<strong>{{ total_saidas|floatformat:2 }}{% endlocalize %} Kz</strong>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-tint icon-stat text-info"></i>
-                    <div class="stats-number text-info">{% localize on %}{{ total_combustivel_litros|floatformat:2 }}{% endlocalize %}</div>
-                    <h5 class="card-title">Por Litros (ilustr.)</h5>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-filter icon-stat text-warning"></i>
-                    <div class="stats-number text-warning">{% localize on %}{{ total_combustivel_sobragem|floatformat:2 }}{% endlocalize %} Kz</div>
-                    <h5 class="card-title">Sopragem De Filtros</h5>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-bucket icon-stat text-info"></i>
-                    <div class="stats-number text-info">{% localize on %}{{ total_combustivel_lavagem|floatformat:2 }}{% endlocalize %} Kz</div>
-                    <h5 class="card-title">Lavagem</h5>
-                </div>
+                <h5 class="card-title">Despesas</h5>
             </div>
         </div>
     </div>
-
-    <!-- 🚍 Cards Estatísticas por Autocarro -->
-    <div class="linha mb-4">
-        {% comment %}
-            Exibir cartões dos autocarros do menos ao mais lucrativo
-        {% endcomment %}
-
-        {% for stats in autocarros_stats|dictsort:"resto" %}
-            {% if stats.resto == max_saldo %}
-                {% with "saldo-verde" as cor %}
-            {% elif stats.resto >= 500000 %}
-                {% with "saldo-laranja" as cor %}
-            {% elif stats.resto > 0 %}
-                {% with "saldo-amarelo" as cor %}
-            {% else %}
-                {% with "saldo-vermelho" as cor %}
-            {% endif %}
-
-                <div class="col-md-4 col-sm-6 mb-3">
-                    <div class="card card-autocarro {{ cor }} {% if stats.resto == max_saldo %}melhor-desempenho{% endif %}">
-                        <div class="card-body text-center">
-                            <h5 class="card-title">{{ stats.autocarro.nome }}</h5>
-                            <p><strong>Receita:</strong> {{ stats.total_receita|floatformat:0 }} Kz</p>
-                            <p><strong>Despesa:</strong> {{ stats.total_despesa|floatformat:0 }} Kz</p>
-                            <p><strong>Saldo:</strong> {{ stats.resto|floatformat:0 }} Kz</p>
-                        </div>
-                    </div>
+    <div class="col-md-4">
+        <div class="card stats-card text-center bg-azul-forte">
+            <div class="card-body">
+                <i class="fas fa-piggy-bank icon-stat text-warning"></i>
+                <div class="stats-number text-warning">
+                    {% localize on %}<strong>{{ total_resto|floatformat:2 }}{% endlocalize %} Kz</strong>
                 </div>
-
-            {% endwith %}
-        {% endfor %}
+                <h5 class="card-title">Saldo</h5>
+            </div>
+        </div>
     </div>
+</div>
 
-    <div class="text-center mt-4">
-        <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-primary">
-            <i class="fas fa-plus me-1"></i> Adicionar Relatório por Sector
-        </a>
+<!-- ⛽ Combustível -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card text-center bg-azul-forte">
+            <div class="card-body">
+                <i class="fas fa-gas-pump icon-stat text-danger"></i>
+                <div class="stats-number text-danger">{% localize on %}{{ total_combustivel_valor|floatformat:2 }}{% endlocalize %} Kz</div>
+                <h5 class="card-title">Combustível</h5>
+            </div>
+        </div>
     </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-center bg-azul-forte">
+            <div class="card-body">
+                <i class="fas fa-tint icon-stat text-info"></i>
+                <div class="stats-number text-info">{% localize on %}{{ total_combustivel_litros|floatformat:2 }}{% endlocalize %}</div>
+                <h5 class="card-title">Por Litros (ilustr.)</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-center bg-azul-forte">
+            <div class="card-body">
+                <i class="fas fa-filter icon-stat text-warning"></i>
+                <div class="stats-number text-warning">{% localize on %}{{ total_combustivel_sobragem|floatformat:2 }}{% endlocalize %} Kz</div>
+                <h5 class="card-title">Sopragem De Filtros</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-center bg-azul-forte">
+            <div class="card-body">
+                <i class="fas fa-bucket icon-stat text-info"></i>
+                <div class="stats-number text-info">{% localize on %}{{ total_combustivel_lavagem|floatformat:2 }}{% endlocalize %} Kz</div>
+                <h5 class="card-title">Lavagem</h5>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <div class="text-center mt-3">
-        <a href="{% url 'exportar_relatorio_dashboard' %}?mes={{ mes }}" class="btn btn-success btn-lg">
-            <i class="fas fa-file-word"></i> Gerar Relatório Detalhado (Word)
-        </a>
-    </div>
+<!-- 🚍 Cartões Estatísticas por Autocarro -->
+<div class="linha mb-4">
+    {% comment %} Exibir cartões dos autocarros do menos ao mais lucrativo {% endcomment %}
+    {% for stats in autocarros_stats|dictsort:"resto" %}
+        {% if stats.resto == max_saldo %}
+            {% set "saldo-verde" as cor %}
+        {% elif stats.resto >= 500000 %}
+            {% set "saldo-laranja" as cor %}
+        {% elif stats.resto > 0 %}
+            {% set "saldo-amarelo" as cor %}
+        {% else %}
+            {% set "saldo-vermelho" as cor %}
+        {% endif %}
+
+        <div class="col-md-4 col-sm-6 mb-3">
+            <div class="card card-autocarro {{ cor }} {% if stats.resto == max_saldo %}melhor-desempenho{% endif %}">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ stats.autocarro.nome }}</h5>
+                    <p><strong>Receita:</strong> {{ stats.total_receita|floatformat:0 }} Kz</p>
+                    <p><strong>Despesa:</strong> {{ stats.total_despesa|floatformat:0 }} Kz</p>
+                    <p><strong>Saldo:</strong> {{ stats.resto|floatformat:0 }} Kz</p>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="text-center mt-4">
+    <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Adicionar Relatório por Sector
+    </a>
+</div>
+
+<div class="text-center mt-3">
+    <a href="{% url 'exportar_relatorio_dashboard' %}?mes={{ mes }}" class="btn btn-success btn-lg">
+        <i class="fas fa-file-word"></i> Gerar Relatório Detalhado (Word)
+    </a>
+</div>
 
 {% endblock %}
