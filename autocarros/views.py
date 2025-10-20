@@ -667,7 +667,7 @@ def exportar_relatorio_dashboard(request):
         row[6].text = f"{s['total_passageiros']} / {s['total_viagens']}"
 
     doc.add_paragraph()
-    rodape = doc.add_paragraph("Relatório gerado automaticamente pelo Sistema de Gestão de Autocarros")
+    rodape = doc.add_paragraph("Relatório gerado automaticamente pelo Sistema de Gestão de Autocarros kiangebenimatias4@gmail.com")
     rodape.alignment = WD_ALIGN_PARAGRAPH.CENTER
     rodape.runs[0].font.size = Pt(9)
     rodape.runs[0].italic = True
