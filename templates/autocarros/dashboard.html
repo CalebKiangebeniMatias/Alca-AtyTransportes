@@ -26,41 +26,53 @@
 <!-- 📊 Resumo Geral -->
 <div class="row mb-4">
     <div class="col-md-4">
-        <div class="card stats-card text-center">
+        <div class="card stats-card primary-card">
             <div class="card-body">
-                <div class="icon-container text-success">
-                    <i class="fas fa-coins icon-stat"></i>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Entradas</h6>
+                        <h3 class="card-title text-success">
+                            {% localize on %}{{ total_entradas|floatformat:2 }}{% endlocalize %} Kz
+                        </h3>
+                    </div>
+                    <div class="icon-wrapper bg-success">
+                        <i class="fas fa-coins"></i>
+                    </div>
                 </div>
-                <div class="stats-number text-success">
-                    {% localize on %}<strong>{{ total_entradas|floatformat:2 }}{% endlocalize %} Kz</strong>
-                </div>
-                <h5 class="card-title">Entradas</h5>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card stats-card text-center">
+        <div class="card stats-card primary-card">
             <div class="card-body">
-                <div class="icon-container text-danger">
-                    <i class="fas fa-money-bill-wave icon-stat"></i>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Despesas</h6>
+                        <h3 class="card-title text-danger">
+                            {% localize on %}{{ total_saidas|floatformat:2 }}{% endlocalize %} Kz
+                        </h3>
+                    </div>
+                    <div class="icon-wrapper bg-danger">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
                 </div>
-                <div class="stats-number text-danger">
-                    {% localize on %}<strong>{{ total_saidas|floatformat:2 }}{% endlocalize %} Kz</strong>
-                </div>
-                <h5 class="card-title">Despesas</h5>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card stats-card text-center">
+        <div class="card stats-card primary-card">
             <div class="card-body">
-                <div class="icon-container text-warning">
-                    <i class="fas fa-piggy-bank icon-stat"></i>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Saldo</h6>
+                        <h3 class="card-title text-warning">
+                            {% localize on %}{{ total_resto|floatformat:2 }}{% endlocalize %} Kz
+                        </h3>
+                    </div>
+                    <div class="icon-wrapper bg-warning">
+                        <i class="fas fa-piggy-bank"></i>
+                    </div>
                 </div>
-                <div class="stats-number text-warning">
-                    {% localize on %}<strong>{{ total_resto|floatformat:2 }}{% endlocalize %} Kz</strong>
-                </div>
-                <h5 class="card-title">Saldo</h5>
             </div>
         </div>
     </div>
@@ -69,114 +81,110 @@
 <!-- ⛽ Total Combustível -->
 <div class="row mb-4">
     <div class="col-md-3">
-        <div class="card stats-card text-center">
-            <div class="card-body">
-                <div class="icon-container text-primary">
-                    <i class="fas fa-gas-pump icon-stat"></i>
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <div class="icon-wrapper-sm bg-primary mb-3">
+                    <i class="fas fa-gas-pump"></i>
                 </div>
-                <div class="stats-number text-primary">
+                <h6 class="card-subtitle mb-2">Combustível</h6>
+                <h5 class="card-title text-primary">
                     {% localize on %}{{ total_combustivel_valor|floatformat:2 }}{% endlocalize %} Kz
-                </div>
-                <h5 class="card-title">Combustível</h5>
+                </h5>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card stats-card text-center">
-            <div class="card-body">
-                <div class="icon-container text-info">
-                    <i class="fas fa-tint icon-stat"></i>
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <div class="icon-wrapper-sm bg-info mb-3">
+                    <i class="fas fa-tint"></i>
                 </div>
-                <div class="stats-number text-info">
+                <h6 class="card-subtitle mb-2">Por Litros</h6>
+                <h5 class="card-title text-info">
                     {% localize on %}{{ total_combustivel_litros|floatformat:2 }}{% endlocalize %}
-                </div>
-                <h5 class="card-title">Por Litros</h5>
+                </h5>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card stats-card text-center">
-            <div class="card-body">
-                <div class="icon-container text-secondary">
-                    <i class="fas fa-filter icon-stat"></i>
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <div class="icon-wrapper-sm bg-secondary mb-3">
+                    <i class="fas fa-filter"></i>
                 </div>
-                <div class="stats-number text-secondary">
+                <h6 class="card-subtitle mb-2">Sobragem</h6>
+                <h5 class="card-title text-secondary">
                     {% localize on %}{{ total_combustivel_sobragem|floatformat:2 }}{% endlocalize %} Kz
-                </div>
-                <h5 class="card-title">Sobragem</h5>
+                </h5>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card stats-card text-center">
-            <div class="card-body">
-                <div class="icon-container text-dark">
-                    <i class="fas fa-bucket icon-stat"></i>
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <div class="icon-wrapper-sm bg-dark mb-3">
+                    <i class="fas fa-bucket"></i>
                 </div>
-                <div class="stats-number text-dark">
+                <h6 class="card-subtitle mb-2">Lavagem</h6>
+                <h5 class="card-title text-dark">
                     {% localize on %}{{ total_combustivel_lavagem|floatformat:2 }}{% endlocalize %} Kz
-                </div>
-                <h5 class="card-title">Lavagem</h5>
+                </h5>
             </div>
         </div>
     </div>
 </div>
 
 <!-- 🚍 Estatísticas por Autocarro -->
-{% with melhor=autocarros_stats|dictsortreversed:"resto"|first %}
 <div class="row mb-4">
     {% for stats in autocarros_stats|dictsort:"resto" %}
         <div class="col-md-4 col-sm-6 mb-3">
-            <div class="card h-100 shadow-sm autocarro-card
-                {% if stats.resto == melhor.resto %} border-success bg-light-success
-                {% elif stats.resto >= 500000 %} border-warning bg-light-warning
-                {% elif stats.resto > 0 %} border-info bg-light-info
-                {% else %} border-danger bg-light-danger
-                {% endif %}
-            ">
-                <div class="card-header bg-transparent border-bottom-0 text-center">
-                    <div class="bus-icon-container">
-                        <i class="fas fa-bus fa-lg text-muted"></i>
-                        {% if stats.resto == melhor.resto %}
-                        <span class="badge bg-success ms-2">Melhor Performance</span>
-                        {% endif %}
+            <div class="card bus-card h-100 {% if forloop.first %}featured-card{% endif %}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="bus-info">
+                        <h5 class="mb-0">
+                            <i class="fas fa-bus text-primary me-2"></i>
+                            {{ stats.autocarro.numero }}
+                        </h5>
+                        <small class="text-muted">{{ stats.autocarro.modelo }}</small>
                     </div>
-                    <h5 class="card-title mt-2 mb-1">{{ stats.autocarro.numero }}</h5>
-                    <p class="text-muted small mb-0">{{ stats.autocarro.modelo }}</p>
+                    {% if forloop.first %}
+                    <span class="badge bg-success">
+                        <i class="fas fa-crown me-1"></i>Melhor
+                    </span>
+                    {% endif %}
                 </div>
                 <div class="card-body">
-                    <div class="stats-grid">
-                        <div class="stat-item">
+                    <div class="bus-stats">
+                        <div class="stat-row">
                             <span class="stat-label">KMs Percorridos:</span>
                             <span class="stat-value">{{ stats.total_km|floatformat:2 }} km</span>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-row">
                             <span class="stat-label">Entradas:</span>
                             <span class="stat-value text-success">{{ stats.total_entradas|floatformat:2 }} Kz</span>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-row">
                             <span class="stat-label">Despesas:</span>
                             <span class="stat-value text-danger">{{ stats.total_saidas|floatformat:2 }} Kz</span>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-row">
                             <span class="stat-label">Saldo:</span>
-                            <span class="stat-value 
-                                {% if stats.resto > 0 %}text-success{% else %}text-danger{% endif %}">
+                            <span class="stat-value {% if stats.resto > 0 %}text-success{% else %}text-danger{% endif %}">
                                 {{ stats.resto|floatformat:2 }} Kz
                             </span>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-row">
                             <span class="stat-label">Passageiros:</span>
                             <span class="stat-value">{{ stats.total_passageiros|intcomma }}</span>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-row">
                             <span class="stat-label">Viagens:</span>
                             <span class="stat-value">{{ stats.total_viagens|intcomma }}</span>
                         </div>
                     </div>
                 </div>
-                <div class="card-footer text-center bg-transparent border-top-0">
-                    <a href="{% url 'detalhe_autocarro' stats.autocarro.id %}" class="btn btn-outline-primary btn-sm">
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'detalhe_autocarro' stats.autocarro.id %}" class="btn btn-outline-primary btn-sm w-100">
                         <i class="fas fa-chart-line me-1"></i> Ver Detalhes
                     </a>
                 </div>
@@ -184,179 +192,175 @@
         </div>
     {% endfor %}
 </div>
-{% endwith %}
 
 <!-- ⚙️ Botões de Ação -->
 <div class="row mt-4">
     <div class="col-md-6 text-center mb-3">
-        <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-primary btn-action">
-            <i class="fas fa-plus-circle me-2"></i> Adicionar Relatório por Sector
+        <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-primary btn-lg action-btn">
+            <i class="fas fa-plus-circle me-2"></i> Adicionar Relatório
         </a>
     </div>
     <div class="col-md-6 text-center mb-3">
-        <a href="{% url 'exportar_relatorio_dashboard' %}?mes={{ mes }}" class="btn btn-success btn-action">
-            <i class="fas fa-file-word me-2"></i> Gerar Relatório Detalhado
+        <a href="{% url 'exportar_relatorio_dashboard' %}?mes={{ mes }}" class="btn btn-success btn-lg action-btn">
+            <i class="fas fa-file-word me-2"></i> Gerar Relatório
         </a>
     </div>
 </div>
 
 <style>
-    /* 🎨 Cores profissionais e sóbrias */
+    /* 🎨 Design System Profissional */
     :root {
-        --cinza-claro: #f8f9fa;
-        --cinza-medio: #e9ecef;
-        --cinza-escuro: #6c757d;
-        --azul-profissional: #2c3e50;
-        --verde-suave: #28a745;
-        --vermelho-suave: #dc3545;
-        --laranja-suave: #fd7e14;
-        --azul-suave: #17a2b8;
+        --primary-color: #2c3e50;
+        --secondary-color: #34495e;
+        --success-color: #27ae60;
+        --danger-color: #e74c3c;
+        --warning-color: #f39c12;
+        --info-color: #3498db;
+        --light-bg: #f8f9fa;
+        --border-color: #e9ecef;
     }
 
-    /* 💎 Estilo profissional para cartões de estatísticas */
+    /* 💎 Cartões Principais */
     .stats-card {
-        border-radius: 8px;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         transition: all 0.3s ease;
-        border: 1px solid #e0e0e0;
         background: white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    
-    .stats-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        border-color: #d0d0d0;
-    }
-    
-    .icon-container {
-        margin-bottom: 15px;
-        display: inline-block;
-        padding: 12px;
-        border-radius: 8px;
-        background: var(--cinza-claro);
-    }
-    
-    .icon-stat {
-        font-size: 1.5rem;
-    }
-    
-    .stats-number {
-        font-size: 1.6rem;
-        font-weight: 700;
-        margin-bottom: 8px;
-    }
-    
-    .card-title {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--cinza-escuro);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
     }
 
-    /* 🚍 Estilo profissional para cartões de autocarros */
-    .autocarro-card {
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        border-width: 2px;
-    }
-    
-    .autocarro-card:hover {
+    .stats-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.12);
     }
-    
-    .bus-icon-container {
-        position: relative;
+
+    .primary-card {
+        border-left: 4px solid var(--primary-color);
     }
-    
-    .bus-icon-container .badge {
-        font-size: 0.7rem;
-        font-weight: 500;
+
+    /* 🎯 Ícones */
+    .icon-wrapper {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
     }
-    
-    .stats-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 8px;
+
+    .icon-wrapper-sm {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
     }
-    
-    .stat-item {
+
+    /* 🚍 Cartões de Autocarros */
+    .bus-card {
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .bus-card:hover {
+        border-color: var(--info-color);
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.15);
+    }
+
+    .featured-card {
+        border: 2px solid var(--success-color);
+        box-shadow: 0 4px 20px rgba(39, 174, 96, 0.2);
+    }
+
+    .featured-card:hover {
+        box-shadow: 0 6px 25px rgba(39, 174, 96, 0.3);
+    }
+
+    /* 📊 Estatísticas dos Autocarros */
+    .bus-stats {
+        margin: 0;
+        padding: 0;
+    }
+
+    .stat-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 6px 0;
-        border-bottom: 1px solid var(--cinza-medio);
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-color);
     }
-    
-    .stat-item:last-child {
+
+    .stat-row:last-child {
         border-bottom: none;
     }
-    
+
     .stat-label {
         font-size: 0.85rem;
-        color: var(--cinza-escuro);
+        color: #6c757d;
         font-weight: 500;
     }
-    
+
     .stat-value {
         font-size: 0.9rem;
         font-weight: 600;
+        color: var(--primary-color);
     }
 
-    /* 🎨 Cores de fundo suaves para os cartões de autocarros */
-    .bg-light-success {
-        background: linear-gradient(135deg, #f8fff8, #f0f9f0);
-    }
-    
-    .bg-light-warning {
-        background: linear-gradient(135deg, #fffbf0, #fef9e7);
-    }
-    
-    .bg-light-info {
-        background: linear-gradient(135deg, #f0f9ff, #e8f4fe);
-    }
-    
-    .bg-light-danger {
-        background: linear-gradient(135deg, #fff5f5, #feebeb);
-    }
-
-    /* 🎯 Botões de ação profissionais */
-    .btn-action {
-        border-radius: 6px;
-        padding: 12px 24px;
+    .bus-info h5 {
         font-weight: 600;
-        transition: all 0.3s ease;
-        border: none;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        min-width: 200px;
-    }
-    
-    .btn-action:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        color: var(--primary-color);
     }
 
-    /* 📱 Responsividade melhorada */
+    /* 🎯 Botões de Ação */
+    .action-btn {
+        border-radius: 8px;
+        padding: 12px 30px;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+
+    /* 🔧 Ajustes de Cores */
+    .bg-success { background-color: var(--success-color) !important; }
+    .bg-danger { background-color: var(--danger-color) !important; }
+    .bg-warning { background-color: var(--warning-color) !important; }
+    .bg-primary { background-color: var(--primary-color) !important; }
+    .bg-info { background-color: var(--info-color) !important; }
+
+    .text-success { color: var(--success-color) !important; }
+    .text-danger { color: var(--danger-color) !important; }
+    .text-warning { color: var(--warning-color) !important; }
+
+    /* 📱 Responsividade */
     @media (max-width: 768px) {
-        .stats-grid {
-            grid-template-columns: 1fr;
+        .stats-card .card-body {
+            padding: 1rem;
         }
         
-        .stats-number {
-            font-size: 1.4rem;
+        .icon-wrapper {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
         }
         
-        .icon-stat {
-            font-size: 1.3rem;
-        }
-        
-        .btn-action {
-            min-width: 100%;
+        .action-btn {
+            width: 100%;
             margin-bottom: 10px;
         }
         
-        .stat-item {
+        .stat-row {
             flex-direction: column;
             align-items: flex-start;
             gap: 2px;
@@ -367,20 +371,21 @@
         }
     }
 
-    /* 🔧 Ajustes finais para profissionalismo */
+    /* ✨ Melhorias Visuais */
     .card-header {
-        padding: 1rem 1rem 0.5rem 1rem;
+        background: white;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1rem 1.25rem;
     }
-    
-    .text-success { color: var(--verde-suave) !important; }
-    .text-danger { color: var(--vermelho-suave) !important; }
-    .text-warning { color: var(--laranja-suave) !important; }
-    .text-info { color: var(--azul-suave) !important; }
-    
-    .border-success { border-color: var(--verde-suave) !important; }
-    .border-warning { border-color: var(--laranja-suave) !important; }
-    .border-info { border-color: var(--azul-suave) !important; }
-    .border-danger { border-color: var(--vermelho-suave) !important; }
+
+    .card-footer {
+        padding: 1rem 1.25rem;
+    }
+
+    .badge {
+        font-weight: 500;
+        padding: 0.4em 0.6em;
+    }
 </style>
 
 {% endblock %}
