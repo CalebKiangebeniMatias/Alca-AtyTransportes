@@ -360,7 +360,8 @@ class CobradorViagem(models.Model):
         self.save(update_fields=['status', 'validado_por', 'validado_em', 'nota_validacao'])
 
 
-# ...existing code...
+# <----- Modelo para Manutenção de Autocarros -----> #
+
 class Manutencao(models.Model):
     STATUS_CHOICES = [
         ('agendada', 'Agendada'),
