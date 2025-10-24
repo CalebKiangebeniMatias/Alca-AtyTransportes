@@ -361,7 +361,7 @@ class CobradorViagem(models.Model):
 
 
 # <----- Modelo para Manutenção de Autocarros -----> #
-
+# Manunteção
 class Manutencao(models.Model):
     STATUS_CHOICES = [
         ('agendada', 'Agendada'),
