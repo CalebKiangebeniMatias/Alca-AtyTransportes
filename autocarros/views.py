@@ -10,7 +10,7 @@ from django.utils.dateparse import parse_date
 from django.forms import modelformset_factory
 from django.db.models.functions import TruncMonth
 from autocarros.decorators import acesso_restrito
-from .models import Autocarro, Comprovativo, ComprovativoRelatorio, DespesaCombustivel, Manutencao, RegistoDiario, Despesa, RelatorioSector, Sector, Motorista
+from .models import Autocarro, Comprovativo, ComprovativoRelatorio, DespesaCombustivel, Manutencao, RegistoDiario, Despesa, RegistroKM, RegistroKMItem, RelatorioSector, Sector, Motorista
 from .forms import DespesaCombustivelForm, EstadoAutocarroForm, AutocarroForm, DespesaForm, ComprovativoFormSet, ManutencaoForm, MultiFileForm, RegistoDiarioFormSet, RelatorioSectorForm, SectorForm, SectorGestorForm, SelecionarSectorCombustivelForm
 from autocarros import models
 from django.shortcuts import render, redirect, get_object_or_404
@@ -2556,3 +2556,89 @@ def api_autocarros_por_sector(request):
         return JsonResponse({'ok': False, 'error': 'sector_id obrigatório'}, status=400)
     autos = Autocarro.objects.filter(sector_id=sector_id).values('id','numero','modelo')
     return JsonResponse({'ok': True, 'autocarros': list(autos)})
+
+
+@login_required
+def registro_km_view(request):
+    """
+    Página: formulário para registar kms por sector + listagem de registros.
+    """
+    sectores = Sector.objects.all().order_by('nome')
+    # listar últimos registros (paginacao simples: últimos 20)
+    registros = RegistroKM.objects.select_related('sector').prefetch_related('itens__autocarro').order_by('-data_registo')[:20]
+
+    # preparar dados para listagem com previsão (km_proxima vs km_atual)
+    registros_data = []
+    for r in registros:
+        itens = []
+        for it in r.itens.all():
+            # buscar manutenção mais recente para o autocarro
+            m = Manutencao.objects.filter(autocarro=it.autocarro).order_by('-data_ultima').first()
+            km_prox = m.km_proxima if m else None
+            falta = None
+            status = 'Sem plano'
+            if km_prox is not None:
+                falta = int(km_prox) - int(it.km_atual)
+                if falta <= 0:
+                    status = 'Vencida'
+                elif falta <= 500:
+                    status = 'Próxima'
+                else:
+                    status = 'OK'
+            itens.append({
+                'autocarro_numero': it.autocarro.numero,
+                'km_atual': it.km_atual,
+                'km_prox': km_prox,
+                'falta': falta,
+                'status': status
+            })
+        registros_data.append({
+            'id': r.id,
+            'sector': r.sector.nome,
+            'data_registo': r.data_registo.isoformat(),
+            'itens': itens
+        })
+
+    return render(request, 'autocarros/registro_km.html', {
+        'sectores': sectores,
+        'registros': registros_data
+    })
+
+
+@login_required
+@require_POST
+def registro_km_save(request):
+    """
+    Recebe POST JSON:
+    { "sector_id": 1, "data_registo":"YYYY-MM-DD", "itens":[{"autocarro_id":1,"km_atual":12345}, ...] }
+    Retorna JSON.
+    """
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        return HttpResponseBadRequest('JSON inválido')
+
+    sector_id = data.get('sector_id')
+    itens = data.get('itens', [])
+    data_registo = data.get('data_registo', None)
+    if not sector_id or not isinstance(itens, list) or not itens:
+        return JsonResponse({'ok': False, 'error': 'sector_id e itens obrigatórios'}, status=400)
+
+    try:
+        sector = Sector.objects.get(pk=sector_id)
+    except Sector.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Sector não encontrado'}, status=404)
+
+    registro = RegistroKM.objects.create(sector=sector, data_registo=data_registo or None)
+    created = 0
+    for it in itens:
+        try:
+            aid = int(it.get('autocarro_id'))
+            km = int(it.get('km_atual'))
+            aut = Autocarro.objects.get(pk=aid, sector=sector)
+            RegistroKMItem.objects.create(registro=registro, autocarro=aut, km_atual=km)
+            created += 1
+        except Exception:
+            continue
+
+    return JsonResponse({'ok': True, 'registro_id': registro.id, 'created': created})

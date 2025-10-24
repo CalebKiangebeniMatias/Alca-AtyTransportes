@@ -112,6 +112,9 @@ urlpatterns = [
     path('manutencoes/<int:pk>/edit/', views.manutencao_edit, name='manutencao_edit'),
     path('manutencoes/<int:pk>/delete/', views.manutencao_delete, name='manutencao_delete'),
     path('api/autocarros_por_sector/', views.api_autocarros_por_sector, name='api_autocarros_por_sector'),
+    path('registros/km/', views.registro_km_view, name='registro_km'),
+    path('registros/km/save/', views.registro_km_save, name='registro_km_save'),
+
 ]
 
 

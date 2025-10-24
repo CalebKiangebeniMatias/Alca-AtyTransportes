@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <div class="card p-3">
+        <h5 class="card-title">Registro de KMs — Sector</h5>
+        <div class="mb-2">
+          <label class="form-label">Sector</label>
+          <select id="select_sector" class="form-select">
+            <option value="">-- Escolha sector --</option>
+            {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Data do registo</label>
+          <input id="data_registo" type="date" class="form-control" value="{{ now|date:'Y-m-d' }}">
+        </div>
+
+        <div id="autocarros_list" class="mt-3" style="max-height:400px;overflow:auto"></div>
+
+        <div class="mt-3 text-end">
+          <button id="btn_carregar" class="btn btn-outline-primary">Carregar Autocarros</button>
+          <button id="btn_salvar" class="btn btn-primary">Salvar Registro</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <div class="card p-3">
+        <h5 class="card-title">Últimos Registros & Previsões</h5>
+        <div id="lista_registros">
+          {% for r in registros %}
+            <div class="mb-3 border rounded p-2 bg-light text-dark">
+              <strong>{{ r.sector }}</strong> — {{ r.data_registo }}
+              <table class="table table-sm mt-2">
+                <thead><tr><th>Autocarro</th><th>Km Atual</th><th>Km Próx.</th><th>Falta (km)</th><th>Status</th></tr></thead>
+                <tbody>
+                  {% for it in r.itens %}
+                  <tr>
+                    <td>{{ it.autocarro_numero }}</td>
+                    <td>{{ it.km_atual }}</td>
+                    <td>{% if it.km_prox %}{{ it.km_prox }}{% else %}—{% endif %}</td>
+                    <td>{% if it.falta is not None %}{{ it.falta }}{% else %}—{% endif %}</td>
+                    <td>{{ it.status }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% empty %}
+            <div class="text-muted">Nenhum registro encontrado.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% csrf_token %}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const csrftoken = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)')?.pop() || '';
+  const apiAut = "{% url 'api_autocarros_por_sector' %}";
+  const saveUrl = "{% url 'registro_km_save' %}";
+
+  document.getElementById('btn_carregar').addEventListener('click', async function(){
+    const sid = document.getElementById('select_sector').value;
+    if (!sid){ alert('Escolha um sector'); return; }
+    const resp = await fetch(apiAut + '?sector_id=' + sid, {credentials:'same-origin'});
+    if (!resp.ok){ alert('Erro ao carregar autocarros'); return; }
+    const data = await resp.json();
+    const list = document.getElementById('autocarros_list');
+    list.innerHTML = '';
+    data.autocarros.forEach(a=>{
+      const row = document.createElement('div');
+      row.className = 'd-flex align-items-center mb-2';
+      row.innerHTML = `
+        <div class="flex-grow-1"><strong>${a.numero}</strong> ${a.modelo ? ' — ' + a.modelo : ''}</div>
+        <div style="width:140px">
+          <input type="number" class="form-control form-control-sm km-input" data-aut="${a.id}" placeholder="Km atual">
+        </div>
+      `;
+      list.appendChild(row);
+    });
+  });
+
+  document.getElementById('btn_salvar').addEventListener('click', async function(){
+    const sid = document.getElementById('select_sector').value;
+    if (!sid){ alert('Escolha sector'); return; }
+    const data_registo = document.getElementById('data_registo').value;
+    const inputs = Array.from(document.querySelectorAll('.km-input'));
+    const itens = inputs.map(i=>({ autocarro_id: i.dataset.aut, km_atual: i.value })).filter(x=>x.km_atual && x.km_atual.trim() !== '');
+    if (!itens.length){ alert('Preencha pelo menos um km'); return; }
+    const payload = { sector_id: parseInt(sid), data_registo: data_registo, itens: itens };
+    const res = await fetch(saveUrl, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {'Content-Type':'application/json', 'X-CSRFToken': csrftoken},
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok){ alert('Erro ao salvar'); return; }
+    const r = await res.json();
+    if (!r.ok){ alert('Erro: ' + (r.error||'')); return; }
+    alert('Registro salvo ('+r.created+')');
+    location.reload();
+  });
+});
+</script>
+{% endblock %}
