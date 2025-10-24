@@ -10,9 +10,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔹 Chave e Debug
 SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
-#DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-DEBUG = False
+DEBUG = True
 
 # 🔹 Hosts permitidos
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0', 'alca-atytransportes.onrender.com']

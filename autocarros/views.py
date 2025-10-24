@@ -2489,10 +2489,27 @@ def manutencao_create(request):
 
 @login_required
 def manutencao_list(request):
-    qs = Manutencao.objects.select_related('autocarro','sector','responsavel').all().order_by('-data_ultima')
+    qs = Manutencao.objects.select_related('autocarro', 'sector', 'responsavel').all()
+
+    # Tentar ordenar por '-data_ultima' e, se não existir no modelo, usar um fallback para '-data' ou sem ordenação.
+    order_field = None
+    try:
+        Manutencao._meta.get_field('data_ultima')
+        order_field = '-data_ultima'
+    except Exception:
+        try:
+            Manutencao._meta.get_field('data')
+            order_field = '-data'
+        except Exception:
+            order_field = None
+
+    if order_field:
+        qs = qs.order_by(order_field)
+
     sector_id = request.GET.get('sector')
     if sector_id:
         qs = qs.filter(sector_id=sector_id)
+
     return render(request, 'autocarros/manutencao_list.html', {'manutencoes': qs, 'sectores': Sector.objects.all()})
 
 
