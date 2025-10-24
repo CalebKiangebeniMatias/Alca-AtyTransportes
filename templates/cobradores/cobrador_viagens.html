@@ -25,7 +25,7 @@
 
       <div class="tab-content">
         <div class="tab-pane fade show active" id="lancar">
-          <form id="form_viagem" class="row g-3">
+          <form id="form_viagem" class="row g-3" onsubmit="return false;">
             <input type="hidden" id="autocarro_id" name="autocarro_id" />
             <div class="col-md-3">
               <label class="form-label">Data</label>
@@ -63,7 +63,6 @@
               <thead>
                 <tr>
                   <th>Data</th><th>Hora</th><th>Valor (Kz)</th><th>Passageiros</th><th>Cobrador</th><th>Obs</th>
-                  <th>Status</th><th>Ações</th>
                 </tr>
               </thead>
               <tbody id="tbody_viagens"></tbody>
@@ -75,112 +74,107 @@
   </div>
 </div>
 
+{% csrf_token %}
 <script>
-const csrftoken = (document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))||'').split('=')[1];
+document.addEventListener('DOMContentLoaded', function(){
 
-function fmt_money_br(valor){
-  try{
-    let v = Number(valor);
-    if (isNaN(v)) return "0,00";
-    const sign = v < 0 ? '-' : '';
-    v = Math.abs(v).toFixed(2);
-    let parts = v.split('.');
-    let intPart = parts[0];
-    let dec = parts[1];
-    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    return sign + intPart + ',' + dec;
-  }catch(e){ return "0,00"; }
-}
+  const listUrl = "{% url 'cobrador_viagens_list' %}";
+  const saveUrl = "{% url 'cobrador_viagens_save' %}";
 
-async function fetchViagens(numero){
-  const params = new URLSearchParams({autocarro_numero: numero});
-  const res = await fetch('/autocarros/cobrador/viagens/list/?' + params.toString(), {credentials: 'same-origin'});
-  if (!res.ok) return null;
-  return res.json();
-}
-
-document.getElementById('input_autocarro').addEventListener('keypress', async function(e){
-  if (e.key === 'Enter'){
-    e.preventDefault();
-    const numero = this.value.trim();
-    if (!numero) return;
-    const data = await fetchViagens(numero);
-    if (!data || !data.ok){ alert('Autocarro não encontrado ou erro'); return; }
-    // preencher id e cabeçalho
-    document.getElementById('autocarro_id').value = data.autocarro.id;
-    document.getElementById('resumo_autocarro').textContent = data.autocarro.numero + ' — ' + data.autocarro.modelo;
-    // popular aba resumo
-    populateResumo(data);
-    // ir para aba lançar
-    var tab = new bootstrap.Tab(document.querySelector('#tab-lancar'));
-    tab.show();
+  function getCookie(name) {
+    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return v ? v.pop() : '';
   }
-});
+  const csrftoken = getCookie('csrftoken');
 
-function populateResumo(data){
-  const tbody = document.getElementById('tbody_viagens');
-  tbody.innerHTML = '';
-  (data.viagens || []).forEach(v=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${v.data}</td><td>${v.hora}</td><td>${fmt_money_br(v.valor)} kz</td><td>${v.passageiros}</td><td>${v.cobrador}</td><td>${v.observacao}</td><td>${v.status || '—'}</td><td>
-      <button class="btn btn-sm btn-success" onclick="validateViagem(${v.id}, 'approve')">Aprovar</button>
-      <button class="btn btn-sm btn-danger" onclick="validateViagem(${v.id}, 'reject')">Rejeitar</button>
-    </td>`;
-    tbody.appendChild(tr);
-  });
-  document.getElementById('resumo_total_valor').textContent = fmt_money_br(data.resumo.total_valor);
-  document.getElementById('resumo_total_pass').textContent = data.resumo.total_passageiros;
-}
+  function fmt_money_br(valor){
+    try{
+      let v = Number(valor);
+      if (isNaN(v)) return "0,00";
+      const sign = v < 0 ? '-' : '';
+      v = Math.abs(v).toFixed(2);
+      let parts = v.split('.');
+      let intPart = parts[0];
+      let dec = parts[1];
+      intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      return sign + intPart + ',' + dec;
+    }catch(e){ return "0,00"; }
+  }
 
-document.getElementById('btn_salvar_viagem').addEventListener('click', async function(){
-  const aut_num = document.getElementById('input_autocarro').value.trim();
-  if (!aut_num){ alert('Informe o número do autocarro'); return; }
-  const payload = {
-    autocarro_numero: aut_num,
-    data: document.getElementById('viagem_data').value || new Date().toISOString().slice(0,10),
-    hora: document.getElementById('viagem_hora').value || '',
-    valor: document.getElementById('viagem_valor').value || '0',
-    passageiros: document.getElementById('viagem_passageiros').value || '0',
-    observacao: document.getElementById('viagem_obs').value || ''
-  };
-  const res = await fetch('/autocarros/cobrador/viagens/save/', {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: {'Content-Type':'application/json', 'X-CSRFToken': csrftoken},
-    body: JSON.stringify(payload)
-  });
-  const data = await res.json();
-  if (!data.ok){ alert('Erro ao salvar: ' + (data.error||'')); return; }
-  // atualizar lista e resumo automaticamente
-  const lista = await fetchViagens(aut_num);
-  if (lista && lista.ok) populateResumo(lista);
-  // limpar formulário parcialmente
-  document.getElementById('viagem_valor').value = '';
-  document.getElementById('viagem_passageiros').value = '';
-  document.getElementById('viagem_obs').value = '';
-  // mudar para aba resumo
-  var tab = new bootstrap.Tab(document.querySelector('#tab-resumo'));
-  tab.show();
-});
+  async function fetchViagens(numero){
+    const params = new URLSearchParams({autocarro_numero: numero});
+    const url = listUrl + '?' + params.toString();
+    const res = await fetch(url, {credentials: 'same-origin'});
+    if (!res.ok) return null;
+    return res.json();
+  }
 
-async function validateViagem(id, action){
-  if (!confirm('Confirma ' + action + ' ?')) return;
-  const payload = {id: id, action: action};
-  const res = await fetch('/autocarros/cobrador/viagens/validate/action/', {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: {'Content-Type':'application/json', 'X-CSRFToken': csrftoken},
-    body: JSON.stringify(payload)
+  function populateResumo(data){
+    const tbody = document.getElementById('tbody_viagens');
+    tbody.innerHTML = '';
+    (data.viagens || []).forEach(v=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${v.data}</td><td>${v.hora}</td><td>${fmt_money_br(v.valor)} kz</td><td>${v.passageiros}</td><td>${v.cobrador}</td><td>${v.observacao}</td>`;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('resumo_total_valor').textContent = fmt_money_br(data.resumo.total_valor);
+    document.getElementById('resumo_total_pass').textContent = data.resumo.total_passageiros;
+    document.getElementById('resumo_autocarro').textContent = data.autocarro.numero + ' — ' + data.autocarro.modelo;
+  }
+
+  // Enter no campo autocarro
+  const inputAut = document.getElementById('input_autocarro');
+  inputAut && inputAut.addEventListener('keypress', async function(e){
+    if (e.key === 'Enter'){
+      e.preventDefault();
+      const numero = this.value.trim();
+      if (!numero) return;
+      const data = await fetchViagens(numero);
+      if (!data || !data.ok){ alert('Autocarro não encontrado ou erro'); return; }
+      document.getElementById('autocarro_id').value = data.autocarro.id;
+      populateResumo(data);
+      // ir para aba lançar
+      new bootstrap.Tab(document.querySelector('#tab-lancar')).show();
+    }
   });
-  const data = await res.json();
-  if (!data.ok){ alert('Erro: ' + (data.error||'')); return; }
-  // atualizar lista atual
-  const aut_num = document.getElementById('input_autocarro').value.trim();
-  if (aut_num){
+
+  // botão salvar
+  const btnSalvar = document.getElementById('btn_salvar_viagem');
+  btnSalvar && btnSalvar.addEventListener('click', async function(){
+    const aut_num = document.getElementById('input_autocarro').value.trim();
+    if (!aut_num){ alert('Informe o número do autocarro'); return; }
+    const payload = {
+      autocarro_numero: aut_num,
+      data: document.getElementById('viagem_data').value || new Date().toISOString().slice(0,10),
+      hora: document.getElementById('viagem_hora').value || '',
+      valor: document.getElementById('viagem_valor').value || '0',
+      passageiros: document.getElementById('viagem_passageiros').value || '0',
+      observacao: document.getElementById('viagem_obs').value || ''
+    };
+    const res = await fetch(saveUrl, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {'Content-Type':'application/json', 'X-CSRFToken': csrftoken},
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok){
+      const txt = await res.text();
+      alert('Erro ao salvar: ' + txt);
+      return;
+    }
+    const data = await res.json();
+    if (!data.ok){ alert('Erro ao salvar: ' + (data.error||'')); return; }
+    // atualizar lista e resumo automaticamente
     const lista = await fetchViagens(aut_num);
     if (lista && lista.ok) populateResumo(lista);
-  }
-}
+    // limpar formulário parcialmente
+    document.getElementById('viagem_valor').value = '';
+    document.getElementById('viagem_passageiros').value = '';
+    document.getElementById('viagem_obs').value = '';
+    // mudar para aba resumo
+    new bootstrap.Tab(document.querySelector('#tab-resumo')).show();
+  });
+
+});
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}

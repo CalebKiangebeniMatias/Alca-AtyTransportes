@@ -349,6 +349,37 @@
                     </ul>
                 </div>
 
+                <!-- MANUTENÇÃO -->
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-tools text-warning me-1"></i> Manutenção
+                    </a>
+                    <ul class="dropdown-menu shadow-lg border-0 rounded-3">
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="#">
+                                <i class="fas fa-list me-2 text-info"></i> Listar Manutenções
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="#">
+                                <i class="fas fa-plus me-2 text-success"></i> Adicionar Manutenção
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="{% url 'manutencao_create' %}">
+                                <i class="fas fa-calendar-plus me-2 text-primary"></i> Agendar Manutenção
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="#">
+                                <i class="fas fa-history me-2 text-secondary"></i> Histórico de Manutenções
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                    </ul>
+                </div>
+
                 <!-- AUTOCARROS -->
                 <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">

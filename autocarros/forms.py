@@ -1,7 +1,7 @@
 from django import forms
 from .models import (
     Comprovativo, ComprovativoRelatorio, DespesaCombustivel,
-    EstadoAutocarro, RegistoDiario, Autocarro, Despesa,
+    EstadoAutocarro, Manutencao, RegistoDiario, Autocarro, Despesa,
     RelatorioSector, Sector
 )
 from django import forms
@@ -312,4 +312,27 @@ def get_comprovativo_formset():
             }),
         }
     )
+
+
+# ---- Manutenção ---- #
+
+class ManutencaoForm(forms.ModelForm):
+    class Meta:
+        model = Manutencao
+        fields = [
+            'sector', 'autocarro',
+            'data_ultima', 'km_ultima', 'km_proxima',
+            'oleo_motor','oleo_diferencial','oleo_cambio',
+            'filtro_combustivel','filtro_oleo','filtro_ar',
+            'custo_total','observacao','responsavel','status'
+        ]
+        widgets = {
+            'data_ultima': forms.DateInput(attrs={'type':'date', 'class':'form-control'}),
+            'km_ultima': forms.NumberInput(attrs={'class':'form-control'}),
+            'km_proxima': forms.NumberInput(attrs={'class':'form-control'}),
+            'custo_total': forms.NumberInput(attrs={'step':'0.01', 'class':'form-control'}),
+            'observacao': forms.Textarea(attrs={'rows':3, 'class':'form-control'}),
+            'sector': forms.Select(attrs={'class':'form-select', 'id':'id_sector_select'}),
+            'autocarro': forms.Select(attrs={'class':'form-select', 'id':'id_autocarro_select'}),
+        }
 

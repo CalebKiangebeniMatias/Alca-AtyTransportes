@@ -106,8 +106,11 @@ urlpatterns = [
     path('cobrador/viagens/validate/list/', views.cobrador_viagens_validate_list, name='cobrador_viagens_validate_list'),
     path('cobrador/viagens/validate/action/', views.cobrador_viagens_validate_action, name='cobrador_viagens_validate_action'),
 
+    # Manutenções
+    path('manutencoes/add/', views.manutencao_create, name='manutencao_create'),
+    path('manutencoes/', views.manutencao_list, name='manutencao_list'),
+    path('api/autocarros_por_sector/', views.api_autocarros_por_sector, name='api_autocarros_por_sector'),
 ]
-
 
 
 # Servir arquivos de mídia em modo DEBUG

@@ -10,8 +10,8 @@ from django.utils.dateparse import parse_date
 from django.forms import modelformset_factory
 from django.db.models.functions import TruncMonth
 from autocarros.decorators import acesso_restrito
-from .models import Autocarro, Comprovativo, ComprovativoRelatorio, DespesaCombustivel, RegistoDiario, Despesa, RelatorioSector, Sector, Motorista
-from .forms import DespesaCombustivelForm, EstadoAutocarroForm, AutocarroForm, DespesaForm, ComprovativoFormSet, MultiFileForm, RegistoDiarioFormSet, RelatorioSectorForm, SectorForm, SectorGestorForm, SelecionarSectorCombustivelForm
+from .models import Autocarro, Comprovativo, ComprovativoRelatorio, DespesaCombustivel, Manutencao, RegistoDiario, Despesa, RelatorioSector, Sector, Motorista
+from .forms import DespesaCombustivelForm, EstadoAutocarroForm, AutocarroForm, DespesaForm, ComprovativoFormSet, ManutencaoForm, MultiFileForm, RegistoDiarioFormSet, RelatorioSectorForm, SectorForm, SectorGestorForm, SelecionarSectorCombustivelForm
 from autocarros import models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
@@ -2458,3 +2458,47 @@ def cobrador_viagens_validate_action(request):
         return JsonResponse({'ok': True, 'status': viagem.status})
     except Exception as e:
         return JsonResponse({'ok': False, 'error': str(e)}, status=500)
+
+
+# ---------- Manutenção Autocarros Views ----------#
+
+@login_required
+def manutencao_create(request):
+    """
+    Página para agendar manutenção.
+    Seleciona setor → carrega autocarros do setor → preenche campos e salva.
+    """
+    if request.method == 'POST':
+        form = ManutencaoForm(request.POST, request.FILES)
+        if form.is_valid():
+            m = form.save(commit=False)
+            if not m.responsavel:
+                m.responsavel = request.user
+            m.save()
+            messages.success(request, '✅ Manutenção agendada com sucesso.')
+            return redirect('manutencao_list')
+        else:
+            messages.error(request, '❌ Formulário inválido. Verifique os campos.')
+    else:
+        form = ManutencaoForm()
+
+    sectores = Sector.objects.all().order_by('nome')
+    return render(request, 'autocarros/manutencao_form.html', {'form': form, 'sectores': sectores})
+
+
+@login_required
+def manutencao_list(request):
+    qs = Manutencao.objects.select_related('autocarro','sector','responsavel').all().order_by('-data_ultima')
+    sector_id = request.GET.get('sector')
+    if sector_id:
+        qs = qs.filter(sector_id=sector_id)
+    return render(request, 'autocarros/manutencao_list.html', {'manutencoes': qs, 'sectores': Sector.objects.all()})
+
+
+@login_required
+def api_autocarros_por_sector(request):
+    sector_id = request.GET.get('sector_id')
+    if not sector_id:
+        return JsonResponse({'ok': False, 'error': 'sector_id obrigatório'}, status=400)
+    autos = Autocarro.objects.filter(sector_id=sector_id).values('id','numero','modelo')
+    return JsonResponse({'ok': True, 'autocarros': list(autos)})

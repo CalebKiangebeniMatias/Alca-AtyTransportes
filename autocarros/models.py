@@ -358,3 +358,40 @@ class CobradorViagem(models.Model):
         if nota:
             self.nota_validacao = nota
         self.save(update_fields=['status', 'validado_por', 'validado_em', 'nota_validacao'])
+
+
+class Manutencao(models.Model):
+    STATUS_CHOICES = [
+        ('agendada', 'Agendada'),
+        ('em_progresso', 'Em Progresso'),
+        ('concluida', 'Concluída'),
+        ('cancelada', 'Cancelada'),
+    ]
+
+    sector = models.ForeignKey('Sector', on_delete=models.CASCADE, related_name='manutencoes')
+    autocarro = models.ForeignKey('Autocarro', on_delete=models.CASCADE, related_name='manutencoes')
+    data_ultima = models.DateField(help_text='Data da última manutenção realizada')
+    km_ultima = models.PositiveIntegerField(help_text='Km na última manutenção')
+    km_proxima = models.PositiveIntegerField(help_text='Km previsto para próxima manutenção')
+
+    # substituições (sim/não)
+    oleo_motor = models.BooleanField(default=False)
+    oleo_diferencial = models.BooleanField(default=False)
+    oleo_cambio = models.BooleanField(default=False)
+    filtro_combustivel = models.BooleanField(default=False)
+    filtro_oleo = models.BooleanField(default=False)
+    filtro_ar = models.BooleanField(default=False)
+
+    custo_total = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    observacao = models.TextField(blank=True, null=True)
+
+    responsavel = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name='manutencoes_responsavel')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='agendada')
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-data_ultima', '-criado_em']
+
+    def __str__(self):
+        return f"Manut.{self.autocarro.numero} {self.data_ultima} — {self.get_status_display()}"

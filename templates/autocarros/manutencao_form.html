@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h4>Agendar Manutenção</h4>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Sector</label>
+        {{ form.sector }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Autocarro</label>
+        {{ form.autocarro }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Status</label>
+        {{ form.status }}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Data da última manutenção</label>
+        {{ form.data_ultima }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Km na última manutenção</label>
+        {{ form.km_ultima }}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Km para próxima manutenção</label>
+        {{ form.km_proxima }}
+      </div>
+
+      <div class="col-md-4 form-check">
+        {{ form.oleo_motor }} {{ form.oleo_motor.label_tag }}
+      </div>
+      <div class="col-md-4 form-check">
+        {{ form.oleo_diferencial }} {{ form.oleo_diferencial.label_tag }}
+      </div>
+      <div class="col-md-4 form-check">
+        {{ form.oleo_cambio }} {{ form.oleo_cambio.label_tag }}
+      </div>
+      <div class="col-md-4 form-check">
+        {{ form.filtro_combustivel }} {{ form.filtro_combustivel.label_tag }}
+      </div>
+      <div class="col-md-4 form-check">
+        {{ form.filtro_oleo }} {{ form.filtro_oleo.label_tag }}
+      </div>
+      <div class="col-md-4 form-check">
+        {{ form.filtro_ar }} {{ form.filtro_ar.label_tag }}
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Custo total</label>
+        {{ form.custo_total }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Responsável</label>
+        {{ form.responsavel }}
+      </div>
+      <div class="col-12">
+        <label class="form-label">Observação</label>
+        {{ form.observacao }}
+      </div>
+
+      <div class="col-12 text-end">
+        <button class="btn btn-primary" type="submit">Salvar</button>
+        <a href="{% url 'manutencao_list' %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const sectorSelect = document.getElementById('id_sector_select');
+  const autSelect = document.getElementById('id_autocarro_select');
+
+  sectorSelect && sectorSelect.addEventListener('change', async function(){
+    const sid = this.value;
+    if (!sid) { autSelect.innerHTML = '<option value="">-- Escolha sector --</option>'; return; }
+    const resp = await fetch("{% url 'api_autocarros_por_sector' %}?sector_id=" + sid, {credentials:'same-origin'});
+    if (!resp.ok) return;
+    const data = await resp.json();
+    if (!data.ok) return;
+    autSelect.innerHTML = '<option value="">-- Escolha autocarro --</option>';
+    data.autocarros.forEach(a=>{
+      const opt = document.createElement('option');
+      opt.value = a.id;
+      opt.textContent = a.numero + (a.modelo ? ' — ' + a.modelo : '');
+      autSelect.appendChild(opt);
+    });
+  });
+});
+</script>
+{% endblock %}
