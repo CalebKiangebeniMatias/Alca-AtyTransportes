@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h5>Confirmar eliminação</h5>
+  <p>Tem a certeza que pretende eliminar a manutenção agendada para o autocarro <strong>{{ manut.autocarro.numero }}</strong> na data <strong>{{ manut.data_ultima }}</strong> ?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Sim, eliminar</button>
+    <a href="{% url 'manutencao_list' %}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

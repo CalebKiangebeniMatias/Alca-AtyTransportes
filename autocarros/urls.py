@@ -109,6 +109,8 @@ urlpatterns = [
     # Manutenções
     path('manutencoes/add/', views.manutencao_create, name='manutencao_create'),
     path('manutencoes/', views.manutencao_list, name='manutencao_list'),
+    path('manutencoes/<int:pk>/edit/', views.manutencao_edit, name='manutencao_edit'),
+    path('manutencoes/<int:pk>/delete/', views.manutencao_delete, name='manutencao_delete'),
     path('api/autocarros_por_sector/', views.api_autocarros_por_sector, name='api_autocarros_por_sector'),
 ]
 

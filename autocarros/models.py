@@ -360,6 +360,7 @@ class CobradorViagem(models.Model):
         self.save(update_fields=['status', 'validado_por', 'validado_em', 'nota_validacao'])
 
 
+# ...existing code...
 class Manutencao(models.Model):
     STATUS_CHOICES = [
         ('agendada', 'Agendada'),
@@ -381,6 +382,14 @@ class Manutencao(models.Model):
     filtro_combustivel = models.BooleanField(default=False)
     filtro_oleo = models.BooleanField(default=False)
     filtro_ar = models.BooleanField(default=False)
+
+    # ---> novos campos: km previstos para cada item <---
+    km_prox_oleo_motor = models.PositiveIntegerField(null=True, blank=True, help_text='Km previsto para próxima troca do óleo do motor')
+    km_prox_oleo_diferencial = models.PositiveIntegerField(null=True, blank=True, help_text='Km previsto para próxima troca do óleo do diferencial')
+    km_prox_oleo_cambio = models.PositiveIntegerField(null=True, blank=True, help_text='Km previsto para próxima troca do óleo do câmbio')
+    km_prox_filtro_combustivel = models.PositiveIntegerField(null=True, blank=True, help_text='Km previsto para troca do filtro de combustível')
+    km_prox_filtro_oleo = models.PositiveIntegerField(null=True, blank=True, help_text='Km previsto para troca do filtro de óleo')
+    km_prox_filtro_ar = models.PositiveIntegerField(null=True, blank=True, help_text='Km previsto para troca do filtro de ar')
 
     custo_total = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
     observacao = models.TextField(blank=True, null=True)

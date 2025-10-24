@@ -322,17 +322,29 @@ class ManutencaoForm(forms.ModelForm):
         fields = [
             'sector', 'autocarro',
             'data_ultima', 'km_ultima', 'km_proxima',
-            'oleo_motor','oleo_diferencial','oleo_cambio',
-            'filtro_combustivel','filtro_oleo','filtro_ar',
+            'oleo_motor','km_prox_oleo_motor',
+            'oleo_diferencial','km_prox_oleo_diferencial',
+            'oleo_cambio','km_prox_oleo_cambio',
+            'filtro_combustivel','km_prox_filtro_combustivel',
+            'filtro_oleo','km_prox_filtro_oleo',
+            'filtro_ar','km_prox_filtro_ar',
             'custo_total','observacao','responsavel','status'
         ]
         widgets = {
             'data_ultima': forms.DateInput(attrs={'type':'date', 'class':'form-control'}),
             'km_ultima': forms.NumberInput(attrs={'class':'form-control'}),
             'km_proxima': forms.NumberInput(attrs={'class':'form-control'}),
+            'km_prox_oleo_motor': forms.NumberInput(attrs={'class':'form-control'}),
+            'km_prox_oleo_diferencial': forms.NumberInput(attrs={'class':'form-control'}),
+            'km_prox_oleo_cambio': forms.NumberInput(attrs={'class':'form-control'}),
+            'km_prox_filtro_combustivel': forms.NumberInput(attrs={'class':'form-control'}),
+            'km_prox_filtro_oleo': forms.NumberInput(attrs={'class':'form-control'}),
+            'km_prox_filtro_ar': forms.NumberInput(attrs={'class':'form-control'}),
             'custo_total': forms.NumberInput(attrs={'step':'0.01', 'class':'form-control'}),
             'observacao': forms.Textarea(attrs={'rows':3, 'class':'form-control'}),
             'sector': forms.Select(attrs={'class':'form-select', 'id':'id_sector_select'}),
             'autocarro': forms.Select(attrs={'class':'form-select', 'id':'id_autocarro_select'}),
+            'responsavel': forms.Select(attrs={'class':'form-select'}),
+            'status': forms.Select(attrs={'class':'form-select'}),
         }
 

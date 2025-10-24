@@ -31,23 +31,54 @@
         {{ form.km_proxima }}
       </div>
 
-      <div class="col-md-4 form-check">
-        {{ form.oleo_motor }} {{ form.oleo_motor.label_tag }}
+      <!-- Óleos e km previstos -->
+      <div class="col-md-4">
+        <div class="form-check">
+          {{ form.oleo_motor }} {{ form.oleo_motor.label_tag }}
+        </div>
+        <label class="form-label small mt-1">Km previsto (Óleo Motor)</label>
+        {{ form.km_prox_oleo_motor }}
       </div>
-      <div class="col-md-4 form-check">
-        {{ form.oleo_diferencial }} {{ form.oleo_diferencial.label_tag }}
+
+      <div class="col-md-4">
+        <div class="form-check">
+          {{ form.oleo_diferencial }} {{ form.oleo_diferencial.label_tag }}
+        </div>
+        <label class="form-label small mt-1">Km previsto (Óleo Diferencial)</label>
+        {{ form.km_prox_oleo_diferencial }}
       </div>
-      <div class="col-md-4 form-check">
-        {{ form.oleo_cambio }} {{ form.oleo_cambio.label_tag }}
+
+      <div class="col-md-4">
+        <div class="form-check">
+          {{ form.oleo_cambio }} {{ form.oleo_cambio.label_tag }}
+        </div>
+        <label class="form-label small mt-1">Km previsto (Óleo Câmbio)</label>
+        {{ form.km_prox_oleo_cambio }}
       </div>
-      <div class="col-md-4 form-check">
-        {{ form.filtro_combustivel }} {{ form.filtro_combustivel.label_tag }}
+
+      <!-- Filtros -->
+      <div class="col-md-4">
+        <div class="form-check">
+          {{ form.filtro_combustivel }} {{ form.filtro_combustivel.label_tag }}
+        </div>
+        <label class="form-label small mt-1">Km previsto (Filtro Combustível)</label>
+        {{ form.km_prox_filtro_combustivel }}
       </div>
-      <div class="col-md-4 form-check">
-        {{ form.filtro_oleo }} {{ form.filtro_oleo.label_tag }}
+
+      <div class="col-md-4">
+        <div class="form-check">
+          {{ form.filtro_oleo }} {{ form.filtro_oleo.label_tag }}
+        </div>
+        <label class="form-label small mt-1">Km previsto (Filtro Óleo)</label>
+        {{ form.km_prox_filtro_oleo }}
       </div>
-      <div class="col-md-4 form-check">
-        {{ form.filtro_ar }} {{ form.filtro_ar.label_tag }}
+
+      <div class="col-md-4">
+        <div class="form-check">
+          {{ form.filtro_ar }} {{ form.filtro_ar.label_tag }}
+        </div>
+        <label class="form-label small mt-1">Km previsto (Filtro Ar)</label>
+        {{ form.km_prox_filtro_ar }}
       </div>
 
       <div class="col-md-6">

@@ -2463,6 +2463,7 @@ def cobrador_viagens_validate_action(request):
 # ---------- Manutenção Autocarros Views ----------#
 
 @login_required
+@acesso_restrito(['admin', 'gestor'])
 def manutencao_create(request):
     """
     Página para agendar manutenção.
@@ -2493,6 +2494,42 @@ def manutencao_list(request):
     if sector_id:
         qs = qs.filter(sector_id=sector_id)
     return render(request, 'autocarros/manutencao_list.html', {'manutencoes': qs, 'sectores': Sector.objects.all()})
+
+
+@login_required
+@acesso_restrito(['admin', 'gestor'])
+def manutencao_edit(request, pk):
+    """
+    Editar manutenção agendada.
+    Apenas admin/gestor podem editar.
+    """
+    manut = get_object_or_404(Manutencao, pk=pk)
+    if request.method == 'POST':
+        form = ManutencaoForm(request.POST, request.FILES, instance=manut)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '✅ Manutenção atualizada com sucesso.')
+            return redirect('manutencao_list')
+        else:
+            messages.error(request, '❌ Formulário inválido. Verifique os campos.')
+    else:
+        form = ManutencaoForm(instance=manut)
+    return render(request, 'autocarros/manutencao_form.html', {'form': form, 'manut': manut})
+
+
+@login_required
+@acesso_restrito(['admin', 'gestor'])
+def manutencao_delete(request, pk):
+    """
+    Confirmar e eliminar manutenção.
+    Apenas admin/gestor podem apagar.
+    """
+    manut = get_object_or_404(Manutencao, pk=pk)
+    if request.method == 'POST':
+        manut.delete()
+        messages.success(request, '✅ Manutenção eliminada com sucesso.')
+        return redirect('manutencao_list')
+    return render(request, 'autocarros/confirmar_deletar_manutencao.html', {'manut': manut})
 
 
 @login_required
