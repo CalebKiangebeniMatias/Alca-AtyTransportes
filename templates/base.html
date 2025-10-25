@@ -316,7 +316,7 @@
             font-weight: 500;
         }
 
-        /* === MENU FLUTUANTE DE PERFIL === */
+       /* === MENU FLUTUANTE DE PERFIL === */
         .menu-flutuante {
             position: fixed;
             bottom: 24px;
@@ -324,6 +324,7 @@
             z-index: 1100;
         }
 
+        /* Botão principal */
         .menu-flutuante .btn-principal {
             width: 60px;
             height: 60px;
@@ -342,6 +343,7 @@
             transform: scale(1.1);
         }
 
+        /* Container dos botões secundários */
         .botoes-secundarios {
             display: flex;
             flex-direction: column;
@@ -361,6 +363,7 @@
             pointer-events: auto;
         }
 
+        /* Botões menores */
         .btn-flutuante {
             background: var(--secondary-color);
             color: var(--accent-color);
@@ -385,308 +388,311 @@
     
 </head>
 
-<!-- MENU FLUTUANTE DE PERFIL -->
-<div class="menu-flutuante">
-    <div class="botoes-secundarios">
-        <a href="{% url 'perfil' %}" class="btn-flutuante" title="Ver Perfil">
-            <i class="fas fa-user"></i>
-        </a>
-        <a href="#" class="btn-flutuante" title="Administração">
-            <i class="fas fa-gavel"></i>
-        </a>
-        <a href="#" class="btn-flutuante" title="Outros">
-            <i class="fas fa-ellipsis-h"></i>
-        </a>
+    <!-- MENU FLUTUANTE DE PERFIL -->
+    <div class="menu-flutuante">
+        <div class="botoes-secundarios">
+            <a href="{% url 'perfil' %}" class="btn-flutuante" title="Ver Perfil">
+                <i class="fas fa-user"></i>
+            </a>
+            <a href="{% url 'admin:index' %}" class="btn-flutuante" title="Administração">
+                <i class="fas fa-gavel"></i>
+            </a>
+            <a href="#" class="btn-flutuante" title="Outros">
+                <i class="fas fa-ellipsis-h"></i>
+            </a>
+        </div>
+
+        <button class="btn-principal" id="menuToggle" title="Menu Perfil">
+            <i class="fas fa-user-circle"></i>
+        </button>
     </div>
 
-    <button class="btn-principal" id="menuToggle" title="Menu Perfil">
-        <i class="fas fa-user-circle"></i>
-    </button>
-</div>
 
-<!-- novo: botão flutuante esquerdo para Depósitos -->
-<a href="{% url 'depositos' %}" class="agencia-flutuante" title="Depósitos por Sector">
-    <i class="fas fa-building-columns" style="line-height:60px;color:var(--accent-color)"></i>
-</a>
+    <!-- novo: botão flutuante esquerdo para Depósitos -->
+    <a href="{% url 'depositos' %}" class="agencia-flutuante" title="Depósitos por Sector">
+        <i class="fas fa-building-columns" style="line-height:60px;color:var(--accent-color)"></i>
+    </a>
 
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
-            <h5> <strong>Alca&Aty Transportes</strong> </h5>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <div class="navbar-nav ms-auto">
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <h5> <strong>Alca&Aty Transportes</strong> </h5>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <div class="navbar-nav ms-auto">
 
-                <!-- DASHBOARD -->
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-chart-line text-primary me-1"></i> Painel
-                    </a>
-                    <ul class="dropdown-menu shadow-lg border-0 rounded-3">
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'dashboard' %}">
-                                <i class="fas fa-list me-2 text-info"></i> Gestão De Frota
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'contabilista_financas' %}">
-                                <i class="fas fa-coins me-2 text-warning"></i> Contabilidade & Finanças
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'gerencia_financas' %}">
-                                <i class="fas fa-money-bill-trend-up me-2 text-success"></i> Gerência De Finanças
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'gerencia_campo' %}">
-                                <i class="fas fa-map-location-dot me-2 text-danger"></i> Gerência De Campo
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="#">
-                                <i class="fas fa-calendar-check me-2 text-primary"></i> Controlo Diário
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'register' %}">
-                                <i class="fas fa-user-plus me-2 text-success"></i> Registrar Usuário
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                    <!-- DASHBOARD -->
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-chart-line text-primary me-1"></i> Painel
+                        </a>
+                        <ul class="dropdown-menu shadow-lg border-0 rounded-3">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'dashboard' %}">
+                                    <i class="fas fa-list me-2 text-info"></i> Gestão De Frota
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'contabilista_financas' %}">
+                                    <i class="fas fa-coins me-2 text-warning"></i> Contabilidade & Finanças
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'gerencia_financas' %}">
+                                    <i class="fas fa-money-bill-trend-up me-2 text-success"></i> Gerência De Finanças
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'gerencia_campo' %}">
+                                    <i class="fas fa-map-location-dot me-2 text-danger"></i> Gerência De Campo
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-calendar-check me-2 text-primary"></i> Controlo Diário
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'register' %}">
+                                    <i class="fas fa-user-plus me-2 text-success"></i> Registrar Usuário
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
 
-                <!-- MANUTENÇÃO -->
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-tools text-warning me-1"></i> Manut
-                    </a>
-                    <ul class="dropdown-menu shadow-lg border-0 rounded-3">
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'manutencao_list' %}">
-                                <i class="fas fa-list me-2 text-info"></i> Listar Manutenções
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'registro_km' %}">
-                                <i class="fas fa-plus me-2 text-success"></i> Registro De KM`s
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'manutencao_create' %}">
-                                <i class="fas fa-calendar-plus me-2 text-primary"></i> Agendar Manutenção
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="#">
-                                <i class="fas fa-history me-2 text-secondary"></i> Histórico de Manutenções
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                    <!-- MANUTENÇÃO -->
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-tools text-warning me-1"></i> Manut
+                        </a>
+                        <ul class="dropdown-menu shadow-lg border-0 rounded-3">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'manutencao_list' %}">
+                                    <i class="fas fa-list me-2 text-info"></i> Listar Manutenções
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'registro_km' %}">
+                                    <i class="fas fa-plus me-2 text-success"></i> Registro De KM`s
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'manutencao_create' %}">
+                                    <i class="fas fa-calendar-plus me-2 text-primary"></i> Agendar Manutenção
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-history me-2 text-secondary"></i> Histórico de Manutenções
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
 
-                <!-- AUTOCARROS -->
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-bus text-warning me-1"></i> Autoc..
-                    </a>
-                    <ul class="dropdown-menu shadow-lg border-0 rounded-3">
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'listar_autocarros' %}">
-                                <i class="fas fa-list me-2 text-primary"></i> Listar Autocarros
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'cadastrar_autocarro' %}">
-                                <i class="fas fa-plus me-2 text-success"></i> Cadastrar Autocarro
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'atualizar_estado' %}">
-                                <i class="fas fa-tools me-2 text-danger"></i> Atualizar Estado
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                    <!-- AUTOCARROS -->
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-bus text-warning me-1"></i> Autoc..
+                        </a>
+                        <ul class="dropdown-menu shadow-lg border-0 rounded-3">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'listar_autocarros' %}">
+                                    <i class="fas fa-list me-2 text-primary"></i> Listar Autocarros
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'cadastrar_autocarro' %}">
+                                    <i class="fas fa-plus me-2 text-success"></i> Cadastrar Autocarro
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'atualizar_estado' %}">
+                                    <i class="fas fa-tools me-2 text-danger"></i> Atualizar Estado
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
 
-                <!-- REGISTOS -->
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-clipboard-list text-info me-1"></i> Registos
-                    </a>
-                    <ul class="dropdown-menu shadow-lg border-0 rounded-3">
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'listar_registros' %}">
-                                <i class="fas fa-list me-2 text-secondary"></i> Listar Relatórios
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'adicionar_relatorio_sector' %}">
-                                <i class="fas fa-plus me-2 text-success"></i> Adicionar Relatório Diário
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'relatorios_validados' %}">
-                                <i class="fas fa-check-circle me-2 text-success"></i> Relatórios Validados
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'selc_sector_cumb' %}">
-                                <i class="fas fa-gas-pump me-2 text-warning"></i> Add Despesa Combústivel
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'listar_combustivel' %}">
-                                <i class="fas fa-receipt me-2 text-primary"></i> Listar Despesas De Combústivel
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                    <!-- REGISTOS -->
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-clipboard-list text-info me-1"></i> Registos
+                        </a>
+                        <ul class="dropdown-menu shadow-lg border-0 rounded-3">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'listar_registros' %}">
+                                    <i class="fas fa-list me-2 text-secondary"></i> Listar Relatórios
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'adicionar_relatorio_sector' %}">
+                                    <i class="fas fa-plus me-2 text-success"></i> Adicionar Relatório Diário
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'relatorios_validados' %}">
+                                    <i class="fas fa-check-circle me-2 text-success"></i> Relatórios Validados
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'selc_sector_cumb' %}">
+                                    <i class="fas fa-gas-pump me-2 text-warning"></i> Add Despesa Combústivel
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'listar_combustivel' %}">
+                                    <i class="fas fa-receipt me-2 text-primary"></i> Listar Despesas De Combústivel
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
 
-                <!-- DESPESAS -->
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-money-check text-danger me-1"></i> Despesas
-                    </a>
-                    <ul class="dropdown-menu shadow-lg border-0 rounded-3">
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'listar_despesas' %}">
-                                <i class="fas fa-list me-2 text-primary"></i> Listar Despesas Variáveis
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'adicionar_despesa' %}">
-                                <i class="fas fa-plus me-2 text-success"></i> Add Despesas Variáveis
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="#">
-                                <i class="fas fa-list me-2 text-secondary"></i> Listar Despesas Fixas
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="#">
-                                <i class="fas fa-plus me-2 text-warning"></i> Add Despesas Fixas
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                    <!-- DESPESAS -->
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-money-check text-danger me-1"></i> Despesas
+                        </a>
+                        <ul class="dropdown-menu shadow-lg border-0 rounded-3">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'listar_despesas' %}">
+                                    <i class="fas fa-list me-2 text-primary"></i> Listar Despesas Variáveis
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'adicionar_despesa' %}">
+                                    <i class="fas fa-plus me-2 text-success"></i> Add Despesas Variáveis
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-list me-2 text-secondary"></i> Listar Despesas Fixas
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-plus me-2 text-warning"></i> Add Despesas Fixas
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
 
-                <!-- REGIÕES -->
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-map-marker-alt text-success me-1"></i> Regiões
-                    </a>
-                    <ul class="dropdown-menu shadow-lg border-0 rounded-3">
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'lista_sectores' %}">
-                                <i class="fas fa-list me-2 text-info"></i> Listar Setores
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'adicionar_sector' %}">
-                                <i class="fas fa-plus me-2 text-success"></i> Adicionar Setor
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        {% for sector in sectores %}
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{% url 'resumo_sector' sector.nome|slugify %}">
-                                <i class="fas fa-city me-2 text-secondary"></i> {{ sector.nome }}
-                            </a>
-                        </li>
-                        {% empty %}
-                        <li><span class="dropdown-item text-muted">Nenhum setor cadastrado</span></li>
-                        {% endfor %}
-                    </ul>
-                </div>
+                    <!-- REGIÕES -->
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-map-marker-alt text-success me-1"></i> Regiões
+                        </a>
+                        <ul class="dropdown-menu shadow-lg border-0 rounded-3">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'lista_sectores' %}">
+                                    <i class="fas fa-list me-2 text-info"></i> Listar Setores
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'adicionar_sector' %}">
+                                    <i class="fas fa-plus me-2 text-success"></i> Adicionar Setor
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% for sector in sectores %}
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'resumo_sector' sector.nome|slugify %}">
+                                    <i class="fas fa-city me-2 text-secondary"></i> {{ sector.nome }}
+                                </a>
+                            </li>
+                            {% empty %}
+                            <li><span class="dropdown-item text-muted">Nenhum setor cadastrado</span></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
 
-                <!-- FINANÇAS -->
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-piggy-bank text-warning me-1"></i> Finanças
-                    </a>
-                    <ul class="dropdown-menu shadow-lg border-0 rounded-3">
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="#">
-                                <i class="fas fa-hand-holding-usd me-2 text-success"></i> Crédito
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="#">
-                                <i class="fas fa-chart-line me-2 text-primary"></i> Investimentos
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="#">
-                                <i class="fas fa-coins me-2 text-warning"></i> Amortizações
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="#">
-                                <i class="fas fa-file-invoice-dollar me-2 text-info"></i> Demonstração
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="#">
-                                <i class="fas fa-receipt me-2 text-secondary"></i> Extratos
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                    <!-- FINANÇAS -->
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-piggy-bank text-warning me-1"></i> Finanças
+                        </a>
+                        <ul class="dropdown-menu shadow-lg border-0 rounded-3">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-hand-holding-usd me-2 text-success"></i> Crédito
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-chart-line me-2 text-primary"></i> Investimentos
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-coins me-2 text-warning"></i> Amortizações
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-file-invoice-dollar me-2 text-info"></i> Demonstração
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-receipt me-2 text-secondary"></i> Extratos
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
 
-                    
+                        
+                    </div>
                 </div>
             </div>
+        </nav>
+
+        <div class="container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
         </div>
-    </nav>
 
-    <div class="container">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
+        <footer>
+            &copy; {{ now|date:"Y" }} Sistema De Gestão de Autocarros. Todos os direitos reservados Engenheiro De Software @Kiangebeni Kaleba Matias.
+        </footer>
 
-        {% block content %}
-        {% endblock %}
-    </div>
-
-    <footer>
-        &copy; {{ now|date:"Y" }} Sistema De Gestão de Autocarros. Todos os direitos reservados Engenheiro De Software @Kiangebeni Kaleba Matias.
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 
-    # === SCRIPT PARA O MENU FLUTUANTE DE PERFIL === #
+        # === SCRIPT PARA O MENU FLUTUANTE DE PERFIL === #
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const menuToggle = document.getElementById("menuToggle");
-            const botoes = document.querySelector(".botoes-secundarios");
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const menuToggle = document.getElementById("menuToggle");
+                const botoes = document.querySelector(".botoes-secundarios");
 
-            // Mostra/oculta ao clicar
-            menuToggle.addEventListener("click", () => {
-                botoes.classList.toggle("mostrar");
+                menuToggle.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    botoes.classList.toggle("mostrar");
+                });
+
+                // Fechar se clicar fora
+                document.addEventListener("click", (e) => {
+                    if (!e.target.closest(".menu-flutuante")) {
+                        botoes.classList.remove("mostrar");
+                    }
+                });
             });
+        </script>
 
-            // Também pode abrir ao passar o mouse (opcional)
-            const menu = document.querySelector(".menu-flutuante");
-            menu.addEventListener("mouseenter", () => botoes.classList.add("mostrar"));
-            menu.addEventListener("mouseleave", () => botoes.classList.remove("mostrar"));
-        });
-    </script>
-
-</body>
+    </body>
 </html>
