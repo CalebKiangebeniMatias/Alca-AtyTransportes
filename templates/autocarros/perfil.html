@@ -3,126 +3,171 @@
 
 {% block content %}
 <style>
-  /* Usar as cores padrão declaradas em base.html via variáveis CSS */
-  /* Não sobrescrever o background do body: o base.html já define o gradiente global */
-
-  .profile-card {
-    border: none;
+  /* ===== PERFIL ===== */
+  .profile-container {
+    max-width: 680px;
+    width: 100%;
+    margin: 40px auto;
     border-radius: 18px;
-    /* utilizar o glass-bg do tema para coerência */
     background: var(--glass-bg);
-    color: var(--accent-color);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-    transition: all 0.4s ease;
-    animation: fadeInUp 0.8s ease forwards;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+    animation: fadeIn 0.8s ease forwards;
   }
 
-  .profile-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+  .profile-header {
+    position: relative;
+    height: 180px;
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    animation: gradientMove 6s infinite alternate ease-in-out;
+  }
+
+  @keyframes gradientMove {
+    0% { background-position: left; }
+    100% { background-position: right; }
   }
 
   .profile-avatar {
-    width: 110px;
-    height: 110px;
+    width: 130px;
+    height: 130px;
     border-radius: 50%;
-    /* usar as cores secundárias e de sucesso do tema */
-    background: linear-gradient(135deg, var(--secondary-color), var(--success-color));
-    color: var(--accent-color);
-    font-size: 2.8rem;
-    font-weight: 700;
+    background: var(--accent-color);
+    border: 5px solid var(--glass-bg);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    position: absolute;
+    bottom: -65px;
+    left: 50%;
+    transform: translateX(-50%);
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 15px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-    position: relative;
-    overflow: hidden;
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--secondary-color);
   }
 
-  .profile-avatar::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, transparent 70%);
-    animation: shine 3s infinite linear;
+  .profile-body {
+    padding: 85px 30px 40px;
+    text-align: center;
   }
 
-  @keyframes shine {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  .profile-card h4 {
+  .profile-body h3 {
     font-weight: 700;
     color: var(--secondary-color);
   }
 
-  .badge {
-    border-radius: 10px;
-    font-size: 0.9rem;
-    font-weight: 500;
+  .profile-badge {
+    display: inline-block;
     background: var(--success-color);
     color: var(--accent-color);
+    border-radius: 10px;
+    padding: 4px 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 15px;
+  }
+
+  .profile-info {
+    text-align: left;
+    margin-top: 20px;
   }
 
   .profile-info p {
-    font-size: 0.95rem;
-    padding: 8px 0;
-    margin-bottom: 6px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.96rem;
   }
 
   .profile-info i {
+    width: 22px;
     color: var(--secondary-color);
   }
 
-  .btn-outline-danger {
-    border-radius: 12px;
+  .profile-actions {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .profile-actions a {
+    border-radius: 25px;
+    padding: 10px 24px;
+    font-weight: 500;
     transition: all 0.3s ease;
-    border-color: rgba(255,255,255,0.12);
+  }
+
+  .btn-edit {
+    background: var(--secondary-color);
     color: var(--accent-color);
   }
 
-  .btn-outline-danger:hover {
-    /* usar a cor primária do tema como hover para coerência */
-    background-color: var(--primary-color);
-    color: var(--accent-color);
-    transform: scale(1.03);
+  .btn-edit:hover {
+    background: var(--primary-color);
+    transform: translateY(-2px);
   }
 
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(25px); }
+  .btn-logout {
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--accent-color);
+    background: transparent;
+  }
+
+  .btn-logout:hover {
+    background: var(--primary-color);
+    transform: translateY(-2px);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Responsivo */
+  @media (max-width: 600px) {
+    .profile-container {
+      margin: 20px;
+    }
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      bottom: -50px;
+    }
   }
 </style>
 
-<div class="d-flex justify-content-center align-items-center" style="min-height: 90vh;">
-  <div class="card profile-card p-4 text-center" style="max-width: 480px; width: 100%;">
-    
+<div class="profile-container">
+
+  <!-- Capa -->
+  <div class="profile-header">
     <div class="profile-avatar">
       {{ user.username|first|upper }}
     </div>
+  </div>
 
-    <h4 class="mb-1">{{ user.username }}</h4>
-    <span class="badge bg-success mb-3">
+  <!-- Corpo -->
+  <div class="profile-body">
+    <h3>{{ user.username }}</h3>
+    <div class="profile-badge">
       {{ user.get_nivel_acesso_display }}
-    </span>
-
-    <div class="profile-info text-start px-3">
-      <p><i class="fas fa-envelope me-2"></i><strong>Email:</strong> {{ user.email }}</p>
-      <p><i class="fas fa-phone me-2"></i><strong>Telefone:</strong> {{ user.telefone|default:"—" }}</p>
-      <p><i class="fas fa-calendar-alt me-2"></i><strong>Data de Registro:</strong> {{ user.data_registro|date:"d/m/Y H:i" }}</p>
     </div>
 
-    <div class="text-center mt-4">
-      <a href="{% url 'logout' %}" class="btn btn-outline-danger px-4">
-        <i class="fas fa-sign-out-alt me-2"></i> Sair
+    <div class="profile-info">
+      <p><i class="fas fa-envelope"></i> <strong>Email:</strong> {{ user.email }}</p>
+      <p><i class="fas fa-phone"></i> <strong>Telefone:</strong> {{ user.telefone|default:"—" }}</p>
+      <p><i class="fas fa-calendar-alt"></i> <strong>Data de Registro:</strong> {{ user.data_registro|date:"d/m/Y H:i" }}</p>
+    </div>
+
+    <div class="profile-actions">
+      <a href="#" class="btn btn-edit">
+        <i class="fas fa-user-edit me-1"></i> Editar Perfil
+      </a>
+      <a href="{% url 'logout' %}" class="btn btn-logout">
+        <i class="fas fa-sign-out-alt me-1"></i> Sair
       </a>
     </div>
   </div>
+
 </div>
 {% endblock %}
