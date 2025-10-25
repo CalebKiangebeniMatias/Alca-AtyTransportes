@@ -316,13 +316,93 @@
             font-weight: 500;
         }
 
+        /* === MENU FLUTUANTE DE PERFIL === */
+        .menu-flutuante {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1100;
+        }
+
+        .menu-flutuante .btn-principal {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: var(--secondary-color);
+            color: var(--accent-color);
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .menu-flutuante .btn-principal:hover {
+            background: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        .botoes-secundarios {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            bottom: 70px;
+            right: 10px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .botoes-secundarios.mostrar {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .btn-flutuante {
+            background: var(--secondary-color);
+            color: var(--accent-color);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 48px;
+            font-size: 1.2rem;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 10px;
+            transition: transform 0.25s ease, background 0.3s ease;
+        }
+
+        .btn-flutuante:hover {
+            background: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+
     </style>
     
 </head>
-<!-- Botão flutuante de perfil -->
-<a href="{% url 'perfil' %}" class="perfil-flutuante" title="Ver Perfil">
-    <span>{{ user.username|first|upper }}</span>
-</a>
+
+<!-- MENU FLUTUANTE DE PERFIL -->
+<div class="menu-flutuante">
+    <div class="botoes-secundarios">
+        <a href="{% url 'perfil' %}" class="btn-flutuante" title="Ver Perfil">
+            <i class="fas fa-user"></i>
+        </a>
+        <a href="#" class="btn-flutuante" title="Administração">
+            <i class="fas fa-gavel"></i>
+        </a>
+        <a href="#" class="btn-flutuante" title="Outros">
+            <i class="fas fa-ellipsis-h"></i>
+        </a>
+    </div>
+
+    <button class="btn-principal" id="menuToggle" title="Menu Perfil">
+        <i class="fas fa-user-circle"></i>
+    </button>
+</div>
 
 <!-- novo: botão flutuante esquerdo para Depósitos -->
 <a href="{% url 'depositos' %}" class="agencia-flutuante" title="Depósitos por Sector">
@@ -587,5 +667,26 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+    # === SCRIPT PARA O MENU FLUTUANTE DE PERFIL === #
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const menuToggle = document.getElementById("menuToggle");
+            const botoes = document.querySelector(".botoes-secundarios");
+
+            // Mostra/oculta ao clicar
+            menuToggle.addEventListener("click", () => {
+                botoes.classList.toggle("mostrar");
+            });
+
+            // Também pode abrir ao passar o mouse (opcional)
+            const menu = document.querySelector(".menu-flutuante");
+            menu.addEventListener("mouseenter", () => botoes.classList.add("mostrar"));
+            menu.addEventListener("mouseleave", () => botoes.classList.remove("mostrar"));
+        });
+    </script>
+
 </body>
 </html>

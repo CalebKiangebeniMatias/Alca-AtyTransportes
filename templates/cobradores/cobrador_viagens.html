@@ -8,23 +8,37 @@
       <h5>Agenda de Viagens — Cobrador</h5>
     </div>
     <div class="card-body">
-      <div class="mb-3">
-        <label for="input_autocarro" class="form-label">Número do Autocarro</label>
-        <input id="input_autocarro" class="form-control" placeholder="Ex.: 123" />
-        <div class="form-text">Informe o número do autocarro e pressione Enter.</div>
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Sector</label>
+          <select id="select_sector" class="form-select">
+            <option value="">-- Escolha sector --</option>
+            {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Autocarro (opcional)</label>
+          <select id="select_autocarro" class="form-select">
+            <option value="">-- Todos autocarros --</option>
+          </select>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <button id="btn_load_list" class="btn btn-outline-primary me-2">Carregar Lista</button>
+          <button id="btn_new_tab" class="btn btn-primary" data-bs-target="#lancar" data-bs-toggle="tab">Novo Registro</button>
+        </div>
       </div>
 
       <ul class="nav nav-tabs" id="tabs" role="tablist" style="margin-bottom:1rem;">
         <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="tab-lancar" data-bs-toggle="tab" data-bs-target="#lancar" type="button">Lançar Viagem</button>
+          <button class="nav-link" id="tab-lancar" data-bs-toggle="tab" data-bs-target="#lancar" type="button">Lançar Viagem</button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="tab-resumo" data-bs-toggle="tab" data-bs-target="#resumo" type="button">Ver Viagens / Resumo</button>
+          <button class="nav-link active" id="tab-resumo" data-bs-toggle="tab" data-bs-target="#resumo" type="button">Ver Viagens / Resumo</button>
         </li>
       </ul>
 
       <div class="tab-content">
-        <div class="tab-pane fade show active" id="lancar">
+        <div class="tab-pane fade" id="lancar">
           <form id="form_viagem" class="row g-3" onsubmit="return false;">
             <input type="hidden" id="autocarro_id" name="autocarro_id" />
             <div class="col-md-3">
@@ -35,34 +49,48 @@
               <label class="form-label">Hora</label>
               <input type="time" id="viagem_hora" class="form-control" />
             </div>
+
+            <!-- removido campo "valor" -->
             <div class="col-md-3">
-              <label class="form-label">Valor (Kz)</label>
-              <input type="number" step="0.01" id="viagem_valor" class="form-control" />
+              <label class="form-label">Valor da passagem (Kz)</label>
+              <input type="number" step="0.01" id="viagem_valor_passagem" class="form-control" placeholder="Ex.: 50.00" />
+              <div class="form-text small">Tarifa usada para calcular valor total</div>
             </div>
+
             <div class="col-md-3">
               <label class="form-label">Passageiros</label>
-              <input type="number" id="viagem_passageiros" class="form-control" />
+              <input type="number" id="viagem_passageiros" class="form-control" min="0" />
             </div>
+
             <div class="col-12">
               <label class="form-label">Observação</label>
               <textarea id="viagem_obs" class="form-control" rows="2"></textarea>
             </div>
+
             <div class="col-12 text-end">
               <button type="button" id="btn_salvar_viagem" class="btn btn-primary mt-2">Salvar Viagem</button>
             </div>
           </form>
         </div>
 
-        <div class="tab-pane fade" id="resumo">
-          <div id="resumo_header" class="mb-3">
-            <h6>Viagens do autocarro: <span id="resumo_autocarro">—</span></h6>
-            <small class="text-muted">Total valor: <strong id="resumo_total_valor">0,00</strong> Kz — Total passageiros: <strong id="resumo_total_pass">0</strong></small>
+        <div class="tab-pane fade show active" id="resumo">
+          <div id="resumo_header" class="mb-3 d-flex justify-content-between align-items-center">
+            <div>
+              <h6>Viagens</h6>
+              <small class="text-muted">Mostrando viagens por sector / autocarro selecionado</small>
+            </div>
+            <div>
+              <small class="text-muted">Total valor: <strong id="resumo_total_valor">0,00</strong> Kz</small>
+              <span class="mx-2"></span>
+              <small class="text-muted">Total passageiros: <strong id="resumo_total_pass">0</strong></small>
+            </div>
           </div>
+
           <div id="tabela_viagens" class="table-responsive">
             <table class="table table-sm">
               <thead>
                 <tr>
-                  <th>Data</th><th>Hora</th><th>Valor (Kz)</th><th>Passageiros</th><th>Cobrador</th><th>Obs</th>
+                  <th>Autocarro</th><th>Data</th><th>Hora</th><th>Valor (Kz)</th><th>Pass.</th><th>Cobrador</th><th>Obs</th><th>Ações</th>
                 </tr>
               </thead>
               <tbody id="tbody_viagens"></tbody>
@@ -74,18 +102,96 @@
   </div>
 </div>
 
+<!-- Modal de edição -->
+<div class="modal fade" id="modalEditar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="form_editar" onsubmit="return false;">
+        <div class="modal-header">
+          <h5 class="modal-title">Editar Viagem</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="edit_id">
+          <div class="mb-2">
+            <label class="form-label">Data</label>
+            <input type="date" id="edit_data" class="form-control"/>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Hora</label>
+            <input type="time" id="edit_hora" class="form-control"/>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Valor da passagem (Kz)</label>
+            <input type="number" step="0.01" id="edit_valor_passagem" class="form-control"/>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Passageiros</label>
+            <input type="number" id="edit_passageiros" class="form-control"/>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Observação</label>
+            <textarea id="edit_obs" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn_update" class="btn btn-primary">Salvar</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 {% csrf_token %}
 <script>
 document.addEventListener('DOMContentLoaded', function(){
 
   const listUrl = "{% url 'cobrador_viagens_list' %}";
   const saveUrl = "{% url 'cobrador_viagens_save' %}";
+  const updateUrl = "{% url 'cobrador_viagens_update' %}";
+  const deleteUrl = "{% url 'cobrador_viagens_delete' %}";
+  const apiAut = "{% url 'api_autocarros_por_sector' %}";
 
   function getCookie(name) {
     const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
     return v ? v.pop() : '';
   }
   const csrftoken = getCookie('csrftoken');
+
+  // carregar autocarros por sector
+  document.getElementById('select_sector').addEventListener('change', async function(){
+    const sid = this.value;
+    const sel = document.getElementById('select_autocarro');
+    sel.innerHTML = '<option value="">-- Todos autocarros --</option>';
+    if (!sid) return;
+    const resp = await fetch(apiAut + '?sector_id=' + sid, {credentials:'same-origin'});
+    if (!resp.ok) return;
+    const data = await resp.json();
+    if (!data.ok) return;
+    data.autocarros.forEach(a=>{
+      const opt = document.createElement('option');
+      opt.value = a.id;
+      opt.textContent = a.numero + (a.modelo ? ' — ' + a.modelo : '');
+      sel.appendChild(opt);
+    });
+  });
+
+  // carregar lista de viagens por sector/autocarro
+  async function carregarLista(){
+    const sector = document.getElementById('select_sector').value;
+    const aut = document.getElementById('select_autocarro').value;
+    const params = new URLSearchParams();
+    if (sector) params.set('sector_id', sector);
+    if (aut) params.set('autocarro_id', aut);
+    const res = await fetch(listUrl + '?' + params.toString(), {credentials:'same-origin'});
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data.ok) return;
+    populateResumo(data);
+  }
+
+  document.getElementById('btn_load_list').addEventListener('click', carregarLista);
 
   function fmt_money_br(valor){
     try{
@@ -101,54 +207,45 @@ document.addEventListener('DOMContentLoaded', function(){
     }catch(e){ return "0,00"; }
   }
 
-  async function fetchViagens(numero){
-    const params = new URLSearchParams({autocarro_numero: numero});
-    const url = listUrl + '?' + params.toString();
-    const res = await fetch(url, {credentials: 'same-origin'});
-    if (!res.ok) return null;
-    return res.json();
-  }
-
   function populateResumo(data){
     const tbody = document.getElementById('tbody_viagens');
     tbody.innerHTML = '';
+    let total_val = 0;
+    let total_pass = 0;
     (data.viagens || []).forEach(v=>{
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${v.data}</td><td>${v.hora}</td><td>${fmt_money_br(v.valor)} kz</td><td>${v.passageiros}</td><td>${v.cobrador}</td><td>${v.observacao}</td>`;
+      const valor = Number(v.passengers)*Number(v.valor_passagem);
+      total_val += valor;
+      total_pass += Number(v.passengers);
+      tr.innerHTML = `
+        <td>${v.autocarro_numero}</td>
+        <td>${v.data}</td>
+        <td>${fmt_money_br(valor)}</td>
+        <td>${v.passengers}</td>
+        <td>${v.cobrador}</td>
+        <td>${v.observacao}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-secondary btn-edit" data-id="${v.id}">Editar</button>
+          <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${v.id}">Eliminar</button>
+        </td>`;
       tbody.appendChild(tr);
     });
-    document.getElementById('resumo_total_valor').textContent = fmt_money_br(data.resumo.total_valor);
-    document.getElementById('resumo_total_pass').textContent = data.resumo.total_passageiros;
-    document.getElementById('resumo_autocarro').textContent = data.autocarro.numero + ' — ' + data.autocarro.modelo;
+    document.getElementById('resumo_total_valor').textContent = fmt_money_br(total_val);
+    document.getElementById('resumo_total_pass').textContent = total_pass;
   }
 
-  // Enter no campo autocarro
-  const inputAut = document.getElementById('input_autocarro');
-  inputAut && inputAut.addEventListener('keypress', async function(e){
-    if (e.key === 'Enter'){
-      e.preventDefault();
-      const numero = this.value.trim();
-      if (!numero) return;
-      const data = await fetchViagens(numero);
-      if (!data || !data.ok){ alert('Autocarro não encontrado ou erro'); return; }
-      document.getElementById('autocarro_id').value = data.autocarro.id;
-      populateResumo(data);
-      // ir para aba lançar
-      new bootstrap.Tab(document.querySelector('#tab-lancar')).show();
-    }
-  });
-
-  // botão salvar
-  const btnSalvar = document.getElementById('btn_salvar_viagem');
-  btnSalvar && btnSalvar.addEventListener('click', async function(){
-    const aut_num = document.getElementById('input_autocarro').value.trim();
-    if (!aut_num){ alert('Informe o número do autocarro'); return; }
+  // salvar viagem (calcula valor = passageiros * tarifa)
+  document.getElementById('btn_salvar_viagem').addEventListener('click', async function(){
+    const sector = document.getElementById('select_sector').value;
+    const aut = document.getElementById('select_autocarro').value;
+    if (!sector && !aut) { alert('Escolha sector ou autocarro'); return; }
     const payload = {
-      autocarro_numero: aut_num,
+      sector_id: sector || null,
+      autocarro_id: aut || null,
       data: document.getElementById('viagem_data').value || new Date().toISOString().slice(0,10),
       hora: document.getElementById('viagem_hora').value || '',
-      valor: document.getElementById('viagem_valor').value || '0',
-      passageiros: document.getElementById('viagem_passageiros').value || '0',
+      valor_passagem: document.getElementById('viagem_valor_passagem').value || '0',
+      passengers: document.getElementById('viagem_passageiros').value || '0',
       observacao: document.getElementById('viagem_obs').value || ''
     };
     const res = await fetch(saveUrl, {
@@ -157,23 +254,77 @@ document.addEventListener('DOMContentLoaded', function(){
       headers: {'Content-Type':'application/json', 'X-CSRFToken': csrftoken},
       body: JSON.stringify(payload)
     });
-    if (!res.ok){
-      const txt = await res.text();
-      alert('Erro ao salvar: ' + txt);
-      return;
-    }
-    const data = await res.json();
-    if (!data.ok){ alert('Erro ao salvar: ' + (data.error||'')); return; }
-    // atualizar lista e resumo automaticamente
-    const lista = await fetchViagens(aut_num);
-    if (lista && lista.ok) populateResumo(lista);
-    // limpar formulário parcialmente
-    document.getElementById('viagem_valor').value = '';
+    if (!res.ok){ alert('Erro ao salvar'); return; }
+    const r = await res.json();
+    if (!r.ok){ alert(r.error || 'Erro'); return; }
+    await carregarLista();
+    // limpar
     document.getElementById('viagem_passageiros').value = '';
     document.getElementById('viagem_obs').value = '';
-    // mudar para aba resumo
+    document.getElementById('viagem_valor_passagem').value = '';
+    // ir para aba resumo
     new bootstrap.Tab(document.querySelector('#tab-resumo')).show();
   });
+
+  // Delegation: editar / eliminar na tabela
+  document.getElementById('tbody_viagens').addEventListener('click', async function(e){
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (btn.classList.contains('btn-edit')){
+      // buscar dados e abrir modal
+      const res = await fetch(listUrl + '?viagem_id=' + id, {credentials:'same-origin'});
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data.ok || !data.viagens || !data.viagens.length) return;
+      const v = data.viagens[0];
+      document.getElementById('edit_id').value = v.id;
+      document.getElementById('edit_data').value = v.data;
+      document.getElementById('edit_hora').value = v.hora || '';
+      document.getElementById('edit_valor_passagem').value = v.valor_passagem || '';
+      document.getElementById('edit_passageiros').value = v.passengers || '';
+      document.getElementById('edit_obs').value = v.observacao || '';
+      new bootstrap.Modal(document.getElementById('modalEditar')).show();
+    } else if (btn.classList.contains('btn-delete')){
+      if (!confirm('Confirma eliminar esta viagem?')) return;
+      const res = await fetch(deleteUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {'Content-Type':'application/json','X-CSRFToken': csrftoken},
+        body: JSON.stringify({id: id})
+      });
+      if (!res.ok){ alert('Erro ao eliminar'); return; }
+      const r = await res.json();
+      if (!r.ok){ alert(r.error||'Erro'); return; }
+      await carregarLista();
+    }
+  });
+
+  // update modal
+  document.getElementById('btn_update').addEventListener('click', async function(){
+    const payload = {
+      id: document.getElementById('edit_id').value,
+      data: document.getElementById('edit_data').value,
+      hora: document.getElementById('edit_hora').value,
+      valor_passagem: document.getElementById('edit_valor_passagem').value || '0',
+      passengers: document.getElementById('edit_passageiros').value || '0',
+      observacao: document.getElementById('edit_obs').value || ''
+    };
+    const res = await fetch(updateUrl, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {'Content-Type':'application/json','X-CSRFToken': csrftoken},
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok){ alert('Erro ao atualizar'); return; }
+    const r = await res.json();
+    if (!r.ok){ alert(r.error || 'Erro'); return; }
+    bootstrap.Modal.getInstance(document.getElementById('modalEditar')).hide();
+    await carregarLista();
+  });
+
+  // carregar inicial vazio
+  // carregarLista();
 
 });
 </script>

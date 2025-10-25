@@ -105,6 +105,8 @@ urlpatterns = [
     path('cobrador/viagens/list/', views.cobrador_viagens_list, name='cobrador_viagens_list'),
     path('cobrador/viagens/validate/list/', views.cobrador_viagens_validate_list, name='cobrador_viagens_validate_list'),
     path('cobrador/viagens/validate/action/', views.cobrador_viagens_validate_action, name='cobrador_viagens_validate_action'),
+    path('cobrador/viagens/update/', views.cobrador_viagens_update, name='cobrador_viagens_update'),
+    path('cobrador/viagens/delete/', views.cobrador_viagens_delete, name='cobrador_viagens_delete'),
 
     # Manutenções
     path('manutencoes/add/', views.manutencao_create, name='manutencao_create'),
