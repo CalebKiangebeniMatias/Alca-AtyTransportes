@@ -10,8 +10,8 @@ from django.utils.dateparse import parse_date
 from django.forms import modelformset_factory
 from django.db.models.functions import TruncMonth
 from autocarros.decorators import acesso_restrito
-from .models import Autocarro, Comprovativo, ComprovativoRelatorio, DespesaCombustivel, Manutencao, RegistoDiario, Despesa, RegistroKM, RegistroKMItem, RelatorioSector, Sector, Motorista
-from .forms import DespesaCombustivelForm, EstadoAutocarroForm, AutocarroForm, DespesaForm, ComprovativoFormSet, ManutencaoForm, MultiFileForm, RegistoDiarioFormSet, RelatorioSectorForm, SectorForm, SectorGestorForm, SelecionarSectorCombustivelForm
+from .models import Autocarro, Comprovativo, ComprovativoRelatorio, Deposito, DespesaCombustivel, Manutencao, RegistoDiario, Despesa, RegistroKM, RegistroKMItem, RelatorioSector, Sector, Motorista
+from .forms import DespesaCombustivelForm, EstadoAutocarroForm, AutocarroForm, DespesaForm, ComprovativoFormSet, ManutencaoForm, MultiFileForm,RegistoDiarioFormSet, RelatorioSectorForm, SectorForm, SectorGestorForm, SelecionarSectorCombustivelForm
 from autocarros import models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
@@ -22,8 +22,8 @@ from .forms import CustomUserCreationForm, CustomAuthenticationForm, UserUpdateF
 from .models import CustomUser
 from django.utils.text import slugify
 from django.contrib.auth.models import User
-from decimal import Decimal
-
+import json
+from django.views.decorators.http import require_POST
 
 
 
@@ -2063,6 +2063,91 @@ def adicionar_despesa(request):
 
     return render(request, 'despesas/adicionar_despesa.html', {'form': form, 'multi': multi})
 
+
+@login_required
+def depositos_view(request):
+    """
+    Página com abas: Registrar depósito, Listar depósitos, Totais por sector.
+    """
+    sectores = Sector.objects.all().order_by('nome')
+    # enviar últimos 20 depósitos para listagem inicial
+    ultimos = Deposito.objects.select_related('sector','responsavel').all()[:20]
+    return render(request, 'depositos/depositos.html', {'sectores': sectores, 'ultimos': ultimos})
+
+
+@login_required
+@require_POST
+def depositos_save(request):
+    """
+    Salvar depósito via POST JSON ou form-POST.
+    JSON: {sector_id, data_deposito, valor, observacao}
+    """
+    # aceitar JSON ou form
+    if request.content_type == 'application/json':
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            return HttpResponseBadRequest('JSON inválido')
+        sector_id = data.get('sector_id')
+        data_deposito = data.get('data_deposito')
+        valor = data.get('valor')
+        observacao = data.get('observacao', '')
+    else:
+        sector_id = request.POST.get('sector_id')
+        data_deposito = request.POST.get('data_deposito')
+        valor = request.POST.get('valor')
+        observacao = request.POST.get('observacao', '')
+
+    if not sector_id or not valor:
+        return JsonResponse({'ok': False, 'error': 'sector_id e valor obrigatórios'}, status=400)
+    try:
+        sector = Sector.objects.get(pk=sector_id)
+    except Sector.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Sector não encontrado'}, status=404)
+
+    try:
+        valor_dec = Decimal(str(valor))
+    except Exception:
+        return JsonResponse({'ok': False, 'error': 'Valor inválido'}, status=400)
+
+    dep = Deposito.objects.create(
+        sector=sector,
+        data_deposito=data_deposito or None,
+        valor=valor_dec,
+        observacao=observacao,
+        responsavel=request.user
+    )
+    return JsonResponse({'ok': True, 'deposito_id': dep.id})
+
+
+@login_required
+def depositos_list(request):
+    """
+    API para listar depósitos (opcional filtro por sector) e retornar total.
+    GET params: sector_id (opcional), limit (opcional)
+    """
+    qs = Deposito.objects.select_related('sector','responsavel').all()
+    sector_id = request.GET.get('sector_id')
+    if sector_id:
+        qs = qs.filter(sector_id=sector_id)
+    limit = request.GET.get('limit')
+    if limit:
+        try:
+            qs = qs[:int(limit)]
+        except Exception:
+            pass
+    total = qs.aggregate(total_valor=Sum('valor'))['total_valor'] or Decimal('0.00')
+    items = []
+    for d in qs.order_by('-data_deposito')[:200]:
+        items.append({
+            'id': d.id,
+            'sector': d.sector.nome,
+            'data_deposito': d.data_deposito.isoformat(),
+            'valor': str(d.valor),
+            'observacao': d.observacao or '',
+            'responsavel': d.responsavel.get_full_name() if d.responsavel else ''
+        })
+    return JsonResponse({'ok': True, 'total': str(total), 'depositos': items})
 
 
 @login_required

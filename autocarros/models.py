@@ -309,7 +309,22 @@ class Comprovativo(models.Model):
         ordering = ['-enviado_em']
 
 
-# ...existing code...
+class Deposito(models.Model):
+    sector = models.ForeignKey('Sector', on_delete=models.CASCADE, related_name='depositos')
+    data_deposito = models.DateField(default=timezone.localdate)
+    valor = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    observacao = models.TextField(blank=True, null=True)
+    responsavel = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name='depositos_responsavel')
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-data_deposito', '-criado_em']
+
+    def __str__(self):
+        return f"Depósito {self.sector.nome} {self.data_deposito} — {self.valor}"
+
+
+
 class CobradorViagem(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pendente'),

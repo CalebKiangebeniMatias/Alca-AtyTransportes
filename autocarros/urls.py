@@ -115,6 +115,11 @@ urlpatterns = [
     path('registros/km/', views.registro_km_view, name='registro_km'),
     path('registros/km/save/', views.registro_km_save, name='registro_km_save'),
 
+    # Depósitos
+    path('depositos/depositos/', views.depositos_view, name='depositos'),
+    path('depositos/depositos/save/', views.depositos_save, name='depositos_save'),
+    path('depositos/depositos/list/', views.depositos_list, name='depositos_list'),
+
 ]
 
 
