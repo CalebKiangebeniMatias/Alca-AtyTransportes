@@ -1,6 +1,6 @@
 from django import forms
 from .models import (
-    Comprovativo, ComprovativoRelatorio, DespesaCombustivel,
+    Comprovativo, ComprovativoRelatorio, DespesaCombustivel, DespesaFixa,
     EstadoAutocarro, Manutencao, RegistoDiario, Autocarro, Despesa,
     RelatorioSector, Sector
 )
@@ -214,6 +214,18 @@ RegistoDiarioFormSet = forms.modelformset_factory(
     extra=0,          # não adiciona formulários extras
     can_delete=True   # permite apagar registros
 )
+
+
+# ---- Despesa Fixa ---- #
+class DespesaFixaForm(forms.ModelForm):
+    class Meta:
+        model = DespesaFixa
+        fields = ['sector', 'categoria', 'descricao', 'valor', 'periodicidade', 'ativo', 'data_inicio', 'responsavel', 'observacao']
+        widgets = {
+            'data_inicio': forms.DateInput(attrs={'type': 'date'}),
+            'valor': forms.NumberInput(attrs={'step': '0.01'}),
+            'observacao': forms.Textarea(attrs={'rows': 3}),
+        }
 
 
 # ---- Selecionar setor para combustível ---- #

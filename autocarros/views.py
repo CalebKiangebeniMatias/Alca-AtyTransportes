@@ -10,8 +10,8 @@ from django.utils.dateparse import parse_date
 from django.forms import modelformset_factory
 from django.db.models.functions import TruncMonth
 from autocarros.decorators import acesso_restrito
-from .models import Autocarro, CobradorViagem, Comprovativo, ComprovativoRelatorio, Deposito, DespesaCombustivel, Manutencao, RegistoDiario, Despesa, RegistroKM, RegistroKMItem, RelatorioSector, Sector, Motorista
-from .forms import DespesaCombustivelForm, EstadoAutocarroForm, AutocarroForm, DespesaForm, ComprovativoFormSet, ManutencaoForm, MultiFileForm,RegistoDiarioFormSet, RelatorioSectorForm, SectorForm, SectorGestorForm, SelecionarSectorCombustivelForm
+from .models import Autocarro, CobradorViagem, Comprovativo, ComprovativoRelatorio, Deposito, DespesaCombustivel, DespesaFixa, Manutencao, RegistoDiario, Despesa, RegistroKM, RegistroKMItem, RelatorioSector, Sector, Motorista
+from .forms import DespesaCombustivelForm, DespesaFixaForm, EstadoAutocarroForm, AutocarroForm, DespesaForm, ComprovativoFormSet, ManutencaoForm, MultiFileForm,RegistoDiarioFormSet, RelatorioSectorForm, SectorForm, SectorGestorForm, SelecionarSectorCombustivelForm
 from autocarros import models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
@@ -828,9 +828,6 @@ def exportar_relatorio_dashboard(request):
     )
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
-    # Cabeçalho extra para permitir ao frontend redirecionar de volta (se o frontend implementar)
-    # Note: não é possível enviar um redirect e o ficheiro simultaneamente; colocamos um header
-    # que o frontend pode usar para redirecionar para a página de origem após o download.
     referer = request.META.get('HTTP_REFERER', '/')
     response['X-Redirect-After-Download'] = referer
     response['X-File-Generated'] = filename
@@ -2266,6 +2263,65 @@ def deletar_despesa(request, pk):
             messages.error(request, f"❌ Erro ao eliminar a despesa: {str(e)}")
 
     return render(request, 'despesas/deletar_despesa.html', {'despesa': despesa})
+
+
+# ---------- Despesas Fixas Views ----------#
+@login_required
+@acesso_restrito(['admin'])
+def listar_despesas_fixas(request):
+    """Listagem de despesas fixas (filtro por sector opcional)."""
+    sector_id = request.GET.get('sector')
+    qs = DespesaFixa.objects.select_related('sector','responsavel').all()
+    if sector_id:
+        qs = qs.filter(sector_id=sector_id)
+    sectores = Sector.objects.all().order_by('nome')
+    return render(request, 'despesas/despesas_fixas_list.html', {'despesas': qs.order_by('sector','categoria'), 'sectores': sectores, 'sector_id': sector_id})
+
+@login_required
+@acesso_restrito(['admin'])
+def adicionar_despesa_fixa(request):
+    if request.method == 'POST':
+        form = DespesaFixaForm(request.POST)
+        if form.is_valid():
+            df = form.save(commit=False)
+            if not df.responsavel:
+                df.responsavel = request.user
+            df.save()
+            messages.success(request, '✅ Despesa fixa adicionada.')
+            return redirect('listar_despesas_fixas')
+        else:
+            messages.error(request, '❌ Formulário inválido.')
+    else:
+        form = DespesaFixaForm()
+    return render(request, 'despesas/despesa_fixa_form.html', {'form': form, 'acao': 'Adicionar'})
+
+@login_required
+@acesso_restrito(['admin'])
+def editar_despesa_fixa(request, pk):
+    df = get_object_or_404(DespesaFixa, pk=pk)
+    if request.method == 'POST':
+        form = DespesaFixaForm(request.POST, instance=df)
+        if form.is_valid():
+            df = form.save(commit=False)
+            df.responsavel = request.user
+            df.save()
+            messages.success(request, '✅ Despesa fixa atualizada.')
+            return redirect('listar_despesas_fixas')
+        else:
+            messages.error(request, '❌ Formulário inválido.')
+    else:
+        form = DespesaFixaForm(instance=df)
+    return render(request, 'despesas/despesa_fixa_form.html', {'form': form, 'acao': 'Editar', 'despesa': df})
+
+@login_required
+@acesso_restrito(['admin'])
+def deletar_despesa_fixa(request, pk):
+    df = get_object_or_404(DespesaFixa, pk=pk)
+    if request.method == 'POST':
+        df.delete()
+        messages.success(request, '✅ Despesa fixa eliminada.')
+        return redirect('listar_despesas_fixas')
+    return render(request, 'despesas/despesa_fixa_confirm_delete.html', {'despesa': df})
 
 
 # ---------- Depósitos Views ----------#

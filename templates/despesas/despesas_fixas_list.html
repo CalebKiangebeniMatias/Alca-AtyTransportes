@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-3">
+  <div class="d-flex justify-content-between mb-2">
+    <h4>Despesas Fixas</h4>
+    <a class="btn btn-primary" href="{% url 'adicionar_despesa_fixa' %}">Adicionar despesa fixa</a>
+  </div>
+
+  <form class="row g-2 mb-3" method="get">
+    <div class="col-auto">
+      <select name="sector" class="form-select">
+        <option value="">Todos os sectores</option>
+        {% for s in sectores %}<option value="{{ s.id }}" {% if sector_id|stringformat:"s" == s.id|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-outline-secondary">Filtrar</button>
+    </div>
+  </form>
+
+  <table class="table table-sm table-striped">
+    <thead><tr><th>Sector</th><th>Categoria</th><th>Descrição</th><th>Valor</th><th>Periodicidade</th><th>Ativo</th><th></th></tr></thead>
+    <tbody>
+      {% for d in despesas %}
+      <tr>
+        <td>{{ d.sector.nome }}</td>
+        <td>{{ d.get_categoria_display }}</td>
+        <td>{{ d.descricao }}</td>
+        <td>{{ d.valor }}</td>
+        <td>{{ d.periodicidade }}</td>
+        <td>{% if d.ativo %}Sim{% else %}Não{% endif %}</td>
+        <td class="text-end">
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'editar_despesa_fixa' d.id %}">Editar</a>
+          <form action="{% url 'deletar_despesa_fixa' d.id %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Confirma eliminar?')">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7">Nenhuma despesa fixa registada.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

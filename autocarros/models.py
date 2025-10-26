@@ -295,6 +295,40 @@ class DespesaCombustivel(models.Model):
         return f"Combustível {self.autocarro.numero} - {self.valor}Kz"
 
 
+# ...existing code...
+from django.conf import settings
+from django.db import models
+
+class DespesaFixa(models.Model):
+    CATEGORIAS = [
+        ('salario', 'Salários por sector'),
+        ('fundo_maneio', 'Fundo de maneio por sector'),
+        ('cameras', 'Carregamento das câmaras'),
+        ('gps', 'Carregamento de GPS'),
+        ('internet_tv', 'Internet/TV do escritório'),
+        ('outro', 'Outro'),
+    ]
+
+    sector = models.ForeignKey('Sector', on_delete=models.CASCADE, related_name='despesas_fixas')
+    categoria = models.CharField(max_length=32, choices=CATEGORIAS)
+    descricao = models.CharField(max_length=255, blank=True)
+    valor = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    periodicidade = models.CharField(max_length=32, default='mensal', help_text='mensal|anual|único')
+    ativo = models.BooleanField(default=True)
+    data_inicio = models.DateField(null=True, blank=True)
+    responsavel = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    observacao = models.TextField(blank=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Despesa Fixa'
+        verbose_name_plural = 'Despesas Fixas'
+        ordering = ['-ativo', 'sector', 'categoria']
+
+    def __str__(self):
+        return f"{self.get_categoria_display()} — {self.sector.nome} — {self.valor:.2f}"
+
 
 # <----- Arquivos comprovativos de despesas -----> #
 class Comprovativo(models.Model):

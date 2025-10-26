@@ -78,7 +78,13 @@ urlpatterns = [
     path('despesas/', views.listar_despesas, name='listar_despesas'),
     path('despesas/<int:pk>/editar/', views.editar_despesa, name='editar_despesa'),
     path('despesas/<int:pk>/deletar/', views.deletar_despesa, name='deletar_despesa'),
-    
+
+    # Despesas Fixas
+    path('despesas-fixas/', views.listar_despesas_fixas, name='listar_despesas_fixas'),
+    path('despesas-fixas/adicionar/', views.adicionar_despesa_fixa, name='adicionar_despesa_fixa'),
+    path('despesas-fixas/<int:pk>/editar/', views.editar_despesa_fixa, name='editar_despesa_fixa'),
+    path('despesas-fixas/<int:pk>/deletar/', views.deletar_despesa_fixa, name='deletar_despesa_fixa'),
+   
     # Despesas Combústivel
     path("despesas/selecionar-sector/", views.selecionar_sector_combustivel, name="selc_sector_cumb"),
     path('despesas/combustivel/', views.listar_combustivel, name='listar_combustivel'),
