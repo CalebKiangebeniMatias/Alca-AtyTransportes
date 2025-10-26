@@ -525,13 +525,14 @@ def exportar_relatorio_dashboard(request):
         data__year=ano, data__month=mes
     ).aggregate(total=Sum("valor", output_field=DecimalField()))["total"] or Decimal("0")
 
+    # 🔹 Corrigido: campo 'valor_litros' em vez de 'litros'
     total_combustivel = DespesaCombustivel.objects.filter(
         data__year=ano, data__month=mes
     ).aggregate(
         total_valor=Sum('valor', output_field=DecimalField()),
         total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
         total_lavagem=Sum('lavagem', output_field=DecimalField()),
-        total_litros=Sum('litros', output_field=DecimalField())  # só se existir campo 'litros'
+        total_litros=Sum('valor_litros', output_field=DecimalField())
     )
 
     total_combustivel_valor = total_combustivel.get('total_valor') or Decimal('0')
@@ -564,13 +565,14 @@ def exportar_relatorio_dashboard(request):
         total_passageiros = registos_auto.aggregate(Sum("numero_passageiros"))["numero_passageiros__sum"] or 0
         total_viagens = registos_auto.aggregate(Sum("numero_viagens"))["numero_viagens__sum"] or 0
 
+        # 🔹 Corrigido aqui também
         comb_auto = DespesaCombustivel.objects.filter(
             autocarro=autocarro, data__year=ano, data__month=mes
         ).aggregate(
             total_valor=Sum('valor', output_field=DecimalField()),
             total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
             total_lavagem=Sum('lavagem', output_field=DecimalField()),
-            total_litros=Sum('litros', output_field=DecimalField())
+            total_litros=Sum('valor_litros', output_field=DecimalField())
         )
 
         comb_val = comb_auto.get('total_valor') or Decimal('0')
