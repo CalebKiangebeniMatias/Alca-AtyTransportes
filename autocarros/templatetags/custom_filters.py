@@ -1,6 +1,5 @@
-from django import template
 from decimal import Decimal, InvalidOperation
-
+from django import template
 
 
 register = template.Library()
@@ -25,12 +24,14 @@ def _to_decimal(value):
     except (InvalidOperation, ValueError, TypeError):
         return Decimal('0')
 
+
 @register.filter
 def get_item(dictionary, key):
     """Retorna dictionary[key] ou vazio se não existir"""
     if isinstance(dictionary, dict):
         return dictionary.get(key, {})
     return {}
+
 
 @register.filter
 def add(value, arg):
@@ -39,18 +40,6 @@ def add(value, arg):
     b = _to_decimal(arg)
     return a + b
 
-@register.filter
-def soma_campo(registros, campo):
-    """Soma um campo específico de uma lista de registros"""
-    total = Decimal('0')
-    for reg in registros:
-        if hasattr(reg, campo):
-            valor = getattr(reg, campo)
-            if callable(valor):
-                total += valor()
-            else:
-                total += _to_decimal(valor)
-    return total
 
 @register.filter
 def soma_saldos(registros):
@@ -59,6 +48,7 @@ def soma_saldos(registros):
     for reg in registros:
         total += _to_decimal(getattr(reg, 'saldo_real', Decimal('0')))
     return total
+
 
 @register.filter
 def soma_combustivel_sector(relatorio, despesas_por_autocarro):
@@ -71,6 +61,7 @@ def soma_combustivel_sector(relatorio, despesas_por_autocarro):
         total += autocarro_despesas.get('total_combustivel', Decimal('0'))
     
     return total
+
 
 @register.filter
 def soma_total_autocarros(relatorios):
@@ -92,6 +83,7 @@ def soma_entradas_validados(registos_validados):
         else:
             total += _to_decimal(getattr(reg, 'entradas_total', '0') or '0')
     return total
+
 
 @register.filter
 def soma_saldos_validados(registos_validados):
@@ -118,6 +110,7 @@ def soma_saldos_validados(registos_validados):
             total += entradas - saidas
     return total
 
+
 @register.filter
 def soma_campo_validados(registos_validados, campo):
     """Soma um campo específico apenas dos registos validados"""
@@ -130,6 +123,7 @@ def soma_campo_validados(registos_validados, campo):
             total += _to_decimal(valor or '0')
     return total
 
+
 @register.filter
 def subtract(value, arg):
     """Subtrai dois valores"""
@@ -139,6 +133,7 @@ def subtract(value, arg):
         a = _to_decimal(value)
         b = _to_decimal(arg)
         return a - b
+
 
 @register.filter
 def filter_validados(registos):
@@ -150,6 +145,7 @@ def filter_validados(registos):
         # Se for uma lista Python
         return [reg for reg in registos if getattr(reg, 'validado', False)]
 
+
 @register.filter
 def filter_concluidos(registos):
     """Filtra apenas os registos que estão concluídos"""
@@ -157,6 +153,7 @@ def filter_concluidos(registos):
         return registos.filter(concluido=True)
     else:
         return [reg for reg in registos if getattr(reg, 'concluido', False)]
+
 
 @register.filter
 def count_validados(registos):
@@ -166,6 +163,7 @@ def count_validados(registos):
     else:
         return len([reg for reg in registos if getattr(reg, 'validado', False)])
 
+
 @register.filter
 def count_concluidos(registos):
     """Conta quantos registos estão concluídos"""
@@ -173,10 +171,45 @@ def count_concluidos(registos):
         return registos.filter(concluido=True).count()
     else:
         return len([reg for reg in registos if getattr(reg, 'concluido', False)])
-    
-from django import template
-register = template.Library()
+
 
 @register.filter(name='add_class')
 def add_class(field, css):
     return field.as_widget(attrs={"class": css})
+
+
+@register.filter(name='soma_campo')
+def soma_campo(items, field_name):
+    """
+    Soma o atributo/valor field_name em uma lista/QuerySet de objetos ou dicts.
+    Uso: {{ qs|soma_campo:"numero_passageiros" }}
+    Retorna Decimal('0') em falha.
+    """
+    if not items:
+        return Decimal('0')
+    total = Decimal('0')
+    for it in items:
+        try:
+            # dict-like
+            if isinstance(it, dict):
+                val = it.get(field_name, None)
+            else:
+                val = getattr(it, field_name, None)
+                if callable(val):
+                    try:
+                        val = val()
+                    except Exception:
+                        val = None
+            if val is None:
+                continue
+            # tentar converter de forma segura
+            try:
+                total += Decimal(str(val))
+            except (InvalidOperation, TypeError, ValueError):
+                try:
+                    total += Decimal(float(val))
+                except Exception:
+                    continue
+        except Exception:
+            continue
+    return total
