@@ -2118,7 +2118,7 @@ def depositos_view(request):
     """
     sectores = Sector.objects.all().order_by('nome')
     ultimos = Deposito.objects.select_related('sector','responsavel').order_by('-data_deposito')[:20]
-    return render(request, 'autocarros/depositos.html', {'sectores': sectores, 'ultimos': ultimos})
+    return render(request, 'depositos/depositos.html', {'sectores': sectores, 'ultimos': ultimos})
 
 
 @login_required
