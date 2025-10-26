@@ -2,20 +2,76 @@
 {% block content %}
 <div class="container mt-3">
   <h4>{{ acao }} Despesa Fixa</h4>
-  <form method="post">
+
+  {% if messages %}
+    {% for msg in messages %}
+      <div class="alert alert-{{ msg.tags }}">{{ msg }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" novalidate>
     {% csrf_token %}
-    <div class="row">
-      <div class="col-md-6">{{ form.sector|as_crispy_field }}</div>
-      <div class="col-md-6">{{ form.categoria|as_crispy_field }}</div>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label for="{{ form.sector.id_for_label }}" class="form-label">{{ form.sector.label }}</label>
+        {{ form.sector }}
+        {% if form.sector.errors %}<div class="text-danger small">{{ form.sector.errors }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-6">
+        <label for="{{ form.categoria.id_for_label }}" class="form-label">{{ form.categoria.label }}</label>
+        {{ form.categoria }}
+        {% if form.categoria.errors %}<div class="text-danger small">{{ form.categoria.errors }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-6">
+        <label for="{{ form.valor.id_for_label }}" class="form-label">{{ form.valor.label }}</label>
+        {{ form.valor }}
+        {% if form.valor.errors %}<div class="text-danger small">{{ form.valor.errors }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-6">
+        <label for="{{ form.periodicidade.id_for_label }}" class="form-label">{{ form.periodicidade.label }}</label>
+        {{ form.periodicidade }}
+        {% if form.periodicidade.errors %}<div class="text-danger small">{{ form.periodicidade.errors }}</div>{% endif %}
+      </div>
+
+      <div class="col-12">
+        <label for="{{ form.descricao.id_for_label }}" class="form-label">{{ form.descricao.label }}</label>
+        {{ form.descricao }}
+        {% if form.descricao.errors %}<div class="text-danger small">{{ form.descricao.errors }}</div>{% endif %}
+      </div>
+
+      <div class="col-12">
+        <label for="{{ form.observacao.id_for_label }}" class="form-label">{{ form.observacao.label }}</label>
+        {{ form.observacao }}
+        {% if form.observacao.errors %}<div class="text-danger small">{{ form.observacao.errors }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-4">
+        <label for="{{ form.data_inicio.id_for_label }}" class="form-label">{{ form.data_inicio.label }}</label>
+        {{ form.data_inicio }}
+        {% if form.data_inicio.errors %}<div class="text-danger small">{{ form.data_inicio.errors }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-4">
+        <label for="{{ form.responsavel.id_for_label }}" class="form-label">{{ form.responsavel.label }}</label>
+        {{ form.responsavel }}
+        {% if form.responsavel.errors %}<div class="text-danger small">{{ form.responsavel.errors }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-4 d-flex align-items-end">
+        <div class="form-check me-2">
+          {{ form.ativo }} <label class="form-check-label" for="{{ form.ativo.id_for_label }}">{{ form.ativo.label }}</label>
+        </div>
+      </div>
     </div>
-    <div class="row">
-      <div class="col-md-6">{{ form.valor|as_crispy_field }}</div>
-      <div class="col-md-6">{{ form.periodicidade|as_crispy_field }}</div>
+
+    <div class="mt-3">
+      <button class="btn btn-primary">{{ acao }}</button>
+      <a class="btn btn-secondary" href="{% url 'listar_despesas_fixas' %}">Cancelar</a>
     </div>
-    <div class="mb-2">{{ form.descricao.label_tag }}{{ form.descricao }}</div>
-    <div class="mb-2">{{ form.observacao.label_tag }}{{ form.observacao }}</div>
-    <button class="btn btn-primary">{{ acao }}</button>
-    <a class="btn btn-secondary" href="{% url 'listar_despesas_fixas' %}">Cancelar</a>
   </form>
 </div>
 {% endblock %}
