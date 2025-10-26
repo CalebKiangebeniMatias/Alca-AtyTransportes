@@ -1,269 +1,293 @@
 {% extends 'base.html' %}
 {% block content %}
-  <div class="container mt-4">
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Depósitos por Sector</h5>
-        <small class="text-muted">Registre e consulte depósitos</small>
-      </div>
-      <div class="card-body">
-        <ul class="nav nav-tabs" id="tabs-dep">
-          <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-reg">Registrar</button></li>
-          <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-list">Listar</button></li>
-          <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-total">Totais</button></li>
-        </ul>
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Depósitos por Sector</h5>
+      <small class="text-muted">Registre e consulte depósitos</small>
+    </div>
+    <div class="card-body">
+      <ul class="nav nav-tabs" id="tabs-dep">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-reg">Registrar</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-list">Listar</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-total">Totais</button></li>
+      </ul>
 
-        <div class="tab-content mt-3">
-          <!-- Registrar -->
-          <div class="tab-pane fade show active" id="tab-reg">
-            <form id="form_deposito" class="row g-3" onsubmit="return false;">
-              {% csrf_token %}
-              <div class="col-md-4">
-                <label class="form-label">Sector</label>
-                <select id="dep_sector" class="form-select">
-                  <option value="">-- Escolha sector --</option>
-                  {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
-                </select>
-              </div>
-              <div class="col-md-3">
-                <label class="form-label">Data</label>
-                <input id="dep_data" type="date" class="form-control" value="{{ now|date:'Y-m-d' }}">
-              </div>
-              <div class="col-md-3">
-                <label class="form-label">Valor</label>
-                <input id="dep_valor" type="number" step="0.01" class="form-control" placeholder="0.00">
-              </div>
-              <div class="col-md-12">
-                <label class="form-label">Observação</label>
-                <textarea id="dep_obs" class="form-control" rows="2"></textarea>
-              </div>
-              <div class="col-12 text-end">
-                <button id="btn_dep_save" class="btn btn-primary">Salvar Depósito</button>
-              </div>
-            </form>
+      <div class="tab-content mt-3">
+        <!-- REGISTRAR -->
+        <div class="tab-pane fade show active" id="tab-reg">
+          <form id="form_deposito" class="row g-3" onsubmit="return false;">
+            {% csrf_token %}
+            <div class="col-md-4">
+              <label class="form-label">Sector</label>
+              <select id="dep_sector" class="form-select">
+                <option value="">-- Escolha sector --</option>
+                {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Data</label>
+              <input id="dep_data" type="date" class="form-control" value="{{ now|date:'Y-m-d' }}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Valor</label>
+              <input id="dep_valor" type="number" step="0.01" class="form-control" placeholder="0.00">
+            </div>
+            <div class="col-md-12">
+              <label class="form-label">Observação</label>
+              <textarea id="dep_obs" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="col-12 text-end">
+              <button id="btn_dep_save" class="btn btn-primary">Salvar Depósito</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- LISTAR -->
+        <div class="tab-pane fade" id="tab-list">
+          <div class="mb-2 d-flex gap-2">
+            <select id="filter_sector" class="form-select w-auto">
+              <option value="">Todos sectores</option>
+              {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
+            </select>
+            <button id="btn_reload" class="btn btn-outline-primary">Recarregar</button>
           </div>
+          <div id="lista_depositos" style="max-height:420px; overflow:auto"></div>
+        </div>
 
-          <!-- Listar -->
-          <div class="tab-pane fade" id="tab-list">
-            <div class="mb-2 d-flex gap-2">
-              <select id="filter_sector" class="form-select w-auto">
+        <!-- TOTAIS -->
+        <div class="tab-pane fade" id="tab-total">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Sector</label>
+              <select id="total_sector" class="form-select">
                 <option value="">Todos sectores</option>
                 {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
               </select>
-              <button id="btn_reload" class="btn btn-outline-primary">Recarregar</button>
             </div>
-            <div id="lista_depositos" style="max-height:420px; overflow:auto"></div>
-          </div>
-
-          <!-- Totais -->
-          <div class="tab-pane fade" id="tab-total">
-            <div class="row g-3">
-              <div class="col-md-4">
-                <label class="form-label">Sector</label>
-                <select id="total_sector" class="form-select">
-                  <option value="">Todos sectores</option>
-                  {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
-                </select>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label">Total de Depósitos</label>
-                <div class="h4" id="total_valor">0.00</div>
-              </div>
-              <div class="col-md-4 text-end">
-                <button id="btn_total_reload" class="btn btn-outline-primary mt-4">Atualizar</button>
-              </div>
+            <div class="col-md-4">
+              <label class="form-label">Total de Depósitos</label>
+              <div class="h4 text-success fw-bold" id="total_valor">0,00 Kz</div>
+            </div>
+            <div class="col-md-4 text-end">
+              <button id="btn_total_reload" class="btn btn-outline-primary mt-4">Atualizar</button>
             </div>
           </div>
-
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Modal Editar Depósito -->
-  <div class="modal fade" id="modalEditarDeposito" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-      <form id="form_edit_deposito" class="modal-content" onsubmit="return false;">
-        <div class="modal-header">
-          <h5 class="modal-title">Editar Depósito</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- MODAL EDITAR -->
+<div class="modal fade" id="modalEditarDeposito" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="form_edit_deposito" class="modal-content" onsubmit="return false;">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar Depósito</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit_id">
+        <div class="mb-2">
+          <label class="form-label">Sector</label>
+          <select id="edit_sector" class="form-select">
+            <option value="">-- Escolha sector --</option>
+            {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
+          </select>
         </div>
-        <div class="modal-body">
-          <input type="hidden" id="edit_id">
-          <div class="mb-2">
-            <label class="form-label">Sector</label>
-            <select id="edit_sector" class="form-select">
-              <option value="">-- Escolha sector --</option>
-              {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
-            </select>
-          </div>
-          <div class="mb-2">
-            <label class="form-label">Data</label>
-            <input id="edit_data" type="date" class="form-control">
-          </div>
-          <div class="mb-2">
-            <label class="form-label">Valor</label>
-            <input id="edit_valor" type="number" step="0.01" class="form-control">
-          </div>
-          <div class="mb-2">
-            <label class="form-label">Observação</label>
-            <textarea id="edit_obs" class="form-control" rows="2"></textarea>
-          </div>
+        <div class="mb-2">
+          <label class="form-label">Data</label>
+          <input id="edit_data" type="date" class="form-control">
         </div>
-        <div class="modal-footer">
-          <button id="btn_edit_save" class="btn btn-primary">Salvar</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        <div class="mb-2">
+          <label class="form-label">Valor</label>
+          <input id="edit_valor" type="number" step="0.01" class="form-control">
         </div>
-      </form>
-    </div>
+        <div class="mb-2">
+          <label class="form-label">Observação</label>
+          <textarea id="edit_obs" class="form-control" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn_edit_save" class="btn btn-primary">Salvar</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+      </div>
+    </form>
   </div>
+</div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function(){
-      const csrftoken = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)')?.pop() || '';
-      const saveUrl = "{% url 'depositos_save' %}";
-      const listUrl = "{% url 'depositos_list' %}";
-      const detailUrlTemplate = "{% url 'depositos_detail' 0 %}"; // replace /0/ with /{id}/
-      const editUrlTemplate = "{% url 'depositos_edit' 0 %}";     // replace /0/ with /{id}/
-      const deleteUrl = "{% url 'depositos_delete' %}";
+<!-- SCRIPT PRINCIPAL -->
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const csrftoken = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)')?.pop() || '';
+  const saveUrl = "{% url 'depositos_save' %}";
+  const listUrl = "{% url 'depositos_list' %}";
+  const detailUrlTemplate = "{% url 'depositos_detail' 0 %}";
+  const editUrlTemplate = "{% url 'depositos_edit' 0 %}";
+  const deleteUrl = "{% url 'depositos_delete' %}";
 
-      function detailUrlFor(id){ return detailUrlTemplate.replace('/0/','/'+id+'/'); }
-      function editUrlFor(id){ return editUrlTemplate.replace('/0/','/'+id+'/edit/').replace('/0/edit/','/'+id+'/edit/'); }
+  const fmt = new Intl.NumberFormat('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-      // salvar
-      document.getElementById('btn_dep_save').addEventListener('click', async function(e){
-        e.preventDefault();
-        const sector = document.getElementById('dep_sector').value;
-        const data = document.getElementById('dep_data').value;
-        const valor = document.getElementById('dep_valor').value;
-        const obs = document.getElementById('dep_obs').value;
-        if (!sector || !valor){ alert('Sector e valor são obrigatórios'); return; }
-        const payload = {sector_id: parseInt(sector), data_deposito: data, valor: valor, observacao: obs};
-        const res = await fetch(saveUrl, {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: {'Content-Type':'application/json','X-CSRFToken':csrftoken},
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok){ alert('Erro ao salvar'); return; }
-        const r = await res.json();
-        if (!r.ok){ alert(r.error || 'Erro'); return; }
-        alert('Depósito salvo');
-        document.getElementById('dep_valor').value = '';
-        document.getElementById('dep_obs').value = '';
-        carregarLista(); carregarTotal();
-      });
+  const listaDiv = document.getElementById('lista_depositos');
+  const btnSave = document.getElementById('btn_dep_save');
+  const totalValor = document.getElementById('total_valor');
 
-      // listar
-      async function carregarLista(sec=null){
-        const url = listUrl + (sec ? ('?sector_id=' + sec) : '');
-        const res = await fetch(url, {credentials:'same-origin'});
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!data.ok) return;
-        const div = document.getElementById('lista_depositos');
-        div.innerHTML = '';
-        data.depositos.forEach(d=>{
-          const el = document.createElement('div');
-          el.className = 'border rounded p-2 mb-2 bg-light text-dark';
-          const dataText = d.data_deposito ? d.data_deposito : '—';
-          el.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <strong>${d.sector}</strong> — ${dataText}
-                <div class="small text-muted">${d.observacao || ''}</div>
-              </div>
-              <div class="text-end">
-                <div class="text-success h6">${parseFloat(d.valor).toFixed(2)}</div>
-                <div class="mt-2">
-                  <button class="btn btn-sm btn-outline-secondary btn-edit" data-id="${d.id}">Editar</button>
-                  <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${d.id}">Eliminar</button>
-                </div>
-              </div>
-            </div>`;
-          div.appendChild(el);
-        });
-      }
+  function toast(msg, type='success'){
+    const color = type === 'error' ? 'bg-danger' :
+                  type === 'warning' ? 'bg-warning text-dark' : 'bg-success';
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white ${color} border-0 position-fixed top-0 end-0 m-3`;
+    toast.role = 'alert';
+    toast.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body">${msg}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>`;
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast, {delay: 3000});
+    bsToast.show();
+    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+  }
 
-      document.getElementById('btn_reload').addEventListener('click', async function(){
-        const sec = document.getElementById('filter_sector').value;
-        await carregarLista(sec || null);
-      });
+  function detailUrlFor(id){ return detailUrlTemplate.replace('/0/','/'+id+'/'); }
+  function editUrlFor(id){ return editUrlTemplate.replace('/0/','/'+id+'/edit/').replace('/0/edit/','/'+id+'/edit/'); }
 
-      // totais
-      async function carregarTotal(sec=null){
-        const url = listUrl + (sec ? ('?sector_id=' + sec) : '');
-        const res = await fetch(url, {credentials:'same-origin'});
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!data.ok) return;
-        document.getElementById('total_valor').textContent = parseFloat(data.total || 0).toFixed(2);
-      }
-
-      document.getElementById('btn_total_reload').addEventListener('click', async function(){
-        const sec = document.getElementById('total_sector').value || null;
-        await carregarTotal(sec);
-      });
-
-      // Delegation: editar / eliminar
-      document.getElementById('lista_depositos').addEventListener('click', async function(e){
-        const btn = e.target.closest('button');
-        if (!btn) return;
-        const id = btn.dataset.id;
-        if (btn.classList.contains('btn-edit')){
-          // carregar detalhe e abrir modal
-          const res = await fetch(detailUrlFor(id), {credentials:'same-origin'});
-          if (!res.ok) return;
-          const r = await res.json();
-          if (!r.ok) { alert(r.error || 'Erro'); return; }
-          const d = r.deposito;
-          document.getElementById('edit_id').value = d.id;
-          document.getElementById('edit_sector').value = d.sector_id || '';
-          document.getElementById('edit_data').value = d.data_deposito || '';
-          document.getElementById('edit_valor').value = d.valor || '';
-          document.getElementById('edit_obs').value = d.observacao || '';
-          new bootstrap.Modal(document.getElementById('modalEditarDeposito')).show();
-        } else if (btn.classList.contains('btn-delete')){
-          if (!confirm('Confirma eliminar este depósito?')) return;
-          const res = await fetch(deleteUrl, {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {'Content-Type':'application/json','X-CSRFToken': csrftoken},
-            body: JSON.stringify({id: id})
-          });
-          if (!res.ok){ alert('Erro ao eliminar'); return; }
-          const r = await res.json();
-          if (!r.ok){ alert(r.error || 'Erro'); return; }
-          carregarLista(); carregarTotal();
-        }
-      });
-
-      // salvar edição
-      document.getElementById('btn_edit_save').addEventListener('click', async function(){
-        const id = document.getElementById('edit_id').value;
-        const payload = {
-          sector_id: document.getElementById('edit_sector').value || null,
-          data_deposito: document.getElementById('edit_data').value || null,
-          valor: document.getElementById('edit_valor').value || null,
-          observacao: document.getElementById('edit_obs').value || ''
-        };
-        const url = editUrlFor(id);
-        const res = await fetch(url, {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: {'Content-Type':'application/json','X-CSRFToken': csrftoken},
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok){ alert('Erro ao atualizar'); return; }
-        const r = await res.json();
-        if (!r.ok){ alert(r.error || 'Erro'); return; }
-        bootstrap.Modal.getInstance(document.getElementById('modalEditarDeposito')).hide();
-        carregarLista(); carregarTotal();
-      });
-
-      // carregar iniciais
-      carregarLista();
-      carregarTotal();
+  async function carregarLista(sec=null){
+    listaDiv.innerHTML = '<div class="text-center text-muted py-4"><div class="spinner-border"></div><br>Carregando...</div>';
+    const res = await fetch(listUrl + (sec ? ('?sector_id='+sec) : ''), {credentials:'same-origin'});
+    if (!res.ok) return;
+    const data = await res.json();
+    listaDiv.innerHTML = '';
+    if (!data.ok || data.depositos.length === 0){
+      listaDiv.innerHTML = '<div class="alert alert-light text-center">Nenhum depósito encontrado</div>';
+      return;
+    }
+    data.depositos.forEach(d=>{
+      const valorFmt = fmt.format(parseFloat(d.valor || 0)) + ' Kz';
+      const el = document.createElement('div');
+      el.className = 'border rounded p-2 mb-2 bg-light text-dark fade-in';
+      el.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <strong>${d.sector}</strong> — ${d.data_deposito || '—'}
+            <div class="small text-muted">${d.observacao || ''}</div>
+          </div>
+          <div class="text-end">
+            <div class="text-success fw-bold">${valorFmt}</div>
+            <div class="mt-2">
+              <button class="btn btn-sm btn-outline-secondary btn-edit" data-id="${d.id}">Editar</button>
+              <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${d.id}">Eliminar</button>
+            </div>
+          </div>
+        </div>`;
+      listaDiv.appendChild(el);
     });
+  }
+
+  async function carregarTotal(sec=null){
+    totalValor.textContent = '...';
+    const res = await fetch(listUrl + (sec ? ('?sector_id='+sec) : ''), {credentials:'same-origin'});
+    if (!res.ok) return;
+    const data = await res.json();
+    const total = parseFloat(data.total || 0);
+    totalValor.textContent = fmt.format(total) + ' Kz';
+  }
+
+  // Salvar novo depósito
+  btnSave.addEventListener('click', async e=>{
+    e.preventDefault();
+    const sector = document.getElementById('dep_sector').value;
+    const data = document.getElementById('dep_data').value;
+    const valor = document.getElementById('dep_valor').value;
+    const obs = document.getElementById('dep_obs').value;
+    if (!sector || !valor){ toast('Sector e valor são obrigatórios', 'warning'); return; }
+
+    btnSave.disabled = true;
+    btnSave.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
+    const res = await fetch(saveUrl, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {'Content-Type':'application/json','X-CSRFToken':csrftoken},
+      body: JSON.stringify({sector_id: parseInt(sector), data_deposito: data, valor: valor, observacao: obs})
+    });
+    btnSave.disabled = false;
+    btnSave.textContent = 'Salvar Depósito';
+    const r = await res.json();
+    if (!r.ok){ toast(r.error || 'Erro ao salvar', 'error'); return; }
+    toast('✅ Depósito registrado com sucesso!');
+    document.getElementById('dep_valor').value = '';
+    document.getElementById('dep_obs').value = '';
+    carregarLista(); carregarTotal();
+  });
+
+  // Listar e Totais
+  document.getElementById('btn_reload').addEventListener('click', () => carregarLista(document.getElementById('filter_sector').value || null));
+  document.getElementById('btn_total_reload').addEventListener('click', () => carregarTotal(document.getElementById('total_sector').value || null));
+
+  // Editar / Excluir
+  listaDiv.addEventListener('click', async e=>{
+    const btn = e.target.closest('button'); if (!btn) return;
+    const id = btn.dataset.id;
+
+    if (btn.classList.contains('btn-edit')){
+      const res = await fetch(detailUrlFor(id), {credentials:'same-origin'});
+      const r = await res.json();
+      if (!r.ok){ toast(r.error || 'Erro ao carregar', 'error'); return; }
+      const d = r.deposito;
+      document.getElementById('edit_id').value = d.id;
+      document.getElementById('edit_sector').value = d.sector_id || '';
+      document.getElementById('edit_data').value = d.data_deposito || '';
+      document.getElementById('edit_valor').value = d.valor || '';
+      document.getElementById('edit_obs').value = d.observacao || '';
+      new bootstrap.Modal(document.getElementById('modalEditarDeposito')).show();
+    }
+
+    if (btn.classList.contains('btn-delete')){
+      if (!confirm('Eliminar este depósito?')) return;
+      const res = await fetch(deleteUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {'Content-Type':'application/json','X-CSRFToken': csrftoken},
+        body: JSON.stringify({id})
+      });
+      const r = await res.json();
+      if (!r.ok){ toast(r.error || 'Erro ao eliminar', 'error'); return; }
+      toast('🗑️ Depósito removido.');
+      carregarLista(); carregarTotal();
+    }
+  });
+
+  // Salvar edição
+  document.getElementById('btn_edit_save').addEventListener('click', async ()=>{
+    const id = document.getElementById('edit_id').value;
+    const payload = {
+      sector_id: document.getElementById('edit_sector').value || null,
+      data_deposito: document.getElementById('edit_data').value || null,
+      valor: document.getElementById('edit_valor').value || null,
+      observacao: document.getElementById('edit_obs').value || ''
+    };
+    const res = await fetch(editUrlFor(id), {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {'Content-Type':'application/json','X-CSRFToken': csrftoken},
+      body: JSON.stringify(payload)
+    });
+    const r = await res.json();
+    if (!r.ok){ toast(r.error || 'Erro ao atualizar', 'error'); return; }
+    bootstrap.Modal.getInstance(document.getElementById('modalEditarDeposito')).hide();
+    toast('✏️ Depósito atualizado!');
+    carregarLista(); carregarTotal();
+  });
+
+  // Iniciar
+  carregarLista();
+  carregarTotal();
+});
 </script>
+
+<style>
+  .fade-in { animation: fadeIn 0.3s ease-in; }
+  @keyframes fadeIn { from{opacity:0; transform:translateY(5px);} to{opacity:1; transform:translateY(0);} }
+</style>
 {% endblock %}

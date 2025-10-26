@@ -10,7 +10,7 @@ from django.utils.dateparse import parse_date
 from django.forms import modelformset_factory
 from django.db.models.functions import TruncMonth
 from autocarros.decorators import acesso_restrito
-from .models import Autocarro, Comprovativo, ComprovativoRelatorio, Deposito, DespesaCombustivel, Manutencao, RegistoDiario, Despesa, RegistroKM, RegistroKMItem, RelatorioSector, Sector, Motorista
+from .models import Autocarro, CobradorViagem, Comprovativo, ComprovativoRelatorio, Deposito, DespesaCombustivel, Manutencao, RegistoDiario, Despesa, RegistroKM, RegistroKMItem, RelatorioSector, Sector, Motorista
 from .forms import DespesaCombustivelForm, EstadoAutocarroForm, AutocarroForm, DespesaForm, ComprovativoFormSet, ManutencaoForm, MultiFileForm,RegistoDiarioFormSet, RelatorioSectorForm, SectorForm, SectorGestorForm, SelecionarSectorCombustivelForm
 from autocarros import models
 from django.shortcuts import render, redirect, get_object_or_404
@@ -478,7 +478,7 @@ def dashboard(request):
     return render(request, "autocarros/dashboard.html", context)
 
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.utils import timezone
 from django.db.models import Sum, F, DecimalField
 from django.contrib.humanize.templatetags.humanize import intcomma
@@ -2112,6 +2112,7 @@ def deletar_despesa(request, pk):
 # ---------- Depósitos Views ----------#
 
 @login_required
+@acesso_restrito(['admin'])
 def depositos_view(request):
     """
     Página com abas: Registrar depósito, Listar depósitos, Totais por sector.
@@ -2123,6 +2124,7 @@ def depositos_view(request):
 
 @login_required
 @require_POST
+@acesso_restrito(['admin'])
 def depositos_save(request):
     """
     Salvar depósito via POST JSON ou form-POST.
@@ -2168,6 +2170,7 @@ def depositos_save(request):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def depositos_list(request):
     """
     API para listar depósitos (opcional filtro por sector) e retornar total.
@@ -2199,6 +2202,7 @@ def depositos_list(request):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def depositos_detail(request, pk):
     """Retorna um depósito específico em JSON"""
     try:
@@ -2218,6 +2222,7 @@ def depositos_detail(request, pk):
 
 @login_required
 @require_POST
+@acesso_restrito(['admin'])
 def depositos_edit(request, pk):
     """
     Edita depósito via POST JSON ou form.
@@ -2265,6 +2270,7 @@ def depositos_edit(request, pk):
 
 @login_required
 @require_POST
+@acesso_restrito(['admin'])
 def depositos_delete(request):
     """
     Excluir depósito via POST JSON {id: pk} ou form (id).
@@ -2293,6 +2299,7 @@ def depositos_delete(request):
 # 🔹 Dashboards Especializados
 from django.db.models import ExpressionWrapper
 @login_required
+@acesso_restrito(['admin'])
 def decimal_default(obj):
     if isinstance(obj, Decimal):
         return float(obj)
@@ -2300,6 +2307,7 @@ def decimal_default(obj):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def contabilista_financas(request):
     registos = RegistoDiario.objects.annotate(
         saldo_liquido=ExpressionWrapper(
@@ -2407,6 +2415,7 @@ def gerencia_financas(request):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def gerencia_campo(request):
     # Verificar se o modelo Motorista existe
     try:
@@ -2445,18 +2454,8 @@ def gerencia_campo(request):
 
 # ---------- Cobrador Viagens Views ----------#
 
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponseBadRequest
-from django.shortcuts import render, get_object_or_404
-from django.views.decorators.http import require_POST
-from django.db.models import Sum
-from decimal import Decimal
-import json
-from .models import Autocarro, CobradorViagem
-from django.utils import timezone
-from .models import Autocarro, CobradorViagem
-
 @login_required
+@acesso_restrito(['admin'])
 def cobrador_viagens(request):
     """
     Página com formulário/abas para lançar e ver viagens do cobrador.
