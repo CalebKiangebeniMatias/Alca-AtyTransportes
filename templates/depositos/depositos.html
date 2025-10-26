@@ -1,16 +1,18 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-4">
-  <div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <h5 class="mb-0">Depósitos por Sector</h5>
-      <small class="text-muted">Registre e consulte depósitos</small>
+<div class="container py-4">
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg,#007bff,#00bcd4);">
+      <h5 class="mb-0 fw-semibold"><i class="fas fa-piggy-bank me-2"></i>Depósitos por Sector</h5>
+      <small class="fw-light">Registe e consulte depósitos</small>
     </div>
-    <div class="card-body">
-      <ul class="nav nav-tabs" id="tabs-dep">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-reg">Registrar</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-list">Listar</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-total">Totais</button></li>
+
+    <div class="card-body p-4">
+      <!-- Tabs -->
+      <ul class="nav nav-tabs mb-3" id="tabs-dep">
+        <li class="nav-item"><button class="nav-link active fw-semibold" data-bs-toggle="tab" data-bs-target="#tab-reg"><i class="fas fa-plus-circle me-1"></i>Registrar</button></li>
+        <li class="nav-item"><button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#tab-list"><i class="fas fa-list me-1"></i>Listar</button></li>
+        <li class="nav-item"><button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#tab-total"><i class="fas fa-coins me-1"></i>Totais</button></li>
       </ul>
 
       <div class="tab-content mt-3">
@@ -19,58 +21,58 @@
           <form id="form_deposito" class="row g-3" onsubmit="return false;">
             {% csrf_token %}
             <div class="col-md-4">
-              <label class="form-label">Sector</label>
-              <select id="dep_sector" class="form-select">
+              <label class="form-label fw-semibold">Sector</label>
+              <select id="dep_sector" class="form-select shadow-sm">
                 <option value="">-- Escolha sector --</option>
                 {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
               </select>
             </div>
             <div class="col-md-3">
-              <label class="form-label">Data</label>
-              <input id="dep_data" type="date" class="form-control" value="{{ now|date:'Y-m-d' }}">
+              <label class="form-label fw-semibold">Data</label>
+              <input id="dep_data" type="date" class="form-control shadow-sm" value="{{ now|date:'Y-m-d' }}">
             </div>
             <div class="col-md-3">
-              <label class="form-label">Valor</label>
-              <input id="dep_valor" type="number" step="0.01" class="form-control" placeholder="0.00">
+              <label class="form-label fw-semibold">Valor</label>
+              <input id="dep_valor" type="number" step="0.01" class="form-control shadow-sm" placeholder="0.00">
             </div>
-            <div class="col-md-12">
-              <label class="form-label">Observação</label>
-              <textarea id="dep_obs" class="form-control" rows="2"></textarea>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Observação</label>
+              <textarea id="dep_obs" class="form-control shadow-sm" rows="2" placeholder="Observações opcionais..."></textarea>
             </div>
-            <div class="col-12 text-end">
-              <button id="btn_dep_save" class="btn btn-primary">Salvar Depósito</button>
+            <div class="col-12 text-end mt-2">
+              <button id="btn_dep_save" class="btn btn-primary px-4 shadow-sm"><i class="fas fa-save me-1"></i>Salvar Depósito</button>
             </div>
           </form>
         </div>
 
         <!-- LISTAR -->
         <div class="tab-pane fade" id="tab-list">
-          <div class="mb-2 d-flex gap-2">
-            <select id="filter_sector" class="form-select w-auto">
+          <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+            <select id="filter_sector" class="form-select w-auto shadow-sm">
               <option value="">Todos sectores</option>
               {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
             </select>
-            <button id="btn_reload" class="btn btn-outline-primary">Recarregar</button>
+            <button id="btn_reload" class="btn btn-outline-primary shadow-sm"><i class="fas fa-sync-alt me-1"></i>Recarregar</button>
           </div>
-          <div id="lista_depositos" style="max-height:420px; overflow:auto"></div>
+          <div id="lista_depositos" class="p-2 bg-light rounded-3 shadow-sm" style="max-height:420px; overflow:auto;"></div>
         </div>
 
         <!-- TOTAIS -->
         <div class="tab-pane fade" id="tab-total">
-          <div class="row g-3">
+          <div class="row g-4 align-items-end">
             <div class="col-md-4">
-              <label class="form-label">Sector</label>
-              <select id="total_sector" class="form-select">
+              <label class="form-label fw-semibold">Sector</label>
+              <select id="total_sector" class="form-select shadow-sm">
                 <option value="">Todos sectores</option>
                 {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
               </select>
             </div>
             <div class="col-md-4">
-              <label class="form-label">Total de Depósitos</label>
-              <div class="h4 text-success fw-bold" id="total_valor">0,00 Kz</div>
+              <label class="form-label fw-semibold">Total de Depósitos</label>
+              <div class="h3 text-success fw-bold" id="total_valor">0,00 Kz</div>
             </div>
             <div class="col-md-4 text-end">
-              <button id="btn_total_reload" class="btn btn-outline-primary mt-4">Atualizar</button>
+              <button id="btn_total_reload" class="btn btn-outline-primary mt-2 shadow-sm"><i class="fas fa-sync-alt me-1"></i>Atualizar</button>
             </div>
           </div>
         </div>
@@ -81,43 +83,44 @@
 
 <!-- MODAL EDITAR -->
 <div class="modal fade" id="modalEditarDeposito" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <form id="form_edit_deposito" class="modal-content" onsubmit="return false;">
-      <div class="modal-header">
-        <h5 class="modal-title">Editar Depósito</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+  <div class="modal-dialog modal-dialog-centered">
+    <form id="form_edit_deposito" class="modal-content border-0 shadow rounded-4" onsubmit="return false;">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title"><i class="fas fa-edit me-1"></i>Editar Depósito</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="edit_id">
         <div class="mb-2">
           <label class="form-label">Sector</label>
-          <select id="edit_sector" class="form-select">
+          <select id="edit_sector" class="form-select shadow-sm">
             <option value="">-- Escolha sector --</option>
             {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
           </select>
         </div>
         <div class="mb-2">
           <label class="form-label">Data</label>
-          <input id="edit_data" type="date" class="form-control">
+          <input id="edit_data" type="date" class="form-control shadow-sm">
         </div>
         <div class="mb-2">
           <label class="form-label">Valor</label>
-          <input id="edit_valor" type="number" step="0.01" class="form-control">
+          <input id="edit_valor" type="number" step="0.01" class="form-control shadow-sm">
         </div>
         <div class="mb-2">
           <label class="form-label">Observação</label>
-          <textarea id="edit_obs" class="form-control" rows="2"></textarea>
+          <textarea id="edit_obs" class="form-control shadow-sm" rows="2"></textarea>
         </div>
       </div>
       <div class="modal-footer">
-        <button id="btn_edit_save" class="btn btn-primary">Salvar</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        <button id="btn_edit_save" class="btn btn-primary px-4"><i class="fas fa-save me-1"></i>Salvar</button>
+        <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Fechar</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- SCRIPT PRINCIPAL -->
+<!-- MANTÉM O TEU SCRIPT EXISTENTE -->
+ <!-- SCRIPT PRINCIPAL -->
 <script>
 document.addEventListener('DOMContentLoaded', function(){
   const csrftoken = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)')?.pop() || '';
@@ -285,9 +288,35 @@ document.addEventListener('DOMContentLoaded', function(){
   carregarTotal();
 });
 </script>
+{{ block.super }}
 
 <style>
+  /* Campos e botões */
+  .form-control, .form-select { border-radius: 10px; transition: 0.2s; }
+  .form-control:focus, .form-select:focus { border-color: #0d6efd; box-shadow: 0 0 0 0.15rem rgba(13,110,253,0.25); }
+
+  .nav-tabs .nav-link {
+    border: none; color: #495057; background: #f8f9fa;
+    border-radius: 8px 8px 0 0; transition: all 0.2s;
+  }
+  .nav-tabs .nav-link.active {
+    background: #0d6efd; color: #fff; font-weight: 600;
+  }
+  .nav-tabs .nav-link:hover { background: #e9ecef; }
+
+  .btn { border-radius: 8px; transition: all 0.2s; }
+  .btn:hover { transform: scale(1.03); }
+
   .fade-in { animation: fadeIn 0.3s ease-in; }
-  @keyframes fadeIn { from{opacity:0; transform:translateY(5px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes fadeIn { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  #lista_depositos div.border { transition: all 0.2s; }
+  #lista_depositos div.border:hover { background: #f1f9ff; transform: scale(1.01); }
+
+  .modal-content { border-radius: 1rem; }
+
+  /* Scrollbar elegante */
+  #lista_depositos::-webkit-scrollbar { width: 8px; }
+  #lista_depositos::-webkit-scrollbar-thumb { background: #cfd8dc; border-radius: 4px; }
 </style>
 {% endblock %}
