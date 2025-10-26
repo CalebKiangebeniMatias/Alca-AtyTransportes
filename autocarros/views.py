@@ -645,21 +645,29 @@ def exportar_relatorio_dashboard(request):
     tabela_resumo = doc.add_table(rows=2, cols=4)
     tabela_resumo.style = "Table Grid"
 
+    # ajustar para mostrar centimos (2 casas decimais) usando babel
+    from babel.numbers import format_currency
+
     def fmt_money_simple(x):
         try:
-            return f"{intcomma(int(x))} Kz"
+            val = Decimal(x or 0).quantize(Decimal('0.01'))
+            return format_currency(float(val), "AOA", locale="pt_PT").replace("AOA", "Kz")
         except Exception:
-            return f"{x} Kz"
+            try:
+                return f"{Decimal(x or 0):.2f} Kz"
+            except Exception:
+                return f"{x} Kz"
 
     entradas_val = fmt_money_simple(total_entradas)
     despesas_val = fmt_money_simple(total_saidas)
     resto_val = fmt_money_simple(total_resto)
     eficiencia_val = f"{(float(total_resto) / float(total_entradas) * 100) if total_entradas > 0 else 0:.1f}%"
 
+    # label alterada para "SALDO"
     cards_data = [
         ("ENTRADAS TOTAIS", entradas_val, "1B4F72"),
         ("DESPESAS TOTAIS", despesas_val, "C0392B"),
-        ("SALDO REMANESCENTE", resto_val, "27AE60"),
+        ("SALDO", resto_val, "27AE60"),
         ("EFICIÊNCIA", eficiencia_val, "8E44AD")
     ]
 
@@ -714,14 +722,15 @@ def exportar_relatorio_dashboard(request):
             pass
 
     # Função para formatar com separador de milhar e vírgula nos centavos
-    from babel.numbers import format_currency
-
     def fmt_money(valor):
         try:
-            valor = float(valor)
-            return format_currency(valor, "AOA", locale="pt_PT").replace("AOA", "Kz")
+            valor = Decimal(valor or 0).quantize(Decimal('0.01'))
+            return format_currency(float(valor), "AOA", locale="pt_PT").replace("AOA", "Kz")
         except Exception:
-            return f"{valor} Kz"
+            try:
+                return f"{Decimal(valor or 0):.2f} Kz"
+            except Exception:
+                return f"{valor} Kz"
 
     # Preenchimento das linhas da tabela
     for i, (categoria, valor) in enumerate(despesas_data, start=1):
@@ -795,10 +804,12 @@ def exportar_relatorio_dashboard(request):
 
     doc.add_paragraph().add_run().add_break()
 
-    # --- ASSINATURA ---
+    # --- ASSINATURA --- (nome fixo e "cravado" no documento)
     assinatura_para = doc.add_paragraph()
-    assinatura_para.add_run("Assinatura: ").bold = True
-    assinatura_para.add_run("@kiangebeni Kaleba Matias")
+    run = assinatura_para.add_run("Assinatura: ")
+    run.bold = True
+    nome_run = assinatura_para.add_run("KIANGEBENI KALEBA MATIAS")
+    nome_run.bold = True
 
     doc.add_paragraph().add_run().add_break()
 
@@ -810,11 +821,19 @@ def exportar_relatorio_dashboard(request):
     doc.save(buffer)
     buffer.seek(0)
 
+    filename = f"Relatorio_Mensal_{mes_param}.docx"
     response = HttpResponse(
         buffer.getvalue(),
         content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     )
-    response['Content-Disposition'] = f'attachment; filename="Relatorio_Mensal_{mes_param}.docx"'
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    # Cabeçalho extra para permitir ao frontend redirecionar de volta (se o frontend implementar)
+    # Note: não é possível enviar um redirect e o ficheiro simultaneamente; colocamos um header
+    # que o frontend pode usar para redirecionar para a página de origem após o download.
+    referer = request.META.get('HTTP_REFERER', '/')
+    response['X-Redirect-After-Download'] = referer
+    response['X-File-Generated'] = filename
 
     return response
 
