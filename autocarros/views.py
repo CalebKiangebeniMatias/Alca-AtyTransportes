@@ -2065,92 +2065,6 @@ def adicionar_despesa(request):
 
 
 @login_required
-def depositos_view(request):
-    """
-    Página com abas: Registrar depósito, Listar depósitos, Totais por sector.
-    """
-    sectores = Sector.objects.all().order_by('nome')
-    # enviar últimos 20 depósitos para listagem inicial
-    ultimos = Deposito.objects.select_related('sector','responsavel').all()[:20]
-    return render(request, 'depositos/depositos.html', {'sectores': sectores, 'ultimos': ultimos})
-
-
-@login_required
-@require_POST
-def depositos_save(request):
-    """
-    Salvar depósito via POST JSON ou form-POST.
-    JSON: {sector_id, data_deposito, valor, observacao}
-    """
-    # aceitar JSON ou form
-    if request.content_type == 'application/json':
-        try:
-            data = json.loads(request.body.decode('utf-8'))
-        except Exception:
-            return HttpResponseBadRequest('JSON inválido')
-        sector_id = data.get('sector_id')
-        data_deposito = data.get('data_deposito')
-        valor = data.get('valor')
-        observacao = data.get('observacao', '')
-    else:
-        sector_id = request.POST.get('sector_id')
-        data_deposito = request.POST.get('data_deposito')
-        valor = request.POST.get('valor')
-        observacao = request.POST.get('observacao', '')
-
-    if not sector_id or not valor:
-        return JsonResponse({'ok': False, 'error': 'sector_id e valor obrigatórios'}, status=400)
-    try:
-        sector = Sector.objects.get(pk=sector_id)
-    except Sector.DoesNotExist:
-        return JsonResponse({'ok': False, 'error': 'Sector não encontrado'}, status=404)
-
-    try:
-        valor_dec = Decimal(str(valor))
-    except Exception:
-        return JsonResponse({'ok': False, 'error': 'Valor inválido'}, status=400)
-
-    dep = Deposito.objects.create(
-        sector=sector,
-        data_deposito=data_deposito or None,
-        valor=valor_dec,
-        observacao=observacao,
-        responsavel=request.user
-    )
-    return JsonResponse({'ok': True, 'deposito_id': dep.id})
-
-
-@login_required
-def depositos_list(request):
-    """
-    API para listar depósitos (opcional filtro por sector) e retornar total.
-    GET params: sector_id (opcional), limit (opcional)
-    """
-    qs = Deposito.objects.select_related('sector','responsavel').all()
-    sector_id = request.GET.get('sector_id')
-    if sector_id:
-        qs = qs.filter(sector_id=sector_id)
-    limit = request.GET.get('limit')
-    if limit:
-        try:
-            qs = qs[:int(limit)]
-        except Exception:
-            pass
-    total = qs.aggregate(total_valor=Sum('valor'))['total_valor'] or Decimal('0.00')
-    items = []
-    for d in qs.order_by('-data_deposito')[:200]:
-        items.append({
-            'id': d.id,
-            'sector': d.sector.nome,
-            'data_deposito': d.data_deposito.isoformat(),
-            'valor': str(d.valor),
-            'observacao': d.observacao or '',
-            'responsavel': d.responsavel.get_full_name() if d.responsavel else ''
-        })
-    return JsonResponse({'ok': True, 'total': str(total), 'depositos': items})
-
-
-@login_required
 # editar despesas 'normais ou variáveis'
 def editar_despesa(request, pk):
     try:
@@ -2193,6 +2107,187 @@ def deletar_despesa(request, pk):
             messages.error(request, f"❌ Erro ao eliminar a despesa: {str(e)}")
 
     return render(request, 'despesas/deletar_despesa.html', {'despesa': despesa})
+
+
+# ---------- Depósitos Views ----------#
+
+@login_required
+def depositos_view(request):
+    """
+    Página com abas: Registrar depósito, Listar depósitos, Totais por sector.
+    """
+    sectores = Sector.objects.all().order_by('nome')
+    ultimos = Deposito.objects.select_related('sector','responsavel').order_by('-data_deposito')[:20]
+    return render(request, 'autocarros/depositos.html', {'sectores': sectores, 'ultimos': ultimos})
+
+
+@login_required
+@require_POST
+def depositos_save(request):
+    """
+    Salvar depósito via POST JSON ou form-POST.
+    Aceita JSON no body ou form-data.
+    """
+    # detectar JSON independentemente de charset
+    content_type = (request.META.get('CONTENT_TYPE') or request.content_type or '').lower()
+    if content_type.startswith('application/json'):
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            return HttpResponseBadRequest('JSON inválido')
+        sector_id = data.get('sector_id')
+        data_deposito = data.get('data_deposito')
+        valor = data.get('valor')
+        observacao = data.get('observacao', '')
+    else:
+        sector_id = request.POST.get('sector_id')
+        data_deposito = request.POST.get('data_deposito')
+        valor = request.POST.get('valor')
+        observacao = request.POST.get('observacao', '')
+
+    if not sector_id or not valor:
+        return JsonResponse({'ok': False, 'error': 'sector_id e valor obrigatórios'}, status=400)
+    try:
+        sector = Sector.objects.get(pk=sector_id)
+    except Sector.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Sector não encontrado'}, status=404)
+
+    try:
+        valor_dec = Decimal(str(valor))
+    except Exception:
+        return JsonResponse({'ok': False, 'error': 'Valor inválido'}, status=400)
+
+    dep = Deposito.objects.create(
+        sector=sector,
+        data_deposito=data_deposito or None,
+        valor=valor_dec,
+        observacao=observacao,
+        responsavel=request.user
+    )
+    return JsonResponse({'ok': True, 'deposito_id': dep.id, 'valor': str(dep.valor), 'data_deposito': dep.data_deposito.isoformat() if dep.data_deposito else None})
+
+
+@login_required
+def depositos_list(request):
+    """
+    API para listar depósitos (opcional filtro por sector) e retornar total.
+    GET params: sector_id (opcional), limit (opcional)
+    """
+    qs = Deposito.objects.select_related('sector','responsavel').all()
+    sector_id = request.GET.get('sector_id')
+    if sector_id:
+        qs = qs.filter(sector_id=sector_id)
+    limit = request.GET.get('limit')
+    if limit:
+        try:
+            qs = qs[:int(limit)]
+        except Exception:
+            pass
+    total = qs.aggregate(total_valor=Sum('valor'))['total_valor'] or Decimal('0.00')
+    items = []
+    for d in qs.order_by('-data_deposito')[:200]:
+        items.append({
+            'id': d.id,
+            'sector_id': d.sector_id,
+            'sector': d.sector.nome,
+            'data_deposito': d.data_deposito.isoformat() if d.data_deposito else None,
+            'valor': str(d.valor),
+            'observacao': d.observacao or '',
+            'responsavel': d.responsavel.get_full_name() if d.responsavel else ''
+        })
+    return JsonResponse({'ok': True, 'total': str(total), 'depositos': items})
+
+
+@login_required
+def depositos_detail(request, pk):
+    """Retorna um depósito específico em JSON"""
+    try:
+        d = Deposito.objects.select_related('sector','responsavel').get(pk=pk)
+    except Deposito.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Depósito não encontrado'}, status=404)
+    return JsonResponse({'ok': True, 'deposito': {
+        'id': d.id,
+        'sector_id': d.sector_id,
+        'sector': d.sector.nome,
+        'data_deposito': d.data_deposito.isoformat() if d.data_deposito else None,
+        'valor': str(d.valor),
+        'observacao': d.observacao or '',
+        'responsavel': d.responsavel.get_full_name() if d.responsavel else ''
+    }})
+
+
+@login_required
+@require_POST
+def depositos_edit(request, pk):
+    """
+    Edita depósito via POST JSON ou form.
+    Campos aceitos: data_deposito, valor, observacao, sector_id
+    """
+    try:
+        dep = Deposito.objects.get(pk=pk)
+    except Deposito.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Depósito não encontrado'}, status=404)
+
+    content_type = (request.META.get('CONTENT_TYPE') or request.content_type or '').lower()
+    if content_type.startswith('application/json'):
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            return HttpResponseBadRequest('JSON inválido')
+        data_deposito = data.get('data_deposito')
+        valor = data.get('valor')
+        observacao = data.get('observacao', dep.observacao)
+        sector_id = data.get('sector_id')
+    else:
+        data_deposito = request.POST.get('data_deposito')
+        valor = request.POST.get('valor')
+        observacao = request.POST.get('observacao', dep.observacao)
+        sector_id = request.POST.get('sector_id')
+
+    if sector_id:
+        try:
+            dep.sector = Sector.objects.get(pk=sector_id)
+        except Sector.DoesNotExist:
+            return JsonResponse({'ok': False, 'error': 'Sector não encontrado'}, status=404)
+
+    if valor:
+        try:
+            dep.valor = Decimal(str(valor))
+        except Exception:
+            return JsonResponse({'ok': False, 'error': 'Valor inválido'}, status=400)
+    if data_deposito:
+        dep.data_deposito = data_deposito
+    dep.observacao = observacao
+    dep.responsavel = request.user
+    dep.save()
+    return JsonResponse({'ok': True, 'deposito_id': dep.id})
+
+
+@login_required
+@require_POST
+def depositos_delete(request):
+    """
+    Excluir depósito via POST JSON {id: pk} ou form (id).
+    """
+    content_type = (request.META.get('CONTENT_TYPE') or request.content_type or '').lower()
+    if content_type.startswith('application/json'):
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            return HttpResponseBadRequest('JSON inválido')
+        pk = data.get('id')
+    else:
+        pk = request.POST.get('id')
+
+    if not pk:
+        return JsonResponse({'ok': False, 'error': 'id obrigatório'}, status=400)
+    try:
+        d = Deposito.objects.get(pk=pk)
+        d.delete()
+    except Deposito.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Depósito não encontrado'}, status=404)
+    return JsonResponse({'ok': True})
+
 
 
 # 🔹 Dashboards Especializados
