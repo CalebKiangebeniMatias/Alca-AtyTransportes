@@ -390,13 +390,17 @@ def dashboard(request):
     total_combustivel_lavagem = total_combustivel.get('total_lavagem') or Decimal('0')
 
     total_saidas = (
-        total_saidas_registos
-        + total_saidas_despesas
-        + total_combustivel_valor
-        + total_combustivel_sobragem
-        + total_combustivel_lavagem
+            total_saidas_registos
+            + total_saidas_despesas
+            + total_combustivel_valor
+            + total_combustivel_sobragem
+            + total_combustivel_lavagem
     )
     total_resto = total_entradas - total_saidas
+
+    total_variaveis = total_saidas_despesas or Decimal('0')
+
+    total_saidas_sem_variaveis = total_saidas - total_variaveis   # saídas sem as despesas variáveis
 
     # 🔹 Estatísticas por autocarro
     autocarros_stats = []
@@ -466,6 +470,8 @@ def dashboard(request):
         "total_saidas": total_saidas,
         "total_saidas_registos": total_saidas_registos,
         "total_saidas_despesas": total_saidas_despesas,
+        "total_variaveis": total_variaveis,
+        "total_saidas_sem_variaveis": total_saidas_sem_variaveis,
         "total_resto": total_resto,
         "total_combustivel_valor": total_combustivel_valor,
         "total_combustivel_litros": total_combustivel_litros,
@@ -473,7 +479,7 @@ def dashboard(request):
         "total_combustivel_lavagem": total_combustivel_lavagem,
         "autocarros_stats": autocarros_stats,
         "registos_recentes": registos_recentes,
-        "max_saldo": max_saldo,  # ✅ Adicionada variável para o template
+        "max_saldo": max_saldo,
     }
     return render(request, "autocarros/dashboard.html", context)
 
