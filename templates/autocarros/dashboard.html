@@ -23,33 +23,57 @@
         </div>
     </div>
 
-    <!-- Resumo Geral -->
+    <!-- Resumo Geral (com toggle para despesas variáveis) -->
     <div class="row mb-4">
+        <div class="col-12 mb-3">
+            <!-- container de valores brutos para o JS -->
+            <div id="resumo_values"
+                 data-entradas="{{ total_entradas }}"
+                 data-saidas="{{ total_saidas }}"
+                 data-variaveis="{{ total_variaveis }}"
+                 data-saldo="{{ total_resto }}"
+            ></div>
+
+            <div class="d-flex justify-content-end align-items-center mb-2">
+                <div class="form-check form-switch me-3">
+                    <input class="form-check-input" type="checkbox" id="toggle_variaveis" checked>
+                    <label class="form-check-label small" for="toggle_variaveis">Mostrar despesas variáveis</label>
+                </div>
+            </div>
+        </div>
+
         <div class="col-md-4">
             <div class="card stats-card text-center bg-azul-forte">
                 <div class="card-body">
                     <i class="fas fa-coins icon-stat text-success"></i>
                     <div class="stats-number">
-                        {% localize on %}<strong>{{ total_entradas|floatformat:2 }}{% endlocalize %} Kz</strong>
+                        {% localize on %}<strong id="display_entradas">{{ total_entradas|floatformat:2 }}{% endlocalize %} Kz</strong>
                     </div>
                     <h5 class="card-title">Entradas</h5>
                 </div>
             </div>
         </div>
+
         <div class="col-md-4">
             <div class="card stats-card text-center bg-azul-forte">
                 <div class="card-body">
                     <i class="fas fa-money-bill-wave icon-stat text-danger"></i>
-                    <div class="stats-number text-danger">{% localize on %}<strong>{{ total_saidas|floatformat:2 }}{% endlocalize %} Kz</strong></div>
+                    <div class="stats-number text-danger">
+                        {% localize on %}<strong id="display_saidas">{{ total_saidas|floatformat:2 }}{% endlocalize %} Kz</strong>
+                    </div>
                     <h5 class="card-title">Despesas</h5>
+                    <div class="small text-muted mt-2" id="info_variaveis">(inclui variáveis: <span id="display_variaveis">{{ total_variaveis|floatformat:2 }}</span>)</div>
                 </div>
             </div>
         </div>
+
         <div class="col-md-4">
             <div class="card stats-card text-center bg-azul-forte">
                 <div class="card-body">
                     <i class="fas fa-piggy-bank icon-stat text-warning"></i>
-                    <div class="stats-number text-warning">{% localize on %}<strong>{{ total_resto|floatformat:2 }}{% endlocalize %} Kz</strong></div>
+                    <div class="stats-number text-warning">
+                        {% localize on %}<strong id="display_saldo">{{ total_resto|floatformat:2 }}{% endlocalize %} Kz</strong>
+                    </div>
                     <h5 class="card-title">Saldo</h5>
                 </div>
             </div>
@@ -173,24 +197,34 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function(){
-      // ler valores brutos do template (strings) e converter em float
-      function toNumber(v){
-        try { return parseFloat(String(v).replace(',','').replace(' ','') || 0); } catch(e){ return 0; }
+      const container = document.getElementById('resumo_values');
+      function toNumberRaw(v){
+        // tenta converter string do template para número (considera ponto ou vírgula)
+        if (v === undefined || v === null) return 0;
+        const s = String(v).trim();
+        if (s === '') return 0;
+        // remover milhares (ponto) e trocar vírgula por ponto
+        const normalized = s.replace(/\./g, '').replace(',', '.');
+        const n = Number(normalized);
+        return isNaN(n) ? 0 : n;
       }
 
-      const entradas = toNumber('{{ total_entradas }}');
-      const saidas = toNumber('{{ total_saidas }}');
-      const variaveis = toNumber('{{ total_variaveis }}');
+      const entradas = toNumberRaw(container.dataset.entradas);
+      const saidas = toNumberRaw(container.dataset.saidas);
+      const variaveis = toNumberRaw(container.dataset.variaveis);
+      // saldo bruto (já calculado no servidor)
+      const saldo = toNumberRaw(container.dataset.saldo);
 
       const toggle = document.getElementById('toggle_variaveis');
       const elSaidas = document.getElementById('display_saidas');
       const elVariaveis = document.getElementById('display_variaveis');
       const elSaldo = document.getElementById('display_saldo');
+      const elEntradas = document.getElementById('display_entradas');
 
       function fmtMoney(v){
         try{
           const n = Number(v) || 0;
-          return n.toLocaleString('pt-PT', {minimumFractionDigits:2, maximumFractionDigits:2});
+          return n.toLocaleString('pt-PT', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' Kz';
         }catch(e){ return String(v); }
       }
 
@@ -199,11 +233,11 @@
         const saidasAtuais = mostrar ? saidas : (saidas - variaveis);
         const saldoAtual = entradas - saidasAtuais;
 
+        elEntradas.textContent = fmtMoney(entradas);
         elSaidas.textContent = fmtMoney(saidasAtuais);
-        elVariaveis.textContent = fmtMoney(variaveis);
+        elVariaveis.textContent = (variaveis ? (variaveis.toLocaleString('pt-PT', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' Kz') : '0,00 Kz');
         elSaldo.textContent = fmtMoney(saldoAtual);
 
-        // opcional: destacar negativo
         if (saldoAtual < 0) elSaldo.style.color = '#c00'; else elSaldo.style.color = '';
       }
 
