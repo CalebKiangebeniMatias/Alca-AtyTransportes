@@ -493,7 +493,7 @@ from decimal import Decimal
 from docx import Document
 from docx.shared import Pt, RGBColor, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.section import WD_SECTION
+from docx.enum.section import WD_ORIENT
 from docx.oxml import parse_xml
 from docx.oxml.ns import nsdecls
 from datetime import datetime
@@ -590,14 +590,14 @@ def exportar_relatorio_dashboard(request):
         stats["resto"] = stats["total_entradas"] - stats['total_saidas']
         autocarros_stats.append(stats)
 
-    # Criar documento Word em formato paisagem
+    # Criar documento Word
     doc = Document()
     
-    # Configurar página para paisagem
+    # Configurar página para paisagem - FORMA CORRIGIDA
     section = doc.sections[0]
-    section.orientation = WD_SECTION.ORIENTATION.LANDSCAPE
-    section.page_width = Inches(11.69)
-    section.page_height = Inches(8.27)
+    # Trocar largura e altura para paisagem
+    section.page_width = Inches(11.69)  # Largura maior
+    section.page_height = Inches(8.27)   # Altura menor
     section.left_margin = section.right_margin = Inches(0.5)
     section.top_margin = section.bottom_margin = Inches(0.5)
 
@@ -641,10 +641,6 @@ def exportar_relatorio_dashboard(request):
     tabela_resumo = doc.add_table(rows=2, cols=4)
     tabela_resumo.width = Inches(10.5)
     tabela_resumo.style = "Table Grid"
-    
-    # Configurar largura das colunas
-    for i, width in enumerate([2.5, 2.5, 2.5, 2.5]):
-        tabela_resumo.columns[i].width = Inches(width)
     
     # Dados dos cards
     cards_data = [
@@ -814,7 +810,6 @@ def exportar_relatorio_dashboard(request):
     response["Content-Disposition"] = f'attachment; filename="relatorio_mensal_{mes_param}.docx"'
     doc.save(response)
     return response
-
 
 @login_required
 @acesso_restrito(['admin', 'gestor'])
