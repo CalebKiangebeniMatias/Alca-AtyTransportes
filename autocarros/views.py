@@ -645,15 +645,15 @@ def exportar_relatorio_dashboard(request):
     tabela_resumo = doc.add_table(rows=2, cols=4)
     tabela_resumo.style = "Table Grid"
 
-    def fmt_money(x):
+    def fmt_money_simple(x):
         try:
             return f"{intcomma(int(x))} Kz"
         except Exception:
             return f"{x} Kz"
 
-    entradas_val = fmt_money(total_entradas)
-    despesas_val = fmt_money(total_saidas)
-    resto_val = fmt_money(total_resto)
+    entradas_val = fmt_money_simple(total_entradas)
+    despesas_val = fmt_money_simple(total_saidas)
+    resto_val = fmt_money_simple(total_resto)
     eficiencia_val = f"{(float(total_resto) / float(total_entradas) * 100) if total_entradas > 0 else 0:.1f}%"
 
     cards_data = [
@@ -687,7 +687,6 @@ def exportar_relatorio_dashboard(request):
     # --- DESPESAS ESPECÍFICAS ---
     doc.add_heading("DESPESAS OPERACIONAIS", level=2)
 
-    # ✅ Cria dinamicamente o número de linhas conforme os itens da lista
     despesas_data = [
         ("Combustível", total_combustivel_valor),
         ("Sopragem de Filtros", total_combustivel_sobragem),
@@ -752,7 +751,58 @@ def exportar_relatorio_dashboard(request):
                     pass
 
     doc.add_paragraph().add_run().add_break()
-        # --- FINALIZAÇÃO E DOWNLOAD DO RELATÓRIO ---
+
+    # --- DETALHE POR AUTOCARRO ---
+    doc.add_heading("DETALHE POR AUTOCARRO", level=2)
+
+    if autocarros_stats:
+        cols = ["AUTOCARRO", "KM", "ENTRADAS", "SAÍDAS", "COMBUSTÍVEL", "LITROS", "RESTO"]
+        tabela_autos = doc.add_table(rows=len(autocarros_stats) + 1, cols=len(cols))
+        tabela_autos.style = "Table Grid"
+
+        # Cabeçalho
+        for j, titulo in enumerate(cols):
+            cell = tabela_autos.cell(0, j)
+            cell.text = titulo
+            cell.paragraphs[0].runs[0].font.bold = True
+            try:
+                cell._element.get_or_add_tcPr().append(
+                    parse_xml(f'<w:shd {nsdecls("w")} w:fill="2C3E50"/>')
+                )
+            except Exception:
+                pass
+
+        # Linhas
+        for i, s in enumerate(autocarros_stats, start=1):
+            tabela_autos.cell(i, 0).text = str(s["autocarro"].numero)
+            tabela_autos.cell(i, 1).text = str(int(s.get("total_km", 0) or 0))
+            tabela_autos.cell(i, 2).text = fmt_money(s.get("total_entradas", Decimal('0')))
+            tabela_autos.cell(i, 3).text = fmt_money(s.get("total_saidas", Decimal('0')))
+            tabela_autos.cell(i, 4).text = fmt_money(s.get("total_combustivel", Decimal('0')))
+            # litros podem ser None
+            litros = s.get("total_combustivel_litros", Decimal('0')) or Decimal('0')
+            tabela_autos.cell(i, 5).text = f"{float(litros):,.2f}"
+            tabela_autos.cell(i, 6).text = fmt_money(s.get("resto", Decimal('0')))
+
+            # right align numeric cols
+            for col_idx in range(1, len(cols)):
+                try:
+                    tabela_autos.cell(i, col_idx).paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+                except Exception:
+                    pass
+    else:
+        doc.add_paragraph("Nenhum registo por autocarro encontrado para o período.")
+
+    doc.add_paragraph().add_run().add_break()
+
+    # --- ASSINATURA ---
+    assinatura_para = doc.add_paragraph()
+    assinatura_para.add_run("Assinatura: ").bold = True
+    assinatura_para.add_run("@kiangebeni Kaleba Matias")
+
+    doc.add_paragraph().add_run().add_break()
+
+    # --- FINALIZAÇÃO E DOWNLOAD DO RELATÓRIO ---
     from io import BytesIO
     from django.http import HttpResponse
 
