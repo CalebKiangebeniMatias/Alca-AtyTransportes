@@ -484,7 +484,6 @@ def dashboard(request):
     return render(request, "autocarros/dashboard.html", context)
 
 # exportar relatorio
-
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.utils import timezone
 from django.db.models import Sum, F, DecimalField
@@ -493,7 +492,6 @@ from decimal import Decimal
 from docx import Document
 from docx.shared import Pt, RGBColor, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.section import WD_ORIENT
 from docx.oxml import parse_xml
 from docx.oxml.ns import nsdecls
 from datetime import datetime
@@ -533,6 +531,7 @@ def exportar_relatorio_dashboard(request):
         total_valor=Sum('valor', output_field=DecimalField()),
         total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
         total_lavagem=Sum('lavagem', output_field=DecimalField()),
+        total_litros=Sum('litros', output_field=DecimalField())  # só se existir campo 'litros'
     )
 
     total_combustivel_valor = total_combustivel.get('total_valor') or Decimal('0')
@@ -555,18 +554,15 @@ def exportar_relatorio_dashboard(request):
         if not registos_auto.exists():
             continue
 
-        stats = {
-            "autocarro": autocarro,
-            "total_km": registos_auto.aggregate(Sum("km_percorridos"))["km_percorridos__sum"] or 0,
-            "total_entradas": registos_auto.aggregate(
-                total=Sum(F("normal") + F("alunos") + F("luvu") + F("frete"), output_field=DecimalField())
-            )["total"] or 0,
-            "total_saidas": registos_auto.aggregate(
-                total=Sum(F("alimentacao") + F("parqueamento") + F("taxa") + F("outros"), output_field=DecimalField())
-            )["total"] or 0,
-            "total_passageiros": registos_auto.aggregate(Sum("numero_passageiros"))["numero_passageiros__sum"] or 0,
-            "total_viagens": registos_auto.aggregate(Sum("numero_viagens"))["numero_viagens__sum"] or 0,
-        }
+        total_km = registos_auto.aggregate(Sum("km_percorridos"))["km_percorridos__sum"] or 0
+        total_entr_auto = registos_auto.aggregate(
+            total=Sum(F("normal") + F("alunos") + F("luvu") + F("frete"), output_field=DecimalField())
+        )["total"] or Decimal("0")
+        total_saida_auto = registos_auto.aggregate(
+            total=Sum(F("alimentacao") + F("parqueamento") + F("taxa") + F("outros"), output_field=DecimalField())
+        )["total"] or Decimal("0")
+        total_passageiros = registos_auto.aggregate(Sum("numero_passageiros"))["numero_passageiros__sum"] or 0
+        total_viagens = registos_auto.aggregate(Sum("numero_viagens"))["numero_viagens__sum"] or 0
 
         comb_auto = DespesaCombustivel.objects.filter(
             autocarro=autocarro, data__year=ano, data__month=mes
@@ -574,41 +570,48 @@ def exportar_relatorio_dashboard(request):
             total_valor=Sum('valor', output_field=DecimalField()),
             total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
             total_lavagem=Sum('lavagem', output_field=DecimalField()),
+            total_litros=Sum('litros', output_field=DecimalField())
         )
+
         comb_val = comb_auto.get('total_valor') or Decimal('0')
         comb_sobr = comb_auto.get('total_sobragem') or Decimal('0')
         comb_lav = comb_auto.get('total_lavagem') or Decimal('0')
+        comb_litros = comb_auto.get('total_litros') or Decimal('0')
 
-        stats['total_combustivel'] = comb_val
-        stats['total_combustivel_litros'] = comb_auto.get('total_litros') or Decimal('0')
-        stats['total_combustivel_sobragem'] = comb_auto.get('total_sobragem') or Decimal('0')
-        stats['total_combustivel_lavagem'] = comb_auto.get('total_lavagem') or Decimal('0')
+        stats = {
+            "autocarro": autocarro,
+            "total_km": total_km,
+            "total_entradas": total_entr_auto,
+            "total_saidas": total_saida_auto,
+            "total_passageiros": total_passageiros,
+            "total_viagens": total_viagens,
+            "total_combustivel": comb_val,
+            "total_combustivel_litros": comb_litros,
+            "total_combustivel_sobragem": comb_sobr,
+            "total_combustivel_lavagem": comb_lav,
+        }
 
-        # Incluir combustível, sobragem e lavagem nas saídas por autocarro
+        # incluir combustível nas saídas por autocarro
         stats['total_saidas'] = stats['total_saidas'] + stats.get('total_combustivel', Decimal('0')) + comb_sobr + comb_lav
-        # recalcular resto
         stats["resto"] = stats["total_entradas"] - stats['total_saidas']
         autocarros_stats.append(stats)
 
     # Criar documento Word
     doc = Document()
-    
-    # Configurar página para paisagem - FORMA CORRIGIDA
+
+    # Configurar página para paisagem
     section = doc.sections[0]
-    # Trocar largura e altura para paisagem
-    section.page_width = Inches(11.69)  # Largura maior
-    section.page_height = Inches(8.27)   # Altura menor
+    section.page_width = Inches(11.69)
+    section.page_height = Inches(8.27)
     section.left_margin = section.right_margin = Inches(0.5)
     section.top_margin = section.bottom_margin = Inches(0.5)
 
     # Cabeçalho profissional
     header_table = doc.add_table(rows=1, cols=3)
-    header_table.width = Inches(10.5)
-    header_table.autofit = False
-    
+    header_table.autofit = True
+
     # Logo/Ícone (célula esquerda)
     left_cell = header_table.cell(0, 0)
-    left_cell.width = Inches(1.5)
     left_para = left_cell.paragraphs[0]
     left_run = left_para.add_run("🚌")
     left_run.font.size = Pt(28)
@@ -616,7 +619,6 @@ def exportar_relatorio_dashboard(request):
 
     # Título principal (célula central)
     center_cell = header_table.cell(0, 1)
-    center_cell.width = Inches(7)
     center_para = center_cell.paragraphs[0]
     center_run = center_para.add_run(f"RELATÓRIO MENSAL - {mes_param}")
     center_run.font.size = Pt(18)
@@ -626,7 +628,6 @@ def exportar_relatorio_dashboard(request):
 
     # Data (célula direita)
     right_cell = header_table.cell(0, 2)
-    right_cell.width = Inches(2)
     right_para = right_cell.paragraphs[0]
     right_run = right_para.add_run(f"{datetime.now().strftime('%d/%m/%Y')}")
     right_run.font.size = Pt(10)
@@ -636,30 +637,51 @@ def exportar_relatorio_dashboard(request):
     doc.add_paragraph().add_run().add_break()  # Espaço
 
     # --- RESUMO GERAL EM CARDS HORIZONTAIS ---
-    doc.add_heading("RESUMO GERAL DO MÊS", level=2).runs[0].font.color.rgb = RGBColor(27, 42, 73)
-    
+    h = doc.add_heading("RESUMO GERAL DO MÊS", level=2)
+    try:
+        h.runs[0].font.color.rgb = RGBColor(27, 42, 73)
+    except Exception:
+        pass
+
     tabela_resumo = doc.add_table(rows=2, cols=4)
-    tabela_resumo.width = Inches(10.5)
     tabela_resumo.style = "Table Grid"
-    
+
     # Dados dos cards
+    # usamos intcomma para milhares; converter para int pode ser seguro para quantias inteiras
+    def fmt_money(x):
+        try:
+            return f"{intcomma(int(x))} Kz"
+        except Exception:
+            return f"{x} Kz"
+
+    entradas_val = fmt_money(total_entradas)
+    despesas_val = fmt_money(total_saidas)
+    resto_val = fmt_money(total_resto)
+    eficiencia_val = f"{(float(total_resto) / float(total_entradas) * 100) if total_entradas > 0 else 0:.1f}%"
+
     cards_data = [
-        ("ENTRADAS TOTAIS", f"{intcomma(int(total_entradas))} Kz", "1B4F72"),
-        ("DESPESAS TOTAIS", f"{intcomma(int(total_saidas))} Kz", "C0392B"),
-        ("SALDO REMANESCENTE", f"{intcomma(int(total_resto))} Kz", "27AE60"),
-        ("EFICIÊNCIA", f"{(total_resto/total_entradas*100 if total_entradas > 0 else 0):.1f}%", "8E44AD")
+        ("ENTRADAS TOTAIS", entradas_val, "1B4F72"),
+        ("DESPESAS TOTAIS", despesas_val, "C0392B"),
+        ("SALDO REMANESCENTE", resto_val, "27AE60"),
+        ("EFICIÊNCIA", eficiencia_val, "8E44AD")
     ]
-    
+
     for i, (titulo, valor, cor) in enumerate(cards_data):
+        # cabeçalho (linha 0)
         cell = tabela_resumo.cell(0, i)
         cell.text = titulo
         cell.paragraphs[0].runs[0].font.bold = True
         cell.paragraphs[0].runs[0].font.size = Pt(10)
         cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(255, 255, 255)
-        cell._element.get_or_add_tcPr().append(
-            parse_xml(f'<w:shd {nsdecls("w")} w:fill="{cor}"/>')
-        )
-        
+        # aplicar cor de fundo
+        try:
+            cell._element.get_or_add_tcPr().append(
+                parse_xml(f'<w:shd {nsdecls("w")} w:fill="{cor}"/>')
+            )
+        except Exception:
+            pass
+
+        # valor (linha 1)
         cell_valor = tabela_resumo.cell(1, i)
         cell_valor.text = valor
         cell_valor.paragraphs[0].runs[0].font.bold = True
@@ -669,12 +691,10 @@ def exportar_relatorio_dashboard(request):
     doc.add_paragraph().add_run().add_break()  # Espaço
 
     # --- DESPESAS ESPECÍFICAS ---
-    doc.add_heading("DESPESAS OPERACIONAIS", level=2).runs[0].font.color.rgb = RGBColor(27, 42, 73)
-    
+    doc.add_heading("DESPESAS OPERACIONAIS", level=2)
     tabela_despesas = doc.add_table(rows=4, cols=3)
-    tabela_despesas.width = Inches(10.5)
     tabela_despesas.style = "Table Grid"
-    
+
     # Cabeçalho
     cabecalho_despesas = ["CATEGORIA", "VALOR", "% DO TOTAL"]
     for i, titulo in enumerate(cabecalho_despesas):
@@ -682,10 +702,13 @@ def exportar_relatorio_dashboard(request):
         cell.text = titulo
         cell.paragraphs[0].runs[0].font.bold = True
         cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(255, 255, 255)
-        cell._element.get_or_add_tcPr().append(
-            parse_xml(f'<w:shd {nsdecls("w")} w:fill="2C3E50"/>')
-        )
-    
+        try:
+            cell._element.get_or_add_tcPr().append(
+                parse_xml(f'<w:shd {nsdecls("w")} w:fill="2C3E50"/>')
+            )
+        except Exception:
+            pass
+
     # Dados das despesas
     despesas_data = [
         ("Combustível", total_combustivel_valor),
@@ -693,123 +716,129 @@ def exportar_relatorio_dashboard(request):
         ("Lavagem", total_combustivel_lavagem),
         ("Outras Despesas", total_saidas_despesas + total_saidas_registos)
     ]
-    
+
     for i, (categoria, valor) in enumerate(despesas_data, 1):
         # Categoria
         cell_cat = tabela_despesas.cell(i, 0)
         cell_cat.text = categoria
-        if i % 2 == 0:
-            cell_cat._element.get_or_add_tcPr().append(
-                parse_xml(f'<w:shd {nsdecls("w")} w:fill="F8F9F9"/>')
-            )
-        
+
         # Valor
         cell_val = tabela_despesas.cell(i, 1)
-        cell_val.text = f"{intcomma(int(valor))} Kz"
+        cell_val.text = fmt_money(valor)
         cell_val.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
-        if i % 2 == 0:
-            cell_val._element.get_or_add_tcPr().append(
-                parse_xml(f'<w:shd {nsdecls("w")} w:fill="F8F9F9"/>')
-            )
-        
+
         # Percentagem
+        try:
+            pct = (float(valor) / float(total_saidas) * 100) if total_saidas > 0 else 0
+        except Exception:
+            pct = 0
         cell_pct = tabela_despesas.cell(i, 2)
-        pct = (valor / total_saidas * 100) if total_saidas > 0 else 0
         cell_pct.text = f"{pct:.1f}%"
         cell_pct.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+
+        # zebra shading (opcional)
         if i % 2 == 0:
-            cell_pct._element.get_or_add_tcPr().append(
-                parse_xml(f'<w:shd {nsdecls("w")} w:fill="F8F9F9"/>')
-            )
+            for c in (cell_cat, cell_val, cell_pct):
+                try:
+                    c._element.get_or_add_tcPr().append(
+                        parse_xml(f'<w:shd {nsdecls("w")} w:fill="F8F9F9"/>')
+                    )
+                except Exception:
+                    pass
 
     doc.add_paragraph().add_run().add_break()
 
     # --- PERFORMANCE POR AUTOCARRO ---
-    doc.add_heading("PERFORMANCE POR AUTOCARRO", level=2).runs[0].font.color.rgb = RGBColor(27, 42, 73)
-    
+    doc.add_heading("PERFORMANCE POR AUTOCARRO", level=2)
     tabela_autocarros = doc.add_table(rows=1, cols=9)
-    tabela_autocarros.width = Inches(10.5)
     tabela_autocarros.style = "Table Grid"
-    
-    # Cabeçalho expandido
+
     cabecalho_auto = ["Nº", "MODELO", "KM", "ENTRADAS", "DESPESAS", "SALDO", "EFICIÊNCIA", "PASSAGEIROS", "VIAGENS"]
     for i, titulo in enumerate(cabecalho_auto):
         cell = tabela_autocarros.rows[0].cells[i]
         cell.text = titulo
         cell.paragraphs[0].runs[0].font.bold = True
         cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(255, 255, 255)
-        cell._element.get_or_add_tcPr().append(
-            parse_xml(f'<w:shd {nsdecls("w")} w:fill="1B263B"/>')
-        )
-    
+        try:
+            cell._element.get_or_add_tcPr().append(
+                parse_xml(f'<w:shd {nsdecls("w")} w:fill="1B263B"/>')
+            )
+        except Exception:
+            pass
+
     # Dados dos autocarros
     for i, stats in enumerate(autocarros_stats, 1):
-        row = tabela_autocarros.add_row().cells
+        row_cells = tabela_autocarros.add_row().cells
         autocarro = stats["autocarro"]
-        
-        eficiencia = (stats["resto"] / stats["total_entradas"] * 100) if stats["total_entradas"] > 0 else 0
-        
+
+        eficiencia = (float(stats["resto"]) / float(stats["total_entradas"]) * 100) if stats["total_entradas"] > 0 else 0
+
         dados_auto = [
-            autocarro.numero,
+            str(autocarro.numero) if hasattr(autocarro, 'numero') else str(i),
             autocarro.modelo or "-",
-            f"{stats['total_km']:,.0f}",
-            f"{intcomma(int(stats['total_entradas']))} Kz",
-            f"{intcomma(int(stats['total_saidas']))} Kz",
-            f"{intcomma(int(stats['resto']))} Kz",
+            f"{int(stats['total_km']):,}",
+            fmt_money(stats['total_entradas']),
+            fmt_money(stats['total_saidas']),
+            fmt_money(stats['resto']),
             f"{eficiencia:.1f}%",
-            f"{stats['total_passageiros']:,}",
-            f"{stats['total_viagens']:,}"
+            f"{int(stats['total_passageiros']):,}",
+            f"{int(stats['total_viagens']):,}"
         ]
-        
+
         for j, dado in enumerate(dados_auto):
-            row[j].text = dado
-            if i % 2 == 0:  # Zebrado
-                row[j]._element.get_or_add_tcPr().append(
-                    parse_xml(f'<w:shd {nsdecls("w")} w:fill="F8F9F9"/>')
-                )
-            
-            # Alinhamento
-            if j in [2, 6, 7, 8]:  # Números
-                row[j].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
-            elif j in [3, 4, 5]:  # Valores monetários
-                row[j].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            row_cells[j].text = dado
+            # zebra shading
+            if i % 2 == 0:
+                try:
+                    row_cells[j]._element.get_or_add_tcPr().append(
+                        parse_xml(f'<w:shd {nsdecls("w")} w:fill="F8F9F9"/>')
+                    )
+                except Exception:
+                    pass
+            # alinhamentos para colunas numéricas
+            if j in [2, 3, 4, 5, 6, 7, 8]:
+                row_cells[j].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
 
     doc.add_paragraph().add_run().add_break()
 
     # --- RODAPÉ PROFISSIONAL ---
-    footer_table = doc.add_table(rows=2, cols=2)
-    footer_table.width = Inches(10.5)
-    
-    # Informações da empresa
+    footer_table = doc.add_table(rows=1, cols=2)
+    footer_table.style = "Table Grid"
+
+    # Informações da empresa (esquerda)
     left_cell = footer_table.cell(0, 0)
     left_para = left_cell.paragraphs[0]
     left_para.add_run("Alca&Aty Transportes\n")
     left_para.add_run("Sistema de Gestão de Autocarros\n")
     left_para.add_run("kiangebenimatias4@gmail.com")
-    
-    # Assinatura
+
+    # Assinatura (direita)
     right_cell = footer_table.cell(0, 1)
     right_para = right_cell.paragraphs[0]
     right_para.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     right_para.add_run("Relatório gerado automaticamente\n")
     right_para.add_run(f"Em {datetime.now().strftime('%d/%m/%Y às %H:%M')}")
-    
-    # Linha divisória
-    merge_cell = footer_table.cell(1, 0)
-    footer_table.cell(1, 1)._element.getparent().remove(footer_table.cell(1, 1)._element)
-    merge_cell.merge(footer_table.cell(1, 1))
-    merge_para = merge_cell.paragraphs[0]
-    merge_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    merge_run = merge_para.add_run("―" * 80)
-    merge_run.font.color.rgb = RGBColor(200, 200, 200)
-    merge_run.font.size = Pt(8)
 
+    # Linha divisória em nova linha (merge das duas células)
+    divider_row = footer_table.add_row().cells
+    try:
+        divider_row[0].merge(divider_row[1])
+        divp = divider_row[0].paragraphs[0]
+        divp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        divp.add_run("―" * 80).font.color.rgb = RGBColor(200, 200, 200)
+        divp.runs[0].font.size = Pt(8)
+    except Exception:
+        pass
+
+    # Responder com o ficheiro .docx
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
     response["Content-Disposition"] = f'attachment; filename="relatorio_mensal_{mes_param}.docx"'
     doc.save(response)
     return response
+
+
 
 @login_required
 @acesso_restrito(['admin', 'gestor'])
