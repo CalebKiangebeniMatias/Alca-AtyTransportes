@@ -612,14 +612,12 @@ def exportar_relatorio_dashboard(request):
     header_table = doc.add_table(rows=1, cols=3)
     header_table.autofit = True
 
-    # Logo/Ícone (célula esquerda)
     left_cell = header_table.cell(0, 0)
     left_para = left_cell.paragraphs[0]
     left_run = left_para.add_run("🚌")
     left_run.font.size = Pt(28)
     left_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-    # Título principal (célula central)
     center_cell = header_table.cell(0, 1)
     center_para = center_cell.paragraphs[0]
     center_run = center_para.add_run(f"RELATÓRIO MENSAL - {mes_param}")
@@ -628,7 +626,6 @@ def exportar_relatorio_dashboard(request):
     center_run.font.color.rgb = RGBColor(13, 27, 42)
     center_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-    # Data (célula direita)
     right_cell = header_table.cell(0, 2)
     right_para = right_cell.paragraphs[0]
     right_run = right_para.add_run(f"{datetime.now().strftime('%d/%m/%Y')}")
@@ -636,9 +633,9 @@ def exportar_relatorio_dashboard(request):
     right_run.font.color.rgb = RGBColor(100, 100, 100)
     right_para.alignment = WD_ALIGN_PARAGRAPH.RIGHT
 
-    doc.add_paragraph().add_run().add_break()  # Espaço
+    doc.add_paragraph().add_run().add_break()
 
-    # --- RESUMO GERAL EM CARDS HORIZONTAIS ---
+    # --- RESUMO GERAL ---
     h = doc.add_heading("RESUMO GERAL DO MÊS", level=2)
     try:
         h.runs[0].font.color.rgb = RGBColor(27, 42, 73)
@@ -648,8 +645,6 @@ def exportar_relatorio_dashboard(request):
     tabela_resumo = doc.add_table(rows=2, cols=4)
     tabela_resumo.style = "Table Grid"
 
-    # Dados dos cards
-    # usamos intcomma para milhares; converter para int pode ser seguro para quantias inteiras
     def fmt_money(x):
         try:
             return f"{intcomma(int(x))} Kz"
@@ -669,13 +664,11 @@ def exportar_relatorio_dashboard(request):
     ]
 
     for i, (titulo, valor, cor) in enumerate(cards_data):
-        # cabeçalho (linha 0)
         cell = tabela_resumo.cell(0, i)
         cell.text = titulo
         cell.paragraphs[0].runs[0].font.bold = True
         cell.paragraphs[0].runs[0].font.size = Pt(10)
         cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(255, 255, 255)
-        # aplicar cor de fundo
         try:
             cell._element.get_or_add_tcPr().append(
                 parse_xml(f'<w:shd {nsdecls("w")} w:fill="{cor}"/>')
@@ -683,18 +676,27 @@ def exportar_relatorio_dashboard(request):
         except Exception:
             pass
 
-        # valor (linha 1)
         cell_valor = tabela_resumo.cell(1, i)
         cell_valor.text = valor
         cell_valor.paragraphs[0].runs[0].font.bold = True
         cell_valor.paragraphs[0].runs[0].font.size = Pt(12)
         cell_valor.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-    doc.add_paragraph().add_run().add_break()  # Espaço
+    doc.add_paragraph().add_run().add_break()
 
     # --- DESPESAS ESPECÍFICAS ---
     doc.add_heading("DESPESAS OPERACIONAIS", level=2)
-    tabela_despesas = doc.add_table(rows=4, cols=3)
+
+    # ✅ Cria dinamicamente o número de linhas conforme os itens da lista
+    despesas_data = [
+        ("Combustível", total_combustivel_valor),
+        ("Sopragem de Filtros", total_combustivel_sobragem),
+        ("Lavagem", total_combustivel_lavagem),
+        ("Outras Despesas", total_saidas_despesas + total_saidas_registos),
+    ]
+
+    # +1 linha para o cabeçalho
+    tabela_despesas = doc.add_table(rows=len(despesas_data) + 1, cols=3)
     tabela_despesas.style = "Table Grid"
 
     # Cabeçalho
@@ -702,8 +704,9 @@ def exportar_relatorio_dashboard(request):
     for i, titulo in enumerate(cabecalho_despesas):
         cell = tabela_despesas.cell(0, i)
         cell.text = titulo
-        cell.paragraphs[0].runs[0].font.bold = True
-        cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(255, 255, 255)
+        run = cell.paragraphs[0].runs[0]
+        run.font.bold = True
+        run.font.color.rgb = RGBColor(255, 255, 255)
         try:
             cell._element.get_or_add_tcPr().append(
                 parse_xml(f'<w:shd {nsdecls("w")} w:fill="2C3E50"/>')
@@ -711,25 +714,25 @@ def exportar_relatorio_dashboard(request):
         except Exception:
             pass
 
-    # Dados das despesas
-    despesas_data = [
-        ("Combustível", total_combustivel_valor),
-        ("Sopragem de Filtros", total_combustivel_sobragem),
-        ("Lavagem", total_combustivel_lavagem),
-        ("Outras Despesas", total_saidas_despesas + total_saidas_registos)
-    ]
+    # Função para formatar com separador de milhar e vírgula nos centavos
+    from babel.numbers import format_currency
 
-    for i, (categoria, valor) in enumerate(despesas_data, 1):
-        # Categoria
+    def fmt_money(valor):
+        try:
+            valor = float(valor)
+            return format_currency(valor, "AOA", locale="pt_PT").replace("AOA", "Kz")
+        except Exception:
+            return f"{valor} Kz"
+
+    # Preenchimento das linhas da tabela
+    for i, (categoria, valor) in enumerate(despesas_data, start=1):
         cell_cat = tabela_despesas.cell(i, 0)
         cell_cat.text = categoria
 
-        # Valor
         cell_val = tabela_despesas.cell(i, 1)
         cell_val.text = fmt_money(valor)
         cell_val.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
 
-        # Percentagem
         try:
             pct = (float(valor) / float(total_saidas) * 100) if total_saidas > 0 else 0
         except Exception:
@@ -738,7 +741,7 @@ def exportar_relatorio_dashboard(request):
         cell_pct.text = f"{pct:.1f}%"
         cell_pct.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
 
-        # zebra shading (opcional)
+        # Zebra shading (linhas alternadas)
         if i % 2 == 0:
             for c in (cell_cat, cell_val, cell_pct):
                 try:
@@ -750,98 +753,8 @@ def exportar_relatorio_dashboard(request):
 
     doc.add_paragraph().add_run().add_break()
 
-    # --- PERFORMANCE POR AUTOCARRO ---
-    doc.add_heading("PERFORMANCE POR AUTOCARRO", level=2)
-    tabela_autocarros = doc.add_table(rows=1, cols=9)
-    tabela_autocarros.style = "Table Grid"
 
-    cabecalho_auto = ["Nº", "MODELO", "KM", "ENTRADAS", "DESPESAS", "SALDO", "EFICIÊNCIA", "PASSAGEIROS", "VIAGENS"]
-    for i, titulo in enumerate(cabecalho_auto):
-        cell = tabela_autocarros.rows[0].cells[i]
-        cell.text = titulo
-        cell.paragraphs[0].runs[0].font.bold = True
-        cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(255, 255, 255)
-        try:
-            cell._element.get_or_add_tcPr().append(
-                parse_xml(f'<w:shd {nsdecls("w")} w:fill="1B263B"/>')
-            )
-        except Exception:
-            pass
-
-    # Dados dos autocarros
-    for i, stats in enumerate(autocarros_stats, 1):
-        row_cells = tabela_autocarros.add_row().cells
-        autocarro = stats["autocarro"]
-
-        eficiencia = (float(stats["resto"]) / float(stats["total_entradas"]) * 100) if stats["total_entradas"] > 0 else 0
-
-        dados_auto = [
-            str(autocarro.numero) if hasattr(autocarro, 'numero') else str(i),
-            autocarro.modelo or "-",
-            f"{int(stats['total_km']):,}",
-            fmt_money(stats['total_entradas']),
-            fmt_money(stats['total_saidas']),
-            fmt_money(stats['resto']),
-            f"{eficiencia:.1f}%",
-            f"{int(stats['total_passageiros']):,}",
-            f"{int(stats['total_viagens']):,}"
-        ]
-
-        for j, dado in enumerate(dados_auto):
-            row_cells[j].text = dado
-            # zebra shading
-            if i % 2 == 0:
-                try:
-                    row_cells[j]._element.get_or_add_tcPr().append(
-                        parse_xml(f'<w:shd {nsdecls("w")} w:fill="F8F9F9"/>')
-                    )
-                except Exception:
-                    pass
-            # alinhamentos para colunas numéricas
-            if j in [2, 3, 4, 5, 6, 7, 8]:
-                row_cells[j].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
-
-    doc.add_paragraph().add_run().add_break()
-
-    # --- RODAPÉ PROFISSIONAL ---
-    footer_table = doc.add_table(rows=1, cols=2)
-    footer_table.style = "Table Grid"
-
-    # Informações da empresa (esquerda)
-    left_cell = footer_table.cell(0, 0)
-    left_para = left_cell.paragraphs[0]
-    left_para.add_run("Alca&Aty Transportes\n")
-    left_para.add_run("Sistema de Gestão de Autocarros\n")
-    left_para.add_run("kiangebenimatias4@gmail.com")
-
-    # Assinatura (direita)
-    right_cell = footer_table.cell(0, 1)
-    right_para = right_cell.paragraphs[0]
-    right_para.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    right_para.add_run("Relatório gerado automaticamente\n")
-    right_para.add_run(f"Em {datetime.now().strftime('%d/%m/%Y às %H:%M')}")
-
-    # Linha divisória em nova linha (merge das duas células)
-    divider_row = footer_table.add_row().cells
-    try:
-        divider_row[0].merge(divider_row[1])
-        divp = divider_row[0].paragraphs[0]
-        divp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        divp.add_run("―" * 80).font.color.rgb = RGBColor(200, 200, 200)
-        divp.runs[0].font.size = Pt(8)
-    except Exception:
-        pass
-
-    # Responder com o ficheiro .docx
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    )
-    response["Content-Disposition"] = f'attachment; filename="relatorio_mensal_{mes_param}.docx"'
-    doc.save(response)
-    return response
-
-
-
+# --- ESTATÍSTICAS POR AUTOCARRO --- #
 @login_required
 @acesso_restrito(['admin', 'gestor'])
 def resumo_sector(request, slug):
