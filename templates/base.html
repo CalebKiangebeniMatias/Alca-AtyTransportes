@@ -26,6 +26,7 @@
             color: var(--accent-color);
             margin: 0;
             padding: 0;
+            /* CORREÇÃO: Remover opacidade inicial e transição do body */
         }
 
         .navbar {
@@ -383,13 +384,15 @@
             transform: scale(1.1);
         }
 
-        /* === Loader + Transição entre páginas === */
-        body {
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-        }
-        body.loaded {
+        /* === CORREÇÃO: Loader + Transição entre páginas === */
+        /* Container principal com transição suave */
+        .page-container {
             opacity: 1;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .page-container.fade-out {
+            opacity: 0;
         }
 
         /* Fundo do loader */
@@ -402,8 +405,14 @@
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            opacity: 1;
+            opacity: 0;
             transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
+        }
+
+        #loader.show {
+            opacity: 1;
+            pointer-events: all;
         }
 
         /* Círculo girando */
@@ -420,40 +429,39 @@
             to { transform: rotate(360deg); }
         }
     </style>
-    
 </head>
 
-    <!-- MENU FLUTUANTE DE PERFIL -->
-    <div class="menu-flutuante">
-        <div class="botoes-secundarios">
-            <a href="{% url 'perfil' %}" class="btn-flutuante" title="Ver Perfil">
-                <i class="fas fa-user"></i>
-            </a>
-            <a href="{% url 'admin:index' %}" class="btn-flutuante" title="Administração">
-                <i class="fas fa-gavel"></i>
-            </a>
-            <a href="#" class="btn-flutuante" title="Outros">
-                <i class="fas fa-ellipsis-h"></i>
-            </a>
-        </div>
-
-        <button class="btn-principal" id="menuToggle" title="Menu Perfil">
-            <i class="fas fa-user-circle"></i>
-        </button>
+<body>
+    <!-- Loader animado -->
+    <div id="loader">
+        <div class="loader-circle"></div>
     </div>
 
+    <!-- Container principal para transições -->
+    <div class="page-container">
+        <!-- MENU FLUTUANTE DE PERFIL -->
+        <div class="menu-flutuante">
+            <div class="botoes-secundarios">
+                <a href="{% url 'perfil' %}" class="btn-flutuante" title="Ver Perfil">
+                    <i class="fas fa-user"></i>
+                </a>
+                <a href="{% url 'admin:index' %}" class="btn-flutuante" title="Administração">
+                    <i class="fas fa-gavel"></i>
+                </a>
+                <a href="#" class="btn-flutuante" title="Outros">
+                    <i class="fas fa-ellipsis-h"></i>
+                </a>
+            </div>
 
-    <!-- novo: botão flutuante esquerdo para Depósitos -->
-    <a href="{% url 'depositos' %}" class="agencia-flutuante" title="Depósitos por Sector">
-        <i class="fas fa-building-columns" style="line-height:60px;color:var(--accent-color)"></i>
-    </a>
-
-    <body>
-
-        <!-- Loader animado -->
-        <div id="loader">
-            <div class="loader-circle"></div>
+            <button class="btn-principal" id="menuToggle" title="Menu Perfil">
+                <i class="fas fa-user-circle"></i>
+            </button>
         </div>
+
+        <!-- botão flutuante esquerdo para Depósitos -->
+        <a href="{% url 'depositos' %}" class="agencia-flutuante" title="Depósitos por Sector">
+            <i class="fas fa-building-columns" style="line-height:60px;color:var(--accent-color)"></i>
+        </a>
 
         <nav class="navbar navbar-expand-lg navbar-dark">
             <div class="container">
@@ -686,8 +694,6 @@
                             </li>
                         </ul>
                     </div>
-
-                        
                     </div>
                 </div>
             </div>
@@ -710,39 +716,54 @@
         <footer>
             &copy; {{ now|date:"Y" }} Sistema De Gestão de Autocarros. Todos os direitos reservados Engenheiro De Software @Kiangebeni Kaleba Matias.
         </footer>
+    </div> <!-- Fim do page-container -->
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-        <!-- # === SCRIPT PARA O LOADER E TRANSIÇÃO ENTRE PÁGINAS === # -->
+    <!-- # === CORREÇÃO: SCRIPT PARA O LOADER E TRANSIÇÃO ENTRE PÁGINAS === # -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const loader = document.getElementById('loader');
+            const pageContainer = document.querySelector('.page-container');
+            
+            // Esconde o loader imediatamente quando a página carrega
+            setTimeout(() => {
+                loader.classList.remove('show');
+            }, 300);
 
-        <script>
-            window.addEventListener("load", () => {
-                // Quando terminar de carregar, mostra o conteúdo e some com o loader
-                document.body.classList.add("loaded");
-                document.getElementById("loader").style.opacity = "0";
-                setTimeout(() => document.getElementById("loader").style.display = "none", 300);
-            });
-
-            // Transição suave entre páginas
+            // Transição suave entre páginas - CORREÇÃO
             document.querySelectorAll("a[href]").forEach(link => {
                 link.addEventListener("click", function(e) {
                     const url = this.getAttribute("href");
-                    if (!url || url.startsWith("#") || this.target === "_blank" || url.startsWith("mailto:")) return;
+                    
+                    // Ignora links que não devem ter transição
+                    if (!url || url.startsWith("#") || this.target === "_blank" || 
+                        url.startsWith("mailto:") || url.startsWith("javascript:") ||
+                        this.classList.contains('dropdown-toggle') ||
+                        this.getAttribute('data-bs-toggle')) {
+                        return;
+                    }
+                    
                     e.preventDefault();
-                    document.body.style.opacity = "0";
-                    setTimeout(() => { window.location.href = url; }, 400);
+                    
+                    // Mostra o loader imediatamente
+                    loader.classList.add('show');
+                    pageContainer.classList.add('fade-out');
+                    
+                    // Navega após a transição
+                    setTimeout(() => {
+                        window.location.href = url;
+                    }, 300);
                 });
+            });
         });
-        </script>
 
+        // # === SCRIPT PARA O MENU FLUTUANTE DE PERFIL === #
+        document.addEventListener("DOMContentLoaded", function () {
+            const menuToggle = document.getElementById("menuToggle");
+            const botoes = document.querySelector(".botoes-secundarios");
 
-        <!-- # === SCRIPT PARA O MENU FLUTUANTE DE PERFIL === # -->
-
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                const menuToggle = document.getElementById("menuToggle");
-                const botoes = document.querySelector(".botoes-secundarios");
-
+            if (menuToggle && botoes) {
                 menuToggle.addEventListener("click", (e) => {
                     e.stopPropagation();
                     botoes.classList.toggle("mostrar");
@@ -754,8 +775,8 @@
                         botoes.classList.remove("mostrar");
                     }
                 });
-            });
-        </script>
-
-    </body>
+            }
+        });
+    </script>
+</body>
 </html>
