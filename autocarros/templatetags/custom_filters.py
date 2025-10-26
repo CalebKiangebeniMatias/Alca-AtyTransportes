@@ -173,3 +173,10 @@ def count_concluidos(registos):
         return registos.filter(concluido=True).count()
     else:
         return len([reg for reg in registos if getattr(reg, 'concluido', False)])
+    
+from django import template
+register = template.Library()
+
+@register.filter(name='add_class')
+def add_class(field, css):
+    return field.as_widget(attrs={"class": css})
