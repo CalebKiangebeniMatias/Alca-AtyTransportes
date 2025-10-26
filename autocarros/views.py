@@ -374,33 +374,43 @@ def dashboard(request):
         total=Sum("valor", output_field=DecimalField())
     )["total"] or Decimal("0")
 
+    # despesas fixas no mês
+    total_despesas_fixas = DespesaFixa.objects.filter(
+        data__year=ano,
+        data__month=mes
+    ).aggregate(total=Sum('valor', output_field=DecimalField()))['total'] or Decimal('0')
+
     total_combustivel = DespesaCombustivel.objects.filter(
         data__year=ano,
         data__month=mes
     ).aggregate(
         total_valor=Sum('valor', output_field=DecimalField()),
+        # mantemos litros internamente se existir, mas não o usamos como coluna principal
         total_litros=Sum('valor_litros', output_field=DecimalField()),
         total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
         total_lavagem=Sum('lavagem', output_field=DecimalField()),
     )
 
     total_combustivel_valor = total_combustivel.get('total_valor') or Decimal('0')
+    # não utilizaremos 'litros' como coluna conforme pedido
     total_combustivel_litros = total_combustivel.get('total_litros') or Decimal('0')
     total_combustivel_sobragem = total_combustivel.get('total_sobragem') or Decimal('0')
     total_combustivel_lavagem = total_combustivel.get('total_lavagem') or Decimal('0')
 
+    # total de saídas inclui registos, despesas (Despesas) e combustíveis + sobragem/lavagem + despesas fixas
     total_saidas = (
             total_saidas_registos
             + total_saidas_despesas
             + total_combustivel_valor
             + total_combustivel_sobragem
             + total_combustivel_lavagem
+            + total_despesas_fixas
     )
     total_resto = total_entradas - total_saidas
 
     total_variaveis = total_saidas_despesas or Decimal('0')
 
-    total_saidas_sem_variaveis = total_saidas - total_variaveis   # saídas sem as despesas variáveis
+    total_saidas_sem_variaveis = total_saidas - total_variaveis
 
     # 🔹 Estatísticas por autocarro
     autocarros_stats = []
@@ -432,13 +442,22 @@ def dashboard(request):
 
         comb_val = comb_auto.get('total_valor') or Decimal('0')
         stats['total_combustivel'] = comb_val
+        # em vez de 'litros' o ficheiro pede 'alimentacao + outros' por autocarro
+        alim_outros_auto = registos_auto.aggregate(
+            total=Sum(F("alimentacao") + F("outros"), output_field=DecimalField())
+        )["total"] or Decimal('0')
+        stats['total_alim_outros'] = alim_outros_auto
+
         stats['total_combustivel_litros'] = comb_auto.get('total_litros') or Decimal('0')
         stats['total_combustivel_sobragem'] = comb_auto.get('total_sobragem') or Decimal('0')
         stats['total_combustivel_lavagem'] = comb_auto.get('total_lavagem') or Decimal('0')
 
         comb_sobr = stats['total_combustivel_sobragem']
         comb_lav = stats['total_combustivel_lavagem']
+        # incluir combustível e respetivas taxas nas saídas por autocarro
         stats['total_saidas'] += stats['total_combustivel'] + comb_sobr + comb_lav
+        # OBS: 'total_alim_outros' já faz parte de 'total_saidas' (porque veio de registos_auto agregados),
+        # mas mantemos o campo separado para exibição no lugar de "litros".
         stats["resto"] = stats["total_entradas"] - stats["total_saidas"]
 
         autocarros_stats.append(stats)
@@ -453,6 +472,8 @@ def dashboard(request):
         key = f"{reg.autocarro_id}_{reg.data.isoformat()}"
         comb = combustivel_map_dashboard.get(key, {})
         reg.combustivel_total = comb.get('total_valor', Decimal('0'))
+        # em vez de litros, mostramos alimentacao + outros do próprio registo
+        reg.alim_outros = (getattr(reg, 'alimentacao', Decimal('0')) or Decimal('0')) + (getattr(reg, 'outros', Decimal('0')) or Decimal('0'))
         reg.combustivel_valor_litros = comb.get('total_valor_litros', Decimal('0'))
         reg.combustivel_sobragem = comb.get('total_sobragem', Decimal('0'))
         reg.combustivel_lavagem = comb.get('total_lavagem', Decimal('0'))
@@ -474,9 +495,14 @@ def dashboard(request):
         "total_saidas_sem_variaveis": total_saidas_sem_variaveis,
         "total_resto": total_resto,
         "total_combustivel_valor": total_combustivel_valor,
+        # mostramos aqui o total de "alimentacao + outros" agregados no período
+        "total_alim_outros": registos.aggregate(
+            total=Sum(F("alimentacao") + F("outros"), output_field=DecimalField())
+        )["total"] or Decimal('0'),
         "total_combustivel_litros": total_combustivel_litros,
         "total_combustivel_sobragem": total_combustivel_sobragem,
         "total_combustivel_lavagem": total_combustivel_lavagem,
+        "total_despesas_fixas": total_despesas_fixas,
         "autocarros_stats": autocarros_stats,
         "registos_recentes": registos_recentes,
         "max_saldo": max_saldo,
@@ -2105,7 +2131,7 @@ def adicionar_combustivel(request, pk):
                             inst.data = timezone.now().date()
                         inst.save()
                 messages.success(request, "✅ Despesas de combustível adicionadas com sucesso!")
-                return redirect("listar_despesas")
+                return redirect("listar_combustivel")
             except Exception as e:
                 messages.error(request, f"❌ Erro ao adicionar combustível: {str(e)}")
         else:
@@ -2321,7 +2347,7 @@ def deletar_despesa_fixa(request, pk):
         df.delete()
         messages.success(request, '✅ Despesa fixa eliminada.')
         return redirect('listar_despesas_fixas')
-    return render(request, 'despesas/despesa_fixa_confirm_delete.html', {'despesa': df})
+    return render(request, 'des/despesa_fixa_confirm_delete.html', {'despesa': df})
 
 
 # ---------- Depósitos Views ----------#
@@ -2344,10 +2370,13 @@ def depositos_save(request):
     """
     Salvar depósito via POST JSON ou form-POST.
     Aceita JSON no body ou form-data.
+    Se for JSON retorna JSON; se for form-POST redireciona para a listagem.
     """
     # detectar JSON independentemente de charset
     content_type = (request.META.get('CONTENT_TYPE') or request.content_type or '').lower()
-    if content_type.startswith('application/json'):
+    is_json = content_type.startswith('application/json')
+
+    if is_json:
         try:
             data = json.loads(request.body.decode('utf-8'))
         except Exception:
@@ -2363,16 +2392,26 @@ def depositos_save(request):
         observacao = request.POST.get('observacao', '')
 
     if not sector_id or not valor:
-        return JsonResponse({'ok': False, 'error': 'sector_id e valor obrigatórios'}, status=400)
+        if is_json:
+            return JsonResponse({'ok': False, 'error': 'sector_id e valor obrigatórios'}, status=400)
+        messages.error(request, 'sector_id e valor obrigatórios')
+        return redirect('depositos_view')
+
     try:
         sector = Sector.objects.get(pk=sector_id)
     except Sector.DoesNotExist:
-        return JsonResponse({'ok': False, 'error': 'Sector não encontrado'}, status=404)
+        if is_json:
+            return JsonResponse({'ok': False, 'error': 'Sector não encontrado'}, status=404)
+        messages.error(request, 'Sector não encontrado')
+        return redirect('depositos_view')
 
     try:
         valor_dec = Decimal(str(valor))
     except Exception:
-        return JsonResponse({'ok': False, 'error': 'Valor inválido'}, status=400)
+        if is_json:
+            return JsonResponse({'ok': False, 'error': 'Valor inválido'}, status=400)
+        messages.error(request, 'Valor inválido')
+        return redirect('depositos_view')
 
     dep = Deposito.objects.create(
         sector=sector,
@@ -2381,7 +2420,17 @@ def depositos_save(request):
         observacao=observacao,
         responsavel=request.user
     )
-    return JsonResponse({'ok': True, 'deposito_id': dep.id, 'valor': str(dep.valor), 'data_deposito': dep.data_deposito.isoformat() if dep.data_deposito else None})
+
+    if is_json:
+        return JsonResponse({
+            'ok': True,
+            'deposito_id': dep.id,
+            'valor': str(dep.valor),
+            'data_deposito': dep.data_deposito.isoformat() if dep.data_deposito else None
+        })
+    else:
+        messages.success(request, '✅ Depósito adicionado com sucesso!')
+        return redirect('depositos_view')
 
 
 @login_required
