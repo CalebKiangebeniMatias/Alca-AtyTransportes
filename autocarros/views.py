@@ -752,6 +752,22 @@ def exportar_relatorio_dashboard(request):
                     pass
 
     doc.add_paragraph().add_run().add_break()
+        # --- FINALIZAÇÃO E DOWNLOAD DO RELATÓRIO ---
+    from io import BytesIO
+    from django.http import HttpResponse
+
+    buffer = BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+
+    response = HttpResponse(
+        buffer.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    )
+    response['Content-Disposition'] = f'attachment; filename="Relatorio_Mensal_{mes_param}.docx"'
+
+    return response
+
 
 
 # --- ESTATÍSTICAS POR AUTOCARRO --- #
