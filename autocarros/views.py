@@ -374,11 +374,24 @@ def dashboard(request):
         total=Sum("valor", output_field=DecimalField())
     )["total"] or Decimal("0")
 
-    # despesas fixas no mês
-    total_despesas_fixas = DespesaFixa.objects.filter(
-        data__year=ano,
-        data__month=mes
-    ).aggregate(total=Sum('valor', output_field=DecimalField()))['total'] or Decimal('0')
+    qs_fixas = DespesaFixa.objects.filter(ativo=True)
+
+    # Fixas mensais: contam sempre no mês
+    mensais_qs = qs_fixas.filter(periodicidade__iexact='mensal')
+
+    # Fixas anuais: só contam se data_inicio cair no mês/ano selecionado
+    anuais_qs = qs_fixas.filter(periodicidade__iexact='anual', data_inicio__year=ano, data_inicio__month=mes)
+
+    # Únicas: só contam se data_inicio estiver no mês/ano selecionado
+    unicas_qs = qs_fixas.filter(periodicidade__iexact='único', data_inicio__year=ano, data_inicio__month=mes)
+
+    total_despesas_fixas = (
+        mensais_qs.aggregate(total=Sum('valor', output_field=DecimalField()))['total'] or Decimal('0')
+    ) + (
+        anuais_qs.aggregate(total=Sum('valor', output_field=DecimalField()))['total'] or Decimal('0')
+    ) + (
+        unicas_qs.aggregate(total=Sum('valor', output_field=DecimalField()))['total'] or Decimal('0')
+    )
 
     total_combustivel = DespesaCombustivel.objects.filter(
         data__year=ano,
@@ -508,6 +521,7 @@ def dashboard(request):
         "max_saldo": max_saldo,
     }
     return render(request, "autocarros/dashboard.html", context)
+
 
 # exportar relatorio
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
