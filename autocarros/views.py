@@ -483,6 +483,7 @@ def dashboard(request):
     }
     return render(request, "autocarros/dashboard.html", context)
 
+# exportar relatorio
 
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.utils import timezone
@@ -490,8 +491,9 @@ from django.db.models import Sum, F, DecimalField
 from django.contrib.humanize.templatetags.humanize import intcomma
 from decimal import Decimal
 from docx import Document
-from docx.shared import Pt, RGBColor
+from docx.shared import Pt, RGBColor, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.section import WD_SECTION
 from docx.oxml import parse_xml
 from docx.oxml.ns import nsdecls
 from datetime import datetime
@@ -588,101 +590,228 @@ def exportar_relatorio_dashboard(request):
         stats["resto"] = stats["total_entradas"] - stats['total_saidas']
         autocarros_stats.append(stats)
 
-    # Criar documento Word
+    # Criar documento Word em formato paisagem
     doc = Document()
+    
+    # Configurar página para paisagem
+    section = doc.sections[0]
+    section.orientation = WD_SECTION.ORIENTATION.LANDSCAPE
+    section.page_width = Inches(11.69)
+    section.page_height = Inches(8.27)
+    section.left_margin = section.right_margin = Inches(0.5)
+    section.top_margin = section.bottom_margin = Inches(0.5)
 
-    # Cabeçalho
-    titulo = doc.add_heading(f"Relatório Mensal - {mes_param}", level=1)
-    titulo.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = titulo.runs[0]
-    run.font.color.rgb = RGBColor(13, 27, 42)
-    run.font.size = Pt(20)
+    # Cabeçalho profissional
+    header_table = doc.add_table(rows=1, cols=3)
+    header_table.width = Inches(10.5)
+    header_table.autofit = False
+    
+    # Logo/Ícone (célula esquerda)
+    left_cell = header_table.cell(0, 0)
+    left_cell.width = Inches(1.5)
+    left_para = left_cell.paragraphs[0]
+    left_run = left_para.add_run("🚌")
+    left_run.font.size = Pt(28)
+    left_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-    data = doc.add_paragraph(f"Gerado em: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
-    data.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    data.runs[0].font.size = Pt(10)
+    # Título principal (célula central)
+    center_cell = header_table.cell(0, 1)
+    center_cell.width = Inches(7)
+    center_para = center_cell.paragraphs[0]
+    center_run = center_para.add_run(f"RELATÓRIO MENSAL - {mes_param}")
+    center_run.font.size = Pt(18)
+    center_run.font.bold = True
+    center_run.font.color.rgb = RGBColor(13, 27, 42)
+    center_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-    doc.add_paragraph()
+    # Data (célula direita)
+    right_cell = header_table.cell(0, 2)
+    right_cell.width = Inches(2)
+    right_para = right_cell.paragraphs[0]
+    right_run = right_para.add_run(f"{datetime.now().strftime('%d/%m/%Y')}")
+    right_run.font.size = Pt(10)
+    right_run.font.color.rgb = RGBColor(100, 100, 100)
+    right_para.alignment = WD_ALIGN_PARAGRAPH.RIGHT
 
-    # --- Resumo Geral ---
-    doc.add_heading("Resumo Geral", level=2)
-    tabela_resumo = doc.add_table(rows=4, cols=2)
+    doc.add_paragraph().add_run().add_break()  # Espaço
+
+    # --- RESUMO GERAL EM CARDS HORIZONTAIS ---
+    doc.add_heading("RESUMO GERAL DO MÊS", level=2).runs[0].font.color.rgb = RGBColor(27, 42, 73)
+    
+    tabela_resumo = doc.add_table(rows=2, cols=4)
+    tabela_resumo.width = Inches(10.5)
     tabela_resumo.style = "Table Grid"
-    dados_resumo = [
-        ("Entradas Totais", f"{intcomma(int(total_entradas))} Kz"),
-        ("Despesas Totais", f"{intcomma(int(total_saidas))} Kz"),
-        ("Remanescente", f"{intcomma(int(total_resto))} Kz"),
-        ("Período", mes_param),
+    
+    # Configurar largura das colunas
+    for i, width in enumerate([2.5, 2.5, 2.5, 2.5]):
+        tabela_resumo.columns[i].width = Inches(width)
+    
+    # Dados dos cards
+    cards_data = [
+        ("ENTRADAS TOTAIS", f"{intcomma(int(total_entradas))} Kz", "1B4F72"),
+        ("DESPESAS TOTAIS", f"{intcomma(int(total_saidas))} Kz", "C0392B"),
+        ("SALDO REMANESCENTE", f"{intcomma(int(total_resto))} Kz", "27AE60"),
+        ("EFICIÊNCIA", f"{(total_resto/total_entradas*100 if total_entradas > 0 else 0):.1f}%", "8E44AD")
     ]
-    for i, (campo, valor) in enumerate(dados_resumo):
-        tabela_resumo.cell(i, 0).text = campo
-        tabela_resumo.cell(i, 1).text = valor
-        for c in tabela_resumo.rows[i].cells:
-            c.paragraphs[0].runs[0].font.size = Pt(11)
-        if i % 2 == 0:
-            c._element.get_or_add_tcPr().append(
-                parse_xml(r'<w:shd {} w:fill="E9EEF5"/>'.format(nsdecls('w')))
-            )
-
-    doc.add_paragraph()
-
-    # --- Totais de Combustível ---
-    doc.add_heading("Despesas Específicas (Combustível / Lavagem / Sopragem)", level=2)
-    tabela_comb = doc.add_table(rows=3, cols=2)
-    tabela_comb.style = "Table Grid"
-    dados_comb = [
-        ("Combustível", f"{intcomma(int(total_combustivel_valor))} Kz"),
-        ("Sopragem de Filtros", f"{intcomma(int(total_combustivel_sobragem))} Kz"),
-        ("Lavagem", f"{intcomma(int(total_combustivel_lavagem))} Kz"),
-    ]
-    for i, (campo, valor) in enumerate(dados_comb):
-        tabela_comb.cell(i, 0).text = campo
-        tabela_comb.cell(i, 1).text = valor
-        for c in tabela_comb.rows[i].cells:
-            c.paragraphs[0].runs[0].font.size = Pt(11)
-        if i % 2 == 0:
-            c._element.get_or_add_tcPr().append(
-                parse_xml(r'<w:shd {} w:fill="D9E1F2"/>'.format(nsdecls('w')))
-            )
-
-    doc.add_paragraph()
-
-    # --- Estatísticas por Autocarro ---
-    doc.add_heading("Resumo por Autocarro", level=2)
-    tabela = doc.add_table(rows=1, cols=7)
-    tabela.style = "Table Grid"
-
-    hdr = ["Nº", "Modelo", "KM", "Entradas", "Despesas", "Remanescente", "Passag./Viagens"]
-    for i, h in enumerate(hdr):
-        cell = tabela.rows[0].cells[i]
-        cell.text = h
+    
+    for i, (titulo, valor, cor) in enumerate(cards_data):
+        cell = tabela_resumo.cell(0, i)
+        cell.text = titulo
         cell.paragraphs[0].runs[0].font.bold = True
-        cell._element.get_or_add_tcPr().append(
-            parse_xml(r'<w:shd {} w:fill="1B263B"/>'.format(nsdecls('w')))
-        )
+        cell.paragraphs[0].runs[0].font.size = Pt(10)
         cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(255, 255, 255)
+        cell._element.get_or_add_tcPr().append(
+            parse_xml(f'<w:shd {nsdecls("w")} w:fill="{cor}"/>')
+        )
+        
+        cell_valor = tabela_resumo.cell(1, i)
+        cell_valor.text = valor
+        cell_valor.paragraphs[0].runs[0].font.bold = True
+        cell_valor.paragraphs[0].runs[0].font.size = Pt(12)
+        cell_valor.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-    for s in autocarros_stats:
-        row = tabela.add_row().cells
-        row[0].text = s["autocarro"].numero
-        row[1].text = s["autocarro"].modelo or "-"
-        row[2].text = f"{s['total_km']:.0f}"
-        row[3].text = f"{intcomma(int(s['total_entradas']))} Kz"
-        row[4].text = f"{intcomma(int(s['total_saidas']))} Kz"
-        row[5].text = f"{intcomma(int(s['resto']))} Kz"
-        row[6].text = f"{s['total_passageiros']} / {s['total_viagens']}"
+    doc.add_paragraph().add_run().add_break()  # Espaço
 
-    doc.add_paragraph()
-    rodape = doc.add_paragraph("Relatório gerado automaticamente pelo Sistema de Gestão de Autocarros kiangebenimatias4@gmail.com")
-    rodape.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    rodape.runs[0].font.size = Pt(9)
-    rodape.runs[0].italic = True
-    rodape.runs[0].font.color.rgb = RGBColor(120, 120, 120)
+    # --- DESPESAS ESPECÍFICAS ---
+    doc.add_heading("DESPESAS OPERACIONAIS", level=2).runs[0].font.color.rgb = RGBColor(27, 42, 73)
+    
+    tabela_despesas = doc.add_table(rows=4, cols=3)
+    tabela_despesas.width = Inches(10.5)
+    tabela_despesas.style = "Table Grid"
+    
+    # Cabeçalho
+    cabecalho_despesas = ["CATEGORIA", "VALOR", "% DO TOTAL"]
+    for i, titulo in enumerate(cabecalho_despesas):
+        cell = tabela_despesas.cell(0, i)
+        cell.text = titulo
+        cell.paragraphs[0].runs[0].font.bold = True
+        cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(255, 255, 255)
+        cell._element.get_or_add_tcPr().append(
+            parse_xml(f'<w:shd {nsdecls("w")} w:fill="2C3E50"/>')
+        )
+    
+    # Dados das despesas
+    despesas_data = [
+        ("Combustível", total_combustivel_valor),
+        ("Sopragem de Filtros", total_combustivel_sobragem),
+        ("Lavagem", total_combustivel_lavagem),
+        ("Outras Despesas", total_saidas_despesas + total_saidas_registos)
+    ]
+    
+    for i, (categoria, valor) in enumerate(despesas_data, 1):
+        # Categoria
+        cell_cat = tabela_despesas.cell(i, 0)
+        cell_cat.text = categoria
+        if i % 2 == 0:
+            cell_cat._element.get_or_add_tcPr().append(
+                parse_xml(f'<w:shd {nsdecls("w")} w:fill="F8F9F9"/>')
+            )
+        
+        # Valor
+        cell_val = tabela_despesas.cell(i, 1)
+        cell_val.text = f"{intcomma(int(valor))} Kz"
+        cell_val.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        if i % 2 == 0:
+            cell_val._element.get_or_add_tcPr().append(
+                parse_xml(f'<w:shd {nsdecls("w")} w:fill="F8F9F9"/>')
+            )
+        
+        # Percentagem
+        cell_pct = tabela_despesas.cell(i, 2)
+        pct = (valor / total_saidas * 100) if total_saidas > 0 else 0
+        cell_pct.text = f"{pct:.1f}%"
+        cell_pct.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        if i % 2 == 0:
+            cell_pct._element.get_or_add_tcPr().append(
+                parse_xml(f'<w:shd {nsdecls("w")} w:fill="F8F9F9"/>')
+            )
+
+    doc.add_paragraph().add_run().add_break()
+
+    # --- PERFORMANCE POR AUTOCARRO ---
+    doc.add_heading("PERFORMANCE POR AUTOCARRO", level=2).runs[0].font.color.rgb = RGBColor(27, 42, 73)
+    
+    tabela_autocarros = doc.add_table(rows=1, cols=9)
+    tabela_autocarros.width = Inches(10.5)
+    tabela_autocarros.style = "Table Grid"
+    
+    # Cabeçalho expandido
+    cabecalho_auto = ["Nº", "MODELO", "KM", "ENTRADAS", "DESPESAS", "SALDO", "EFICIÊNCIA", "PASSAGEIROS", "VIAGENS"]
+    for i, titulo in enumerate(cabecalho_auto):
+        cell = tabela_autocarros.rows[0].cells[i]
+        cell.text = titulo
+        cell.paragraphs[0].runs[0].font.bold = True
+        cell.paragraphs[0].runs[0].font.color.rgb = RGBColor(255, 255, 255)
+        cell._element.get_or_add_tcPr().append(
+            parse_xml(f'<w:shd {nsdecls("w")} w:fill="1B263B"/>')
+        )
+    
+    # Dados dos autocarros
+    for i, stats in enumerate(autocarros_stats, 1):
+        row = tabela_autocarros.add_row().cells
+        autocarro = stats["autocarro"]
+        
+        eficiencia = (stats["resto"] / stats["total_entradas"] * 100) if stats["total_entradas"] > 0 else 0
+        
+        dados_auto = [
+            autocarro.numero,
+            autocarro.modelo or "-",
+            f"{stats['total_km']:,.0f}",
+            f"{intcomma(int(stats['total_entradas']))} Kz",
+            f"{intcomma(int(stats['total_saidas']))} Kz",
+            f"{intcomma(int(stats['resto']))} Kz",
+            f"{eficiencia:.1f}%",
+            f"{stats['total_passageiros']:,}",
+            f"{stats['total_viagens']:,}"
+        ]
+        
+        for j, dado in enumerate(dados_auto):
+            row[j].text = dado
+            if i % 2 == 0:  # Zebrado
+                row[j]._element.get_or_add_tcPr().append(
+                    parse_xml(f'<w:shd {nsdecls("w")} w:fill="F8F9F9"/>')
+                )
+            
+            # Alinhamento
+            if j in [2, 6, 7, 8]:  # Números
+                row[j].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            elif j in [3, 4, 5]:  # Valores monetários
+                row[j].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+
+    doc.add_paragraph().add_run().add_break()
+
+    # --- RODAPÉ PROFISSIONAL ---
+    footer_table = doc.add_table(rows=2, cols=2)
+    footer_table.width = Inches(10.5)
+    
+    # Informações da empresa
+    left_cell = footer_table.cell(0, 0)
+    left_para = left_cell.paragraphs[0]
+    left_para.add_run("Alca&Aty Transportes\n")
+    left_para.add_run("Sistema de Gestão de Autocarros\n")
+    left_para.add_run("kiangebenimatias4@gmail.com")
+    
+    # Assinatura
+    right_cell = footer_table.cell(0, 1)
+    right_para = right_cell.paragraphs[0]
+    right_para.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    right_para.add_run("Relatório gerado automaticamente\n")
+    right_para.add_run(f"Em {datetime.now().strftime('%d/%m/%Y às %H:%M')}")
+    
+    # Linha divisória
+    merge_cell = footer_table.cell(1, 0)
+    footer_table.cell(1, 1)._element.getparent().remove(footer_table.cell(1, 1)._element)
+    merge_cell.merge(footer_table.cell(1, 1))
+    merge_para = merge_cell.paragraphs[0]
+    merge_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    merge_run = merge_para.add_run("―" * 80)
+    merge_run.font.color.rgb = RGBColor(200, 200, 200)
+    merge_run.font.size = Pt(8)
 
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
-    response["Content-Disposition"] = f'attachment; filename="relatorio_dashboard_{mes_param}.docx"'
+    response["Content-Disposition"] = f'attachment; filename="relatorio_mensal_{mes_param}.docx"'
     doc.save(response)
     return response
 

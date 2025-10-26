@@ -193,62 +193,108 @@
 
     <!-- Botão para gerar relatório detalhado em PDF -->
     <div class="text-center mt-4">
-        <a href="{% url 'exportar_relatorio_dashboard' %}?mes={{ mes }}" 
+        <a id="btn_export_relatorio" href="{% url 'exportar_relatorio_dashboard' %}?mes={{ mes }}" 
             class="btn btn-gradient shadow-lg px-5 py-3 d-inline-flex align-items-center gap-2">
             <i class="fas fa-file-word fa-lg"></i>
             <span>Gerar Relatório Detalhado (Word)</span>
         </a>
     </div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function(){
-      const container = document.getElementById('resumo_values');
-      function toNumberRaw(v){
-        // tenta converter string do template para número (considera ponto ou vírgula)
-        if (v === undefined || v === null) return 0;
-        const s = String(v).trim();
-        if (s === '') return 0;
-        // remover milhares (ponto) e trocar vírgula por ponto
-        const normalized = s.replace(/\./g, '').replace(',', '.');
-        const n = Number(normalized);
-        return isNaN(n) ? 0 : n;
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const container = document.getElementById('resumo_values');
+  function toNumberRaw(v){
+    // tenta converter string do template para número (considera ponto ou vírgula)
+    if (v === undefined || v === null) return 0;
+    const s = String(v).trim();
+    if (s === '') return 0;
+    // remover milhares (ponto) e trocar vírgula por ponto
+    const normalized = s.replace(/\./g, '').replace(',', '.');
+    const n = Number(normalized);
+    return isNaN(n) ? 0 : n;
+  }
+
+  const entradas = toNumberRaw(container.dataset.entradas);
+  const saidas = toNumberRaw(container.dataset.saidas);
+  const variaveis = toNumberRaw(container.dataset.variaveis);
+  // saldo bruto (já calculado no servidor)
+  const saldo = toNumberRaw(container.dataset.saldo);
+
+  const toggle = document.getElementById('toggle_variaveis');
+  const elSaidas = document.getElementById('display_saidas');
+  const elVariaveis = document.getElementById('display_variaveis');
+  const elSaldo = document.getElementById('display_saldo');
+  const elEntradas = document.getElementById('display_entradas');
+
+  function fmtMoney(v){
+    try{
+      const n = Number(v) || 0;
+      return n.toLocaleString('pt-PT', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' Kz';
+    }catch(e){ return String(v); }
+  }
+
+  function atualizar(){
+    const mostrar = toggle.checked;
+    const saidasAtuais = mostrar ? saidas : (saidas - variaveis);
+    const saldoAtual = entradas - saidasAtuais;
+
+    elEntradas.textContent = fmtMoney(entradas);
+    elSaidas.textContent = fmtMoney(saidasAtuais);
+    elVariaveis.textContent = (variaveis ? (variaveis.toLocaleString('pt-PT', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' Kz') : '0,00 Kz');
+    elSaldo.textContent = fmtMoney(saldoAtual);
+
+    if (saldoAtual < 0) elSaldo.style.color = '#c00'; else elSaldo.style.color = '';
+  }
+
+  toggle.addEventListener('change', atualizar);
+  atualizar();
+
+  // Interceptar exportação para controlar spinner e download
+  const btnExport = document.getElementById('btn_export_relatorio');
+  if (btnExport){
+    btnExport.addEventListener('click', async function(ev){
+      ev.preventDefault();
+      const url = btnExport.href;
+      // criar overlay spinner
+      const overlay = document.createElement('div');
+      overlay.style.position = 'fixed';
+      overlay.style.left = 0; overlay.style.top = 0;
+      overlay.style.width = '100%'; overlay.style.height = '100%';
+      overlay.style.background = 'rgba(0,0,0,0.35)';
+      overlay.style.display = 'flex';
+      overlay.style.alignItems = 'center';
+      overlay.style.justifyContent = 'center';
+      overlay.style.zIndex = 2000;
+      overlay.innerHTML = '<div class="spinner-border text-light" role="status"><span class="visually-hidden">Carregando...</span></div>';
+      document.body.appendChild(overlay);
+
+      try {
+        const resp = await fetch(url, { credentials: 'same-origin' });
+        if (!resp.ok) throw new Error('Erro ao gerar relatório: ' + resp.status);
+        const blob = await resp.blob();
+        // obter filename do header Content-Disposition se existir
+        const cd = resp.headers.get('Content-Disposition') || '';
+        let filename = 'relatorio.docx';
+        const m = cd.match(/filename\*?=['"]?(?:UTF-8'')?([^;'"]+)/i);
+        if (m && m[1]) filename = decodeURIComponent(m[1]);
+
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(blobUrl);
+      } catch(err) {
+        console.error(err);
+        alert('Falha ao gerar/baixar relatório: ' + (err.message || err));
+      } finally {
+        // sempre remover o overlay para parar o loader
+        overlay.remove();
       }
-
-      const entradas = toNumberRaw(container.dataset.entradas);
-      const saidas = toNumberRaw(container.dataset.saidas);
-      const variaveis = toNumberRaw(container.dataset.variaveis);
-      // saldo bruto (já calculado no servidor)
-      const saldo = toNumberRaw(container.dataset.saldo);
-
-      const toggle = document.getElementById('toggle_variaveis');
-      const elSaidas = document.getElementById('display_saidas');
-      const elVariaveis = document.getElementById('display_variaveis');
-      const elSaldo = document.getElementById('display_saldo');
-      const elEntradas = document.getElementById('display_entradas');
-
-      function fmtMoney(v){
-        try{
-          const n = Number(v) || 0;
-          return n.toLocaleString('pt-PT', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' Kz';
-        }catch(e){ return String(v); }
-      }
-
-      function atualizar(){
-        const mostrar = toggle.checked;
-        const saidasAtuais = mostrar ? saidas : (saidas - variaveis);
-        const saldoAtual = entradas - saidasAtuais;
-
-        elEntradas.textContent = fmtMoney(entradas);
-        elSaidas.textContent = fmtMoney(saidasAtuais);
-        elVariaveis.textContent = (variaveis ? (variaveis.toLocaleString('pt-PT', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' Kz') : '0,00 Kz');
-        elSaldo.textContent = fmtMoney(saldoAtual);
-
-        if (saldoAtual < 0) elSaldo.style.color = '#c00'; else elSaldo.style.color = '';
-      }
-
-      toggle.addEventListener('change', atualizar);
-      atualizar();
     });
-    </script>
-
+  }
+});
+</script>
 {% endblock %}
