@@ -5,6 +5,32 @@
 {% block title %}Dashboard - Sistema de Autocarros{% endblock %}
 
 {% block content %}
+    <style>
+        /* 🔹 Botão moderno em gradiente */
+        .btn-gradient {
+            background: linear-gradient(135deg, #2b7a2b, #3cc13c);
+            color: #fff !important;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #3cc13c, #2b7a2b);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0, 128, 0, 0.3);
+        }
+
+        /* Ícone animado */
+        .btn-gradient i {
+            transition: transform 0.3s ease;
+        }
+
+        .btn-gradient:hover i {
+            transform: rotate(-10deg) scale(1.1);
+        }
+    </style>
 
     <!-- 🔎 Filtro de Ano e Mês -->
     <div class="row mb-4">
@@ -165,34 +191,12 @@
     </div>
 
     <!-- Botão para gerar relatório detalhado em PDF -->
-    <div class="text-center mt-3">
+    <div class="text-center mt-4">
         <a href="{% url 'exportar_relatorio_dashboard' %}?mes={{ mes }}" 
-        class="btn btn-success btn-lg">
-            <i class="fas fa-file-word"></i> Gerar Relatório Detalhado (Word)
+            class="btn btn-gradient shadow-lg px-5 py-3 d-inline-flex align-items-center gap-2">
+            <i class="fas fa-file-word fa-lg"></i>
+            <span>Gerar Relatório Detalhado (Word)</span>
         </a>
-    </div>
-
-    <div class="card mb-3">
-      <div class="card-body d-flex justify-content-between align-items-center">
-        <div>
-          <h5 class="card-title mb-0">Resumo Mensal — {{ mes }}</h5>
-          <small class="text-muted">Entradas / Saídas / Saldo</small>
-        </div>
-
-        <div class="text-end">
-          <div class="form-check form-switch mb-2">
-            <input class="form-check-input" type="checkbox" id="toggle_variaveis" checked>
-            <label class="form-check-label small" for="toggle_variaveis">Mostrar despesas variáveis</label>
-          </div>
-
-          <div class="small">
-            Entradas: <strong id="display_entradas">{{ total_entradas }}</strong><br>
-            Saídas: <strong id="display_saidas">{{ total_saidas }}</strong>
-            <small class="text-muted d-block" id="info_variaveis">(inclui variáveis: <span id="display_variaveis">{{ total_variaveis }}</span>)</small>
-            Saldo: <strong id="display_saldo">{{ total_resto }}</strong>
-          </div>
-        </div>
-      </div>
     </div>
 
     <script>
