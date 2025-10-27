@@ -453,7 +453,13 @@ class Manutencao(models.Model):
             try:
                 if (not getattr(self, 'km_proxima', None)) and (getattr(self, 'km_ultima', None) is not None):
                     # garante inteiro e evita sobrescrever se usuário já preencheu km_proxima
-                    self.km_proxima = int(self.km_ultima) + 7000
+                    self.km_proxima = int(self.km_ultima) + 4500
+                    self.km_prox_oleo_motor = int(self.km_ultima) + 7000
+                    self.km_prox_oleo_diferencial = int(self.km_ultima) + 5000
+                    self.km_prox_oleo_cambio = int(self.km_ultima) + 10000
+                    self.km_prox_filtro_combustivel = int(self.km_ultima) + 7000
+                    self.km_prox_filtro_oleo = int(self.km_ultima) + 7000
+                    self.km_prox_filtro_ar = int(self.km_ultima) + 7000
             except Exception:
                 pass
             super().save(*args, **kwargs)

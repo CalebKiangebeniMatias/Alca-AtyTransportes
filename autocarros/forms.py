@@ -344,20 +344,9 @@ class ManutencaoForm(forms.ModelForm):
             "autocarro": forms.Select(attrs={"id": "id_autocarro_select", "class":"form-select"}),
             "data_ultima": forms.DateInput(attrs={"type":"date","class":"form-control"}),
             "km_ultima": forms.NumberInput(attrs={"class":"form-control"}),
-            "km_proxima": forms.NumberInput(attrs={"class":"form-control"}),
             "custo_total": forms.NumberInput(attrs={"step":"0.01","class":"form-control"}),
             "observacao": forms.Textarea(attrs={"rows":3,"class":"form-control"}),
         }
 
-    def clean(self):
-        cleaned = super().clean()
-        km_ultima = cleaned.get("km_ultima")
-        km_proxima = cleaned.get("km_proxima")
-        # se não foi preenchido, calcula automaticamente
-        if not km_proxima and km_ultima is not None:
-            try:
-                cleaned["km_proxima"] = int(km_ultima) + 7000
-            except Exception:
-                pass
-        return cleaned
+    
 
