@@ -1,120 +1,41 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-4">
-  <div class="card">
-    <div class="card-header bg-primary text-white">
-      <h4 class="mb-0">Agendar Manutenção</h4>
-    </div>
-    <div class="card-body">
-      <form method="post" novalidate>
-        {% csrf_token %}
-        <div class="row g-3">
-          <!-- Seção: Informações Gerais -->
-          <div class="col-12">
-            <h5 class="text-primary">Informações Gerais</h5>
-            <hr>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Sector</label>
-            {{ form.sector }}
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Autocarro</label>
-            {{ form.autocarro }}
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Status</label>
-            {{ form.status }}
-          </div>
-
-          <!-- Seção: Dados da Manutenção -->
-          <div class="col-12 mt-4">
-            <h5 class="text-primary">Dados da Manutenção</h5>
-            <hr>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Data da última manutenção</label>
-            {{ form.data_ultima }}
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Km na última manutenção</label>
-            {{ form.km_ultima }}
-          </div>
-
-          <!-- Seção: Substituições -->
-          <div class="col-12 mt-4">
-            <h5 class="text-primary">Substituições e Km Previsto</h5>
-            <hr>
-          </div>
-          <div class="col-md-4">
-            <div class="form-check">
-              {{ form.oleo_motor }} {{ form.oleo_motor.label_tag }}
-            </div>
-            <label class="form-label small mt-1">Km previsto (Óleo Motor)</label>
-            {{ form.km_prox_oleo_motor }}
-          </div>
-          <div class="col-md-4">
-            <div class="form-check">
-              {{ form.oleo_diferencial }} {{ form.oleo_diferencial.label_tag }}
-            </div>
-            <label class="form-label small mt-1">Km previsto (Óleo Diferencial)</label>
-            {{ form.km_prox_oleo_diferencial }}
-          </div>
-          <div class="col-md-4">
-            <div class="form-check">
-              {{ form.oleo_cambio }} {{ form.oleo_cambio.label_tag }}
-            </div>
-            <label class="form-label small mt-1">Km previsto (Óleo Câmbio)</label>
-            {{ form.km_prox_oleo_cambio }}
-          </div>
-          <div class="col-md-4">
-            <div class="form-check">
-              {{ form.filtro_combustivel }} {{ form.filtro_combustivel.label_tag }}
-            </div>
-            <label class="form-label small mt-1">Km previsto (Filtro Combustível)</label>
-            {{ form.km_prox_filtro_combustivel }}
-          </div>
-          <div class="col-md-4">
-            <div class="form-check">
-              {{ form.filtro_oleo }} {{ form.filtro_oleo.label_tag }}
-            </div>
-            <label class="form-label small mt-1">Km previsto (Filtro Óleo)</label>
-            {{ form.km_prox_filtro_oleo }}
-          </div>
-          <div class="col-md-4">
-            <div class="form-check">
-              {{ form.filtro_ar }} {{ form.filtro_ar.label_tag }}
-            </div>
-            <label class="form-label small mt-1">Km previsto (Filtro Ar)</label>
-            {{ form.km_prox_filtro_ar }}
-          </div>
-
-          <!-- Seção: Custos e Observações -->
-          <div class="col-12 mt-4">
-            <h5 class="text-primary">Custos e Observações</h5>
-            <hr>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Custo total</label>
-            {{ form.custo_total }}
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Responsável</label>
-            {{ form.responsavel }}
-          </div>
-          <div class="col-12">
-            <label class="form-label">Observação</label>
-            {{ form.observacao }}
-          </div>
-
-          <!-- Botões -->
-          <div class="col-12 text-end mt-4">
-            <button class="btn btn-primary" type="submit">Salvar</button>
-            <a href="{% url 'manutencao_list' %}" class="btn btn-secondary">Cancelar</a>
-          </div>
+  <div class="card p-3">
+    <h4>{{ manut|default_if_none:"Agendar Manutenção" }}</h4>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Sector</label>
+          {{ form.sector }}
         </div>
-      </form>
-    </div>
+        <div class="col-md-6">
+          <label class="form-label">Autocarro</label>
+          {{ form.autocarro }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Data Última</label>
+          {{ form.data_ultima }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Km Última</label>
+          {{ form.km_ultima }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Km Próxima</label>
+          {{ form.km_proxima }}
+        </div>
+        <div class="col-12">
+          {{ form.observacao }}
+        </div>
+      </div>
+
+      <div class="mt-3">
+        <button class="btn btn-primary">Salvar</button>
+        <a class="btn btn-secondary" href="{% url 'manutencao_list' %}">Cancelar</a>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -122,22 +43,37 @@
 document.addEventListener('DOMContentLoaded', function(){
   const sectorSelect = document.getElementById('id_sector_select');
   const autSelect = document.getElementById('id_autocarro_select');
+  if (!sectorSelect || !autSelect) return;
 
-  sectorSelect && sectorSelect.addEventListener('change', async function(){
+  async function carregarAutocarros(sectorId){
+    autSelect.innerHTML = '<option value="">Carregando...</option>';
+    try{
+      const url = "{% url 'api_autocarros_por_sector' %}" + '?sector_id=' + encodeURIComponent(sectorId);
+      const resp = await fetch(url, { credentials: 'same-origin' });
+      const data = await resp.json();
+      autSelect.innerHTML = '<option value="">-- Selecionar --</option>';
+      if (data.ok && Array.isArray(data.autocarros)){
+        data.autocarros.forEach(a => {
+          const opt = document.createElement('option');
+          opt.value = a.id;
+          opt.textContent = a.numero + (a.modelo ? ' — ' + a.modelo : '');
+          autSelect.appendChild(opt);
+        });
+      }
+    }catch(err){
+      autSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+      console.error(err);
+    }
+  }
+
+  sectorSelect.addEventListener('change', function(){
     const sid = this.value;
-    if (!sid) { autSelect.innerHTML = '<option value="">-- Escolha sector --</option>'; return; }
-    const resp = await fetch("{% url 'api_autocarros_por_sector' %}?sector_id=" + sid, {credentials:'same-origin'});
-    if (!resp.ok) return;
-    const data = await resp.json();
-    if (!data.ok) return;
-    autSelect.innerHTML = '<option value="">-- Escolha autocarro --</option>';
-    data.autocarros.forEach(a=>{
-      const opt = document.createElement('option');
-      opt.value = a.id;
-      opt.textContent = a.numero + (a.modelo ? ' — ' + a.modelo : '');
-      autSelect.appendChild(opt);
-    });
+    if (sid) carregarAutocarros(sid);
+    else autSelect.innerHTML = '<option value="">-- Selecionar --</option>';
   });
+
+  // Se já existir sector selecionado no form, carregar autos ao abrir
+  if (sectorSelect.value) carregarAutocarros(sectorSelect.value);
 });
 </script>
 {% endblock %}

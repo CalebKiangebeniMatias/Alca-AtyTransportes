@@ -2922,10 +2922,6 @@ def cobrador_viagens_validate_action(request):
 @login_required
 @acesso_restrito(['admin', 'gestor'])
 def manutencao_create(request):
-    """
-    Página para agendar manutenção.
-    Seleciona setor → carrega autocarros do setor → preenche campos e salva.
-    """
     if request.method == 'POST':
         form = ManutencaoForm(request.POST, request.FILES)
         if form.is_valid():
@@ -2936,9 +2932,17 @@ def manutencao_create(request):
             messages.success(request, '✅ Manutenção agendada com sucesso.')
             return redirect('manutencao_list')
         else:
-            messages.error(request, '❌ Formulário inválido. Verifique os campos.')
+            # Mostrar erros detalhados para ajudar debug
+            non_field = form.non_field_errors()
+            if non_field:
+                for e in non_field:
+                    messages.error(request, f"Erro: {e}")
+            for field, errs in form.errors.items():
+                msgs = ", ".join(errs)
+                messages.error(request, f"{field}: {msgs}")
     else:
-        form = ManutencaoForm()
+        # atribui responsavel por defeito para facilitar o POST
+        form = ManutencaoForm(initial={"responsavel": request.user})
 
     sectores = Sector.objects.all().order_by('nome')
     return render(request, 'autocarros/manutencao_form.html', {'form': form, 'sectores': sectores})
