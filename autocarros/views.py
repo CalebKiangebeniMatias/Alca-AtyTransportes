@@ -2923,29 +2923,36 @@ def cobrador_viagens_validate_action(request):
 @acesso_restrito(['admin', 'gestor'])
 def manutencao_create(request):
     if request.method == 'POST':
-        form = ManutencaoForm(request.POST, request.FILES)
+        form = ManutencaoForm(request.POST)
         if form.is_valid():
             m = form.save(commit=False)
+
+            # Define automaticamente o responsável (se não estiver definido)
             if not m.responsavel:
                 m.responsavel = request.user
+
+            # 🔹 Os campos automáticos (km_proxima, km_prox_*) são calculados no save()
             m.save()
-            messages.success(request, '✅ Manutenção agendada com sucesso.')
+
+            messages.success(request, '✅ Manutenção agendada com sucesso!')
             return redirect('manutencao_list')
         else:
-            # Mostrar erros detalhados para ajudar debug
-            non_field = form.non_field_errors()
-            if non_field:
-                for e in non_field:
-                    messages.error(request, f"Erro: {e}")
-            for field, errs in form.errors.items():
-                msgs = ", ".join(errs)
-                messages.error(request, f"{field}: {msgs}")
-    else:
-        # atribui responsavel por defeito para facilitar o POST
-        form = ManutencaoForm(initial={"responsavel": request.user})
+            # 🔹 Exibe mensagens de erro legíveis
+            for field, errors in form.errors.items():
+                for e in errors:
+                    messages.error(request, f"{field}: {e}")
 
+    else:
+        # inicializa o formulário com o responsável atual
+        form = ManutencaoForm(initial={'responsavel': request.user})
+
+    # 🔹 Carrega os setores para o select dinâmico
     sectores = Sector.objects.all().order_by('nome')
-    return render(request, 'autocarros/manutencao_form.html', {'form': form, 'sectores': sectores})
+
+    return render(request, 'autocarros/manutencao_form.html', {
+        'form': form,
+        'sectores': sectores,
+    })
 
 
 @login_required
