@@ -161,11 +161,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Mostrar total de despesas variáveis do grupo -->
-                            <div class="mt-2 text-end">
-                                <small class="text-muted">Despesas Variáveis do Grupo: <strong class="text-danger">{% localize on %}{{ grupo.total_variaveis|floatformat:2 }}{% endlocalize %} Kz</strong></small>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -306,42 +301,6 @@
                                                 <i class="fas fa-bucket text-danger"></i> Lavagem: <strong>{% localize on %}{{ reg.combustivel_lavagem|floatformat:2 }}{% endlocalize %} Kz</strong>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    <!-- 🔹 Despesas Variáveis (novo) -->
-                                    <div class="border-start border-3 border-secondary ps-3 mb-3">
-                                        <h6 class="text-secondary mb-2">
-                                            <i class="fas fa-receipt me-1"></i> Despesas Variáveis
-                                        </h6>
-
-                                        {% if reg.total_variaveis and reg.total_variaveis|floatformat:2 != "0.00" %}
-                                            <ul class="list-group mb-2">
-                                                {% for dv in reg.despesas_variaveis %}
-                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                        <div class="small">
-                                                            <strong>{{ dv.data|date:"d/m/Y" }}</strong> — {{ dv.descricao|default:"Despesa" }}
-                                                            {% if dv.autocarro %} <br><span class="text-muted small">Autocarro: {{ dv.autocarro.numero }}</span>{% endif %}
-                                                            {% if dv.sector and not dv.autocarro %} <br><span class="text-muted small">Sector: {{ dv.sector.nome }}</span>{% endif %}
-                                                        </div>
-                                                        <span class="text-danger fw-bold">{% localize on %}{{ dv.valor|floatformat:2 }}{% endlocalize %} Kz</span>
-                                                    </li>
-                                                {% endfor %}
-                                            </ul>
-
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div class="text-muted small">Total Despesas Variáveis:</div>
-                                                <div class="fw-bold text-danger">{% localize on %}{{ reg.total_variaveis|floatformat:2 }}{% endlocalize %} Kz</div>
-                                            </div>
-
-                                            <div class="text-center mt-2 p-2 rounded" style="background:#ffffff;">
-                                                <small class="d-block text-muted mb-1">Saldo após subtrair despesas variáveis</small>
-                                                <div class="h5 mb-0" style="color:#0d47a1; font-weight:700;">
-                                                    {% localize on %}{{ reg.saldo_apos_variaveis|floatformat:2 }}{% endlocalize %} Kz
-                                                </div>
-                                            </div>
-                                        {% else %}
-                                            <div class="text-muted small">Nenhuma despesa variável registada para este registo.</div>
-                                        {% endif %}
                                     </div>
 
                                     <!-- 🔹 Dados Operacionais -->
@@ -490,12 +449,7 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Mostrar Total de Despesas Variáveis gerais -->
-                <div class="mt-3 text-end">
-                    <small class="text-muted">Total Despesas Variáveis: <strong class="text-danger">{% localize on %}{{ totais.total_variaveis|floatformat:2 }}{% endlocalize %} Kz</strong></small>
-                </div>
-            </div>
+           </div>
         </div>
     {% else %}
         <div class="card shadow-lg">

@@ -11,7 +11,7 @@ from django.forms import modelformset_factory
 from django.db.models.functions import TruncMonth
 from autocarros.decorators import acesso_restrito
 from .models import Autocarro, CobradorViagem, Comprovativo, ComprovativoRelatorio, Deposito, DespesaCombustivel, DespesaFixa, Manutencao, RegistoDiario, Despesa, RegistroKM, RegistroKMItem, RelatorioSector, Sector, Motorista
-from .forms import DespesaCombustivelForm, DespesaFixaForm, EstadoAutocarroForm, AutocarroForm, DespesaForm, ComprovativoFormSet, ManutencaoForm, MultiFileForm,RegistoDiarioFormSet, RelatorioSectorForm, SectorForm, SectorGestorForm, SelecionarSectorCombustivelForm
+from .forms import DespesaCombustivelForm, DespesaFixaForm, EstadoAutocarroForm, AutocarroForm, DespesaForm, ComprovativoFormSet, ManutencaoForm, MultiFileForm,RegistoDiarioFormSet, RelatorioSectorForm, SectorForm, SectorGestorForm, SelecionarSectorCombustivelForm, RegistoDiarioForm
 from autocarros import models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
@@ -27,7 +27,8 @@ from django.views.decorators.http import require_POST
 
 
 
-# Decorator para só admins poderem associar gestores
+
+# === Decorator para só admins poderem associar gestores === #
 @login_required
 @acesso_restrito(['admin'])
 def admin_required(user):
@@ -140,6 +141,7 @@ def logout_view(request):
     return redirect('login')
 
 
+# === Admin Dashboard View === #
 @login_required
 @acesso_restrito(['admin'])
 def admin_dashboard(request):
@@ -151,7 +153,7 @@ def admin_dashboard(request):
     }
     return render(request, 'admin_dashboard.html', context)
 
-
+#=== Perfil do Usuário View === #
 @login_required
 def perfil(request):
     return render(request, 'autocarros/perfil.html', {'user': request.user})
@@ -180,10 +182,12 @@ def editar_usuario(request, user_id):
     return render(request, 'editar_usuario.html', {'form': form, 'usuario': usuario})
 
 
+# === Acesso Negado View === #
 def acesso_negado(request):
     return render(request, 'acesso_negado.html', status=403)
 
 
+# === Verificar Integridade dos Dados === #
 @login_required
 @acesso_restrito(['admin'])
 def verificar_integridade(request):
@@ -245,12 +249,14 @@ def verificar_integridade(request):
     return render(request, "autocarros/verificar_integridade.html", context)
 
 
+# === Sector Management Views === #
 @login_required
 def layout_base(request):
     sectores = Sector.objects.all()
     return render(request, "base.html", {"sectores": sectores})
 
 
+# === Lista de Setores === #
 @login_required
 @acesso_restrito(['admin'])
 def lista_sectores(request):
@@ -305,6 +311,7 @@ def apagar_sector(request, pk):
     return render(request, "autocarros/confirmar_apagar_sector.html", {"sector": sector})
 
 
+# === Dashboard View === #
 @login_required
 @acesso_restrito(['admin'])
 def dashboard(request):
@@ -522,8 +529,7 @@ def dashboard(request):
     }
     return render(request, "autocarros/dashboard.html", context)
 
-
-# exportar relatorio
+#================================== Arquivo World ========================================== #
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.utils import timezone
 from django.db.models import Sum, F, DecimalField
@@ -539,7 +545,7 @@ from .models import RegistoDiario, Despesa, DespesaCombustivel, Autocarro
 from .decorators import acesso_restrito
 from django.contrib.auth.decorators import login_required
 
-
+# === Exportar Relatório do Dashboard === #
 @login_required
 @acesso_restrito(['admin'])
 def exportar_relatorio_dashboard(request):
@@ -876,7 +882,7 @@ def exportar_relatorio_dashboard(request):
 
 
 
-# --- ESTATÍSTICAS POR AUTOCARRO --- #
+# === ESTATÍSTICAS POR AUTOCARRO === #
 @login_required
 @acesso_restrito(['admin', 'gestor'])
 def resumo_sector(request, slug):
@@ -884,21 +890,18 @@ def resumo_sector(request, slug):
 
     nivel = request.user.nivel_acesso.lower()
 
-    # ---- Validação de acesso ----
     if nivel == 'gestor':
         if sector_obj.gestor_id != request.user.id:
-            return redirect('acesso_negado')  # 🚫 redireciona
+            return redirect('acesso_negado')
 
     elif nivel == 'associado':
         if not sector_obj.associados.filter(pk=request.user.pk).exists():
-            return redirect('acesso_negado')  # 🚫 redireciona
+            return redirect('acesso_negado')
 
     elif nivel in ['admin']:
-        pass  # acesso total permitido
-
+        pass
     else:
         return redirect('acesso_negado')
-
 
     data_inicio = request.GET.get("data_inicio")
     data_fim = request.GET.get("data_fim")
@@ -912,7 +915,6 @@ def resumo_sector(request, slug):
     if data_fim:
         registos = registos.filter(data__lte=parse_date(data_fim))
 
-    # Totais gerais
     total_entradas = registos.aggregate(
         total=Sum(F("normal") + F("alunos") + F("luvu") + F("frete"), output_field=DecimalField())
     )["total"] or 0
@@ -924,7 +926,7 @@ def resumo_sector(request, slug):
     total_km = registos.aggregate(Sum("km_percorridos"))["km_percorridos__sum"] or 0
     total_passageiros = registos.aggregate(Sum("numero_passageiros"))["numero_passageiros__sum"] or 0
     total_viagens = registos.aggregate(Sum("numero_viagens"))["numero_viagens__sum"] or 0
-    # Agregar despesas de combustível para o filtro
+
     combustivel_agregado = DespesaCombustivel.objects.filter(autocarro__sector=sector_obj)
     if data_inicio:
         combustivel_agregado = combustivel_agregado.filter(data__gte=parse_date(data_inicio))
@@ -943,10 +945,8 @@ def resumo_sector(request, slug):
     total_combustivel_sobragem = comb_totais.get('total_sobragem') or Decimal('0')
     total_combustivel_lavagem = comb_totais.get('total_lavagem') or Decimal('0')
 
-    # incluir também sobragem e lavagem nas saídas do sector
     total_saidas_incl_combustivel = total_saidas + total_combustivel_valor + total_combustivel_sobragem + total_combustivel_lavagem
 
-    # Agregar despesas gerais do setor (não confundir com despesas de combustivel)
     despesas_qs = Despesa.objects.filter(sector=sector_obj)
     if data_inicio:
         despesas_qs = despesas_qs.filter(data__gte=parse_date(data_inicio))
@@ -955,12 +955,10 @@ def resumo_sector(request, slug):
     despesas_totais_ag = despesas_qs.aggregate(total=Sum('valor', output_field=DecimalField()))
     total_despesas_sector = despesas_totais_ag.get('total') or Decimal('0')
 
-    # total final de saídas inclui também as despesas do modelo Despesa
     total_saidas_final = total_saidas_incl_combustivel + total_despesas_sector
 
     resto = total_entradas - total_saidas_final
 
-    # Estatísticas por autocarro
     autocarros_stats = []
     for autocarro in Autocarro.objects.filter(sector=sector_obj):
         registos_auto = registos.filter(autocarro=autocarro)
@@ -976,7 +974,7 @@ def resumo_sector(request, slug):
             "total_passageiros": registos_auto.aggregate(Sum("numero_passageiros"))["numero_passageiros__sum"] or 0,
             "total_viagens": registos_auto.aggregate(Sum("numero_viagens"))["numero_viagens__sum"] or 0,
         }
-        # combustível por autocarro no período
+
         comb_auto = combustivel_agregado.filter(autocarro=autocarro).aggregate(
             total_valor=Sum('valor', output_field=DecimalField()),
             total_litros=Sum('valor_litros', output_field=DecimalField()),
@@ -988,7 +986,6 @@ def resumo_sector(request, slug):
         stats['total_combustivel_sobragem'] = comb_auto.get('total_sobragem') or Decimal('0')
         stats['total_combustivel_lavagem'] = comb_auto.get('total_lavagem') or Decimal('0')
 
-        # Ajustar saídas por autocarro para incluir sobragem e lavagem
         stats['total_saidas'] = stats['total_saidas'] + stats.get('total_combustivel', Decimal('0')) + stats.get('total_combustivel_sobragem', Decimal('0')) + stats.get('total_combustivel_lavagem', Decimal('0'))
         stats["resto"] = stats["total_entradas"] - stats["total_saidas"]
         autocarros_stats.append(stats)
@@ -1007,19 +1004,19 @@ def resumo_sector(request, slug):
         "total_combustivel_sobragem": total_combustivel_sobragem,
         "total_combustivel_lavagem": total_combustivel_lavagem,
         "total_despesas_sector": total_despesas_sector,
-        # dados para gráfico (Entradas vs Saídas)
+        
         "chart_entradas": float(total_entradas),
         "chart_saidas": float(total_saidas_final),
         "data_inicio": data_inicio,
         "data_fim": data_fim,
-        # Despesas do setor (opcionais: filtrar por data)
+      
         "despesas_sector": Despesa.objects.filter(sector=sector_obj)
             .order_by('-data')
             .filter(**({} if not data_inicio else {"data__gte": parse_date(data_inicio)}))
             .filter(**({} if not data_fim else {"data__lte": parse_date(data_fim)})),
     }
 
-    # Montar mensagem para WhatsApp (texto bem formatado)
+    #Mensagem para WhatsApp (texto bem formatado)
     try:
         lines = []
         lines.append(f"Resumo do Sector: {sector_obj.nome}")
@@ -1030,7 +1027,7 @@ def resumo_sector(request, slug):
         lines.append(f"- Entradas: {float(total_entradas):,.2f} Kz")
         lines.append(f"- Saídas (incl. comb.): {float(total_saidas_incl_combustivel):,.2f} Kz")
         lines.append(f"- Combustível: {float(total_combustivel_valor):,.2f} Kz | Litros: {float(total_combustivel_litros):,.2f}")
-        lines.append(f"  (Sobragem: {float(total_combustivel_sobragem):,.2f} Kz | Lavagem: {float(total_combustivel_lavagem):,.2f} Kz)")
+        lines.append(f"  (Sopragem: {float(total_combustivel_sobragem):,.2f} Kz | Lavagem: {float(total_combustivel_lavagem):,.2f} Kz)")
         lines.append(f"- Resto: {float(resto):,.2f} Kz")
         lines.append("")
         lines.append("Resumo por Autocarro:")
@@ -1044,7 +1041,7 @@ def resumo_sector(request, slug):
                 continue
 
         lines.append("")
-        lines.append("Despesas do Sector (últimas):")
+        lines.append("Despesas Da Região (últimas):")
         despesas = context.get('despesas_sector', [])[:10]
         if despesas:
             for d in despesas:
@@ -1071,6 +1068,7 @@ def resumo_sector(request, slug):
     return render(request, "autocarros/resumo_sector.html", context)
 
 
+# === DETALHE POR AUTOCARRO === #
 @login_required
 @acesso_restrito(['admin'])
 def detalhe_autocarro(request, autocarro_id):
@@ -1159,17 +1157,17 @@ def detalhe_autocarro(request, autocarro_id):
     return render(request, 'autocarros/detalhe_autocarro.html', contexto)
 
 
-# autocarros/views.py
+# === LISTAR REGISTROS DIÁRIOS COM FILTROS E AGRUPAMENTOS === #
 from django.utils import timezone
 from datetime import date
 from decimal import Decimal
 from django.db.models import Q, Sum
-from .models import Despesa  # certifique-se que Despesa está importado
+from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib.auth.decorators import login_required
+from urllib.parse import quote_plus
+from .models import RegistoDiario, DespesaCombustivel, Sector
 
 
-# ...existing code...
-@login_required
-# ...existing code...
 @login_required
 def listar_registros(request):
     hoje = timezone.now().date()
@@ -1186,18 +1184,15 @@ def listar_registros(request):
     if sector_id:
         sector_obj = get_object_or_404(Sector, id=sector_id)
 
-    # 🔒 ---- Validação de acesso (ANTES de carregar registros) ----
+    # 🔒 ---- Validação de acesso ----
     if nivel == 'gestor':
-        # gestor só pode ver setores que ele gerencia
         if sector_obj:
             if sector_obj.gestor_id != request.user.id:
                 return redirect('acesso_negado')
         else:
-            # não selecionou setor → filtra só pelos setores do gestor
             sectores_permitidos = Sector.objects.filter(gestor=request.user)
 
     elif nivel == 'associado':
-        # associado só pode ver setores em que está associado
         if sector_obj:
             if not sector_obj.associados.filter(pk=request.user.pk).exists():
                 return redirect('acesso_negado')
@@ -1205,7 +1200,6 @@ def listar_registros(request):
             sectores_permitidos = Sector.objects.filter(associados=request.user)
 
     elif nivel in ['admin', 'superuser']:
-        # admin/superuser têm acesso total
         sectores_permitidos = Sector.objects.all()
 
     else:
@@ -1214,25 +1208,25 @@ def listar_registros(request):
     # 🔹 ---- Consulta segura ----
     registros = RegistoDiario.objects.select_related('autocarro__sector')
 
-    # Se tiver setor escolhido e validado
     if sector_obj:
         registros = registros.filter(autocarro__sector=sector_obj)
     else:
-        # Caso não tenha setor escolhido, mostra só os setores permitidos
         registros = registros.filter(autocarro__sector__in=sectores_permitidos)
 
     if data_inicio:
         registros = registros.filter(data__gte=data_inicio)
-
     if data_fim:
         registros = registros.filter(data__lte=data_fim)
 
-    # 🔹 Agregar despesas de combustível por autocarro/data
+    # 🔹 Agregar despesas de combustível
     combustivel_map = {}
     if registros.exists():
         autocarro_ids = set(registros.values_list('autocarro_id', flat=True))
         datas = set(registros.values_list('data', flat=True))
-        combustiveis = DespesaCombustivel.objects.filter(autocarro_id__in=autocarro_ids, data__in=datas)
+        combustiveis = DespesaCombustivel.objects.filter(
+            autocarro_id__in=autocarro_ids,
+            data__in=datas
+        )
 
         from collections import defaultdict
         agg = defaultdict(lambda: {
@@ -1250,35 +1244,18 @@ def listar_registros(request):
             agg[key]['total_sobragem_filtros'] += c.sobragem_filtros or Decimal('0')
             agg[key]['total_lavagem'] += c.lavagem or Decimal('0')
             if c.comprovativo:
-                agg[key]['comprovativos'].append(c.comprovativo.url if hasattr(c.comprovativo, 'url') else str(c.comprovativo))
+                url = c.comprovativo.url if hasattr(c.comprovativo, 'url') else str(c.comprovativo)
+                agg[key]['comprovativos'].append(url)
 
-        for k, v in agg.items():
-            combustivel_map[k] = v
+        combustivel_map = dict(agg)
 
-    # 🔹 Ordenar por data (mais recente primeiro) e sector
+    # 🔹 Ordenar e agrupar
     registros = registros.order_by('-data', 'autocarro__sector__nome', 'autocarro__numero')
-
-    # 🔹 Agrupar registros por data e sector e anexar despesas variáveis
-    # ...existing code...
-    # 🔹 Agrupar registros por data e sector e anexar despesas variáveis
     registros_agrupados = {}
+
     for registro in registros:
         chave = f"{registro.data.isoformat()}_{registro.autocarro.sector.id}"
         if chave not in registros_agrupados:
-            # calcular despesas variáveis DO DIA NO SECTOR (apenas uma vez por grupo)
-            try:
-                total_variaveis_grupo = Despesa.objects.filter(
-                    sector=registro.autocarro.sector,
-                    data=registro.data
-                ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
-                despesas_grupo_qs = Despesa.objects.filter(
-                    sector=registro.autocarro.sector,
-                    data=registro.data
-                ).order_by('-data')
-            except Exception:
-                total_variaveis_grupo = Decimal('0')
-                despesas_grupo_qs = Despesa.objects.none()
-
             registros_agrupados[chave] = {
                 'data': registro.data,
                 'sector': registro.autocarro.sector,
@@ -1286,26 +1263,18 @@ def listar_registros(request):
                 'total_entradas': Decimal('0'),
                 'total_saidas': Decimal('0'),
                 'total_saldo': Decimal('0'),
-                'total_variaveis': total_variaveis_grupo,  # agora é por dia+sector
-                'despesas_variaveis_do_grupo': list(despesas_grupo_qs),
             }
 
-        # anexar totais de combustível (se existirem) ao objeto registro
         key = f"{registro.autocarro_id}_{registro.data.isoformat()}"
         comb = combustivel_map.get(key)
+
+        # Combustível agregado
         if comb:
-            if isinstance(comb, dict):
-                registro.combustivel_total = comb.get('total_valor', Decimal('0'))
-                registro.combustivel_valor_litros = comb.get('total_valor_litros', Decimal('0'))
-                registro.combustivel_sobragem = comb.get('total_sobragem_filtros', Decimal('0'))
-                registro.combustivel_lavagem = comb.get('total_lavagem', Decimal('0'))
-                registro.comprovativos_combustivel = comb.get('comprovativos', [])
-            else:
-                registro.combustivel_total = getattr(comb, 'valor', Decimal('0')) or Decimal('0')
-                registro.combustivel_valor_litros = getattr(comb, 'valor_litros', Decimal('0')) or Decimal('0')
-                registro.combustivel_sobragem = getattr(comb, 'sobragem_filtros', Decimal('0')) or Decimal('0')
-                registro.combustivel_lavagem = getattr(comb, 'lavagem', Decimal('0')) or Decimal('0')
-                registro.comprovativos_combustivel = [comb.comprovativo.url] if getattr(comb, 'comprovativo', None) else []
+            registro.combustivel_total = comb.get('total_valor', Decimal('0'))
+            registro.combustivel_valor_litros = comb.get('total_valor_litros', Decimal('0'))
+            registro.combustivel_sobragem = comb.get('total_sobragem_filtros', Decimal('0'))
+            registro.combustivel_lavagem = comb.get('total_lavagem', Decimal('0'))
+            registro.comprovativos_combustivel = comb.get('comprovativos', [])
         else:
             registro.combustivel_total = Decimal('0')
             registro.combustivel_valor_litros = Decimal('0')
@@ -1313,59 +1282,45 @@ def listar_registros(request):
             registro.combustivel_lavagem = Decimal('0')
             registro.comprovativos_combustivel = []
 
-        # atribuir saídas e saldo que incluem combustível
+        # Totais com combustível
         try:
-            registro.saidas_total_incl_combustivel = registro.saidas_total() + registro.combustivel_total + registro.combustivel_sobragem + registro.combustivel_lavagem
+            registro.saidas_total_incl_combustivel = (
+                registro.saidas_total()
+                + registro.combustivel_total
+                + registro.combustivel_sobragem
+                + registro.combustivel_lavagem
+            )
         except Exception:
             registro.saidas_total_incl_combustivel = registro.saidas_total()
 
         try:
-            registro.saldo_liquido_incl_combustivel = registro.entradas_total() - registro.saidas_total_incl_combustivel
+            registro.saldo_liquido_incl_combustivel = (
+                registro.entradas_total() - registro.saidas_total_incl_combustivel
+            )
         except Exception:
             registro.saldo_liquido_incl_combustivel = registro.saldo_liquido()
 
+        # Preço por litro
         try:
             if registro.combustivel_valor_litros and registro.combustivel_valor_litros != Decimal('0'):
-                registro.preco_litro = (registro.combustivel_total / registro.combustivel_valor_litros)
+                registro.preco_litro = registro.combustivel_total / registro.combustivel_valor_litros
             else:
                 registro.preco_litro = None
         except Exception:
             registro.preco_litro = None
 
-        # anexar ao registro as despesas do grupo (dia+sector) para exibição
-        # OBS: estas despesas são por sector+dia — não adicionamos por registo para evitar duplicação
-        registro.despesas_variaveis = registros_agrupados[chave].get('despesas_variaveis_do_grupo', [])
-        registro.total_variaveis = registros_agrupados[chave].get('total_variaveis', Decimal('0'))
-
-        # adicionar registro ao agrupamento e atualizar totais do grupo
         registros_agrupados[chave]['registos'].append(registro)
         registros_agrupados[chave]['total_entradas'] += registro.entradas_total()
         registros_agrupados[chave]['total_saidas'] += registro.saidas_total_incl_combustivel
-        # NOTA: não somamos registro.total_variaveis por registro (já está no campo group total_variaveis)
+        registros_agrupados[chave]['total_saldo'] += (
+            registro.entradas_total() - registro.saidas_total_incl_combustivel
+        )
 
-        # recalcular saldo parcial do grupo (entradas - saídas (aqui ainda sem variáveis))
-        registros_agrupados[chave]['total_saldo'] += registro.entradas_total() - registro.saidas_total_incl_combustivel
-
-    # Depois de montar todos os registos, ajustar cada grupo para incluir as despesas variáveis DO DIA+SECTOR apenas uma vez
-    for g in registros_agrupados.values():
-        try:
-            g_total_variaveis = g.get('total_variaveis', Decimal('0')) or Decimal('0')
-            g['total_saidas'] += g_total_variaveis
-            # recalcular saldo final do grupo
-            g['total_saldo'] = g['total_entradas'] - g['total_saidas']
-        except Exception:
-            continue
-
-    # 🔹 Calcular totais gerais BASEADOS NOS GRUPOS (evita dupla contagem)
-    total_entradas = sum([g['total_entradas'] for g in registros_agrupados.values()]) if registros_agrupados else Decimal('0')
-    total_saidas = sum([g['total_saidas'] for g in registros_agrupados.values()]) if registros_agrupados else Decimal('0')
-    total_saldo = sum([g['total_saldo'] for g in registros_agrupados.values()]) if registros_agrupados else Decimal('0')
-
-    # total_combustivel: somar valores agregados no combustivel_map (já filtrado pelos registos)
-    total_combustivel = sum([v.get('total_valor', Decimal('0')) for v in combustivel_map.values()]) if combustivel_map else Decimal('0')
-
-    # total_variaveis_geral: soma única por grupo (sector+dia)
-    total_variaveis_geral = sum([g.get('total_variaveis', Decimal('0')) for g in registros_agrupados.values()]) if registros_agrupados else Decimal('0')
+    # 🔹 Totais gerais
+    total_entradas = sum(g['total_entradas'] for g in registros_agrupados.values())
+    total_saidas = sum(g['total_saidas'] for g in registros_agrupados.values())
+    total_saldo = sum(g['total_saldo'] for g in registros_agrupados.values())
+    total_combustivel = sum(v.get('total_valor', Decimal('0')) for v in combustivel_map.values())
 
     totais = {
         'total_entradas': total_entradas,
@@ -1373,45 +1328,32 @@ def listar_registros(request):
         'total_saldo': total_saldo,
         'total_autocarros': registros.count(),
         'total_combustivel': total_combustivel,
-        'total_variaveis': total_variaveis_geral,
     }
 
-    # Preparar link do WhatsApp para cada grupo (mensagem bem formatada)
-    for g in registros_agrupados.values():
+    # 🔹 Gerar mensagens de WhatsApp
+    def fmt_money(valor):
         try:
-            data_str = g['data'].strftime('%d/%m/%Y')
+            d = Decimal(valor)
         except Exception:
-            data_str = str(g['data'])
+            return "0,00"
+        sign = '-' if d < 0 else ''
+        d = abs(d).quantize(Decimal('0.01'))
+        s = f"{d:.2f}"
+        integer, frac = s.split('.')
+        integer = '{:,}'.format(int(integer)).replace(',', '.')
+        return f"{sign}{integer},{frac}"
+
+    for g in registros_agrupados.values():
+        data_str = g['data'].strftime('%d/%m/%Y')
         sector_name = g['sector'].nome if g.get('sector') else 'Geral'
-        descricao = '-'
-        if g['registos'] and getattr(g['registos'][0], 'relatorio', None):
-            descricao = g['registos'][0].relatorio.descricao or '-'
+        descricao = getattr(g['registos'][0].relatorio, 'descricao', '-') if g['registos'] else '-'
 
-      
-        parts = []
-        parts.append(f"📅 DATA: {data_str}")
-        parts.append(f"🏢 RELATÓRIO DO DIA: {sector_name}")
-        parts.append("")
-        parts.append(f"📝 DESCRIÇÃO: {descricao}")
-
-        # helper local para formatar valores: milhar com ponto e centavos com vírgula
-        def fmt_money(valor):
-            try:
-                d = Decimal(valor)
-            except Exception:
-                try:
-                    return str(valor)
-                except Exception:
-                    return "0,00"
-            sign = '-' if d < 0 else ''
-            d = abs(d).quantize(Decimal('0.01'))
-            s = f"{d:.2f}"  # "1234.56"
-            integer, frac = s.split('.')
-            try:
-                integer_with_sep = '{:,}'.format(int(integer)).replace(',', '.')
-            except Exception:
-                integer_with_sep = integer
-            return f"{sign}{integer_with_sep},{frac}"
+        parts = [
+            f"📅 DATA: {data_str}",
+            f"🏢 RELATÓRIO DO DIA: {sector_name}",
+            "",
+            f"📝 DESCRIÇÃO: {descricao}",
+        ]
 
         for reg in g['registos']:
             parts.append("")
@@ -1422,79 +1364,44 @@ def listar_registros(request):
             parts.append(f"👨‍💼 Cobrador Principal: {reg.cobrador_principal or 'N/A'}")
             parts.append(f"👨‍💼 Cobrador Auxiliar: {reg.cobrador_auxiliar or 'N/A'}")
             parts.append("")
-            if sector_name.lower() == 'luanda':
-                parts.append("✅ Entradas (Manhã/Tarde)")
-                parts.append(f"Manhã (Normal): {fmt_money(getattr(reg, 'normal', 0))}kz")
-                parts.append(f"Tarde (Alunos): {fmt_money(getattr(reg, 'alunos', 0))}kz")
-            else:
-                parts.append("✅ Entradas")
-                parts.append(f"Normal: {fmt_money(getattr(reg, 'normal', 0))}kz")
-                parts.append(f"Alunos: {fmt_money(getattr(reg, 'alunos', 0))}kz")
+            parts.append("✅ Entradas")
+            parts.append(f"Normal: {fmt_money(getattr(reg, 'normal', 0))}kz")
+            parts.append(f"Alunos: {fmt_money(getattr(reg, 'alunos', 0))}kz")
             parts.append(f"Luvu: {fmt_money(getattr(reg, 'luvu', 0))}kz")
             parts.append(f"Frete: {fmt_money(getattr(reg, 'frete', 0))}kz")
-            try:
-                entradas_total = reg.entradas_total()
-            except Exception:
-                entradas_total = Decimal('0')
-            parts.append(f"➡️ Total Entradas: {fmt_money(entradas_total)}kz")
+            parts.append(f"➡️ Total Entradas: {fmt_money(reg.entradas_total())}kz")
             parts.append("")
             parts.append("❌ Saídas")
             parts.append(f"Alimentação: {fmt_money(getattr(reg, 'alimentacao', 0))}kz")
             parts.append(f"Parqueamento: {fmt_money(getattr(reg, 'parqueamento', 0))}kz")
             parts.append(f"Taxa: {fmt_money(getattr(reg, 'taxa', 0))}kz")
             parts.append(f"Outros: {fmt_money(getattr(reg, 'outros', 0))}kz")
-            try:
-                parts.append(f"Combustível (valor): {fmt_money(getattr(reg, 'combustivel_total', 0))}")
-            except Exception:
-                parts.append(f"Combustível (valor): {fmt_money(0)}")
-            try:
-                parts.append(f"Sobragem/Filtros: {fmt_money(getattr(reg, 'combustivel_sobragem', 0))}")
-            except Exception:
-                parts.append(f"Sobragem/Filtros: {fmt_money(0)}")
-            try:
-                parts.append(f"Lavagem: {fmt_money(getattr(reg, 'combustivel_lavagem', 0))}")
-            except Exception:
-                parts.append(f"Lavagem: {fmt_money(0)}")
-            try:
-                parts.append(f"Despesas Variáveis (total): {fmt_money(getattr(reg, 'total_variaveis', 0))}")
-            except Exception:
-                parts.append(f"Despesas Variáveis (total): {fmt_money(0)}")
-            try:
-                saidas_total = getattr(reg, 'saidas_total_incl_combustivel', reg.saidas_total()) + (getattr(reg, 'total_variaveis', Decimal('0')) or Decimal('0'))
-            except Exception:
-                saidas_total = Decimal('0')
-            parts.append(f"➡️ Total Saídas: {fmt_money(saidas_total)}kz")
+            parts.append(f"Combustível: {fmt_money(reg.combustivel_total)}kz")
+            parts.append(f"Sobragem/Filtros: {fmt_money(reg.combustivel_sobragem)}kz")
+            parts.append(f"Lavagem: {fmt_money(reg.combustivel_lavagem)}kz")
+            parts.append(f"➡️ Total Saídas: {fmt_money(reg.saidas_total_incl_combustivel)}kz")
             parts.append("")
             parts.append("📊 Outros Dados")
             parts.append(f"Kms: {getattr(reg, 'km_percorridos', 0)}")
             parts.append(f"Passageiros: {getattr(reg, 'numero_passageiros', 0)}")
             parts.append(f"Viagens: {getattr(reg, 'numero_viagens', 0)}")
-            parts.append("")
-            try:
-                saldo = getattr(reg, 'saldo_apos_variaveis', getattr(reg, 'saldo_liquido_incl_combustivel', reg.saldo_liquido()))
-            except Exception:
-                saldo = Decimal('0')
-            parts.append(f"💰 Saldo Liquído: {fmt_money(saldo)}kz")
+            parts.append(f"💰 Saldo Liquído: {fmt_money(reg.saldo_liquido_incl_combustivel)}kz")
 
         parts.append("")
         parts.append("__________________________________________")
         parts.append("")
-        parts.append("📊 Resumo")
-        parts.append("")
+        parts.append("📊 Resumo Geral")
         parts.append(f"✅ Entrada Geral: {fmt_money(total_entradas)}kz")
-        parts.append("")
-        parts.append(f"❌ Saida Geral: {fmt_money(total_saidas)}kz")
-        parts.append("")
+        parts.append(f"❌ Saída Geral: {fmt_money(total_saidas)}kz")
         parts.append(f"💰 Liquído Geral: {fmt_money(total_saldo)}kz")
         parts.append("")
-        parts.append(f"Suporte tecnico: @kiangebenimatias4@gmail.com, +244 944 790 744 (WhatsApp)")
+        parts.append("Suporte técnico: @kiangebenimatias4@gmail.com, +244 944 790 744 (WhatsApp)")
 
         message = '\n'.join(parts)
         g['whatsapp_link'] = f"https://wa.me/?text={quote_plus(message)}"
 
-    # 🔹 Obter sectores para o filtro
+    # 🔹 Contexto final
     sectores = Sector.objects.all()
-
     context = {
         'registros_agrupados': list(registros_agrupados.values()),
         'sectores': sectores,
@@ -1503,8 +1410,8 @@ def listar_registros(request):
         'data_fim': data_fim,
         'totais': totais,
         'hoje': hoje,
+        'combustivel_map': combustivel_map,
     }
-    context['combustivel_map'] = combustivel_map
 
     return render(request, 'autocarros/listar_registros.html', context)
 
@@ -1804,10 +1711,6 @@ def adicionar_relatorio_sector(request):
 
 
 # autocarros/views.py
-from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib import messages
-from .models import RegistoDiario, Autocarro, Sector
-from .forms import RegistoDiarioForm
 
 @login_required
 def editar_relatorio_sector(request, pk):
@@ -1909,6 +1812,7 @@ def editar_relatorio_sector(request, pk):
     return render(request, "autocarros/editar_relatorio_sector.html", context)
 
 
+# Adicionar comprovativos a um relatório existente
 @login_required
 def adicionar_comprovativos(request, pk):
     """Adicionar comprovativos a um relatório existente"""
@@ -1971,6 +1875,7 @@ def deletar_relatorio_sector(request, pk):
     })
 
 
+# === Autocarros Views === #
 @login_required
 def listar_autocarros(request):
     autocarros = Autocarro.objects.all().order_by('numero')
