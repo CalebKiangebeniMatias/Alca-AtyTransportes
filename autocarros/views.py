@@ -1349,8 +1349,11 @@ def listar_registros(request):
         descricao = getattr(g['registos'][0].relatorio, 'descricao', '-') if g['registos'] else '-'
 
         parts = [
+            f"Saudações!",
+            f"",
+            f"📊 RELATÓRIO DIÁRIO DE AUTOCARROS",
             f"📅 DATA: {data_str}",
-            f"🏢 RELATÓRIO DO DIA: {sector_name}",
+            f"🏢 REGIÃO: {sector_name}",
             "",
             f"📝 DESCRIÇÃO: {descricao}",
         ]
@@ -1710,8 +1713,7 @@ def adicionar_relatorio_sector(request):
     })
 
 
-# autocarros/views.py
-
+# Editar registos diários agrupados por sector e data
 @login_required
 def editar_relatorio_sector(request, pk):
     """
@@ -1719,19 +1721,15 @@ def editar_relatorio_sector(request, pk):
     Agora trabalhamos diretamente com RegistoDiario em vez de RelatorioSector
     """
     
-    # 🔹 OBTER TODOS OS REGISTOS DO MESMO SETOR E DATA
-    # Primeiro, precisamos identificar o sector e data baseados no ID do registo
     registro_base = get_object_or_404(RegistoDiario, pk=pk)
     sector = registro_base.autocarro.sector
     data = registro_base.data
     
-    # 🔹 OBTER TODOS OS REGISTOS DO MESMO SETOR E DATA
     registros = RegistoDiario.objects.filter(
         autocarro__sector=sector,
         data=data
     ).select_related('autocarro')
     
-    # 🔹 CRIAR REGISTROS FALTANTES PARA AUTOCARROS DO SETOR
     autocarros_do_sector = Autocarro.objects.filter(sector=sector)
     autocarros_com_registro = registros.values_list('autocarro_id', flat=True)
     
@@ -1740,17 +1738,14 @@ def editar_relatorio_sector(request, pk):
             RegistoDiario.objects.create(
                 autocarro=autocarro,
                 data=data,
-                # Campos padrão podem ser adicionados aqui
             )
     
-    # 🔹 ATUALIZAR A QUERY COM OS NOVOS REGISTROS
     registros = RegistoDiario.objects.filter(
         autocarro__sector=sector,
         data=data
     ).select_related('autocarro')
 
     if request.method == "POST":
-        # Processar cada formulário individualmente
         for registro in registros:
             form = RegistoDiarioForm(
                 request.POST, 
@@ -1760,10 +1755,9 @@ def editar_relatorio_sector(request, pk):
             
             if form.is_valid():
                 try:
-                    # 🔒 Verifica se o usuário tentou validar sem permissão
                     if form.cleaned_data.get("validado") and request.user.nivel_acesso not in ['admin']:
                         messages.error(request, f"🚫 Você não tem permissão para validar relatórios.")
-                        continue  # não salva esse registro
+                        continue
 
                     form.save()
 
@@ -1773,7 +1767,6 @@ def editar_relatorio_sector(request, pk):
                         f"Erro ao salvar registo do autocarro {registro.autocarro.numero}: {str(e)}"
                     )
             else:
-                # Mostrar erros de validação
                 for field, errors in form.errors.items():
                     for error in errors:
                         messages.warning(
@@ -1781,7 +1774,6 @@ def editar_relatorio_sector(request, pk):
                             f"Autocarro {registro.autocarro.numero}, campo {field}: {error}"
                         )
         
-        # Verificar se houve algum erro antes de redirecionar
         if not any(message.tags == 'error' for message in messages.get_messages(request)):
             messages.success(
                 request, 
@@ -1789,7 +1781,6 @@ def editar_relatorio_sector(request, pk):
             )
             return redirect("listar_registros")
     
-    # Preparar os formulários para exibição
     forms = []
     for registro in registros:
         form = RegistoDiarioForm(
@@ -1812,7 +1803,6 @@ def editar_relatorio_sector(request, pk):
     return render(request, "autocarros/editar_relatorio_sector.html", context)
 
 
-# Adicionar comprovativos a um relatório existente
 @login_required
 def adicionar_comprovativos(request, pk):
     """Adicionar comprovativos a um relatório existente"""

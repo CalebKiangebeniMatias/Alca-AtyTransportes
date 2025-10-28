@@ -141,10 +141,14 @@ class RelatorioSector(models.Model):
     sector = models.ForeignKey(Sector, on_delete=models.CASCADE, related_name='relatorios')
     data = models.DateField()
     descricao = models.TextField(blank=True, null=True)
-    
-    # 🔹 REMOVIDO: comprovativo singular (agora usamos múltiplos comprovativos)
-    # comprovativo = models.FileField(upload_to='comprovativos/', null=True, blank=True)
 
+    despesa_geral = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        verbose_name="Despesa geral do setor"
+    )
+    
     class Meta:
         unique_together = ['sector', 'data']  # 🔹 IMPEDE MÚLTIPLOS RELATÓRIOS POR DIA
         ordering = ['-data']
@@ -178,10 +182,7 @@ class ComprovativoRelatorio(models.Model):
 # <----- Modelo de registo diário de viagens por autocarro -----> #
 class RegistoDiario(models.Model):
     def save(self, *args, **kwargs):
-        # Calcula o número de passageiros automaticamente usando a fórmula:
-        # (normal + alunos)/200 + (luvu + frete)/1000
         try:
-            # garantir que estamos a usar Decimal para precisão
             normal = Decimal(self.normal or 0)
             alunos = Decimal(self.alunos or 0)
             luvu = Decimal(self.luvu or 0)
@@ -192,10 +193,11 @@ class RegistoDiario(models.Model):
         except Exception:
             self.numero_passageiros = 0
         super().save(*args, **kwargs)
+
     autocarro = models.ForeignKey('Autocarro', on_delete=models.CASCADE, related_name='registos_diarios')
     relatorio = models.ForeignKey('RelatorioSector', on_delete=models.CASCADE, related_name='registos', null=True, blank=True)
     data = models.DateField(default=timezone.now, verbose_name="Data")
-    
+
     # Status fields
     concluido = models.BooleanField(default=False)
     validado = models.BooleanField(default=False)

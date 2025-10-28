@@ -66,6 +66,23 @@
                         </div>
                     </div>
 
+                    <!-- 🔹 Novo campo: Despesa geral do setor -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-danger">
+                            <i class="fas fa-coins me-1"></i> {{ relatorio_form.despesa_geral.label }}
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">Kz</span>
+                            {{ relatorio_form.despesa_geral }}
+                        </div>
+                        <div class="form-text text-muted">
+                            Exemplo: 15000.00 — despesas gerais do setor (sem autocarro).
+                        </div>
+                        {% if relatorio_form.despesa_geral.errors %}
+                            <div class="text-danger small">{{ relatorio_form.despesa_geral.errors }}</div>
+                        {% endif %}
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label fw-bold">{{ relatorio_form.descricao.label }}</label>
                         {{ relatorio_form.descricao }}

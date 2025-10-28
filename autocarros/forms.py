@@ -83,16 +83,24 @@ class MultiFileInput(forms.ClearableFileInput):
 class RelatorioSectorForm(forms.ModelForm):
     class Meta:
         model = RelatorioSector
-        fields = ['sector', 'data', 'descricao']
+        fields = ['sector', 'data', 'descricao', 'despesa_geral']  # 🔹 adicionamos o campo aqui
         widgets = {
             'sector': forms.Select(attrs={'class': 'form-select'}),
             'data': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'comprovativo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'descricao': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
                 'placeholder': 'Descreva observações do relatório'
             }),
+            'despesa_geral': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ex: 15000.00',
+                'step': '0.01',
+                'min': '0'
+            }),
+        }
+        labels = {
+            'despesa_geral': 'Despesa geral do setor (sem autocarro)',
         }
 
 
@@ -279,6 +287,7 @@ class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
 
+# 🔹 CAMPO PERSONALIZADO PARA MÚLTIPLOS ARQUIVOS
 class MultipleFileField(forms.FileField):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("widget", MultipleFileInput())
@@ -304,7 +313,7 @@ class MultiFileForm(forms.Form):
         })
     )
 
-
+# 🔹 FORMSET PARA COMPROVATIVOS DE RELATÓRIO
 def get_comprovativo_formset():
     """Retorna um formset para comprovativos de relatório"""
     return forms.modelformset_factory(
