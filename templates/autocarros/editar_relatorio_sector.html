@@ -11,84 +11,44 @@
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         margin-bottom: 1rem;
     }
-
     .card-header {
         background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
         color: white;
         border-radius: 8px 8px 0 0 !important;
     }
-
-    .input-group-custom {
-        position: relative;
-    }
-
-    .input-group-custom .form-control {
-        padding-right: 2.5rem;
-        text-align: right;
-    }
-
+    .input-group-custom { position: relative; }
+    .input-group-custom .form-control { padding-right: 2.5rem; text-align: right; }
     .input-group-custom .currency-symbol {
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #6c757d;
-        font-weight: 500;
+        position: absolute; right: 12px; top: 50%;
+        transform: translateY(-50%); color: #6c757d; font-weight: 500;
     }
-
     .resumo-card {
         background: #f8f9fa;
         border-left: 4px solid #0d6efd;
-        padding: 1rem;
-        border-radius: 6px;
-        margin-bottom: 1rem;
+        padding: 1rem; border-radius: 6px; margin-bottom: 1rem;
     }
-
-    .resumo-valor {
-        font-size: 1.1rem;
-        font-weight: 600;
-    }
-
-    .entradas-card {
-        border-left: 4px solid #198754;
-        background: #f8fff9;
-    }
-
-    .saidas-card {
-        border-left: 4px solid #dc3545;
-        background: #fff8f8;
-    }
-
+    .resumo-valor { font-size: 1.1rem; font-weight: 600; }
+    .entradas-card { border-left: 4px solid #198754; background: #f8fff9; }
+    .saidas-card { border-left: 4px solid #dc3545; background: #fff8f8; }
     .form-control:focus {
         border-color: #0d6efd;
         box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
     }
-
     .btn-success {
         background: linear-gradient(135deg, #198754 0%, #20c997 100%);
-        border: none;
-        font-weight: 600;
+        border: none; font-weight: 600;
     }
-
-    .numeric-input {
-        text-align: right;
-    }
-
+    .numeric-input { text-align: right; }
     @media (max-width: 768px) {
-        .container {
-            padding: 0 10px;
-        }
-        .btn-lg {
-            font-size: 1rem;
-            padding: 0.75rem 1.5rem;
-        }
+        .container { padding: 0 10px; }
+        .btn-lg { font-size: 1rem; padding: 0.75rem 1.5rem; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid py-3">
-    <!-- Cabeçalho Simples -->
+    <!-- 🔹 Cabeçalho -->
     <div class="card mb-4">
         <div class="card-body">
             <div class="row align-items-center">
@@ -110,7 +70,7 @@
         </div>
     </div>
 
-    <!-- Comprovativos (opcional) -->
+    <!-- 🔹 Comprovativos e Despesa Geral -->
     {% with relatorio=forms.0.registro.relatorio %}
         {% if relatorio %}
             {% if relatorio.comprovativos.exists %}
@@ -124,7 +84,6 @@
                 </div>
             {% endif %}
 
-            <!-- Valor da Despesa Geral -->
             <div class="card mb-3 border-start border-4 border-primary shadow-sm">
                 <div class="card-body py-3 d-flex justify-content-between align-items-center">
                     <div>
@@ -143,10 +102,10 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Formulário Principal -->
+    <!-- 🔹 Formulário Principal -->
     <form method="post" id="mainForm">
         {% csrf_token %}
-        
+
         {% if messages %}
         <div class="mb-3">
             {% for message in messages %}
@@ -179,7 +138,6 @@
                     </div>
 
                     <div class="card-body">
-                        <!-- Resumo Automático -->
                         <div class="resumo-card">
                             <div class="row text-center small">
                                 <div class="col-4">
@@ -197,27 +155,21 @@
                             </div>
                         </div>
 
-                        <!-- Status -->
                         <div class="row mb-3">
                             <div class="col-6">
                                 <div class="form-check">
                                     {{ item.form.concluido }}
-                                    <label class="form-check-label small" for="{{ item.form.concluido.id_for_label }}">
-                                        Concluído
-                                    </label>
+                                    <label class="form-check-label small">Concluído</label>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="form-check">
                                     {{ item.form.validado }}
-                                    <label class="form-check-label small" for="{{ item.form.validado.id_for_label }}">
-                                        Validado
-                                    </label>
+                                    <label class="form-check-label small">Validado</label>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Equipa -->
                         <div class="row mb-3">
                             <div class="col-12 mb-2">
                                 <label class="form-label small fw-bold">Motorista</label>
@@ -239,22 +191,6 @@
                                 <i class="fas fa-arrow-down me-1"></i>Entradas (Kz)
                             </h6>
                             <div class="row g-2">
-                                {% if sector.nome|lower == 'luanda' %}
-                                <div class="col-6">
-                                    <label class="form-label small">Manhã</label>
-                                    <div class="input-group-custom">
-                                        {{ item.form.normal }}
-                                        <span class="currency-symbol">Kz</span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small">Tarde</label>
-                                    <div class="input-group-custom">
-                                        {{ item.form.alunos }}
-                                        <span class="currency-symbol">Kz</span>
-                                    </div>
-                                </div>
-                                {% else %}
                                 <div class="col-6">
                                     <label class="form-label small">{{ item.form.normal.label }}</label>
                                     <div class="input-group-custom">
@@ -269,7 +205,6 @@
                                         <span class="currency-symbol">Kz</span>
                                     </div>
                                 </div>
-                                {% endif %}
                                 <div class="col-6">
                                     <label class="form-label small">{{ item.form.luvu.label }}</label>
                                     <div class="input-group-custom">
@@ -324,7 +259,6 @@
                             </div>
                         </div>
 
-                        <!-- Dados Operacionais -->
                         <div class="mb-3">
                             <h6 class="text-secondary mb-2 small">
                                 <i class="fas fa-chart-bar me-1"></i>Dados Operacionais
@@ -348,13 +282,12 @@
             {% endfor %}
         </div>
 
-        <!-- Botões Simples -->
         <div class="text-center mt-4">
             <button type="submit" class="btn btn-success btn-lg me-2">
-                <i class="fas fa-save me-2"></i> Salvar Alterações
+                <i class="fas fa-save me-2"></i>Salvar Alterações
             </button>
             <a href="{% url 'listar_registros' %}" class="btn btn-secondary btn-lg">
-                <i class="fas fa-times me-2"></i> Cancelar
+                <i class="fas fa-times me-2"></i>Cancelar
             </a>
         </div>
     </form>
@@ -364,88 +297,46 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Função para obter valor numérico seguro
     function getValue(id) {
         const el = document.getElementById(id);
-        if (!el) return 0;
-        const v = parseFloat(el.value);
+        const v = parseFloat(el?.value || 0);
         return isNaN(v) ? 0 : v;
     }
+    function formatNumber(value) { return value.toFixed(2); }
 
-    // Função para formatar número
-    function formatNumber(value) {
-        return value.toFixed(2);
-    }
-
-    // Função para atualizar resumo de cada autocarro
     function updateSummary(registroId) {
-        // Calcular totais
-        const entradas = (
-            getValue(`id_registro_${registroId}-normal`) +
-            getValue(`id_registro_${registroId}-alunos`) +
-            getValue(`id_registro_${registroId}-luvu`) +
-            getValue(`id_registro_${registroId}-frete`)
-        );
-
-        const saidas = (
-            getValue(`id_registro_${registroId}-alimentacao`) +
-            getValue(`id_registro_${registroId}-parqueamento`) +
-            getValue(`id_registro_${registroId}-taxa`) +
-            getValue(`id_registro_${registroId}-outros`)
-        );
-
+        const entradas = getValue(`id_registro_${registroId}-normal`) +
+                         getValue(`id_registro_${registroId}-alunos`) +
+                         getValue(`id_registro_${registroId}-luvu`) +
+                         getValue(`id_registro_${registroId}-frete`);
+        const saidas = getValue(`id_registro_${registroId}-alimentacao`) +
+                       getValue(`id_registro_${registroId}-parqueamento`) +
+                       getValue(`id_registro_${registroId}-taxa`) +
+                       getValue(`id_registro_${registroId}-outros`);
         const saldo = entradas - saidas;
 
-        // Atualizar display
-        const entradasEl = document.getElementById(`entradas_total_${registroId}`);
-        const saidasEl = document.getElementById(`saidas_total_${registroId}`);
+        document.getElementById(`entradas_total_${registroId}`).textContent = formatNumber(entradas);
+        document.getElementById(`saidas_total_${registroId}`).textContent = formatNumber(saidas);
         const saldoEl = document.getElementById(`saldo_liquido_${registroId}`);
-
-        if (entradasEl) entradasEl.textContent = formatNumber(entradas);
-        if (saidasEl) saidasEl.textContent = formatNumber(saidas);
-        if (saldoEl) {
-            saldoEl.textContent = formatNumber(saldo);
-            saldoEl.className = saldo < 0 ? 'text-danger resumo-valor' : 
-                               saldo > 0 ? 'text-success resumo-valor' : 'resumo-valor';
-        }
+        saldoEl.textContent = formatNumber(saldo);
+        saldoEl.className = saldo < 0 ? 'text-danger resumo-valor' :
+                            saldo > 0 ? 'text-success resumo-valor' : 'resumo-valor';
     }
 
-    // Configurar event listeners para todos os registros
     {% for item in forms %}
-    (function() {
-        const registroId = {{ item.registro.id }};
+    (() => {
+        const id = {{ item.registro.id }};
         const campos = ['normal','alunos','luvu','frete','alimentacao','parqueamento','taxa','outros'];
-        
-        campos.forEach(campo => {
-            const el = document.getElementById(`id_registro_${registroId}-${campo}`);
+        campos.forEach(c => {
+            const el = document.getElementById(`id_registro_${id}-${c}`);
             if (el) {
-                el.addEventListener('input', () => updateSummary(registroId));
+                el.addEventListener('input', () => updateSummary(id));
                 el.classList.add('numeric-input');
             }
         });
-
-        // Inicializar cálculo
-        updateSummary(registroId);
+        updateSummary(id);
     })();
     {% endfor %}
-
-    // Validação simples do formulário
-    document.getElementById('mainForm').addEventListener('submit', function(e) {
-        let valid = true;
-        
-        {% for item in forms %}
-        const viagens{{ item.registro.id }} = document.getElementById('id_registro_{{ item.registro.id }}-numero_viagens');
-        if (viagens{{ item.registro.id }} && !viagens{{ item.registro.id }}.value.trim()) {
-            valid = false;
-            viagens{{ item.registro.id }}.classList.add('is-invalid');
-        }
-        {% endfor %}
-
-        if (!valid) {
-            e.preventDefault();
-            alert('Por favor, preencha o número de viagens para todos os autocarros.');
-        }
-    });
 });
 </script>
 {% endblock %}

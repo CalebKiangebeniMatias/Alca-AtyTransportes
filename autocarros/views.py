@@ -1328,10 +1328,12 @@ def listar_registros(request):
 
     # ✅ Só agora calcula o saldo final de cada grupo (com despesa geral subtraída 1x)
     for grupo in registros_agrupados.values():
+        # 🔹 Somar despesa_geral nas saídas totais
+        grupo['total_saidas'] += grupo.get('despesa_geral', Decimal('0'))
+
+        # 🔹 Agora calcula o saldo líquido
         grupo['total_saldo'] = (
-            grupo['total_entradas']
-            - grupo['total_saidas']
-            - grupo.get('despesa_geral', Decimal('0'))
+            grupo['total_entradas'] - grupo['total_saidas']
         )
 
     # 🔹 Totais gerais
@@ -1416,6 +1418,7 @@ def listar_registros(request):
         parts.append("")
         parts.append("📊 Resumo Geral")
         parts.append(f"✅ Entrada Geral: {fmt_money(total_entradas)}kz")
+        parts.append(f"Despesa Geral: {fmt_money(g.get('despesa_geral', 0))}kz")
         parts.append(f"❌ Saída Geral: {fmt_money(total_saidas)}kz")
         parts.append(f"💰 Liquído Geral: {fmt_money(total_saldo)}kz")
         parts.append("")
@@ -1734,46 +1737,62 @@ def adicionar_relatorio_sector(request):
     })
 
 
-# Editar registos diários agrupados por sector e data
 @login_required
 def editar_relatorio_sector(request, pk):
     """
-    View para editar registos diários agrupados por sector e data
-    Agora trabalhamos diretamente com RegistoDiario em vez de RelatorioSector
+    View para editar registos diários agrupados por sector e data.
+    Inclui também o campo 'despesa_geral' do RelatorioSector.
     """
-    
+
     registro_base = get_object_or_404(RegistoDiario, pk=pk)
     sector = registro_base.autocarro.sector
     data = registro_base.data
-    
+
+    # 🔹 Buscar ou criar relatório do setor
+    relatorio_sector, _ = RelatorioSector.objects.get_or_create(
+        sector=sector,
+        data=data,
+        defaults={"despesa_geral": 0}
+    )
+
+    # 🔹 Buscar registros e garantir que todos os autocarros do setor tenham registro
     registros = RegistoDiario.objects.filter(
         autocarro__sector=sector,
         data=data
     ).select_related('autocarro')
-    
+
     autocarros_do_sector = Autocarro.objects.filter(sector=sector)
     autocarros_com_registro = registros.values_list('autocarro_id', flat=True)
-    
+
     for autocarro in autocarros_do_sector:
         if autocarro.id not in autocarros_com_registro:
             RegistoDiario.objects.create(
                 autocarro=autocarro,
                 data=data,
             )
-    
+
+    # Recarrega os registros após possíveis criações
     registros = RegistoDiario.objects.filter(
         autocarro__sector=sector,
         data=data
     ).select_related('autocarro')
 
+    # 🔹 Processar formulários
     if request.method == "POST":
+        relatorio_form = RelatorioSectorForm(request.POST, instance=relatorio_sector)
+
+        if relatorio_form.is_valid():
+            relatorio_form.save()
+        else:
+            messages.warning(request, "⚠️ Verifique o campo 'Despesa geral do setor'.")
+
         for registro in registros:
             form = RegistoDiarioForm(
-                request.POST, 
+                request.POST,
                 instance=registro,
                 prefix=f'registro_{registro.id}'
             )
-            
+
             if form.is_valid():
                 try:
                     if form.cleaned_data.get("validado") and request.user.nivel_acesso not in ['admin']:
@@ -1781,27 +1800,30 @@ def editar_relatorio_sector(request, pk):
                         continue
 
                     form.save()
-
                 except Exception as e:
                     messages.error(
-                        request, 
+                        request,
                         f"Erro ao salvar registo do autocarro {registro.autocarro.numero}: {str(e)}"
                     )
             else:
                 for field, errors in form.errors.items():
                     for error in errors:
                         messages.warning(
-                            request, 
+                            request,
                             f"Autocarro {registro.autocarro.numero}, campo {field}: {error}"
                         )
-        
+
         if not any(message.tags == 'error' for message in messages.get_messages(request)):
             messages.success(
-                request, 
-                f"✅ Registos do sector {sector.nome} do dia {data} atualizados com sucesso!"
+                request,
+                f"✅ Registos e despesa geral do setor {sector.nome} do dia {data} atualizados com sucesso!"
             )
             return redirect("listar_registros")
-    
+
+    else:
+        relatorio_form = RelatorioSectorForm(instance=relatorio_sector)
+
+    # 🔹 Montar formulários individuais
     forms = []
     for registro in registros:
         form = RegistoDiarioForm(
@@ -1817,10 +1839,11 @@ def editar_relatorio_sector(request, pk):
         "sector": sector,
         "data": data,
         "forms": forms,
+        "relatorio_form": relatorio_form,  # 👈 Incluído
         "total_registros": registros.count(),
-        "total_autocarros": autocarros_do_sector.count()
+        "total_autocarros": autocarros_do_sector.count(),
     }
-    
+
     return render(request, "autocarros/editar_relatorio_sector.html", context)
 
 
