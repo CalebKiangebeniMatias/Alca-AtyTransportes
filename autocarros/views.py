@@ -1255,6 +1255,7 @@ def listar_registros(request):
 
     for registro in registros:
         chave = f"{registro.data.isoformat()}_{registro.autocarro.sector.id}"
+        
         if chave not in registros_agrupados:
             registros_agrupados[chave] = {
                 'data': registro.data,
@@ -1266,11 +1267,17 @@ def listar_registros(request):
                 'despesa_geral': Decimal('0'),
             }
 
-            # 🔹 Captura a despesa geral do relatório do setor (apenas uma vez por grupo)
-            relatorio = getattr(registro, 'relatorio', None)
-            if relatorio and hasattr(relatorio, 'despesa_geral'):
-                registros_agrupados[chave]['despesa_geral'] = relatorio.despesa_geral or Decimal('0')
+            # 🔹 Buscar o relatório apenas uma vez por grupo (otimizado)
+            relatorio_sector = (
+                RelatorioSector.objects
+                .filter(sector=registro.autocarro.sector, data=registro.data)
+                .only('despesa_geral')  # otimiza a query
+                .first()
+            )
+            if relatorio_sector:
+                registros_agrupados[chave]['despesa_geral'] = relatorio_sector.despesa_geral or Decimal('0')
 
+        # 🔹 Processamento do registro (combustível, entradas, saídas, etc)
         key = f"{registro.autocarro_id}_{registro.data.isoformat()}"
         comb = combustivel_map.get(key)
 
