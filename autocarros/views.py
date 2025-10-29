@@ -1263,7 +1263,13 @@ def listar_registros(request):
                 'total_entradas': Decimal('0'),
                 'total_saidas': Decimal('0'),
                 'total_saldo': Decimal('0'),
+                'despesa_geral': Decimal('0'),
             }
+
+            # 🔹 Captura a despesa geral do relatório do setor (apenas uma vez por grupo)
+            relatorio = getattr(registro, 'relatorio', None)
+            if relatorio and hasattr(relatorio, 'despesa_geral'):
+                registros_agrupados[chave]['despesa_geral'] = relatorio.despesa_geral or Decimal('0')
 
         key = f"{registro.autocarro_id}_{registro.data.isoformat()}"
         comb = combustivel_map.get(key)
@@ -1312,8 +1318,13 @@ def listar_registros(request):
         registros_agrupados[chave]['registos'].append(registro)
         registros_agrupados[chave]['total_entradas'] += registro.entradas_total()
         registros_agrupados[chave]['total_saidas'] += registro.saidas_total_incl_combustivel
-        registros_agrupados[chave]['total_saldo'] += (
-            registro.entradas_total() - registro.saidas_total_incl_combustivel
+
+    # ✅ Só agora calcula o saldo final de cada grupo (com despesa geral subtraída 1x)
+    for grupo in registros_agrupados.values():
+        grupo['total_saldo'] = (
+            grupo['total_entradas']
+            - grupo['total_saidas']
+            - grupo.get('despesa_geral', Decimal('0'))
         )
 
     # 🔹 Totais gerais
@@ -1321,6 +1332,7 @@ def listar_registros(request):
     total_saidas = sum(g['total_saidas'] for g in registros_agrupados.values())
     total_saldo = sum(g['total_saldo'] for g in registros_agrupados.values())
     total_combustivel = sum(v.get('total_valor', Decimal('0')) for v in combustivel_map.values())
+    total_despesas_gerais = sum(g.get('despesa_geral', Decimal('0')) for g in registros_agrupados.values())
 
     totais = {
         'total_entradas': total_entradas,
@@ -1328,7 +1340,9 @@ def listar_registros(request):
         'total_saldo': total_saldo,
         'total_autocarros': registros.count(),
         'total_combustivel': total_combustivel,
+        'total_despesas_gerais': total_despesas_gerais,
     }
+
 
     # 🔹 Gerar mensagens de WhatsApp
     def fmt_money(valor):

@@ -338,15 +338,25 @@
 
             <!-- 🔹 Rodapé com Botões de Ação -->
             <div class="card-footer bg-light">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="btn-group">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+
+                    <!-- 🔸 Valor da Despesa Geral -->
+                    <div class="mb-2 mb-md-0">
+                        {% if grupo.despesa_geral %}
+                            <small class="text-muted me-2">
+                                <i class="fas fa-coins text-primary me-1"></i>
+                                <strong>Despesa Geral:</strong> {{ grupo.despesa_geral|floatformat:2 }} Kz
+                            </small>
+                        {% endif %}
+                    </div>
+
+                    <!-- 🔸 Botões de Ação -->
+                    <div class="d-flex gap-2">
                         <a href="{% url 'adicionar_relatorio_sector' %}?sector={{ grupo.sector.id }}&data={{ grupo.data|date:'Y-m-d' }}" 
-                           class="btn btn-outline-primary btn-sm">
+                        class="btn btn-outline-primary btn-sm">
                             <i class="fas fa-plus me-1"></i> Adicionar Registo
                         </a>
-                    </div>
-                    
-                    <div class="btn-group">
+
                         {% if grupo.whatsapp_link %}
                             <a href="{{ grupo.whatsapp_link }}" target="_blank" class="btn btn-success btn-sm">
                                 <i class="fab fa-whatsapp me-1"></i> Enviar
@@ -359,7 +369,6 @@
                     </div>
                 </div>
             </div>
-        </div>
 
         <!-- MODAIS -->
         {% with primeiro_registro=grupo.registos.0 %}
