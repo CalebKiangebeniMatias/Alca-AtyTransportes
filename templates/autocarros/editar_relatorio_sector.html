@@ -106,7 +106,8 @@
                                 {% for comp in relatorio.comprovativos.all %}
                                     <div class="d-flex align-items-center justify-content-between border-bottom py-1">
                                         <a href="{{ comp.arquivo.url }}" target="_blank" class="text-decoration-none text-primary">
-                                            <i class="fas fa-paperclip me-1"></i>{{ comp.arquivo.name|basename }}
+                                            <i class="fas fa-paperclip me-1"></i>
+                                            {{ comp.arquivo.name|slice:"-30:" }}
                                         </a>
                                         <a href="{% url 'remover_comprovativo' comp.id %}" class="text-danger small" title="Remover"
                                         onclick="return confirm('Remover este comprovativo?');">

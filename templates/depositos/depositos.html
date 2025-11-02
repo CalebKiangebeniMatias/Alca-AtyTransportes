@@ -59,11 +59,21 @@
               <option value="2024">2024</option>
               <option value="2025">2025</option>
             </select>
+
             <select id="filter_month" class="form-select w-auto shadow-sm">
               <option value="">Mês</option>
-              {% for m in "01 02 03 04 05 06 07 08 09 10 11 12".split %}
-                <option value="{{ m }}">{{ m }}</option>
-              {% endfor %}
+              <option value="01">01</option>
+              <option value="02">02</option>
+              <option value="03">03</option>
+              <option value="04">04</option>
+              <option value="05">05</option>
+              <option value="06">06</option>
+              <option value="07">07</option>
+              <option value="08">08</option>
+              <option value="09">09</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
             </select>
 
             <button id="btn_reload" class="btn btn-outline-primary shadow-sm"><i class="fas fa-sync-alt me-1"></i>Recarregar</button>
@@ -94,9 +104,18 @@
               <label class="form-label fw-semibold">Mês</label>
               <select id="total_month" class="form-select shadow-sm">
                 <option value="">--</option>
-                {% for m in "01 02 03 04 05 06 07 08 09 10 11 12".split %}
-                  <option value="{{ m }}">{{ m }}</option>
-                {% endfor %}
+                <option value="01">01</option>
+                <option value="02">02</option>
+                <option value="03">03</option>
+                <option value="04">04</option>
+                <option value="05">05</option>
+                <option value="06">06</option>
+                <option value="07">07</option>
+                <option value="08">08</option>
+                <option value="09">09</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
               </select>
             </div>
 
