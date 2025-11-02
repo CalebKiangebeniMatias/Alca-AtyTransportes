@@ -977,13 +977,15 @@ def resumo_sector(request, slug):
 
     # 🔹 Despesas fixas (também sujeitas a intervalo de datas)
     despesas_fixas = DespesaFixa.objects.filter(sector=sector_obj, ativo=True)
+
     if data_inicio:
-        despesas_fixas = despesas_fixas.filter(data_inicio__lte=parse_date(data_fim or timezone.now().date()))
+        despesas_fixas = despesas_fixas.filter(data_inicio__gte=parse_date(data_inicio))
     if data_fim:
-        despesas_fixas = despesas_fixas.filter(
-            data_fim__isnull=True
-        ) | despesas_fixas.filter(data_fim__gte=parse_date(data_inicio))
-    total_despesas_fixas = despesas_fixas.aggregate(total=Sum('valor', output_field=DecimalField())).get('total') or Decimal('0')
+        despesas_fixas = despesas_fixas.filter(data_inicio__lte=parse_date(data_fim))
+
+    total_despesas_fixas = despesas_fixas.aggregate(
+        total=Sum('valor', output_field=DecimalField())
+    ).get('total') or Decimal('0')
 
     # 🔹 Despesa geral (RelatorioSector) com filtro
     relatorios_qs = RelatorioSector.objects.filter(sector=sector_obj)
