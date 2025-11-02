@@ -153,6 +153,7 @@ def admin_dashboard(request):
     }
     return render(request, 'admin_dashboard.html', context)
 
+
 #=== Perfil do Usuário View === #
 @login_required
 def perfil(request):
@@ -383,14 +384,25 @@ def dashboard(request):
 
     qs_fixas = DespesaFixa.objects.filter(ativo=True)
 
-    # Fixas mensais: contam sempre no mês
-    mensais_qs = qs_fixas.filter(periodicidade__iexact='mensal')
+    # Mensais: contam a partir do mês de início até o presente mês
+    mensais_qs = qs_fixas.filter(
+        periodicidade__iexact='mensal',
+        data_inicio__lte=date(ano, mes, 1)
+    )
 
-    # Fixas anuais: só contam se data_inicio cair no mês/ano selecionado
-    anuais_qs = qs_fixas.filter(periodicidade__iexact='anual', data_inicio__year=ano, data_inicio__month=mes)
+    # Anuais: contam apenas se data_inicio for no mesmo mês/ano
+    anuais_qs = qs_fixas.filter(
+        periodicidade__iexact='anual',
+        data_inicio__year=ano,
+        data_inicio__month=mes
+    )
 
-    # Únicas: só contam se data_inicio estiver no mês/ano selecionado
-    unicas_qs = qs_fixas.filter(periodicidade__iexact='único', data_inicio__year=ano, data_inicio__month=mes)
+    # Únicas: contam apenas no mês/ano específico
+    unicas_qs = qs_fixas.filter(
+        periodicidade__iexact='único',
+        data_inicio__year=ano,
+        data_inicio__month=mes
+    )
 
     total_despesas_fixas = (
         mensais_qs.aggregate(total=Sum('valor', output_field=DecimalField()))['total'] or Decimal('0')
@@ -528,6 +540,7 @@ def dashboard(request):
         "max_saldo": max_saldo,
     }
     return render(request, "autocarros/dashboard.html", context)
+
 
 #================================== Arquivo World ========================================== #
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
