@@ -3006,7 +3006,7 @@ def registro_km_view(request):
                 falta = int(km_prox) - int(it.km_atual)
                 if falta <= 0:
                     status = 'Vencida'
-                elif falta <= 500:
+                elif falta <= 1000:
                     status = 'Próxima'
                 else:
                     status = 'OK'
