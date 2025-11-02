@@ -336,11 +336,9 @@ def get_comprovativo_formset():
 
 
 # ---- Manutenção ---- #
-
 class ManutencaoForm(forms.ModelForm):
     class Meta:
         model = Manutencao
-        # 🔹 Só incluir os campos que o usuário deve preencher manualmente
         fields = [
             'sector',
             'autocarro',
@@ -348,16 +346,17 @@ class ManutencaoForm(forms.ModelForm):
             'km_ultima',
             'custo_total',
             'observacao',
+            'status',  # 🔹 campo adicionado
         ]
 
         widgets = {
             'data_ultima': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'km_ultima': forms.NumberInput(attrs={'class': 'form-control'}),
+            'km_ultima': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'custo_total': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'observacao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'sector': forms.Select(attrs={'class': 'form-select'}),
             'autocarro': forms.Select(attrs={'class': 'form-select'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),  # 🔹 select estilizado
         }
-
 
 

@@ -2887,35 +2887,34 @@ def cobrador_viagens_validate_action(request):
 
 
 # ---------- Manutenção Autocarros Views ----------#
-
 @login_required
-@acesso_restrito(['admin', 'gestor'])
 def manutencao_create(request):
     if request.method == 'POST':
         form = ManutencaoForm(request.POST)
         if form.is_valid():
             m = form.save(commit=False)
 
-            # Define automaticamente o responsável (se não estiver definido)
+            # Define automaticamente o responsável
             if not m.responsavel:
                 m.responsavel = request.user
 
-            # 🔹 Os campos automáticos (km_proxima, km_prox_*) são calculados no save()
+            # Força o status inicial a "agendada"
+            m.status = 'agendada'
+
+            # Campos automáticos (km_proxima e km_prox_*) são calculados no save()
             m.save()
 
             messages.success(request, '✅ Manutenção agendada com sucesso!')
             return redirect('manutencao_list')
         else:
-            # 🔹 Exibe mensagens de erro legíveis
             for field, errors in form.errors.items():
                 for e in errors:
                     messages.error(request, f"{field}: {e}")
 
     else:
-        # inicializa o formulário com o responsável atual
-        form = ManutencaoForm(initial={'responsavel': request.user})
+        # inicializa o formulário
+        form = ManutencaoForm(initial={'status': 'agendada'})
 
-    # 🔹 Carrega os setores para o select dinâmico
     sectores = Sector.objects.all().order_by('nome')
 
     return render(request, 'autocarros/manutencao_form.html', {
@@ -2953,10 +2952,6 @@ def manutencao_list(request):
 @login_required
 @acesso_restrito(['admin', 'gestor'])
 def manutencao_edit(request, pk):
-    """
-    Editar manutenção agendada.
-    Apenas admin/gestor podem editar.
-    """
     manut = get_object_or_404(Manutencao, pk=pk)
     if request.method == 'POST':
         form = ManutencaoForm(request.POST, request.FILES, instance=manut)
@@ -2974,10 +2969,6 @@ def manutencao_edit(request, pk):
 @login_required
 @acesso_restrito(['admin', 'gestor'])
 def manutencao_delete(request, pk):
-    """
-    Confirmar e eliminar manutenção.
-    Apenas admin/gestor podem apagar.
-    """
     manut = get_object_or_404(Manutencao, pk=pk)
     if request.method == 'POST':
         manut.delete()
@@ -2997,9 +2988,6 @@ def api_autocarros_por_sector(request):
 
 @login_required
 def registro_km_view(request):
-    """
-    Página: formulário para registar kms por sector + listagem de registros.
-    """
     sectores = Sector.objects.all().order_by('nome')
     # listar últimos registros (paginacao simples: últimos 20)
     registros = RegistroKM.objects.select_related('sector').prefetch_related('itens__autocarro').order_by('-data_registo')[:20]
@@ -3045,11 +3033,6 @@ def registro_km_view(request):
 @login_required
 @require_POST
 def registro_km_save(request):
-    """
-    Recebe POST JSON:
-    { "sector_id": 1, "data_registo":"YYYY-MM-DD", "itens":[{"autocarro_id":1,"km_atual":12345}, ...] }
-    Retorna JSON.
-    """
     try:
         data = json.loads(request.body.decode('utf-8'))
     except Exception:

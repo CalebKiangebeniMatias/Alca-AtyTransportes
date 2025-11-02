@@ -1,84 +1,101 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-4">
-  <div class="card p-3 shadow-sm border-0">
-    <h4 class="mb-3">{{ manut|default_if_none:"Agendar Manutenção" }}</h4>
-    <form method="post">
-      {% csrf_token %}
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">Sector</label>
-          {{ form.sector }}
-        </div>
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">Autocarro</label>
-          {{ form.autocarro }}
-        </div>
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">Data Última</label>
-          {{ form.data_ultima }}
-        </div>
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">Km Última</label>
-          {{ form.km_ultima }}
-        </div>
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">Custo Total (Kz)</label>
-          {{ form.custo_total }}
-        </div>
-        <div class="col-12">
-          <label class="form-label fw-semibold">Observação</label>
-          {{ form.observacao }}
-        </div>
-      </div>
+  <div class="container mt-4">
+    <div class="card p-4 shadow-sm border-0">
+      <h4 class="mb-3">
+        {% if manut %}
+          Editar Manutenção — {{ manut.autocarro.numero }}
+        {% else %}
+          Agendar Nova Manutenção
+        {% endif %}
+      </h4>
 
-      <div class="mt-4 text-end">
-        <button class="btn btn-primary px-4">
-          <i class="bi bi-save me-1"></i> Salvar
-        </button>
-        <a class="btn btn-outline-secondary px-4" href="{% url 'manutencao_list' %}">
-          Cancelar
-        </a>
-      </div>
-    </form>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="row g-3">
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Sector</label>
+            {{ form.sector }}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Autocarro</label>
+            {{ form.autocarro }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Data Última</label>
+            {{ form.data_ultima }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Km Última</label>
+            {{ form.km_ultima }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Custo Total (Kz)</label>
+            {{ form.custo_total }}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Estado da Manutenção</label>
+            {{ form.status }}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold">Observação</label>
+            {{ form.observacao }}
+          </div>
+        </div>
+
+        <div class="mt-4 text-end">
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-save me-1"></i> Salvar
+          </button>
+          <a href="{% url 'manutencao_list' %}" class="btn btn-outline-secondary px-4">
+            Cancelar
+          </a>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  const sectorSelect = document.getElementById('id_sector_select');
-  const autSelect = document.getElementById('id_autocarro_select');
-  if (!sectorSelect || !autSelect) return;
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      const sectorSelect = document.getElementById('id_sector');
+      const autSelect = document.getElementById('id_autocarro');
+      if (!sectorSelect || !autSelect) return;
 
-  async function carregarAutocarros(sectorId){
-    autSelect.innerHTML = '<option value="">Carregando...</option>';
-    try{
-      const url = "{% url 'api_autocarros_por_sector' %}" + '?sector_id=' + encodeURIComponent(sectorId);
-      const resp = await fetch(url, { credentials: 'same-origin' });
-      const data = await resp.json();
-      autSelect.innerHTML = '<option value="">-- Selecionar --</option>';
-      if (data.ok && Array.isArray(data.autocarros)){
-        data.autocarros.forEach(a => {
-          const opt = document.createElement('option');
-          opt.value = a.id;
-          opt.textContent = a.numero + (a.modelo ? ' — ' + a.modelo : '');
-          autSelect.appendChild(opt);
-        });
+      async function carregarAutocarros(sectorId){
+        autSelect.innerHTML = '<option value="">Carregando...</option>';
+        try{
+          const url = "{% url 'api_autocarros_por_sector' %}" + '?sector_id=' + encodeURIComponent(sectorId);
+          const resp = await fetch(url, { credentials: 'same-origin' });
+          const data = await resp.json();
+          autSelect.innerHTML = '<option value="">-- Selecionar --</option>';
+          if (data.ok && Array.isArray(data.autocarros)){
+            data.autocarros.forEach(a => {
+              const opt = document.createElement('option');
+              opt.value = a.id;
+              opt.textContent = a.numero + (a.modelo ? ' — ' + a.modelo : '');
+              autSelect.appendChild(opt);
+            });
+          }
+        }catch(err){
+          autSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+          console.error(err);
+        }
       }
-    }catch(err){
-      autSelect.innerHTML = '<option value="">Erro ao carregar</option>';
-      console.error(err);
-    }
-  }
 
-  sectorSelect.addEventListener('change', function(){
-    const sid = this.value;
-    if (sid) carregarAutocarros(sid);
-    else autSelect.innerHTML = '<option value="">-- Selecionar --</option>';
-  });
+      sectorSelect.addEventListener('change', function(){
+        const sid = this.value;
+        if (sid) carregarAutocarros(sid);
+        else autSelect.innerHTML = '<option value="">-- Selecionar --</option>';
+      });
 
-  // Se já existir setor selecionado, carrega os autocarros ao abrir
-  if (sectorSelect.value) carregarAutocarros(sectorSelect.value);
-});
-</script>
+      if (sectorSelect.value) carregarAutocarros(sectorSelect.value);
+    });
+  </script>
 {% endblock %}

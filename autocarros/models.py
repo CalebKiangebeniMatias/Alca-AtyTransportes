@@ -413,6 +413,10 @@ class CobradorViagem(models.Model):
 
 # <----- Modelo para Manutenção de Autocarros -----> #
 
+from django.db import models
+from django.conf import settings
+from decimal import Decimal
+
 class Manutencao(models.Model):
     STATUS_CHOICES = [
         ('agendada', 'Agendada'),
@@ -424,8 +428,10 @@ class Manutencao(models.Model):
     sector = models.ForeignKey('Sector', on_delete=models.CASCADE, related_name='manutencoes')
     autocarro = models.ForeignKey('Autocarro', on_delete=models.CASCADE, related_name='manutencoes')
     data_ultima = models.DateField(help_text='Data da última manutenção realizada')
-    km_ultima = models.PositiveIntegerField(help_text='Km na última manutenção')
-    km_proxima = models.PositiveIntegerField(help_text='Km previsto para próxima manutenção')
+
+    # 🔹 Alterados para DecimalField
+    km_ultima = models.DecimalField(max_digits=14, decimal_places=2, help_text='Km na última manutenção')
+    km_proxima = models.DecimalField(max_digits=14, decimal_places=2, help_text='Km previsto para próxima manutenção')
 
     # substituições (sim/não)
     oleo_motor = models.BooleanField(default=False)
@@ -436,41 +442,46 @@ class Manutencao(models.Model):
     filtro_ar = models.BooleanField(default=False)
 
     # ---> novos campos: km previstos para cada item <---
-    km_prox_oleo_motor = models.PositiveIntegerField(null=True, blank=True, help_text='Km previsto para próxima troca do óleo do motor')
-    km_prox_oleo_diferencial = models.PositiveIntegerField(null=True, blank=True, help_text='Km previsto para próxima troca do óleo do diferencial')
-    km_prox_oleo_cambio = models.PositiveIntegerField(null=True, blank=True, help_text='Km previsto para próxima troca do óleo do câmbio')
-    km_prox_filtro_combustivel = models.PositiveIntegerField(null=True, blank=True, help_text='Km previsto para troca do filtro de combustível')
-    km_prox_filtro_oleo = models.PositiveIntegerField(null=True, blank=True, help_text='Km previsto para troca do filtro de óleo')
-    km_prox_filtro_ar = models.PositiveIntegerField(null=True, blank=True, help_text='Km previsto para troca do filtro de ar')
+    km_prox_oleo_motor = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, help_text='Km previsto para próxima troca do óleo do motor')
+    km_prox_oleo_diferencial = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, help_text='Km previsto para próxima troca do óleo do diferencial')
+    km_prox_oleo_cambio = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, help_text='Km previsto para próxima troca do óleo do câmbio')
+    km_prox_filtro_combustivel = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, help_text='Km previsto para troca do filtro de combustível')
+    km_prox_filtro_oleo = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, help_text='Km previsto para troca do filtro de óleo')
+    km_prox_filtro_ar = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, help_text='Km previsto para troca do filtro de ar')
 
     custo_total = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
     observacao = models.TextField(blank=True, null=True)
 
-    responsavel = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name='manutencoes_responsavel')
+    responsavel = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='manutencoes_responsavel'
+    )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='agendada')
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-            try:
-                if (not getattr(self, 'km_proxima', None)) and (getattr(self, 'km_ultima', None) is not None):
-                    # garante inteiro e evita sobrescrever se usuário já preencheu km_proxima
-                    self.km_proxima = int(self.km_ultima) + 4500
-                    self.km_prox_oleo_motor = int(self.km_ultima) + 7000
-                    self.km_prox_oleo_diferencial = int(self.km_ultima) + 5000
-                    self.km_prox_oleo_cambio = int(self.km_ultima) + 10000
-                    self.km_prox_filtro_combustivel = int(self.km_ultima) + 7000
-                    self.km_prox_filtro_oleo = int(self.km_ultima) + 7000
-                    self.km_prox_filtro_ar = int(self.km_ultima) + 7000
-            except Exception:
-                pass
-            super().save(*args, **kwargs)
+        try:
+            if (not getattr(self, 'km_proxima', None)) and (getattr(self, 'km_ultima', None) is not None):
+                base_km = Decimal(self.km_ultima)
+                self.km_proxima = base_km + Decimal('4500.00')
+                self.km_prox_oleo_motor = base_km + Decimal('7000.00')
+                self.km_prox_oleo_diferencial = base_km + Decimal('5000.00')
+                self.km_prox_oleo_cambio = base_km + Decimal('10000.00')
+                self.km_prox_filtro_combustivel = base_km + Decimal('7000.00')
+                self.km_prox_filtro_oleo = base_km + Decimal('7000.00')
+                self.km_prox_filtro_ar = base_km + Decimal('7000.00')
+        except Exception:
+            pass
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ['-data_ultima', '-criado_em']
 
     def __str__(self):
-        return f"Manut.{self.autocarro.numero} {self.data_ultima} — {self.get_status_display()}"
+        return f"Manut. {self.autocarro.numero} {self.data_ultima} — {self.get_status_display()}"
 
 
 class RegistroKM(models.Model):

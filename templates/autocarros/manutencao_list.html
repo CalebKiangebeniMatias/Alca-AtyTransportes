@@ -1,18 +1,24 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="d-flex justify-content-between mb-3">
-  <h4>Manutenções</h4>
-  <a href="{% url 'manutencao_create' %}" class="btn btn-primary">Agendar Manutenção</a>
+<div class="d-flex justify-content-between mb-3 align-items-center">
+  <h4 class="m-0">Manutenções</h4>
+  <a href="{% url 'manutencao_create' %}" class="btn btn-primary">
+    <i class="bi bi-plus-circle me-1"></i> Agendar Manutenção
+  </a>
 </div>
 
-<form class="row g-3 mb-3" method="get">
+<form class="row g-3 mb-4" method="get">
   <div class="col-md-3">
     <select name="sector" class="form-select">
       <option value="">Todos setores</option>
-      {% for s in sectores %}<option value="{{ s.id }}" {% if request.GET.sector == s.id|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>{% endfor %}
+      {% for s in sectores %}
+        <option value="{{ s.id }}" {% if request.GET.sector == s.id|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>
+      {% endfor %}
     </select>
   </div>
-  <div class="col-md-3"><input name="autocarro" class="form-control" placeholder="Número autocarro" value="{{ request.GET.autocarro }}"></div>
+  <div class="col-md-3">
+    <input name="autocarro" class="form-control" placeholder="Número autocarro" value="{{ request.GET.autocarro }}">
+  </div>
   <div class="col-md-3">
     <select name="status" class="form-select">
       <option value="">Todos status</option>
@@ -22,52 +28,75 @@
       <option value="cancelada" {% if request.GET.status == 'cancelada' %}selected{% endif %}>Cancelada</option>
     </select>
   </div>
-  <div class="col-md-3 text-end"><button class="btn btn-outline-primary">Filtrar</button></div>
+  <div class="col-md-3 text-end">
+    <button class="btn btn-outline-primary w-100">
+      <i class="bi bi-funnel me-1"></i> Filtrar
+    </button>
+  </div>
 </form>
 
-<table class="table table-sm">
-  <thead>
-    <tr>
-      <th>Data Últ.</th>
-      <th>Km Últ.</th>
-      <th>Próx. Km</th>
-      <th>Autocarro</th>
-      <th>Sector</th>
-      <th>Itens</th>
-      <th>Custo</th>
-      <th>Status</th>
-      <th>Ações</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for m in manutencoes %}
-    <tr>
-      <td>{{ m.data_ultima }}</td>
-      <td>{{ m.km_ultima }}</td>
-      <td>{{ m.km_proxima }}</td>
-      <td>{{ m.autocarro.numero }}</td>
-      <td>{{ m.sector.nome }}</td>
-      <td>
-        {% if m.oleo_motor %}Óleo Motor,<br>{% endif %}
-        {% if m.oleo_diferencial %}Óleo Difer.,<br>{% endif %}
-        {% if m.oleo_cambio %}Óleo Câmbio,<br>{% endif %}
-        {% if m.filtro_combustivel %}Filtro Comb.,<br>{% endif %}
-        {% if m.filtro_oleo %}Filtro Óleo,<br>{% endif %}
-        {% if m.filtro_ar %}Filtro Ar{% endif %}
-      </td>
-      <td>{{ m.custo_total }}</td>
-      <td>{{ m.get_status_display }}</td>
-      <td>
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'manutencao_edit' m.pk %}">Editar</a>
-        <form action="{% url 'manutencao_delete' m.pk %}" method="post" style="display:inline" onsubmit="return confirm('Confirma eliminar esta manutenção?');">
-          {% csrf_token %}
-          <button class="btn btn-sm btn-outline-danger" type="submit">Eliminar</button>
-        </form>
-      </td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="9">Nenhuma manutenção encontrada.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="table-responsive">
+  <table class="table table-bordered align-middle text-center">
+    <thead class="table-light">
+      <tr>
+        <th>Data Últ.</th>
+        <th>Km Últ.</th>
+        <th>Próx. Geral</th>
+        <th>Óleo Motor</th>
+        <th>Óleo Difer.</th>
+        <th>Óleo Câmbio</th>
+        <th>Filtro Comb.</th>
+        <th>Filtro Óleo</th>
+        <th>Filtro Ar</th>
+        <th>Autocarro</th>
+        <th>Sector</th>
+        <th>Custo (Kz)</th>
+        <th>Status</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in manutencoes %}
+      <tr>
+        <td>{{ m.data_ultima|date:"d/m/Y" }}</td>
+        <td>{{ m.km_ultima|floatformat:0 }}</td>
+        <td><strong>{{ m.km_proxima|floatformat:0 }}</strong></td>
+        <td>{{ m.km_prox_oleo_motor|default:"—" }}</td>
+        <td>{{ m.km_prox_oleo_diferencial|default:"—" }}</td>
+        <td>{{ m.km_prox_oleo_cambio|default:"—" }}</td>
+        <td>{{ m.km_prox_filtro_combustivel|default:"—" }}</td>
+        <td>{{ m.km_prox_filtro_oleo|default:"—" }}</td>
+        <td>{{ m.km_prox_filtro_ar|default:"—" }}</td>
+        <td>{{ m.autocarro.numero }}</td>
+        <td>{{ m.sector.nome }}</td>
+        <td>{{ m.custo_total|floatformat:2 }}</td>
+        <td>
+          {% if m.status == 'agendada' %}
+            <span class="badge bg-warning text-dark">{{ m.get_status_display }}</span>
+          {% elif m.status == 'em_progresso' %}
+            <span class="badge bg-primary">{{ m.get_status_display }}</span>
+          {% elif m.status == 'concluida' %}
+            <span class="badge bg-success">{{ m.get_status_display }}</span>
+          {% else %}
+            <span class="badge bg-danger">{{ m.get_status_display }}</span>
+          {% endif %}
+        </td>
+        <td>
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'manutencao_edit' m.pk %}">
+            <i class="bi bi-pencil"></i>
+          </a>
+          <form action="{% url 'manutencao_delete' m.pk %}" method="post" style="display:inline;" onsubmit="return confirm('Confirma eliminar esta manutenção?');">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-danger" type="submit">
+              <i class="bi bi-trash"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="14" class="text-center py-3">Nenhuma manutenção encontrada.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}
