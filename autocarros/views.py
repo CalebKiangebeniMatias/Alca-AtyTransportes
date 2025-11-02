@@ -911,18 +911,6 @@ def exportar_relatorio_dashboard(request):
 # === ESTATÍSTICAS POR AUTOCARRO === #
 @login_required
 @acesso_restrito(['admin', 'gestor'])
-from decimal import Decimal
-from urllib.parse import quote_plus
-from datetime import datetime
-from django.db.models import Sum, F, DecimalField
-from django.shortcuts import render, get_object_or_404, redirect
-from django.utils.dateparse import parse_date
-from django.utils import timezone
-from autocarros.models import (
-    Sector, RegistoDiario, Despesa, DespesaCombustivel,
-    DespesaFixa, RelatorioSector, Autocarro
-)
-
 def resumo_sector(request, slug):
     sector_obj = get_object_or_404(Sector, slug=slug)
     nivel = request.user.nivel_acesso.lower()
