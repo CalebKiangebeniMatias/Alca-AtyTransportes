@@ -52,6 +52,20 @@
               <option value="">Todos sectores</option>
               {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
             </select>
+
+            <!-- 🔹 Filtros mensais -->
+            <select id="filter_year" class="form-select w-auto shadow-sm">
+              <option value="">Ano</option>
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+            </select>
+            <select id="filter_month" class="form-select w-auto shadow-sm">
+              <option value="">Mês</option>
+              {% for m in "01 02 03 04 05 06 07 08 09 10 11 12".split %}
+                <option value="{{ m }}">{{ m }}</option>
+              {% endfor %}
+            </select>
+
             <button id="btn_reload" class="btn btn-outline-primary shadow-sm"><i class="fas fa-sync-alt me-1"></i>Recarregar</button>
           </div>
           <div id="lista_depositos" class="p-2 bg-light rounded-3 shadow-sm" style="max-height:420px; overflow:auto;"></div>
@@ -60,18 +74,35 @@
         <!-- TOTAIS -->
         <div class="tab-pane fade" id="tab-total">
           <div class="row g-4 align-items-end">
-            <div class="col-md-4">
+            <div class="col-md-3">
               <label class="form-label fw-semibold">Sector</label>
               <select id="total_sector" class="form-select shadow-sm">
                 <option value="">Todos sectores</option>
                 {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
               </select>
             </div>
-            <div class="col-md-4">
+
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Ano</label>
+              <select id="total_year" class="form-select shadow-sm">
+                <option value="">--</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Mês</label>
+              <select id="total_month" class="form-select shadow-sm">
+                <option value="">--</option>
+                {% for m in "01 02 03 04 05 06 07 08 09 10 11 12".split %}
+                  <option value="{{ m }}">{{ m }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-3 text-end">
               <label class="form-label fw-semibold">Total de Depósitos</label>
               <div class="h3 text-success fw-bold" id="total_valor">0,00 Kz</div>
-            </div>
-            <div class="col-md-4 text-end">
               <button id="btn_total_reload" class="btn btn-outline-primary mt-2 shadow-sm"><i class="fas fa-sync-alt me-1"></i>Atualizar</button>
             </div>
           </div>
@@ -119,8 +150,7 @@
   </div>
 </div>
 
-<!-- MANTÉM O TEU SCRIPT EXISTENTE -->
- <!-- SCRIPT PRINCIPAL -->
+<!-- SCRIPT PRINCIPAL -->
 <script>
 document.addEventListener('DOMContentLoaded', function(){
   const csrftoken = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)')?.pop() || '';
@@ -157,8 +187,16 @@ document.addEventListener('DOMContentLoaded', function(){
   function editUrlFor(id){ return editUrlTemplate.replace('/0/','/'+id+'/edit/').replace('/0/edit/','/'+id+'/edit/'); }
 
   async function carregarLista(sec=null){
+    const year = document.getElementById('filter_year').value || '';
+    const month = document.getElementById('filter_month').value || '';
+
+    const params = new URLSearchParams();
+    if(sec) params.append('sector_id', sec);
+    if(year) params.append('year', year);
+    if(month) params.append('month', month);
+
     listaDiv.innerHTML = '<div class="text-center text-muted py-4"><div class="spinner-border"></div><br>Carregando...</div>';
-    const res = await fetch(listUrl + (sec ? ('?sector_id='+sec) : ''), {credentials:'same-origin'});
+    const res = await fetch(listUrl + '?' + params.toString(), {credentials:'same-origin'});
     if (!res.ok) return;
     const data = await res.json();
     listaDiv.innerHTML = '';
@@ -189,8 +227,16 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   async function carregarTotal(sec=null){
+    const year = document.getElementById('total_year').value || '';
+    const month = document.getElementById('total_month').value || '';
+
+    const params = new URLSearchParams();
+    if(sec) params.append('sector_id', sec);
+    if(year) params.append('year', year);
+    if(month) params.append('month', month);
+
     totalValor.textContent = '...';
-    const res = await fetch(listUrl + (sec ? ('?sector_id='+sec) : ''), {credentials:'same-origin'});
+    const res = await fetch(listUrl + '?' + params.toString(), {credentials:'same-origin'});
     if (!res.ok) return;
     const data = await res.json();
     const total = parseFloat(data.total || 0);
@@ -288,35 +334,20 @@ document.addEventListener('DOMContentLoaded', function(){
   carregarTotal();
 });
 </script>
-{{ block.super }}
 
 <style>
-  /* Campos e botões */
   .form-control, .form-select { border-radius: 10px; transition: 0.2s; }
   .form-control:focus, .form-select:focus { border-color: #0d6efd; box-shadow: 0 0 0 0.15rem rgba(13,110,253,0.25); }
 
   .nav-tabs .nav-link {
     border: none; color: #495057; background: #f8f9fa;
-    border-radius: 8px 8px 0 0; transition: all 0.2s;
+    border-radius: 8px 8px 0 0; margin-right: 5px;
   }
   .nav-tabs .nav-link.active {
-    background: #0d6efd; color: #fff; font-weight: 600;
+    background: linear-gradient(90deg, #007bff, #00bcd4);
+    color: white; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
   }
-  .nav-tabs .nav-link:hover { background: #e9ecef; }
-
-  .btn { border-radius: 8px; transition: all 0.2s; }
-  .btn:hover { transform: scale(1.03); }
-
-  .fade-in { animation: fadeIn 0.3s ease-in; }
-  @keyframes fadeIn { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
-
-  #lista_depositos div.border { transition: all 0.2s; }
-  #lista_depositos div.border:hover { background: #f1f9ff; transform: scale(1.01); }
-
-  .modal-content { border-radius: 1rem; }
-
-  /* Scrollbar elegante */
-  #lista_depositos::-webkit-scrollbar { width: 8px; }
-  #lista_depositos::-webkit-scrollbar-thumb { background: #cfd8dc; border-radius: 4px; }
+  .fade-in { animation: fadeIn .3s ease-in-out; }
+  @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
 </style>
 {% endblock %}

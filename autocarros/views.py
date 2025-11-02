@@ -1768,6 +1768,45 @@ def adicionar_relatorio_sector(request):
 
 
 @login_required
+def editar_registros(request, sector_id, data):
+    sector = get_object_or_404(Sector, pk=sector_id)
+    data = parse_date(data)
+    registros = RegistoDiario.objects.filter(sector=sector, data=data).select_related('relatorio')
+
+    forms = [RelatorioSectorForm(instance=r, prefix=f"registro_{r.id}") for r in registros]
+
+    if request.method == 'POST':
+        # 🔹 Atualiza despesa geral
+        despesa_geral = request.POST.get('despesa_geral')
+        relatorio = registros.first().relatorio if registros.exists() else None
+        if relatorio and despesa_geral:
+            relatorio.despesa_geral = despesa_geral or 0
+            relatorio.save()
+
+        # 🔹 Upload de novos comprovativos
+        if relatorio and request.FILES.getlist('novos_comprovativos'):
+            for f in request.FILES.getlist('novos_comprovativos'):
+                Comprovativo.objects.create(relatorio=relatorio, arquivo=f)
+
+        # 🔹 Salva cada registro
+        for form in forms:
+            f = RelatorioSectorForm(request.POST, instance=form.instance, prefix=form.prefix)
+            if f.is_valid():
+                f.save()
+
+        messages.success(request, "✅ Alterações salvas com sucesso!")
+        return redirect('editar_registros', sector_id=sector.id, data=data)
+
+    return render(request, 'autocarros/editar_registos.html', {
+        'forms': forms,
+        'sector': sector,
+        'data': data,
+        'total_autocarros': registros.count(),
+        'total_registros': registros.filter(concluido=True).count(),
+    })
+
+
+@login_required
 def editar_relatorio_sector(request, pk):
     """
     View para editar registos diários agrupados por sector e data.
@@ -2420,20 +2459,34 @@ def depositos_save(request):
 @acesso_restrito(['admin'])
 def depositos_list(request):
     """
-    API para listar depósitos (opcional filtro por sector) e retornar total.
-    GET params: sector_id (opcional), limit (opcional)
+    API para listar depósitos com filtros opcionais:
+    GET params: sector_id, year, month, limit
     """
     qs = Deposito.objects.select_related('sector','responsavel').all()
+
+    # ✅ FILTRO POR SECTOR
     sector_id = request.GET.get('sector_id')
     if sector_id:
         qs = qs.filter(sector_id=sector_id)
+
+    # ✅ FILTRO POR MÊS E ANO
+    year = request.GET.get('year')
+    month = request.GET.get('month')
+    if year and month:
+        qs = qs.filter(data_deposito__year=year,
+                       data_deposito__month=month)
+
+    # Limite opcional
     limit = request.GET.get('limit')
     if limit:
         try:
             qs = qs[:int(limit)]
-        except Exception:
+        except:
             pass
+
+    # Total filtrado
     total = qs.aggregate(total_valor=Sum('valor'))['total_valor'] or Decimal('0.00')
+
     items = []
     for d in qs.order_by('-data_deposito')[:200]:
         items.append({
@@ -2445,7 +2498,12 @@ def depositos_list(request):
             'observacao': d.observacao or '',
             'responsavel': d.responsavel.get_full_name() if d.responsavel else ''
         })
-    return JsonResponse({'ok': True, 'total': str(total), 'depositos': items})
+
+    return JsonResponse({
+        'ok': True,
+        'total': str(total),
+        'depositos': items
+    })
 
 
 @login_required
