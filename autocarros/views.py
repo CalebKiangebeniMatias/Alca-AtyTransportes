@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import date, datetime
 from decimal import Decimal
 import json
@@ -343,24 +344,26 @@ def dashboard(request):
     if registos.exists():
         autocarro_ids = set(registos.values_list('autocarro_id', flat=True))
         datas = set(registos.values_list('data', flat=True))
+
         combustiveis_dash = DespesaCombustivel.objects.filter(
             autocarro_id__in=autocarro_ids,
             data__in=datas
         )
-        from collections import defaultdict
-        from decimal import Decimal
+
         agg_dash = defaultdict(lambda: {
             'total_valor': Decimal('0'),
             'total_valor_litros': Decimal('0'),
             'total_sobragem': Decimal('0'),
             'total_lavagem': Decimal('0')
         })
+
         for c in combustiveis_dash:
             key = f"{c.autocarro_id}_{c.data.isoformat()}"
             agg_dash[key]['total_valor'] += c.valor or Decimal('0')
             agg_dash[key]['total_valor_litros'] += c.valor_litros or Decimal('0')
             agg_dash[key]['total_sobragem'] += c.sobragem_filtros or Decimal('0')
             agg_dash[key]['total_lavagem'] += c.lavagem or Decimal('0')
+
         combustivel_map_dashboard.update(agg_dash)
 
     # 🔹 Totais gerais
@@ -381,6 +384,15 @@ def dashboard(request):
     ).aggregate(
         total=Sum("valor", output_field=DecimalField())
     )["total"] or Decimal("0")
+
+    # 🔹 Despesa geral dos setores (NOVO)
+    total_despesa_geral = RelatorioSector.objects.filter(
+        data__year=ano,
+        data__month=mes
+    ).aggregate(
+        total=Sum('despesa_geral', output_field=DecimalField())
+    )['total'] or Decimal('0')
+
 
     qs_fixas = DespesaFixa.objects.filter(ativo=True)
 
@@ -437,6 +449,7 @@ def dashboard(request):
             + total_combustivel_sobragem
             + total_combustivel_lavagem
             + total_despesas_fixas
+            + total_despesa_geral
     )
     total_resto = total_entradas - total_saidas
 
