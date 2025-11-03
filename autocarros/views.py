@@ -448,14 +448,15 @@ def dashboard(request):
             + total_combustivel_valor
             + total_combustivel_sobragem
             + total_combustivel_lavagem
-            + total_despesas_fixas
             + total_despesa_geral
     )
     total_resto = total_entradas - total_saidas
 
     total_variaveis = total_saidas_despesas or Decimal('0')
 
-    total_saidas_sem_variaveis = total_saidas - total_variaveis
+    total_saidas_sem_variaveis = total_saidas - total_variaveis - total_despesas_fixas
+
+    total_sobragem_filtros_lavagem = total_combustivel_sobragem + total_combustivel_lavagem
 
     # 🔹 Estatísticas por autocarro
     autocarros_stats = []
@@ -487,18 +488,23 @@ def dashboard(request):
 
         comb_val = comb_auto.get('total_valor') or Decimal('0')
         stats['total_combustivel'] = comb_val
+
         # em vez de 'litros' o ficheiro pede 'alimentacao + outros' por autocarro
         alim_outros_auto = registos_auto.aggregate(
             total=Sum(F("alimentacao") + F("outros"), output_field=DecimalField())
         )["total"] or Decimal('0')
+
         stats['total_alim_outros'] = alim_outros_auto
 
         stats['total_combustivel_litros'] = comb_auto.get('total_litros') or Decimal('0')
         stats['total_combustivel_sobragem'] = comb_auto.get('total_sobragem') or Decimal('0')
+
         stats['total_combustivel_lavagem'] = comb_auto.get('total_lavagem') or Decimal('0')
 
         comb_sobr = stats['total_combustivel_sobragem']
+
         comb_lav = stats['total_combustivel_lavagem']
+
         # incluir combustível e respetivas taxas nas saídas por autocarro
         stats['total_saidas'] += stats['total_combustivel'] + comb_sobr + comb_lav
         # OBS: 'total_alim_outros' já faz parte de 'total_saidas' (porque veio de registos_auto agregados),
@@ -551,6 +557,7 @@ def dashboard(request):
         "autocarros_stats": autocarros_stats,
         "registos_recentes": registos_recentes,
         "max_saldo": max_saldo,
+        "total_sobragem_filtros_lavagem": total_sobragem_filtros_lavagem,
     }
     return render(request, "autocarros/dashboard.html", context)
 

@@ -64,7 +64,7 @@
                 <div class="form-check form-switch me-3">
                     <!-- Removido 'checked' para ocultar por padrão -->
                     <input class="form-check-input" type="checkbox" id="toggle_variaveis">
-                    <label class="form-check-label small" for="toggle_variaveis">Mostrar despesas variáveis</label>
+                    <label class="form-check-label small" for="toggle_variaveis">Mostrar despesas variáveis e fixas</label>
                 </div>
             </div>
         </div>
@@ -89,7 +89,7 @@
                         {% localize on %}<strong id="display_saidas">{{ total_saidas|floatformat:2 }}{% endlocalize %} Kz</strong>
                     </div>
                     <h5 class="card-title">Despesas</h5>
-                    <div class="small text-warning mt-2" id="info_variaveis">(inclui variáveis: <span id="display_variaveis">{{ total_variaveis|floatformat:2 }}</span>)</div>
+                    <div class="small text-warning mt-2" id="info_variaveis">(inclui variáveis e fixas: <span id="display_variaveis">{{ total_variaveis|floatformat:2 }}</span>)</div>
                 </div>
             </div>
         </div>
@@ -123,7 +123,7 @@
                 <div class="card-body">
                     <i class="fas fa-ellipsis-h icon-stat text-info"></i>
                     <div class="stats-number text-info">{% localize on %}{{ total_saidas_registos|floatformat:2 }}{% endlocalize %} Kz</div>
-                    <h5 class="card-title">Aliment/Taxa/Outros (ilustr.)</h5>
+                    <h5 class="card-title">Aliment/Taxa/Outros</h5>
                 </div>
             </div>
         </div>
@@ -140,8 +140,8 @@
             <div class="card stats-card text-center bg-azul-forte">
                 <div class="card-body">
                     <i class="fas fa-bucket icon-stat text-info"></i>
-                    <div class="stats-number text-info">{% localize on %}{{ total_combustivel_lavagem|floatformat:2 }}{% endlocalize %} Kz</div>
-                    <h5 class="card-title">Lavagem</h5>
+                    <div class="stats-number text-info">{% localize on %}{{ total_sobragem_filtros_lavagem|floatformat:2 }}{% endlocalize %} Kz</div>
+                    <h5 class="card-title">Lavagem/Sopragem De Filtros</h5>
                 </div>
             </div>
         </div>
