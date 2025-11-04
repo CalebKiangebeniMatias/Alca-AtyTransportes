@@ -1876,7 +1876,7 @@ def editar_relatorio_sector(request, pk=None, sector_id=None, data=None):
         if autocarro.id not in autocarros_com_registro:
             RegistoDiario.objects.create(autocarro=autocarro, data=data)
 
-    # Recarregar
+    # Recarregar registros
     registros = RegistoDiario.objects.filter(
         autocarro__sector=sector,
         data=data
@@ -1884,18 +1884,29 @@ def editar_relatorio_sector(request, pk=None, sector_id=None, data=None):
 
     # 🔹 POST - salvar alterações
     if request.method == "POST":
-        relatorio_form = RelatorioSectorForm(request.POST, instance=relatorio_sector)
+        relatorio_form = RelatorioSectorForm(request.POST, request.FILES, instance=relatorio_sector)
 
         if relatorio_form.is_valid():
             relatorio_form.save()
+
+            # 🔹 Salvar novos comprovativos, se enviados
+            novos_arquivos = request.FILES.getlist("novos_comprovativos")
+            for arquivo in novos_arquivos:
+                if arquivo:
+                    ComprovativoRelatorio.objects.create(
+                        relatorio=relatorio_sector,
+                        arquivo=arquivo,
+                        descricao=f"Comprovativo {arquivo.name}"
+                    )
         else:
             messages.warning(request, "⚠️ Verifique o campo 'Despesa geral do setor'.")
 
+        # 🔹 Salvar cada registo de autocarro
         for registro in registros:
             form = RegistoDiarioForm(
                 request.POST,
                 instance=registro,
-                prefix=f'registro_{registro.id}'
+                prefix=f"registro_{registro.id}"
             )
 
             if form.is_valid():
@@ -1935,6 +1946,7 @@ def editar_relatorio_sector(request, pk=None, sector_id=None, data=None):
     context = {
         "sector": sector,
         "data": data,
+        "relatorio": relatorio_sector,  # ✅ adicionado — essencial para o template
         "relatorio_form": relatorio_form,
         "forms": forms,
         "total_autocarros": autocarros_do_sector.count(),
