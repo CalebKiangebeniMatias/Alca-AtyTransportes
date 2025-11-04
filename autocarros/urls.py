@@ -52,7 +52,7 @@ urlpatterns = [
     # Relatórios Diários por Sector
     path("registros/", views.listar_registros, name="listar_registros"),
     path("relatorios/adicionar/", views.adicionar_relatorio_sector, name="adicionar_relatorio_sector"),
-    path('relatorio/editar/<int:pk>/', views.gerir_relatorio_sector, name='editar_relatorio_sector_geral'),
+    path('relatorio/editar_geral/<int:pk>/', views.gerir_relatorio_sector, name='editar_relatorio_sector_geral'),
     path('registros/editar/<int:pk>/', views.editar_relatorio_sector, name='editar_relatorio_sector'),
     path('registos/<int:pk>/deletar/', views.deletar_relatorio_sector, name='deletar_relatorio_sector'),
 
