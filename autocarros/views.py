@@ -1775,6 +1775,65 @@ def adicionar_relatorio_sector(request):
 
 
 @login_required
+def gerir_relatorio_sector(request, pk=None):
+    relatorio = RelatorioSector.objects.filter(pk=pk).first()  # 🔹 Se for edição, busca o relatório existente
+
+    if request.method == 'POST':
+        relatorio_form = RelatorioSectorForm(request.POST, instance=relatorio)
+        multi_file_form = MultiFileForm(request.POST, request.FILES)
+
+        if relatorio_form.is_valid() and multi_file_form.is_valid():
+            try:
+                relatorio = relatorio_form.save()
+
+                # 🔹 Atualizar ou criar comprovativos
+                arquivos = request.FILES.getlist('arquivos')
+                for arquivo in arquivos:
+                    if arquivo:
+                        ComprovativoRelatorio.objects.create(
+                            relatorio=relatorio,
+                            arquivo=arquivo,
+                            descricao=f"Comprovativo {arquivo.name}"
+                        )
+
+                # 🔹 Criar registos (somente se for novo)
+                if pk is None:
+                    autocarros = Autocarro.objects.filter(sector=relatorio.sector)
+                    for autocarro in autocarros:
+                        RegistoDiario.objects.get_or_create(
+                            relatorio=relatorio,
+                            autocarro=autocarro,
+                            data=relatorio.data
+                        )
+
+                if pk:
+                    messages.success(request, f"✅ Relatório de {relatorio.sector.nome} atualizado com sucesso!")
+                else:
+                    messages.success(request, f"✅ Relatório de {relatorio.sector.nome} criado com sucesso!")
+
+                return redirect('gerir_relatorio_sector', pk=relatorio.pk)
+
+            except Exception as e:
+                messages.error(request, f"❌ Erro ao salvar relatório: {e}")
+        else:
+            messages.error(request, "❌ Corrija os erros do formulário.")
+
+    else:
+        relatorio_form = RelatorioSectorForm(instance=relatorio)
+        multi_file_form = MultiFileForm()
+
+    relatorios_recentes = RelatorioSector.objects.select_related('sector').order_by('-data')[:5]
+
+    return render(request, 'autocarros/adicionar_relatorio_sector.html', {
+        'relatorio_form': relatorio_form,
+        'multi_file_form': multi_file_form,
+        'relatorios_recentes': relatorios_recentes,
+        'relatorio': relatorio,
+        'modo_edicao': bool(relatorio),
+    })
+
+
+@login_required
 @acesso_restrito(['admin', 'gestor'])
 def editar_registros(request, sector_id, data):
     return editar_relatorio_sector(request, sector_id=sector_id, data=data)
