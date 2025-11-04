@@ -456,7 +456,7 @@ def dashboard(request):
 
     total_saidas_sem_variaveis = total_saidas - total_variaveis - total_despesas_fixas
 
-    total_sobragem_filtros_lavagem = total_combustivel_sobragem + total_combustivel_lavagem
+    total_sobragem_filtros_lavagem = total_combustivel_sobragem + total_combustivel_lavagem + total_despesa_geral
 
     # 🔹 Estatísticas por autocarro
     autocarros_stats = []

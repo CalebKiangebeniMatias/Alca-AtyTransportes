@@ -1,28 +1,27 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    {% if relatorio %}
-        Editar Relatório do Setor - {{ relatorio.sector.nome }}
-    {% else %}
-        Novo Relatório do Setor
-    {% endif %}
+    {% if relatorio.id %}Editar Relatório do Setor{% else %}Novo Relatório do Setor{% endif %}
 {% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-10">
+    <div class="col-md-11">
         <div class="card shadow-lg">
-            <div class="card-header {% if relatorio %}bg-warning text-dark{% else %}bg-primary text-white{% endif %}">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h4 class="mb-0">
-                    {% if relatorio %}
-                        <i class="fas fa-edit me-2"></i> Editar Relatório do Setor
+                    <i class="fas fa-clipboard-list me-2"></i>
+                    {% if relatorio.id %}
+                        Editar Relatório - {{ sector.nome }}
                     {% else %}
-                        <i class="fas fa-plus-circle me-2"></i> Novo Relatório do Setor
+                        Novo Relatório do Setor
                     {% endif %}
                 </h4>
+                <small>{{ data|date:"d/m/Y" }}</small>
             </div>
 
             <div class="card-body">
+                <!-- 🔹 Mensagens -->
                 {% if messages %}
                     {% for message in messages %}
                         <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
@@ -32,75 +31,102 @@
                     {% endfor %}
                 {% endif %}
 
-                <form method="post" enctype="multipart/form-data">
+                <form method="post" enctype="multipart/form-data" id="relatorioForm">
                     {% csrf_token %}
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">{{ relatorio_form.sector.label }}</label>
-                                {{ relatorio_form.sector }}
+                    <!-- 🔹 Dados do Relatório -->
+                    <div class="border rounded p-3 mb-4 bg-light">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-info-circle me-2"></i> Dados do Relatório
+                        </h5>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">{{ relatorio_form.sector.label }}</label>
+                                    {{ relatorio_form.sector }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">{{ relatorio_form.data.label }}</label>
+                                    {{ relatorio_form.data }}
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">{{ relatorio_form.data.label }}</label>
-                                {{ relatorio_form.data }}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-danger">
+                                <i class="fas fa-coins me-1"></i> {{ relatorio_form.despesa_geral.label }}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">Kz</span>
+                                {{ relatorio_form.despesa_geral }}
                             </div>
+                            <small class="text-muted">Exemplo: 15000.00 — despesas gerais do setor.</small>
                         </div>
-                    </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-danger">
-                            <i class="fas fa-coins me-1"></i> {{ relatorio_form.despesa_geral.label }}
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text">Kz</span>
-                            {{ relatorio_form.despesa_geral }}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{{ relatorio_form.descricao.label }}</label>
+                            {{ relatorio_form.descricao }}
                         </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">{{ relatorio_form.descricao.label }}</label>
-                        {{ relatorio_form.descricao }}
                     </div>
 
                     <!-- 🔹 Comprovativos -->
                     <div class="border rounded p-3 mb-4 bg-light">
                         <h5 class="text-primary mb-3">
-                            <i class="fas fa-images me-2"></i> Comprovativos
+                            <i class="fas fa-paperclip me-2"></i> Comprovativos
                         </h5>
 
-                        <div class="mb-3">
-                            {{ multi_file_form.arquivos }}
-                        </div>
-
-                        {% if relatorio and relatorio.comprovativos.exists %}
-                            <div class="mt-3">
-                                <h6 class="text-success mb-2">
-                                    <i class="fas fa-paperclip me-1"></i> Comprovativos Existentes
-                                </h6>
-                                {% for comp in relatorio.comprovativos.all %}
-                                    <div class="d-flex justify-content-between align-items-center border-bottom py-1">
-                                        <a href="{{ comp.arquivo.url }}" target="_blank" class="text-decoration-none text-primary">
-                                            {{ comp.arquivo.name|slice:"-30:" }}
-                                        </a>
-                                        <a href="{% url 'remover_comprovativo' comp.id %}" class="text-danger small" onclick="return confirm('Remover este comprovativo?');">
+                        {% if relatorio.comprovativorelatorio_set.all %}
+                            <ul class="list-group mb-3">
+                                {% for c in relatorio.comprovativorelatorio_set.all %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-file me-2"></i>
+                                            <a href="{{ c.arquivo.url }}" target="_blank">{{ c.arquivo.name|slice:":50" }}</a>
+                                        </div>
+                                        <a href="{% url 'remover_comprovativo' c.id %}" class="btn btn-sm btn-danger">
                                             <i class="fas fa-trash-alt"></i>
                                         </a>
-                                    </div>
-                                {% empty %}
-                                    <small class="text-muted">Nenhum comprovativo anexado.</small>
+                                    </li>
                                 {% endfor %}
-                            </div>
+                            </ul>
+                        {% else %}
+                            <p class="text-muted">Nenhum comprovativo anexado ainda.</p>
                         {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Adicionar novos arquivos</label>
+                            <input type="file" name="novos_comprovativos" multiple class="form-control" id="fileInput">
+                            <div id="file-preview" class="mt-3"></div>
+                        </div>
+                    </div>
+
+                    <!-- 🔹 Registos dos Autocarros -->
+                    <div class="border rounded p-3 mb-4 bg-light">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-bus me-2"></i> Registos dos Autocarros
+                        </h5>
+
+                        {% for item in forms %}
+                            <div class="card mb-3">
+                                <div class="card-header bg-secondary text-white d-flex justify-content-between">
+                                    <strong>{{ item.registro.autocarro.numero }}</strong>
+                                    <small>{{ item.registro.autocarro.matricula }}</small>
+                                </div>
+                                <div class="card-body">
+                                    {{ item.form.as_p }}
+                                </div>
+                            </div>
+                        {% endfor %}
                     </div>
 
                     <!-- 🔹 Botões -->
                     <div class="text-center mt-4">
-                        <button type="submit" class="btn {% if relatorio %}btn-warning{% else %}btn-success{% endif %} btn-lg me-2">
+                        <button type="submit" class="btn btn-success btn-lg me-2">
                             <i class="fas fa-save me-2"></i>
-                            {% if relatorio %}Salvar Alterações{% else %}Criar Relatório{% endif %}
+                            {% if relatorio.id %}Salvar Alterações{% else %}Criar Relatório{% endif %}
                         </button>
                         <a href="{% url 'listar_registros' %}" class="btn btn-secondary btn-lg">
                             <i class="fas fa-times me-2"></i> Cancelar
@@ -108,7 +134,51 @@
                     </div>
                 </form>
             </div>
-        </div>
+        </div>        
     </div>
 </div>
+
+<!-- 🔹 Preview e validação de arquivos -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('fileInput');
+    const preview = document.getElementById('file-preview');
+    if (!fileInput) return;
+
+    fileInput.addEventListener('change', function() {
+        preview.innerHTML = '';
+        if (this.files.length > 0) {
+            const list = document.createElement('ul');
+            list.className = 'list-group';
+            Array.from(this.files).forEach((file, index) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML = `
+                    <span><i class="fas fa-file me-2"></i>${file.name}</span>
+                    <span class="badge bg-primary">${(file.size / 1024).toFixed(1)} KB</span>`;
+                list.appendChild(li);
+            });
+            preview.appendChild(list);
+        }
+    });
+});
+</script>
+
+<style>
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25);
+}
+.btn-success {
+    background: linear-gradient(45deg, #198754, #20c997);
+    border: none;
+}
+.btn-success:hover {
+    background: linear-gradient(45deg, #157347, #1aa179);
+}
+.list-group-item {
+    border-radius: 6px;
+    margin-bottom: 5px;
+}
+</style>
 {% endblock %}
