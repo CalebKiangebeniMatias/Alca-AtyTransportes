@@ -70,68 +70,94 @@
         </div>
     </div>
 
-    <!-- 🔹 Comprovativos e Despesa Geral -->
-    {% with relatorio=forms.0.registro.relatorio %}
-        {% if relatorio %}
-        <div class="card mb-4 border-0 shadow-sm">
-            <div class="card-header py-2 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 text-white">
-                    <i class="fas fa-wallet me-2"></i> Despesa Geral do Setor
-                </h6>
-                <span class="small text-white-50">
-                    <i class="fas fa-calendar me-1"></i>{{ data|date:"d/m/Y" }}
-                </span>
-            </div>
+    <!-- 🔹 Formulário único: relatório do setor + registros -->
+    <form method="post" enctype="multipart/form-data" id="relatorioForm">
+        {% csrf_token %}
+        {{ relatorio_form.non_field_errors }}
 
-            <div class="card-body">
-                <!-- 🔹 Campo editável -->
-                <div class="row align-items-center">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label small fw-bold">Despesa Geral (Kz)</label>
-                        <div class="input-group-custom">
-                            <input type="number" step="0.01" name="despesa_geral" id="id_despesa_geral"
-                                value="{{ relatorio.despesa_geral|default_if_none:'0.00' }}"
-                                class="form-control text-end">
-                            <span class="currency-symbol">Kz</span>
+        <!-- 🔹 Despesa Geral e Descrição (RelatorioSectorForm) -->
+        {% with relatorio=forms.0.registro.relatorio %}
+            {% if relatorio %}
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 text-white">
+                        <i class="fas fa-wallet me-2"></i> Despesa Geral do Setor
+                    </h6>
+                    <span class="small text-white-50">
+                        <i class="fas fa-calendar me-1"></i>{{ data|date:"d/m/Y" }}
+                    </span>
+                </div>
+
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <!-- Despesa Geral -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Despesa Geral (Kz)</label>
+                            <div class="input-group-custom">
+                                {{ relatorio_form.despesa_geral }}
+                                <span class="currency-symbol">Kz</span>
+                            </div>
+                            {% if relatorio_form.despesa_geral.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ relatorio_form.despesa_geral.errors.as_text }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Comprovativos -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">
+                                <i class="fas fa-file-alt me-1 text-primary"></i>Comprovativos
+                            </label>
+                            <input type="file" name="novos_comprovativos" multiple class="form-control form-control-sm">
+                            {% if relatorio.comprovativos.exists %}
+                                <div class="mt-2 small">
+                                    {% for comp in relatorio.comprovativos.all %}
+                                        <div class="d-flex align-items-center justify-content-between border-bottom py-1">
+                                            <a href="{{ comp.arquivo.url }}" target="_blank" class="text-decoration-none text-primary">
+                                                <i class="fas fa-paperclip me-1"></i>
+                                                {{ comp.arquivo.name|slice:"-30:" }}
+                                            </a>
+                                            <!-- remover: atualize a URL/ação conforme sua view -->
+                                            <a href="#" class="text-danger small" title="Remover"
+                                               onclick="return confirm('Remover este comprovativo?');">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </a>
+                                        </div>
+                                    {% empty %}
+                                        <span class="text-muted">Nenhum comprovativo anexado.</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <small class="text-muted">Nenhum comprovativo anexado.</small>
+                            {% endif %}
                         </div>
                     </div>
 
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label small fw-bold">
-                            <i class="fas fa-file-alt me-1 text-primary"></i>Comprovativos
-                        </label>
-                        <input type="file" name="novos_comprovativos" multiple class="form-control form-control-sm">
-                        {% if relatorio.comprovativos.exists %}
-                            <div class="mt-2 small">
-                                {% for comp in relatorio.comprovativos.all %}
-                                    <div class="d-flex align-items-center justify-content-between border-bottom py-1">
-                                        <a href="{{ comp.arquivo.url }}" target="_blank" class="text-decoration-none text-primary">
-                                            <i class="fas fa-paperclip me-1"></i>
-                                            {{ comp.arquivo.name|slice:"-30:" }}
-                                        </a>
-                                        <a href="#" class="text-danger small" title="Remover"
-                                        onclick="return confirm('Remover este comprovativo?');">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </a>
-                                    </div>
-                                {% empty %}
-                                    <span class="text-muted">Nenhum comprovativo anexado.</span>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <small class="text-muted">Nenhum comprovativo anexado.</small>
-                        {% endif %}
+                    <!-- Descrição do relatório (se quiser exibir) -->
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Observações do Relatório</label>
+                            {{ relatorio_form.descricao }}
+                            {% if relatorio_form.descricao.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ relatorio_form.descricao.errors.as_text }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- manter sector/data no form, mas escondidos (para envio) -->
+                    <div class="d-none">
+                        {{ relatorio_form.sector }}
+                        {{ relatorio_form.data }}
                     </div>
                 </div>
             </div>
-        </div>
-        {% endif %}
-    {% endwith %}
+            {% endif %}
+        {% endwith %}
 
-    <!-- 🔹 Formulário Principal -->
-    <form method="post" id="mainForm">
-        {% csrf_token %}
-
+        <!-- 🔹 Mensagens -->
         {% if messages %}
         <div class="mb-3">
             {% for message in messages %}
@@ -143,6 +169,7 @@
         </div>
         {% endif %}
 
+        <!-- 🔹 Registros de Autocarros (cada RegistoDiarioForm com prefix registro_ID) -->
         <div class="row">
             {% for item in forms %}
             <div class="col-lg-6 mb-4">
@@ -301,6 +328,7 @@
                             </div>
                         </div>
 
+                        <!-- campo id escondido para o registro (se existir) -->
                         {{ item.form.id }}
                     </div>
                 </div>
@@ -317,6 +345,7 @@
             </a>
         </div>
     </form>
+
 </div>
 {% endblock %}
 
