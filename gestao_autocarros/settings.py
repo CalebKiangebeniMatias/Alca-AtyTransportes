@@ -16,13 +16,17 @@ DEBUG = True
 # 🔹 Hosts permitidos
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0', 'alcaatytransportes.up.railway.app', 'https://alca-atytransportes.onrender.com']
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://alca-atytransportes.onrender.com",
-    "https://alcaatytransportes.up.railway.app",
-    "http://localhost",
-    "0.0.0.0",
-    "127.0.0.1"
-]
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost",
+        "http://127.0.0.1",
+        "http://0.0.0.0",
+    ]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        "https://alca-atytransportes.onrender.com",
+        "https://alcaatytransportes.up.railway.app",
+    ]
 
 
 # settings.py
@@ -107,4 +111,5 @@ TEMPLATES = [
         },
     },
 ]
+
 
