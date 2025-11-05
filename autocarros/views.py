@@ -948,7 +948,11 @@ def resumo_sector(request, slug):
     )["total"] or Decimal('0')
 
     total_saidas = registos.aggregate(
-        total=Sum(F("alimentacao") + F("parqueamento") + F("taxa") + F("outros"), output_field=DecimalField())
+        total=Sum(F("alimentacao") + F("parqueamento") + F("outros"), output_field=DecimalField())
+    )["total"] or Decimal('0')
+
+    total_taxas = registos.aggregate(
+        total=Sum("taxa", output_field=DecimalField())
     )["total"] or Decimal('0')
 
     total_km = registos.aggregate(Sum("km_percorridos"))["km_percorridos__sum"] or 0
@@ -1009,6 +1013,7 @@ def resumo_sector(request, slug):
         + total_despesas_sector
         + total_despesas_fixas
         + despesa_geral_total
+        + total_taxas
     )
 
     resto = total_entradas - total_saidas_final
@@ -1099,6 +1104,7 @@ def resumo_sector(request, slug):
         "total_despesas_sector": total_despesas_sector,
         "total_despesas_fixas": total_despesas_fixas,
         "despesa_geral_total": despesa_geral_total,
+        "total_taxas": total_taxas,
         "whatsapp_message": whatsapp_text,
         "whatsapp_link": whatsapp_link,
     }
@@ -3160,3 +3166,4 @@ def registro_km_save(request):
             continue
 
     return JsonResponse({'ok': True, 'registro_id': registro.id, 'created': created})
+
