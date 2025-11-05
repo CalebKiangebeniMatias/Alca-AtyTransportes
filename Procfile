@@ -1,0 +1,1 @@
+web: gunicorn gestao_autocarros.wsgi:application --log-file -
