@@ -14,9 +14,10 @@ SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
 DEBUG = True
 
 # 🔹 Hosts permitidos
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0', 'alcaatytransportes.up.railway.app']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0', 'alcaatytransportes.up.railway.app', 'https://alca-atytransportes.onrender.com']
 
 CSRF_TRUSTED_ORIGINS = [
+    "https://alca-atytransportes.onrender.com",
     "https://alcaatytransportes.up.railway.app",
     "http://localhost",
     "0.0.0.0",
@@ -106,3 +107,4 @@ TEMPLATES = [
         },
     },
 ]
+
