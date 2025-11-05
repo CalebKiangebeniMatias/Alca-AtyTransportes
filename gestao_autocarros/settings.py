@@ -14,7 +14,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
 DEBUG = True
 
 # 🔹 Hosts permitidos
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0', 'web-production-573bf.up.railway.app']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0', 'alcaatytransportes.up.railway.app']
 
 
 # settings.py
