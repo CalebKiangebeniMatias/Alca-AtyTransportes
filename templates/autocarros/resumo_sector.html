@@ -95,7 +95,7 @@
         <div class="col-md-3">
             <div class="card border-danger shadow-sm bg-azul-forte">
                 <div class="card-body">
-                    <h5 class="text-danger"><i class="fas fa-arrow-up"></i>Despesa Gerais Do Dia</h5>
+                    <h5 class="text-danger"><i class="fas fa-arrow-up"></i> Despesas Do Dia</h5>
                     <p class="fs-5 fw-bold text-danger">{% localize on %}{{ despesa_geral_total|default:0|floatformat:2 }}{% endlocalize %} Kz</p>
                 </div>
             </div>
@@ -111,7 +111,7 @@
         <div class="col-md-3">
             <div class="card border-warning shadow-sm bg-azul-forte">
                 <div class="card-body">
-                    <h5 class="text-warning"><i class="fas fa-filter"></i> Despesa Variáveis</h5>
+                    <h5 class="text-warning"><i class="fas fa-filter"></i> Despesas Variáveis</h5>
                     <p class="fs-5 fw-bold text-warning">{% localize on %}{{ total_despesas_sector|default:0|floatformat:2 }}{% endlocalize %} Kz</p>
                 </div>
             </div>
@@ -119,7 +119,7 @@
         <div class="col-md-3">
             <div class="card border-info shadow-sm bg-azul-forte">
                 <div class="card-body">
-                    <h5 class="text-info"><i class="fas fa-bucket"></i>Taxas</h5>
+                    <h5 class="text-info"><i class="fas fa-bucket"></i> Taxas</h5>
                     <p class="fs-5 fw-bold">{% localize on %}{{ total_taxas|default:0|floatformat:2 }}{% endlocalize %} Kz</p>
                 </div>
             </div>
