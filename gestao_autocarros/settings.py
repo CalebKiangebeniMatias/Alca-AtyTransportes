@@ -16,6 +16,13 @@ DEBUG = True
 # 🔹 Hosts permitidos
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0', 'alcaatytransportes.up.railway.app']
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://alcaatytransportes.up.railway.app",
+    "http://localhost",
+    "0.0.0.0",
+    "127.0.0.1"
+]
+
 
 # settings.py
 AUTH_USER_MODEL = 'autocarros.CustomUser'
