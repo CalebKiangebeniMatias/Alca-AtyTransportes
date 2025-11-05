@@ -215,6 +215,12 @@ __pycache__/
 venv_local/
 venv/
 
+venv/
+venv_local/
+.env
+__pycache__/
+
+
 # Django stuff
 *.sqlite3
 media/
