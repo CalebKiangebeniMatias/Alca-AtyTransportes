@@ -429,14 +429,12 @@ def dashboard(request):
         data__month=mes
     ).aggregate(
         total_valor=Sum('valor', output_field=DecimalField()),
-        # mantemos litros internamente se existir, mas não o usamos como coluna principal
         total_litros=Sum('valor_litros', output_field=DecimalField()),
         total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
         total_lavagem=Sum('lavagem', output_field=DecimalField()),
     )
 
     total_combustivel_valor = total_combustivel.get('total_valor') or Decimal('0')
-    # não utilizaremos 'litros' como coluna conforme pedido
     total_combustivel_litros = total_combustivel.get('total_litros') or Decimal('0')
     total_combustivel_sobragem = total_combustivel.get('total_sobragem') or Decimal('0')
     total_combustivel_lavagem = total_combustivel.get('total_lavagem') or Decimal('0')
@@ -452,7 +450,7 @@ def dashboard(request):
     )
     total_resto = total_entradas - total_saidas
 
-    total_variaveis = total_saidas_despesas or Decimal('0')
+    total_variaveis = total_saidas_despesas + total_despesas_fixas or Decimal('0')
 
     total_saidas_sem_variaveis = total_saidas - total_variaveis
 
@@ -3166,5 +3164,6 @@ def registro_km_save(request):
             continue
 
     return JsonResponse({'ok': True, 'registro_id': registro.id, 'created': created})
+
 
 
