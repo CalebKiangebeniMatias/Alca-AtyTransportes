@@ -454,7 +454,7 @@ def dashboard(request):
 
     total_variaveis = total_saidas_despesas or Decimal('0')
 
-    total_saidas_sem_variaveis = total_saidas - total_variaveis - total_despesas_fixas
+    total_saidas_sem_variaveis = total_saidas - total_variaveis
 
     total_sobragem_filtros_lavagem = total_combustivel_sobragem + total_combustivel_lavagem + total_despesa_geral
 
@@ -3166,4 +3166,5 @@ def registro_km_save(request):
             continue
 
     return JsonResponse({'ok': True, 'registro_id': registro.id, 'created': created})
+
 
