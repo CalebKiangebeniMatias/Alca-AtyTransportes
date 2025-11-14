@@ -88,7 +88,7 @@
                     <div class="stats-number text-danger">
                         {% localize on %}<strong id="display_saidas">{{ total_saidas|floatformat:2 }}{% endlocalize %} Kz</strong>
                     </div>
-                    <h5 class="card-title">Despesas</h5>
+                    <h5 class="card-title">Saídas</h5>
                     <div class="small text-warning mt-2" id="info_variaveis">(inclui variáveis e fixas: <span id="display_variaveis">{{ total_variaveis|floatformat:2 }}</span>)</div>
                 </div>
             </div>
@@ -124,15 +124,6 @@
                     <i class="fas fa-ellipsis-h icon-stat text-info"></i>
                     <div class="stats-number text-info">{% localize on %}{{ total_saidas_registos|floatformat:2 }}{% endlocalize %} Kz</div>
                     <h5 class="card-title">Aliment/Taxa/Outros</h5>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-arrow-up icon-stat text-warning"></i>
-                    <div class="stats-number text-warning">{% localize on %}{{ total_despesas_fixas|floatformat:2 }}{% endlocalize %} Kz</div>
-                    <h5 class="card-title">Despesas Fixas</h5>
                 </div>
             </div>
         </div>
@@ -298,3 +289,4 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 {% endblock %}
+
