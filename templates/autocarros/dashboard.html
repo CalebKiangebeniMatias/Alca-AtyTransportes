@@ -130,9 +130,18 @@
         <div class="col-md-3">
             <div class="card stats-card text-center bg-azul-forte">
                 <div class="card-body">
+                    <i class="fas fa-ellipsis-h icon-stat text-info"></i>
+                    <div class="stats-number text-info">{% localize on %}{{ total_despesa_geral|floatformat:2 }}{% endlocalize %} Kz</div>
+                    <h5 class="card-title">Despesa Extra</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card text-center bg-azul-forte">
+                <div class="card-body">
                     <i class="fas fa-bucket icon-stat text-info"></i>
                     <div class="stats-number text-info">{% localize on %}{{ total_sobragem_filtros_lavagem|floatformat:2 }}{% endlocalize %} Kz</div>
-                    <h5 class="card-title">Lav./Sopra./D Gerais Do Dia</h5>
+                    <h5 class="card-title">Lav./Sopra. Filtros</h5>
                 </div>
             </div>
         </div>
@@ -289,4 +298,5 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 {% endblock %}
+
 
