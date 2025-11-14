@@ -539,6 +539,7 @@ def dashboard(request):
         "total_entradas": total_entradas,
         "total_saidas": total_saidas,
         "total_saidas_registos": total_saidas_registos,
+        "total_despesa_geral": total_despesa_geral,
         "total_saidas_despesas": total_saidas_despesas,
         "total_variaveis": total_variaveis,
         "total_saidas_sem_variaveis": total_saidas_sem_variaveis,
@@ -3164,6 +3165,7 @@ def registro_km_save(request):
             continue
 
     return JsonResponse({'ok': True, 'registro_id': registro.id, 'created': created})
+
 
 
 
