@@ -2738,7 +2738,7 @@ def gerencia_financas(request):
         RelatorioSector.objects
         .annotate(mes=TruncMonth('data'))
         .values('mes')
-        .annotate(total_despesas_geral=Sum('despesas_geral', output_field=DecimalField()))
+        .annotate(total_despesas_geral=Sum('despesa_geral', output_field=DecimalField()))
         .order_by('mes')
     )
 
@@ -3319,6 +3319,7 @@ def registro_km_save(request):
             continue
 
     return JsonResponse({'ok': True, 'registro_id': registro.id, 'created': created})
+
 
 
 
