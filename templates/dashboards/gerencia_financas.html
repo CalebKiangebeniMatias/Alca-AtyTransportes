@@ -39,43 +39,112 @@
     <div class="bloco-title">Entradas</div>
 
     <div class="linha">
-        <div class="bloco">Normal<br><strong>{% localize on %}{{ serie_normal_total|floatformat:2 }}{% endlocalize %} Kz</strong></div>
-        <div class="bloco">Luvu<br><strong>{% localize on %}{{ serie_luvu_total|floatformat:2 }}{% endlocalize %} Kz</strong></div>
-        <div class="bloco">Aluguel<br><strong>{% localize on %}{{ serie_aluguel_total|floatformat:2 }}{% endlocalize %} Kz</strong></div>
-        <div class="bloco">Outros<br><strong>{% localize on %}{{ serie_frete_total|floatformat:2 }}{% endlocalize %} Kz</strong></div>
+        <div class="bloco">
+            Normal<br>
+            <strong>
+                {% localize on %}{{ serie_normal|last|floatformat:2 }}{% endlocalize %} Kz
+            </strong>
+        </div>
+
+        <div class="bloco">
+            Luvu<br>
+            <strong>
+                {% localize on %}{{ serie_luvu|last|floatformat:2 }}{% endlocalize %} Kz
+            </strong>
+        </div>
+
+        <div class="bloco">
+            Aluguel<br>
+            <strong>
+                {% localize on %}{{ serie_alunos|last|floatformat:2 }}{% endlocalize %} Kz
+            </strong>
+        </div>
+
+        <div class="bloco">
+            Outros (Frete)<br>
+            <strong>
+                {% localize on %}{{ serie_frete|last|floatformat:2 }}{% endlocalize %} Kz
+            </strong>
+        </div>
     </div>
 
     <!-- ======================= SAÍDAS ======================= -->
     <div class="bloco-title">Saídas</div>
 
     <div class="linha">
-        <div class="bloco">Alimentação<br><strong>{% localize on %}{{ serie_alimentacao_total|floatformat:2 }}{% endlocalize %} Kz</strong></div>
-        <div class="bloco">Lotaçao<br><strong>{% localize on %}{{ serie_lotacao_total|floatformat:2 }}{% endlocalize %} Kz</strong></div>
-        <div class="bloco">Park<br><strong>{% localize on %}{{ serie_parque_total|floatformat:2 }}{% endlocalize %} Kz</strong></div>
-        <div class="bloco">Outros<br><strong>{% localize on %}{{ serie_outros_total|floatformat:2 }}{% endlocalize %} Kz</strong></div>
+        <div class="bloco">
+            Alimentação<br>
+            <strong>
+                {% localize on %}{{ serie_alimentacao|last|floatformat:2 }}{% endlocalize %} Kz
+            </strong>
+        </div>
+
+        <div class="bloco">
+            Parqueamento<br>
+            <strong>
+                {% localize on %}{{ serie_parqueamento|last|floatformat:2 }}{% endlocalize %} Kz
+            </strong>
+        </div>
+
+        <div class="bloco">
+            Taxas<br>
+            <strong>
+                {% localize on %}{{ serie_taxa|last|floatformat:2 }}{% endlocalize %} Kz
+            </strong>
+        </div>
+
+        <div class="bloco">
+            Outros<br>
+            <strong>
+                {% localize on %}{{ serie_outros|last|floatformat:2 }}{% endlocalize %} Kz
+            </strong>
+        </div>
     </div>
 
     <div class="linha">
-        <div class="bloco">Lavagem<br><strong>{% localize on %}{{ serie_lavagem_total|floatformat:2 }}{% endlocalize %} Kz</strong></div>
-        <div class="bloco">Sopragem<br><strong>{% localize on %}{{ serie_sopragem_total|floatformat:2 }}{% endlocalize %} Kz</strong></div>
-        <div class="bloco">Combustível<br><strong>{% localize on %}{{ serie_combustivel_total|floatformat:2 }}{% endlocalize %} Kz</strong></div>
+        <div class="bloco">
+            Lavagem<br>
+            <strong>
+                {% localize on %}{{ serie_combustivel_lavagem|last|floatformat:2 }}{% endlocalize %} Kz
+            </strong>
+        </div>
+
+        <div class="bloco">
+            Sobragem<br>
+            <strong>
+                {% localize on %}{{ serie_combustivel_sobragem|last|floatformat:2 }}{% endlocalize %} Kz
+            </strong>
+        </div>
+
+        <div class="bloco">
+            Combustível<br>
+            <strong>
+                {% localize on %}{{ serie_combustivel_valor|last|floatformat:2 }}{% endlocalize %} Kz
+            </strong>
+        </div>
     </div>
 
     <!-- ======================= SALDO ======================= -->
     <div class="bloco-title">Saldo</div>
 
     <div class="linha">
-        <div class="bloco"><strong>{% localize on %}{{ serie_saldo_total|floatformat:2 }}{% endlocalize %} Kz</strong></div>
+        <div class="bloco">
+            <strong>
+                {% localize on %}{{ serie_saldo|last|floatformat:2 }}{% endlocalize %} Kz
+            </strong>
+        </div>
     </div>
 
     <!-- ======================= DESPESAS FIXAS ======================= -->
     <div class="bloco-title">Despesas Fixas</div>
 
     <div class="linha">
-        {% for nome, valor in despesas_fixas_totais.items %}
+        {% for nome, valor in serie_total_despesas_fixas.items %}
             <div class="bloco">
                 {{ nome }}<br>
-                <strong>{% localize on %}{{ valor|floatformat:2 }}{% endlocalize %} Kz</strong>
+                <strong>
+                    {% localize on %}{{ valor|floatformat:2 }}{% endlocalize %} Kz
+                </strong>
             </div>
         {% empty %}
             <div class="bloco">Nenhuma despesa fixa cadastrada.</div>
@@ -86,10 +155,12 @@
     <div class="bloco-title">Despesas Variáveis</div>
 
     <div class="linha">
-        {% for nome, valor in despesas_variaveis_totais.items %}
+        {% for nome, valor in serie_despesas_variaveis.items %}
             <div class="bloco">
                 {{ nome }}<br>
-                <strong>{% localize on %}{{ valor|floatformat:2 }}{% endlocalize %} Kz</strong>
+                <strong>
+                    {% localize on %}{{ valor|floatformat:2 }}{% endlocalize %} Kz
+                </strong>
             </div>
         {% empty %}
             <div class="bloco">Nenhuma despesa variável.</div>
@@ -97,12 +168,12 @@
     </div>
 
     <!-- ======================= LUCRO ======================= -->
-    <div class="bloco-title">Lucro</div>
+    <div class="bloco-title">Lucro Final</div>
 
     <div class="linha">
         <div class="bloco">
             <strong>
-                {% localize on %}{{ serie_lucro_total|floatformat:2 }}{% endlocalize %} Kz
+                {% localize on %}{{ serie_lucro|last|floatformat:2 }}{% endlocalize %} Kz
             </strong>
         </div>
     </div>
