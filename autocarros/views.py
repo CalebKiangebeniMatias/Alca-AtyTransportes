@@ -313,212 +313,252 @@ def apagar_sector(request, pk):
     return render(request, "autocarros/confirmar_apagar_sector.html", {"sector": sector})
 
 
+# === Dashboard View === #
 @login_required
 @acesso_restrito(['admin'])
-def gerencia_financas(request):
+def dashboard(request):
+    hoje = timezone.now().date()
 
-    # ===========================
-    #   AGRUPAMENTOS MENSAIS
-    # ===========================
-    registros = (
-        RegistoDiario.objects
-        .annotate(mes=TruncMonth('data'))
-        .values('mes')
-        .annotate(
-            total_normal=Sum('normal', output_field=DecimalField()),
-            total_alunos=Sum('alunos', output_field=DecimalField()),
-            total_luvu=Sum('luvu', output_field=DecimalField()),
-            total_frete=Sum('frete', output_field=DecimalField()),
-            total_alimentacao=Sum('alimentacao', output_field=DecimalField()),
-            total_parqueamento=Sum('parqueamento', output_field=DecimalField()),
-            total_taxa=Sum('taxa', output_field=DecimalField()),
-            total_outros=Sum('outros', output_field=DecimalField()),
+    # 🔹 Capturar "YYYY-MM" vindo do input type="month"
+    mes_param = request.GET.get("mes", hoje.strftime("%Y-%m"))
+    try:
+        ano, mes = map(int, mes_param.split("-"))
+    except ValueError:
+        ano, mes = hoje.year, hoje.month
+
+    # 🔹 anos disponíveis
+    anos_disponiveis = [
+        int(d.year) for d in RegistoDiario.objects.dates("data", "year", order="DESC")
+    ]
+    if hoje.year not in anos_disponiveis:
+        anos_disponiveis.insert(0, hoje.year)
+
+    # 🔹 registos filtrados
+    registos = RegistoDiario.objects.filter(
+        data__year=ano,
+        data__month=mes
+    ).select_related("autocarro")
+
+    # 🔹 Combustível por autocarro/data
+    combustivel_map_dashboard = {}
+    if registos.exists():
+        autocarro_ids = set(registos.values_list('autocarro_id', flat=True))
+        datas = set(registos.values_list('data', flat=True))
+
+        combustiveis_dash = DespesaCombustivel.objects.filter(
+            autocarro_id__in=autocarro_ids,
+            data__in=datas
         )
-        .order_by('mes')
+
+        agg_dash = defaultdict(lambda: {
+            'total_valor': Decimal('0'),
+            'total_valor_litros': Decimal('0'),
+            'total_sobragem': Decimal('0'),
+            'total_lavagem': Decimal('0')
+        })
+
+        for c in combustiveis_dash:
+            key = f"{c.autocarro_id}_{c.data.isoformat()}"
+            agg_dash[key]['total_valor'] += c.valor or Decimal('0')
+            agg_dash[key]['total_valor_litros'] += c.valor_litros or Decimal('0')
+            agg_dash[key]['total_sobragem'] += c.sobragem_filtros or Decimal('0')
+            agg_dash[key]['total_lavagem'] += c.lavagem or Decimal('0')
+
+        combustivel_map_dashboard.update(agg_dash)
+
+    # 🔹 Totais gerais
+    total_entradas = registos.aggregate(
+        total=Sum(F("normal") + F("alunos") + F("luvu") + F("frete"), output_field=DecimalField())
+    )["total"] or Decimal("0")
+
+    total_saidas_registos = registos.aggregate(
+        total=Sum(
+            F("alimentacao") + F("parqueamento") + F("taxa") + F("outros"),
+            output_field=DecimalField()
+        )
+    )["total"] or Decimal("0")
+
+    total_saidas_despesas = Despesa.objects.filter(
+        data__year=ano,
+        data__month=mes
+    ).aggregate(
+        total=Sum("valor", output_field=DecimalField())
+    )["total"] or Decimal("0")
+
+    # 🔹 Despesa geral dos setores (NOVO)
+    total_despesa_geral = RelatorioSector.objects.filter(
+        data__year=ano,
+        data__month=mes
+    ).aggregate(
+        total=Sum('despesa_geral', output_field=DecimalField())
+    )['total'] or Decimal('0')
+
+
+    qs_fixas = DespesaFixa.objects.filter(ativo=True)
+
+    # Mensais: contam a partir do mês de início até o presente mês
+    mensais_qs = qs_fixas.filter(
+        periodicidade__iexact='mensal',
+        data_inicio__lte=date(ano, mes, 1)
     )
 
-    despesas_relatorio = (
-        RelatorioSector.objects
-        .annotate(mes=TruncMonth('data'))
-        .values('mes')
-        .annotate(total_despesas_geral=Sum('despesas_geral', output_field=DecimalField()))
-        .order_by('mes')
+    # Anuais: contam apenas se data_inicio for no mesmo mês/ano
+    anuais_qs = qs_fixas.filter(
+        periodicidade__iexact='anual',
+        data_inicio__year=ano,
+        data_inicio__month=mes
     )
 
-    combustiveis_qs = (
-        DespesaCombustivel.objects
-        .annotate(mes=TruncMonth('data'))
-        .values('mes')
-        .annotate(
+    # Únicas: contam apenas no mês/ano específico
+    unicas_qs = qs_fixas.filter(
+        periodicidade__iexact='único',
+        data_inicio__year=ano,
+        data_inicio__month=mes
+    )
+
+    total_despesas_fixas = (
+        mensais_qs.aggregate(total=Sum('valor', output_field=DecimalField()))['total'] or Decimal('0')
+    ) + (
+        anuais_qs.aggregate(total=Sum('valor', output_field=DecimalField()))['total'] or Decimal('0')
+    ) + (
+        unicas_qs.aggregate(total=Sum('valor', output_field=DecimalField()))['total'] or Decimal('0')
+    )
+
+    total_combustivel = DespesaCombustivel.objects.filter(
+        data__year=ano,
+        data__month=mes
+    ).aggregate(
+        total_valor=Sum('valor', output_field=DecimalField()),
+        total_litros=Sum('valor_litros', output_field=DecimalField()),
+        total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
+        total_lavagem=Sum('lavagem', output_field=DecimalField()),
+    )
+
+    total_combustivel_valor = total_combustivel.get('total_valor') or Decimal('0')
+    total_combustivel_litros = total_combustivel.get('total_litros') or Decimal('0')
+    total_combustivel_sobragem = total_combustivel.get('total_sobragem') or Decimal('0')
+    total_combustivel_lavagem = total_combustivel.get('total_lavagem') or Decimal('0')
+
+    # total de saídas inclui registos, despesas (Despesas) e combustíveis + sobragem/lavagem + despesas fixas
+    total_saidas = (
+            total_saidas_registos
+            + total_saidas_despesas
+            + total_combustivel_valor
+            + total_combustivel_sobragem
+            + total_combustivel_lavagem
+            + total_despesa_geral
+    )
+    total_resto = total_entradas - total_saidas
+
+    total_variaveis = total_saidas_despesas or Decimal('0')
+
+    total_saidas_sem_variaveis = total_saidas - total_variaveis
+
+    total_sobragem_filtros_lavagem = total_combustivel_sobragem + total_combustivel_lavagem
+
+    # 🔹 Estatísticas por autocarro
+    autocarros_stats = []
+    for autocarro in Autocarro.objects.all():
+        registos_auto = registos.filter(autocarro=autocarro)
+        stats = {
+            "autocarro": autocarro,
+            "total_km": registos_auto.aggregate(Sum("km_percorridos"))["km_percorridos__sum"] or 0,
+            "total_entradas": registos_auto.aggregate(
+                total=Sum(F("normal") + F("alunos") + F("luvu") + F("frete"), output_field=DecimalField())
+            )["total"] or Decimal('0'),
+            "total_saidas": registos_auto.aggregate(
+                total=Sum(F("alimentacao") + F("parqueamento") + F("taxa") + F("outros"), output_field=DecimalField())
+            )["total"] or Decimal('0'),
+            "total_passageiros": registos_auto.aggregate(Sum("numero_passageiros"))["numero_passageiros__sum"] or 0,
+            "total_viagens": registos_auto.aggregate(Sum("numero_viagens"))["numero_viagens__sum"] or 0,
+        }
+
+        comb_auto = DespesaCombustivel.objects.filter(
+            autocarro=autocarro,
+            data__year=ano,
+            data__month=mes
+        ).aggregate(
             total_valor=Sum('valor', output_field=DecimalField()),
+            total_litros=Sum('valor_litros', output_field=DecimalField()),
             total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
-            total_lavagem=Sum('lavagem', output_field=DecimalField())
+            total_lavagem=Sum('lavagem', output_field=DecimalField()),
         )
-        .order_by('mes')
-    )
 
-    despesas_fixas = (
-        DespesaFixa.objects
-        .filter(ativo=True)
-        .annotate(mes=TruncMonth('data_inicio'))
-        .values('mes', 'categoria')
-        .annotate(total_valor=Sum('valor', output_field=DecimalField()))
-        .order_by('mes', 'categoria')
-    )
+        comb_val = comb_auto.get('total_valor') or Decimal('0')
+        stats['total_combustivel'] = comb_val
 
-    despesas_variaveis = (
-        Despesa.objects
-        .annotate(mes=TruncMonth('data'))
-        .values('mes')
-        .annotate(total_despesas_variaveis=Sum('valor', output_field=DecimalField()))
-        .order_by('mes')
-    )
+        # em vez de 'litros' o ficheiro pede 'alimentacao + outros' por autocarro
+        alim_outros_auto = registos_auto.aggregate(
+            total=Sum(F("alimentacao") + F("outros"), output_field=DecimalField())
+        )["total"] or Decimal('0')
 
-    # ============================================
-    #   MAPAS PARA ACESSO RÁPIDO POR MÊS
-    # ============================================
-    despesas_rel_map = {d['mes']: (d.get('total_despesas_geral') or 0) for d in despesas_relatorio}
-    despesas_var = {d['mes']: (d.get('total_despesas_variaveis') or 0) for d in despesas_variaveis}
+        stats['total_alim_outros'] = alim_outros_auto
 
-    despesas_fixas_map = {
-        (d['mes'], d['categoria']): (d.get('total_valor') or 0)
-        for d in despesas_fixas
-    }
+        stats['total_combustivel_litros'] = comb_auto.get('total_litros') or Decimal('0')
+        stats['total_combustivel_sobragem'] = comb_auto.get('total_sobragem') or Decimal('0')
 
-    categorias_fixas = [c[0] for c in DespesaFixa.CATEGORIAS]
+        stats['total_combustivel_lavagem'] = comb_auto.get('total_lavagem') or Decimal('0')
 
-    combustivel_map_valor = {c['mes']: c.get('total_valor') or 0 for c in combustiveis_qs}
-    combustivel_map_sobragem = {c['mes']: c.get('total_sobragem') or 0 for c in combustiveis_qs}
-    combustivel_map_lavagem = {c['mes']: c.get('total_lavagem') or 0 for c in combustiveis_qs}
+        comb_sobr = stats['total_combustivel_sobragem']
 
-    # ================================
-    #   LABELS DOS GRÁFICOS
-    # ================================
-    labels = [r['mes'].strftime("%B %Y") for r in registros]
+        comb_lav = stats['total_combustivel_lavagem']
 
-    # ================================
-    #   ENTRADAS
-    # ================================
-    serie_normal = [float(r['total_normal'] or 0) for r in registros]
-    serie_alunos = [float(r['total_alunos'] or 0) for r in registros]
-    serie_luvu = [float(r['total_luvu'] or 0) for r in registros]
-    serie_frete = [float(r['total_frete'] or 0) for r in registros]
+        # incluir combustível e respetivas taxas nas saídas por autocarro
+        stats['total_saidas'] += stats['total_combustivel'] + comb_sobr + comb_lav
+        # OBS: 'total_alim_outros' já faz parte de 'total_saidas' (porque veio de registos_auto agregados),
+        # mas mantemos o campo separado para exibição no lugar de "litros".
+        stats["resto"] = stats["total_entradas"] - stats["total_saidas"]
 
-    # Soma correta das entradas por mês
-    serie_entradas = [
-        serie_normal[i] + serie_alunos[i] + serie_luvu[i] + serie_frete[i]
-        for i in range(len(registros))
-    ]
+        autocarros_stats.append(stats)
 
-    # ================================
-    #   SAÍDAS
-    # ================================
-    serie_alimentacao = [float(r['total_alimentacao'] or 0) for r in registros]
-    serie_parqueamento = [float(r['total_parqueamento'] or 0) for r in registros]
-    serie_taxa = [float(r['total_taxa'] or 0) for r in registros]
-    serie_outros = [float(r['total_outros'] or 0) for r in registros]
+    # 🔹 Calcular o maior saldo (mais lucrativo)
+    max_saldo = max((a["resto"] for a in autocarros_stats), default=Decimal('0'))
 
-    serie_despesas_extra = [float(despesas_rel_map.get(r['mes'], 0)) for r in registros]
-
-    serie_combustivel_valor = [float(combustivel_map_valor.get(r['mes'], 0)) for r in registros]
-    serie_combustivel_sobragem = [float(combustivel_map_sobragem.get(r['mes'], 0)) for r in registros]
-    serie_combustivel_lavagem = [float(combustivel_map_lavagem.get(r['mes'], 0)) for r in registros]
-
-    serie_saidas = [
-        (
-            serie_alimentacao[i] +
-            serie_parqueamento[i] +
-            serie_taxa[i] +
-            serie_outros[i] +
-            serie_despesas_extra[i] +
-            serie_combustivel_valor[i] +
-            serie_combustivel_sobragem[i] +
-            serie_combustivel_lavagem[i]
+    # 🔹 Registos recentes
+    registos_recentes_qs = registos.order_by("-data")[:10]
+    registos_recentes = []
+    for reg in registos_recentes_qs:
+        key = f"{reg.autocarro_id}_{reg.data.isoformat()}"
+        comb = combustivel_map_dashboard.get(key, {})
+        reg.combustivel_total = comb.get('total_valor', Decimal('0'))
+        # em vez de litros, mostramos alimentacao + outros do próprio registo
+        reg.alim_outros = (getattr(reg, 'alimentacao', Decimal('0')) or Decimal('0')) + (getattr(reg, 'outros', Decimal('0')) or Decimal('0'))
+        reg.combustivel_valor_litros = comb.get('total_valor_litros', Decimal('0'))
+        reg.combustivel_sobragem = comb.get('total_sobragem', Decimal('0'))
+        reg.combustivel_lavagem = comb.get('total_lavagem', Decimal('0'))
+        reg.saidas_total_incl_combustivel = (
+            reg.saidas_total() + reg.combustivel_total + reg.combustivel_sobragem + reg.combustivel_lavagem
         )
-        for i in range(len(registros))
-    ]
+        reg.saldo_liquido_incl_combustivel = reg.entradas_total() - reg.saidas_total_incl_combustivel
+        registos_recentes.append(reg)
 
-    # ================================
-    #   SALDO MENSAL
-    # ================================
-    serie_saldo = [
-        serie_entradas[i] - serie_saidas[i]
-        for i in range(len(registros))
-    ]
-
-    # ================================
-    #   DESPESAS FIXAS (por categoria)
-    # ================================
-    serie_despesas_fixas = {
-        categoria: [
-            float(despesas_fixas_map.get((r['mes'], categoria), 0))
-            for r in registros
-        ]
-        for categoria in categorias_fixas
-    }
-
-    # Soma total das despesas fixas por mês
-    serie_total_despesas_fixas = [
-        sum(serie_despesas_fixas[c][i] for c in categorias_fixas)
-        for i in range(len(registros))
-    ]
-
-    # ================================
-    #   DESPESAS VARIÁVEIS
-    # ================================
-    serie_despesas_variaveis = [
-        float(despesas_var.get(r['mes'], 0)) for r in registros
-    ]
-
-    # ================================
-    #   LUCRO MENSAL
-    # ================================
-    serie_lucro = [
-        serie_saldo[i] - serie_total_despesas_fixas[i] - serie_despesas_variaveis[i]
-        for i in range(len(registros))
-    ]
-
-    # ================================
-    #   CONTEXTO FINAL
-    # ================================
     context = {
-        "labels": labels,
-
-        # Entradas
-        "serie_normal": serie_normal,
-        "serie_alunos": serie_alunos,
-        "serie_luvu": serie_luvu,
-        "serie_frete": serie_frete,
-        "serie_entradas": serie_entradas,
-
-        # Saídas
-        "serie_alimentacao": serie_alimentacao,
-        "serie_parqueamento": serie_parqueamento,
-        "serie_taxa": serie_taxa,
-        "serie_outros": serie_outros,
-        "serie_despesas_extra": serie_despesas_extra,
-        "serie_saidas": serie_saidas,
-
-        # Combustível
-        "serie_combustivel_valor": serie_combustivel_valor,
-        "serie_combustivel_sobragem": serie_combustivel_sobragem,
-        "serie_combustivel_lavagem": serie_combustivel_lavagem,
-
-        # Saldo
-        "serie_saldo": serie_saldo,
-
-        # Despesas fixas
-        "serie_despesas_fixas": serie_despesas_fixas,
-        "serie_total_despesas_fixas": serie_total_despesas_fixas,
-
-        # Despesas variáveis
-        "serie_despesas_variaveis": serie_despesas_variaveis,
-
-        # Lucro final
-        "serie_lucro": serie_lucro,
+        "ano": ano,
+        "mes": f"{ano}-{mes:02d}",
+        "anos_disponiveis": anos_disponiveis,
+        "total_entradas": total_entradas,
+        "total_saidas": total_saidas,
+        "total_saidas_registos": total_saidas_registos,
+        "total_despesa_geral": total_despesa_geral,
+        "total_saidas_despesas": total_saidas_despesas,
+        "total_variaveis": total_variaveis,
+        "total_saidas_sem_variaveis": total_saidas_sem_variaveis,
+        "total_resto": total_resto,
+        "total_combustivel_valor": total_combustivel_valor,
+        # mostramos aqui o total de "alimentacao + outros" agregados no período
+        "total_alim_outros": registos.aggregate(
+            total=Sum(F("alimentacao") + F("outros"), output_field=DecimalField())
+        )["total"] or Decimal('0'),
+        "total_combustivel_litros": total_combustivel_litros,
+        "total_combustivel_sobragem": total_combustivel_sobragem,
+        "total_combustivel_lavagem": total_combustivel_lavagem,
+        "total_despesas_fixas": total_despesas_fixas,
+        "autocarros_stats": autocarros_stats,
+        "registos_recentes": registos_recentes,
+        "max_saldo": max_saldo,
+        "total_sobragem_filtros_lavagem": total_sobragem_filtros_lavagem,
     }
-
-    return render(request, "dashboards/gerencia_financas.html", context)
+    return render(request, "autocarros/dashboard.html", context)
 
 
 #================================== Arquivo World ========================================== #
@@ -2671,56 +2711,210 @@ def contabilista_financas(request):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def gerencia_financas(request):
+
+    # ===========================
+    #   AGRUPAMENTOS MENSAIS
+    # ===========================
     registros = (
         RegistoDiario.objects
+        .annotate(mes=TruncMonth('data'))
+        .values('mes')
         .annotate(
-            mes=TruncMonth("data"),
-            entradas=ExpressionWrapper(
-                F("normal") + F("alunos") + F("luvu") + F("frete"),
-                output_field=DecimalField()
-            ),
-            saidas=ExpressionWrapper(
-                F("alimentacao") + F("parqueamento") + F("taxa") + F("outros"),
-                output_field=DecimalField()
-            ),
+            total_normal=Sum('normal', output_field=DecimalField()),
+            total_alunos=Sum('alunos', output_field=DecimalField()),
+            total_luvu=Sum('luvu', output_field=DecimalField()),
+            total_frete=Sum('frete', output_field=DecimalField()),
+            total_alimentacao=Sum('alimentacao', output_field=DecimalField()),
+            total_parqueamento=Sum('parqueamento', output_field=DecimalField()),
+            total_taxa=Sum('taxa', output_field=DecimalField()),
+            total_outros=Sum('outros', output_field=DecimalField()),
         )
-        .values("mes")
-        .annotate(
-            total_entradas=Sum("entradas"),
-            total_saidas=Sum("saidas"),
-        )
-        .order_by("mes")
+        .order_by('mes')
     )
 
-    labels = [r["mes"].strftime("%b/%Y") if r["mes"] else "N/A" for r in registros]
-    lucros = [(r["total_entradas"] or 0) - (r["total_saidas"] or 0) for r in registros]
+    despesas_relatorio = (
+        RelatorioSector.objects
+        .annotate(mes=TruncMonth('data'))
+        .values('mes')
+        .annotate(total_despesas_geral=Sum('despesas_geral', output_field=DecimalField()))
+        .order_by('mes')
+    )
 
-    custos_mensais = (
+    combustiveis_qs = (
+        DespesaCombustivel.objects
+        .annotate(mes=TruncMonth('data'))
+        .values('mes')
+        .annotate(
+            total_valor=Sum('valor', output_field=DecimalField()),
+            total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
+            total_lavagem=Sum('lavagem', output_field=DecimalField())
+        )
+        .order_by('mes')
+    )
+
+    despesas_fixas = (
+        DespesaFixa.objects
+        .filter(ativo=True)
+        .annotate(mes=TruncMonth('data_inicio'))
+        .values('mes', 'categoria')
+        .annotate(total_valor=Sum('valor', output_field=DecimalField()))
+        .order_by('mes', 'categoria')
+    )
+
+    despesas_variaveis = (
         Despesa.objects
-        .annotate(mes=TruncMonth("data"))
-        .values("mes")
-        .annotate(
-            salarios=Sum("valor", filter=Q(descricao__icontains="salário")),
-            combustivel=Sum("valor", filter=Q(descricao__icontains="combustível")),
-            manutencao=Sum("valor", filter=Q(descricao__icontains="manutenção")),
-        )
-        .order_by("mes")
+        .annotate(mes=TruncMonth('data'))
+        .values('mes')
+        .annotate(total_despesas_variaveis=Sum('valor', output_field=DecimalField()))
+        .order_by('mes')
     )
 
-    custos_labels = [c["mes"].strftime("%b/%Y") if c["mes"] else "N/A" for c in custos_mensais]
-    salarios = [c["salarios"] or 0 for c in custos_mensais]
-    combustivel = [c["combustivel"] or 0 for c in custos_mensais]
-    manutencao = [c["manutencao"] or 0 for c in custos_mensais]
+    # ============================================
+    #   MAPAS PARA ACESSO RÁPIDO POR MÊS
+    # ============================================
+    despesas_rel_map = {d['mes']: (d.get('total_despesas_geral') or 0) for d in despesas_relatorio}
+    despesas_var = {d['mes']: (d.get('total_despesas_variaveis') or 0) for d in despesas_variaveis}
 
-    context = {
-        "labels_json": json.dumps(labels),
-        "lucros_json": json.dumps(lucros, default=decimal_default),
-        "custos_labels_json": json.dumps(custos_labels, default=decimal_default),
-        "salarios_json": json.dumps(salarios),
-        "combustivel_json": json.dumps(combustivel),
-        "manutencao_json": json.dumps(manutencao),
+    despesas_fixas_map = {
+        (d['mes'], d['categoria']): (d.get('total_valor') or 0)
+        for d in despesas_fixas
     }
+
+    categorias_fixas = [c[0] for c in DespesaFixa.CATEGORIAS]
+
+    combustivel_map_valor = {c['mes']: c.get('total_valor') or 0 for c in combustiveis_qs}
+    combustivel_map_sobragem = {c['mes']: c.get('total_sobragem') or 0 for c in combustiveis_qs}
+    combustivel_map_lavagem = {c['mes']: c.get('total_lavagem') or 0 for c in combustiveis_qs}
+
+    # ================================
+    #   LABELS DOS GRÁFICOS
+    # ================================
+    labels = [r['mes'].strftime("%B %Y") for r in registros]
+
+    # ================================
+    #   ENTRADAS
+    # ================================
+    serie_normal = [float(r['total_normal'] or 0) for r in registros]
+    serie_alunos = [float(r['total_alunos'] or 0) for r in registros]
+    serie_luvu = [float(r['total_luvu'] or 0) for r in registros]
+    serie_frete = [float(r['total_frete'] or 0) for r in registros]
+
+    # Soma correta das entradas por mês
+    serie_entradas = [
+        serie_normal[i] + serie_alunos[i] + serie_luvu[i] + serie_frete[i]
+        for i in range(len(registros))
+    ]
+
+    # ================================
+    #   SAÍDAS
+    # ================================
+    serie_alimentacao = [float(r['total_alimentacao'] or 0) for r in registros]
+    serie_parqueamento = [float(r['total_parqueamento'] or 0) for r in registros]
+    serie_taxa = [float(r['total_taxa'] or 0) for r in registros]
+    serie_outros = [float(r['total_outros'] or 0) for r in registros]
+
+    serie_despesas_extra = [float(despesas_rel_map.get(r['mes'], 0)) for r in registros]
+
+    serie_combustivel_valor = [float(combustivel_map_valor.get(r['mes'], 0)) for r in registros]
+    serie_combustivel_sobragem = [float(combustivel_map_sobragem.get(r['mes'], 0)) for r in registros]
+    serie_combustivel_lavagem = [float(combustivel_map_lavagem.get(r['mes'], 0)) for r in registros]
+
+    serie_saidas = [
+        (
+            serie_alimentacao[i] +
+            serie_parqueamento[i] +
+            serie_taxa[i] +
+            serie_outros[i] +
+            serie_despesas_extra[i] +
+            serie_combustivel_valor[i] +
+            serie_combustivel_sobragem[i] +
+            serie_combustivel_lavagem[i]
+        )
+        for i in range(len(registros))
+    ]
+
+    # ================================
+    #   SALDO MENSAL
+    # ================================
+    serie_saldo = [
+        serie_entradas[i] - serie_saidas[i]
+        for i in range(len(registros))
+    ]
+
+    # ================================
+    #   DESPESAS FIXAS (por categoria)
+    # ================================
+    serie_despesas_fixas = {
+        categoria: [
+            float(despesas_fixas_map.get((r['mes'], categoria), 0))
+            for r in registros
+        ]
+        for categoria in categorias_fixas
+    }
+
+    # Soma total das despesas fixas por mês
+    serie_total_despesas_fixas = [
+        sum(serie_despesas_fixas[c][i] for c in categorias_fixas)
+        for i in range(len(registros))
+    ]
+
+    # ================================
+    #   DESPESAS VARIÁVEIS
+    # ================================
+    serie_despesas_variaveis = [
+        float(despesas_var.get(r['mes'], 0)) for r in registros
+    ]
+
+    # ================================
+    #   LUCRO MENSAL
+    # ================================
+    serie_lucro = [
+        serie_saldo[i] - serie_total_despesas_fixas[i] - serie_despesas_variaveis[i]
+        for i in range(len(registros))
+    ]
+
+    # ================================
+    #   CONTEXTO FINAL
+    # ================================
+    context = {
+        "labels": labels,
+
+        # Entradas
+        "serie_normal": serie_normal,
+        "serie_alunos": serie_alunos,
+        "serie_luvu": serie_luvu,
+        "serie_frete": serie_frete,
+        "serie_entradas": serie_entradas,
+
+        # Saídas
+        "serie_alimentacao": serie_alimentacao,
+        "serie_parqueamento": serie_parqueamento,
+        "serie_taxa": serie_taxa,
+        "serie_outros": serie_outros,
+        "serie_despesas_extra": serie_despesas_extra,
+        "serie_saidas": serie_saidas,
+
+        # Combustível
+        "serie_combustivel_valor": serie_combustivel_valor,
+        "serie_combustivel_sobragem": serie_combustivel_sobragem,
+        "serie_combustivel_lavagem": serie_combustivel_lavagem,
+
+        # Saldo
+        "serie_saldo": serie_saldo,
+
+        # Despesas fixas
+        "serie_despesas_fixas": serie_despesas_fixas,
+        "serie_total_despesas_fixas": serie_total_despesas_fixas,
+
+        # Despesas variáveis
+        "serie_despesas_variaveis": serie_despesas_variaveis,
+
+        # Lucro final
+        "serie_lucro": serie_lucro,
+    }
+
     return render(request, "dashboards/gerencia_financas.html", context)
 
 
@@ -3125,9 +3319,6 @@ def registro_km_save(request):
             continue
 
     return JsonResponse({'ok': True, 'registro_id': registro.id, 'created': created})
-
-
-
 
 
 
