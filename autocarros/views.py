@@ -2710,66 +2710,138 @@ def contabilista_financas(request):
     })
 
 
+# ...existing code...
 @login_required
 @acesso_restrito(['admin'])
 def gerencia_financas(request):
 
+    # Captura parâmetro ?mes=YYYY-MM (opcional)
+    mes_param = request.GET.get('mes', '').strip()
+    ano_mes = None
+    if mes_param:
+        try:
+            ano, mes = map(int, mes_param.split('-'))
+            ano_mes = (ano, mes)
+        except Exception:
+            ano_mes = None
+
     # =========================== #
     #   AGRUPAMENTOS MENSAIS      #
     # =========================== #
-    registros = (
-        RegistoDiario.objects
-        .annotate(mes=TruncMonth('data'))
-        .values('mes')
-        .annotate(
-            total_normal=Sum('normal', output_field=DecimalField()),
-            total_alunos=Sum('alunos', output_field=DecimalField()),
-            total_luvu=Sum('luvu', output_field=DecimalField()),
-            total_frete=Sum('frete', output_field=DecimalField()),
-            total_alimentacao=Sum('alimentacao', output_field=DecimalField()),
-            total_parqueamento=Sum('parqueamento', output_field=DecimalField()),
-            total_taxa=Sum('taxa', output_field=DecimalField()),
-            total_outros=Sum('outros', output_field=DecimalField()),
+    if ano_mes:
+        ano, mes = ano_mes
+        registros = (
+            RegistoDiario.objects
+            .filter(data__year=ano, data__month=mes)
+            .annotate(mes=TruncMonth('data'))
+            .values('mes')
+            .annotate(
+                total_normal=Sum('normal', output_field=DecimalField()),
+                total_alunos=Sum('alunos', output_field=DecimalField()),
+                total_luvu=Sum('luvu', output_field=DecimalField()),
+                total_frete=Sum('frete', output_field=DecimalField()),
+                total_alimentacao=Sum('alimentacao', output_field=DecimalField()),
+                total_parqueamento=Sum('parqueamento', output_field=DecimalField()),
+                total_taxa=Sum('taxa', output_field=DecimalField()),
+                total_outros=Sum('outros', output_field=DecimalField()),
+            )
+            .order_by('mes')
         )
-        .order_by('mes')
-    )
 
-    despesas_relatorio = (
-        RelatorioSector.objects
-        .annotate(mes=TruncMonth('data'))
-        .values('mes')
-        .annotate(total_despesas_geral=Sum('despesa_geral', output_field=DecimalField()))
-        .order_by('mes')
-    )
-
-    combustiveis_qs = (
-        DespesaCombustivel.objects
-        .annotate(mes=TruncMonth('data'))
-        .values('mes')
-        .annotate(
-            total_valor=Sum('valor', output_field=DecimalField()),
-            total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
-            total_lavagem=Sum('lavagem', output_field=DecimalField())
+        despesas_relatorio = (
+            RelatorioSector.objects
+            .filter(data__year=ano, data__month=mes)
+            .annotate(mes=TruncMonth('data'))
+            .values('mes')
+            .annotate(total_despesas_geral=Sum('despesa_geral', output_field=DecimalField()))
+            .order_by('mes')
         )
-        .order_by('mes')
-    )
 
-    despesas_fixas = (
-        DespesaFixa.objects
-        .filter(ativo=True)
-        .annotate(mes=TruncMonth('data_inicio'))
-        .values('mes', 'categoria')
-        .annotate(total_valor=Sum('valor', output_field=DecimalField()))
-        .order_by('mes', 'categoria')
-    )
+        combustiveis_qs = (
+            DespesaCombustivel.objects
+            .filter(data__year=ano, data__month=mes)
+            .annotate(mes=TruncMonth('data'))
+            .values('mes')
+            .annotate(
+                total_valor=Sum('valor', output_field=DecimalField()),
+                total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
+                total_lavagem=Sum('lavagem', output_field=DecimalField())
+            )
+            .order_by('mes')
+        )
 
-    despesas_variaveis = (
-        Despesa.objects
-        .annotate(mes=TruncMonth('data'))
-        .values('mes')
-        .annotate(total_despesas_variaveis=Sum('valor', output_field=DecimalField()))
-        .order_by('mes')
-    )
+        despesas_fixas = (
+            DespesaFixa.objects
+            .filter(ativo=True, data_inicio__year=ano, data_inicio__month=mes)
+            .annotate(mes=TruncMonth('data_inicio'))
+            .values('mes', 'categoria')
+            .annotate(total_valor=Sum('valor', output_field=DecimalField()))
+            .order_by('mes', 'categoria')
+        )
+
+        despesas_variaveis = (
+            Despesa.objects
+            .filter(data__year=ano, data__month=mes)
+            .annotate(mes=TruncMonth('data'))
+            .values('mes')
+            .annotate(total_despesas_variaveis=Sum('valor', output_field=DecimalField()))
+            .order_by('mes')
+        )
+
+    else:
+        registros = (
+            RegistoDiario.objects
+            .annotate(mes=TruncMonth('data'))
+            .values('mes')
+            .annotate(
+                total_normal=Sum('normal', output_field=DecimalField()),
+                total_alunos=Sum('alunos', output_field=DecimalField()),
+                total_luvu=Sum('luvu', output_field=DecimalField()),
+                total_frete=Sum('frete', output_field=DecimalField()),
+                total_alimentacao=Sum('alimentacao', output_field=DecimalField()),
+                total_parqueamento=Sum('parqueamento', output_field=DecimalField()),
+                total_taxa=Sum('taxa', output_field=DecimalField()),
+                total_outros=Sum('outros', output_field=DecimalField()),
+            )
+            .order_by('mes')
+        )
+
+        despesas_relatorio = (
+            RelatorioSector.objects
+            .annotate(mes=TruncMonth('data'))
+            .values('mes')
+            .annotate(total_despesas_geral=Sum('despesa_geral', output_field=DecimalField()))
+            .order_by('mes')
+        )
+
+        combustiveis_qs = (
+            DespesaCombustivel.objects
+            .annotate(mes=TruncMonth('data'))
+            .values('mes')
+            .annotate(
+                total_valor=Sum('valor', output_field=DecimalField()),
+                total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
+                total_lavagem=Sum('lavagem', output_field=DecimalField())
+            )
+            .order_by('mes')
+        )
+
+        despesas_fixas = (
+            DespesaFixa.objects
+            .filter(ativo=True)
+            .annotate(mes=TruncMonth('data_inicio'))
+            .values('mes', 'categoria')
+            .annotate(total_valor=Sum('valor', output_field=DecimalField()))
+            .order_by('mes', 'categoria')
+        )
+
+        despesas_variaveis = (
+            Despesa.objects
+            .annotate(mes=TruncMonth('data'))
+            .values('mes')
+            .annotate(total_despesas_variaveis=Sum('valor', output_field=DecimalField()))
+            .order_by('mes')
+        )
 
     # ============================================
     #   MAPAS PARA ACESSO RÁPIDO POR MÊS
@@ -2913,6 +2985,62 @@ def gerencia_financas(request):
         # Lucro final
         "serie_lucro": serie_lucro,
     }
+
+    # ---------------------------
+    # download CSV com TODOS os dados exibidos no template
+    # ---------------------------
+    if request.GET.get('download') == '1':
+        import csv
+        from django.http import HttpResponse
+
+        def _safe(series, i):
+            try:
+                return float(series[i]) if series[i] is not None else 0.0
+            except Exception:
+                return 0.0
+
+        filename = f"relatorio_financas_{mes_param or 'todos_meses'}.csv"
+        resp = HttpResponse(content_type='text/csv')
+        resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+        writer = csv.writer(resp)
+
+        header = [
+            "Mês",
+            "Normal", "Alunos", "Luvu", "Frete", "Entradas",
+            "Alimentação", "Taxas", "Outros", "Parqueamento", "Despesas Extra (Relatorio)",
+            "Combustível (valor)", "Sobragem/Filtros", "Lavagem",
+            "Saídas (total)",
+            "Saldo",
+            "Despesas Fixas (total)", "Despesas Variáveis",
+            "Lucro"
+        ]
+        writer.writerow(header)
+
+        for i, label in enumerate(labels):
+            row = [
+                label,
+                f"{_safe(serie_normal, i):.2f}",
+                f"{_safe(serie_alunos, i):.2f}",
+                f"{_safe(serie_luvu, i):.2f}",
+                f"{_safe(serie_frete, i):.2f}",
+                f"{_safe(serie_entradas, i):.2f}",
+                f"{_safe(serie_alimentacao, i):.2f}",
+                f"{_safe(serie_taxa, i):.2f}",
+                f"{_safe(serie_outros, i):.2f}",
+                f"{_safe(serie_parqueamento, i):.2f}",
+                f"{_safe(serie_despesas_extra, i):.2f}",
+                f"{_safe(serie_combustivel_valor, i):.2f}",
+                f"{_safe(serie_combustivel_sobragem, i):.2f}",
+                f"{_safe(serie_combustivel_lavagem, i):.2f}",
+                f"{_safe(serie_saidas, i):.2f}",
+                f"{_safe(serie_saldo, i):.2f}",
+                f"{_safe(serie_total_despesas_fixas, i):.2f}",
+                f"{_safe(serie_despesas_variaveis, i):.2f}",
+                f"{_safe(serie_lucro, i):.2f}",
+            ]
+            writer.writerow(row)
+
+        return resp
 
     return render(request, "dashboards/gerencia_financas.html", context)
 
