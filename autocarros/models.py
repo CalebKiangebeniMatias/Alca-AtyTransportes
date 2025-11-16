@@ -1,18 +1,10 @@
 from django.db import models
-from django.forms import ValidationError
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.text import slugify
 from decimal import Decimal
-from django.contrib.auth.models import AbstractUser, Group
-from django.db import models
-from django.contrib.auth.models import AbstractUser
 from django.conf import settings
-from django.db import models
-from decimal import Decimal
-
 from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.db import models
 
 class CustomUser(AbstractUser):
     NIVEL_ACESSO_CHOICES = [
@@ -297,17 +289,17 @@ class DespesaCombustivel(models.Model):
         return f"Combustível {self.autocarro.numero} - {self.valor}Kz"
 
 
-# ...existing code...
-from django.conf import settings
-from django.db import models
-
 class DespesaFixa(models.Model):
     CATEGORIAS = [
-        ('salario', 'Salários por sector'),
-        ('fundo_maneio', 'Fundo de maneio por sector'),
-        ('cameras', 'Carregamento das câmaras'),
+        ('salario', 'Salários'),
+        ('fundo_maneio', 'Fundo De Maneio'),
+        ('subsidio_alimentacao', 'Subsídio de Alimentação'),
+        ('cameras', 'Carregamento das Câmaras'),
         ('gps', 'Carregamento de GPS'),
-        ('internet_tv', 'Internet/TV do escritório'),
+        ('internet_tv', 'Internet/TV do Escritório'),
+        ('agua_luz', 'Água e Luz'),
+        ('prestacao', 'Prestação dos Autocarros'),
+        ('seguro', 'Seguro das Viaturas'),
         ('outro', 'Outro'),
     ]
 

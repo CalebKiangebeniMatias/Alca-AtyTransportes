@@ -2714,9 +2714,9 @@ def contabilista_financas(request):
 @acesso_restrito(['admin'])
 def gerencia_financas(request):
 
-    # ===========================
-    #   AGRUPAMENTOS MENSAIS
-    # ===========================
+    # =========================== #
+    #   AGRUPAMENTOS MENSAIS      #
+    # =========================== #
     registros = (
         RegistoDiario.objects
         .annotate(mes=TruncMonth('data'))
@@ -2905,7 +2905,6 @@ def gerencia_financas(request):
         "serie_saldo": serie_saldo,
 
         # Despesas fixas
-        "serie_despesas_fixas": serie_despesas_fixas,
         "serie_total_despesas_fixas": serie_total_despesas_fixas,
 
         # Despesas variáveis
