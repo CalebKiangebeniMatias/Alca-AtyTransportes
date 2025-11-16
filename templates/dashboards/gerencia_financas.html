@@ -157,12 +157,21 @@
         </div>
     </div>
 
+    <!-- linha só total de saidas -->
+    <div class="linha" style="margin-bottom:8px;">
+        <div class="bloco bg-saidas" style="grid-column: 1 / -1;">
+            <div class="titulo">Saídas (Somatorio de Todas Saídas)</div>
+            <div class="valor">{% localize on %}{{ serie_saidas|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Saídas Dias do Mês</div>
+        </div>
+    </div>
+
     <!-- linha só com Saldo -->
     <div class="linha" style="margin-bottom:8px;">
         <div class="bloco bg-saldo" style="grid-column: 1 / -1;">
             <div class="titulo">Saldo (Entradas - Saídas)</div>
             <div class="valor">{% localize on %}{{ serie_saldo|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
-            <div class="small-muted">Saldo do mês</div>
+            <div class="small-muted">Saldo do Mês</div>
         </div>
     </div>
 
@@ -178,6 +187,15 @@
             <div class="titulo">Despesas Variáveis (Total)</div>
             <div class="valor">{% localize on %}{{ serie_despesas_variaveis|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
             <div class="small-muted">Usado no cálculo do lucro</div>
+        </div>
+    </div>
+
+    <!-- linha só com Saldo -->
+    <div class="linha" style="margin-bottom:8px;">
+        <div class="bloco bg-saidas" style="grid-column: 1 / -1;">
+            <div class="titulo">serie_total_despesas (Soma De Todas Despesas)</div>
+            <div class="valor">{% localize on %}{{ serie_total_despesas|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Despesas do mês</div>
         </div>
     </div>
 

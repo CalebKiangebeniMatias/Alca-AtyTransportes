@@ -2940,6 +2940,12 @@ def gerencia_financas(request):
     ]
 
     # ================================
+    # TOTAL DE DESPESAS
+    # ================================
+    # (fixas + variáveis)
+    serie_total_despesas = serie_total_despesas_fixas + serie_despesas_variaveis
+
+    # ================================
     #   LUCRO MENSAL
     # ================================
     serie_lucro = [
@@ -2966,12 +2972,14 @@ def gerencia_financas(request):
         "serie_taxa": serie_taxa,
         "serie_outros": serie_outros,
         "serie_despesas_extra": serie_despesas_extra,
-        "serie_saidas": serie_saidas,
 
         # Combustível
         "serie_combustivel_valor": serie_combustivel_valor,
         "serie_combustivel_sobragem": serie_combustivel_sobragem,
         "serie_combustivel_lavagem": serie_combustivel_lavagem,
+
+        # Saidas Diarias E Semanais
+        "serie_saidas": serie_saidas,
 
         # Saldo
         "serie_saldo": serie_saldo,
@@ -2981,6 +2989,9 @@ def gerencia_financas(request):
 
         # Despesas variáveis
         "serie_despesas_variaveis": serie_despesas_variaveis,
+
+        # Total De Despesa
+        "serie_total_despesas": serie_total_despesas,
 
         # Lucro final
         "serie_lucro": serie_lucro,
