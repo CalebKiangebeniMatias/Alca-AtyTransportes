@@ -2943,7 +2943,10 @@ def gerencia_financas(request):
     # TOTAL DE DESPESAS
     # ================================
     # (fixas + variáveis)
-    serie_total_despesas = serie_total_despesas_fixas + serie_despesas_variaveis
+    serie_total_despesas = [
+        serie_total_despesas_fixas[i] + serie_despesas_variaveis[i]
+        for i in range(len(registros))
+    ]
 
     # ================================
     #   LUCRO MENSAL
