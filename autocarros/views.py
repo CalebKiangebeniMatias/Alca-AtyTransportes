@@ -2989,7 +2989,7 @@ def gerencia_financas(request):
     # ---------------------------
     # download CSV com TODOS os dados exibidos no template
     # ---------------------------
-    if request.GET.get('download') == '1':
+    """if request.GET.get('download') == '1':
         import csv
         from django.http import HttpResponse
 
@@ -3040,7 +3040,144 @@ def gerencia_financas(request):
             ]
             writer.writerow(row)
 
-        return resp
+        return resp"""
+
+    # ---------------------------
+    # download DOCX com TODOS os dados exibidos no template
+    # ---------------------------
+    if request.GET.get('download') == '1':
+        from io import BytesIO
+        from docx import Document
+        from docx.shared import Pt, RGBColor, Inches
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.oxml import parse_xml
+        from docx.oxml.ns import nsdecls
+        from babel.numbers import format_currency
+
+        def fmt_money(val):
+            try:
+                v = Decimal(val or 0).quantize(Decimal('0.01'))
+                return format_currency(float(v), "AOA", locale="pt_PT").replace("AOA", "Kz")
+            except Exception:
+                try:
+                    return f"{Decimal(val or 0):.2f} Kz"
+                except Exception:
+                    return "0,00 Kz"
+
+        doc = Document()
+        # página em paisagem
+        section = doc.sections[0]
+        section.page_width = Inches(11.69)
+        section.page_height = Inches(8.27)
+        section.left_margin = section.right_margin = Inches(0.5)
+        section.top_margin = section.bottom_margin = Inches(0.5)
+
+        # cabeçalho
+        header_table = doc.add_table(rows=1, cols=3)
+        header_table.autofit = True
+        header_table.cell(0, 0).paragraphs[0].add_run("🚌").font.size = Pt(22)
+
+        title = header_table.cell(0, 1).paragraphs[0].add_run(f"Relatório Financeiro")
+        title.font.size = Pt(14)
+        title.font.bold = True
+        header_table.cell(0, 1).paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+        right_run = header_table.cell(0, 2).paragraphs[0].add_run(f"Gerado: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
+        right_run.font.size = Pt(9)
+        right_run.font.color.rgb = RGBColor(100, 100, 100)
+        header_table.cell(0, 2).paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+
+        doc.add_paragraph()
+
+        # Tabela principal: uma linha por mês com todas as colunas (seguindo a sequência do template)
+        cols = [
+            "Mês",
+            "Normal", "Alunos", "Luvu", "Frete", "Entradas",
+            "Alimentação", "Taxas", "Outros", "Parqueamento", "Despesas Extra",
+            "Combustível (valor)", "Lavagem", "Sobragem/Filtros",
+            "Saídas (total)",
+            "Saldo",
+            "Despesas Fixas (total)", "Despesas Variáveis",
+            "Lucro"
+        ]
+        tabela = doc.add_table(rows=1 + len(labels), cols=len(cols))
+        tabela.style = "Table Grid"
+        # cabeçalho com cor
+        hdr = tabela.rows[0].cells
+        for j, c in enumerate(cols):
+            cell = hdr[j]
+            cell.text = c
+            run = cell.paragraphs[0].runs[0]
+            run.font.bold = True
+            run.font.color.rgb = RGBColor(255, 255, 255)
+            try:
+                cell._element.get_or_add_tcPr().append(
+                    parse_xml(f'<w:shd {nsdecls("w")} w:fill="2B6CB0"/>')
+                )
+            except Exception:
+                pass
+
+        # preencher linhas por mês (mantém mesma ordem de 'labels' e séries)
+        for i, label in enumerate(labels):
+            row = tabela.rows[i + 1].cells
+            row[0].text = label
+            row[1].text = fmt_money(serie_normal[i]) 
+            row[2].text = fmt_money(serie_alunos[i])
+            row[3].text = fmt_money(serie_luvu[i])
+            row[4].text = fmt_money(serie_frete[i])
+            row[5].text = fmt_money(serie_entradas[i])
+            row[6].text = fmt_money(serie_alimentacao[i])
+            row[7].text = fmt_money(serie_taxa[i])
+            row[8].text = fmt_money(serie_outros[i])
+            row[9].text = fmt_money(serie_parqueamento[i])
+            row[10].text = fmt_money(serie_despesas_extra[i])
+            row[11].text = fmt_money(serie_combustivel_valor[i])
+            row[12].text = fmt_money(serie_combustivel_lavagem[i])
+            row[13].text = fmt_money(serie_combustivel_sobragem[i])
+            row[14].text = fmt_money(serie_saidas[i])
+            row[15].text = fmt_money(serie_saldo[i])
+            row[16].text = fmt_money(serie_total_despesas_fixas[i])
+            row[17].text = fmt_money(serie_despesas_variaveis[i])
+            row[18].text = fmt_money(serie_lucro[i])
+
+            # alinhar numéricos à direita
+            for cidx in range(1, len(cols)):
+                try:
+                    row[cidx].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+                except Exception:
+                    pass
+
+        doc.add_paragraph()
+
+        # Resumo final (último mês) com destaque
+        if labels:
+            last = len(labels) - 1
+            doc.add_heading("Resumo (último mês)", level=2)
+            resumo_table = doc.add_table(rows=4, cols=2)
+            resumo_table.style = "Table Grid"
+            resumo_table.cell(0, 0).text = "Entradas Totais"
+            resumo_table.cell(0, 1).text = fmt_money(serie_entradas[last])
+            resumo_table.cell(1, 0).text = "Saídas Totais"
+            resumo_table.cell(1, 1).text = fmt_money(serie_saidas[last])
+            resumo_table.cell(2, 0).text = "Saldo"
+            resumo_table.cell(2, 1).text = fmt_money(serie_saldo[last])
+            resumo_table.cell(3, 0).text = "Lucro Final"
+            resumo_table.cell(3, 1).text = fmt_money(serie_lucro[last])
+            for r in resumo_table.rows:
+                try:
+                    r.cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+                except Exception:
+                    pass
+
+        # gerar e enviar docx
+        buffer = BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+        filename = f"Relatorio_Financas_{mes_param or 'todos_meses'}.docx"
+        from django.http import HttpResponse
+        response = HttpResponse(buffer.getvalue(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
 
     return render(request, "dashboards/gerencia_financas.html", context)
 
