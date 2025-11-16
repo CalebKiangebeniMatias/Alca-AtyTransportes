@@ -7,8 +7,8 @@
 {% block content %}
 <style>
 .container { max-width:1100px; margin:18px auto; }
-.selector-row { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
-.month-input { padding:6px 10px; border-radius:6px; border:1px solid #e6edf3; background:#fff; }
+.selector-row { display:flex; gap:8px; align-items:center; margin-bottom:12px; justify-content:flex-end; }
+.month-input { padding:8px 12px; border-radius:8px; border:1px solid #e6edf3; background:#fff; font-weight:600; }
 
 .linha { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:18px; }
 .bloco { padding:14px; border-radius:10px; color:#fff; box-shadow: 0 2px 6px rgba(2,6,23,0.06); min-height:92px; display:flex; flex-direction:column; justify-content:space-between; }
@@ -33,16 +33,40 @@
 @media (max-width:700px) {
   .linha { grid-template-columns: 1fr; }
 }
+
+.btn-primary {
+  display:inline-flex; align-items:center; gap:8px;
+  background:#0f172a; color:#fff; border:0; padding:8px 12px; border-radius:8px;
+  cursor:pointer; font-weight:700;
+}
+.btn-download {
+  background: linear-gradient(90deg,#0ea5e9,#0369a1);
+  color:#fff; border:0; padding:8px 10px; border-radius:8px;
+  display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+}
+.btn-icon {
+  width:18px; height:18px; display:inline-block;
+}
 </style>
 
 <div class="container">
 
-    <!-- Seletor de mês -->
-    <form method="get" class="selector-row" style="justify-content:flex-end;">
-        <label for="mes" style="color:#334155; font-weight:600; margin-right:8px;">Selecionar mês:</label>
-        <input id="mes" name="mes" type="month" class="month-input" value="{{ request.GET.mes|default:'' }}">
-        <button type="submit" class="month-input" style="background:#0f172a;color:#fff;border:0;padding:7px 10px;border-radius:6px;">Aplicar</button>
-    </form>
+    <!-- Seletor de mês atualizado com botão de download -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <form method="get" style="margin:0;">
+        <div class="selector-row">
+            <label for="mes" style="color:#334155; font-weight:600; margin-right:8px;">Selecionar mês:</label>
+            <input id="mes" name="mes" type="month" class="month-input" value="{{ request.GET.mes|default:'' }}">
+            <button type="submit" class="btn-primary">Aplicar</button>
+        </div>
+      </form>
+
+      <!-- botão de download — cria URL com ?mes=YYYY-MM&download=1 -->
+      <button id="btn-download" class="btn-download" title="Baixar relatório deste mês">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Baixar relatório
+      </button>
+    </div>
 
     <!-- ENTRADAS (verde) -->
     <div class="linha">
@@ -167,4 +191,20 @@
     </div>
 
 </div>
+
+<script>
+(function(){
+  const btn = document.getElementById('btn-download');
+  if (!btn) return;
+  btn.addEventListener('click', function(){
+    const mesInput = document.getElementById('mes');
+    const mes = mesInput && mesInput.value ? mesInput.value : '';
+    const params = new URLSearchParams(window.location.search);
+    if (mes) params.set('mes', mes);
+    params.set('download', '1');
+    // redireciona para a mesma view — implemente no servidor a resposta quando download=1
+    window.location.href = window.location.pathname + '?' + params.toString();
+  });
+})();
+</script>
 {% endblock %}
