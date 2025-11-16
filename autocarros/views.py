@@ -3043,7 +3043,7 @@ def gerencia_financas(request):
         return resp"""
 
     # ---------------------------
-    # download DOCX com TODOS os dados exibidos no template
+    # download DOCX com os dados do mês selecionado (ou último mês disponível)
     # ---------------------------
     if request.GET.get('download') == '1':
         from io import BytesIO
@@ -3052,132 +3052,152 @@ def gerencia_financas(request):
         from docx.enum.text import WD_ALIGN_PARAGRAPH
         from docx.oxml import parse_xml
         from docx.oxml.ns import nsdecls
-        from babel.numbers import format_currency
 
-        def fmt_money(val):
+        def _fmt_kz(value):
             try:
-                v = Decimal(val or 0).quantize(Decimal('0.01'))
-                return format_currency(float(v), "AOA", locale="pt_PT").replace("AOA", "Kz")
+                v = Decimal(value or 0).quantize(Decimal('0.01'))
+                s = f"{v:,.2f}"               # ex: 1,234.56
+                s = s.replace(',', 'X').replace('.', ',').replace('X', '.')
+                return f"{s} Kz"
             except Exception:
-                try:
-                    return f"{Decimal(val or 0):.2f} Kz"
-                except Exception:
-                    return "0,00 Kz"
+                return "0,00 Kz"
+
+        # garantir que pegamos um único mês: se view já filtrou por mes_param, registros terá apenas esse mês;
+        # caso contrário, usamos o último mês da lista.
+        if labels:
+            label = labels[-1]
+            idx = len(labels) - 1
+        else:
+            label = mes_param or timezone.now().strftime("%B %Y")
+            idx = 0
 
         doc = Document()
-        # página em paisagem
-        section = doc.sections[0]
-        section.page_width = Inches(11.69)
-        section.page_height = Inches(8.27)
-        section.left_margin = section.right_margin = Inches(0.5)
-        section.top_margin = section.bottom_margin = Inches(0.5)
+        # paisagem A4-like
+        sec = doc.sections[0]
+        sec.page_width = Inches(11.69)
+        sec.page_height = Inches(8.27)
+        sec.left_margin = sec.right_margin = Inches(0.5)
+        sec.top_margin = sec.bottom_margin = Inches(0.5)
 
-        # cabeçalho
-        header_table = doc.add_table(rows=1, cols=3)
-        header_table.autofit = True
-        header_table.cell(0, 0).paragraphs[0].add_run("🚌").font.size = Pt(22)
-
-        title = header_table.cell(0, 1).paragraphs[0].add_run(f"Relatório Financeiro")
-        title.font.size = Pt(14)
-        title.font.bold = True
-        header_table.cell(0, 1).paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-
-        right_run = header_table.cell(0, 2).paragraphs[0].add_run(f"Gerado: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
-        right_run.font.size = Pt(9)
-        right_run.font.color.rgb = RGBColor(100, 100, 100)
-        header_table.cell(0, 2).paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
-
+        # Cabeçalho simples
+        hdr = doc.add_paragraph()
+        run = hdr.add_run("Relatório Financeiro — " + (mes_param or label))
+        run.bold = True
+        run.font.size = Pt(14)
         doc.add_paragraph()
 
-        # Tabela principal: uma linha por mês com todas as colunas (seguindo a sequência do template)
-        cols = [
-            "Mês",
-            "Normal", "Alunos", "Luvu", "Frete", "Entradas",
-            "Alimentação", "Taxas", "Outros", "Parqueamento", "Despesas Extra",
-            "Combustível (valor)", "Lavagem", "Sobragem/Filtros",
-            "Saídas (total)",
-            "Saldo",
-            "Despesas Fixas (total)", "Despesas Variáveis",
-            "Lucro"
-        ]
-        tabela = doc.add_table(rows=1 + len(labels), cols=len(cols))
-        tabela.style = "Table Grid"
-        # cabeçalho com cor
-        hdr = tabela.rows[0].cells
-        for j, c in enumerate(cols):
-            cell = hdr[j]
-            cell.text = c
-            run = cell.paragraphs[0].runs[0]
-            run.font.bold = True
-            run.font.color.rgb = RGBColor(255, 255, 255)
+        # 1) Entradas (linha)
+        tbl_e = doc.add_table(rows=2, cols=5)
+        tbl_e.style = 'Table Grid'
+        hdr_cells = tbl_e.rows[0].cells
+        hdr_cells[0].text = "Normal"
+        hdr_cells[1].text = "Alunos"
+        hdr_cells[2].text = "Luvu"
+        hdr_cells[3].text = "Frete"
+        hdr_cells[4].text = "Entradas (Total)"
+        row_cells = tbl_e.rows[1].cells
+        row_cells[0].text = _fmt_kz(serie_normal[idx] if serie_normal else 0)
+        row_cells[1].text = _fmt_kz(serie_alunos[idx] if serie_alunos else 0)
+        row_cells[2].text = _fmt_kz(serie_luvu[idx] if serie_luvu else 0)
+        row_cells[3].text = _fmt_kz(serie_frete[idx] if serie_frete else 0)
+        row_cells[4].text = _fmt_kz(serie_entradas[idx] if serie_entradas else 0)
+        for c in range(5):
             try:
-                cell._element.get_or_add_tcPr().append(
-                    parse_xml(f'<w:shd {nsdecls("w")} w:fill="2B6CB0"/>')
-                )
+                tbl_e.rows[1].cells[c].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
             except Exception:
                 pass
-
-        # preencher linhas por mês (mantém mesma ordem de 'labels' e séries)
-        for i, label in enumerate(labels):
-            row = tabela.rows[i + 1].cells
-            row[0].text = label
-            row[1].text = fmt_money(serie_normal[i]) 
-            row[2].text = fmt_money(serie_alunos[i])
-            row[3].text = fmt_money(serie_luvu[i])
-            row[4].text = fmt_money(serie_frete[i])
-            row[5].text = fmt_money(serie_entradas[i])
-            row[6].text = fmt_money(serie_alimentacao[i])
-            row[7].text = fmt_money(serie_taxa[i])
-            row[8].text = fmt_money(serie_outros[i])
-            row[9].text = fmt_money(serie_parqueamento[i])
-            row[10].text = fmt_money(serie_despesas_extra[i])
-            row[11].text = fmt_money(serie_combustivel_valor[i])
-            row[12].text = fmt_money(serie_combustivel_lavagem[i])
-            row[13].text = fmt_money(serie_combustivel_sobragem[i])
-            row[14].text = fmt_money(serie_saidas[i])
-            row[15].text = fmt_money(serie_saldo[i])
-            row[16].text = fmt_money(serie_total_despesas_fixas[i])
-            row[17].text = fmt_money(serie_despesas_variaveis[i])
-            row[18].text = fmt_money(serie_lucro[i])
-
-            # alinhar numéricos à direita
-            for cidx in range(1, len(cols)):
-                try:
-                    row[cidx].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
-                except Exception:
-                    pass
-
         doc.add_paragraph()
 
-        # Resumo final (último mês) com destaque
-        if labels:
-            last = len(labels) - 1
-            doc.add_heading("Resumo (último mês)", level=2)
-            resumo_table = doc.add_table(rows=4, cols=2)
-            resumo_table.style = "Table Grid"
-            resumo_table.cell(0, 0).text = "Entradas Totais"
-            resumo_table.cell(0, 1).text = fmt_money(serie_entradas[last])
-            resumo_table.cell(1, 0).text = "Saídas Totais"
-            resumo_table.cell(1, 1).text = fmt_money(serie_saidas[last])
-            resumo_table.cell(2, 0).text = "Saldo"
-            resumo_table.cell(2, 1).text = fmt_money(serie_saldo[last])
-            resumo_table.cell(3, 0).text = "Lucro Final"
-            resumo_table.cell(3, 1).text = fmt_money(serie_lucro[last])
-            for r in resumo_table.rows:
-                try:
-                    r.cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
-                except Exception:
-                    pass
+        # 2) Saídas - primeira linha: alimentacao, taxas, outros, parqueamento
+        tbl_s1 = doc.add_table(rows=2, cols=4)
+        tbl_s1.style = 'Table Grid'
+        hdr = tbl_s1.rows[0].cells
+        hdr[0].text = "Alimentação"
+        hdr[1].text = "Taxas"
+        hdr[2].text = "Outros"
+        hdr[3].text = "Parqueamento"
+        vals = tbl_s1.rows[1].cells
+        vals[0].text = _fmt_kz(serie_alimentacao[idx] if serie_alimentacao else 0)
+        vals[1].text = _fmt_kz(serie_taxa[idx] if serie_taxa else 0)
+        vals[2].text = _fmt_kz(serie_outros[idx] if serie_outros else 0)
+        vals[3].text = _fmt_kz(serie_parqueamento[idx] if serie_parqueamento else 0)
+        for c in range(4):
+            try:
+                tbl_s1.rows[1].cells[c].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            except Exception:
+                pass
+        doc.add_paragraph()
 
-        # gerar e enviar docx
-        buffer = BytesIO()
-        doc.save(buffer)
-        buffer.seek(0)
-        filename = f"Relatorio_Financas_{mes_param or 'todos_meses'}.docx"
+        # 3) Saídas - segunda linha: Despesas Extra, Combustível, Lavagem, Sobragem
+        tbl_s2 = doc.add_table(rows=2, cols=4)
+        tbl_s2.style = 'Table Grid'
+        hdr = tbl_s2.rows[0].cells
+        hdr[0].text = "Despesas Extra"
+        hdr[1].text = "Combustível (valor)"
+        hdr[2].text = "Lavagem"
+        hdr[3].text = "Sobragem / Filtros"
+        vals = tbl_s2.rows[1].cells
+        vals[0].text = _fmt_kz(serie_despesas_extra[idx] if serie_despesas_extra else 0)
+        vals[1].text = _fmt_kz(serie_combustivel_valor[idx] if serie_combustivel_valor else 0)
+        vals[2].text = _fmt_kz(serie_combustivel_lavagem[idx] if serie_combustivel_lavagem else 0)
+        vals[3].text = _fmt_kz(serie_combustivel_sobragem[idx] if serie_combustivel_sobragem else 0)
+        for c in range(4):
+            try:
+                tbl_s2.rows[1].cells[c].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            except Exception:
+                pass
+        doc.add_paragraph()
+
+        # 4) Saldo (linha única)
+        tbl_saldo = doc.add_table(rows=1, cols=2)
+        tbl_saldo.style = 'Table Grid'
+        tbl_saldo.rows[0].cells[0].text = "Saldo (Entradas - Saídas)"
+        tbl_saldo.rows[0].cells[1].text = _fmt_kz(serie_saldo[idx] if serie_saldo else 0)
+        try:
+            tbl_saldo.rows[0].cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        except Exception:
+            pass
+        doc.add_paragraph()
+
+        # 5) Despesas: Despesas Fixas e Variáveis (uma linha com duas colunas)
+        tbl_d = doc.add_table(rows=1, cols=2)
+        tbl_d.style = 'Table Grid'
+        tbl_d.rows[0].cells[0].text = "Despesas Fixas (Total)"
+        tbl_d.rows[0].cells[1].text = _fmt_kz(serie_total_despesas_fixas[idx] if serie_total_despesas_fixas else 0)
+        try:
+            tbl_d.rows[0].cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        except Exception:
+            pass
+        doc.add_paragraph()
+        tbl_dv = doc.add_table(rows=1, cols=2)
+        tbl_dv.style = 'Table Grid'
+        tbl_dv.rows[0].cells[0].text = "Despesas Variáveis (Total)"
+        tbl_dv.rows[0].cells[1].text = _fmt_kz(serie_despesas_variaveis[idx] if serie_despesas_variaveis else 0)
+        try:
+            tbl_dv.rows[0].cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        except Exception:
+            pass
+        doc.add_paragraph()
+
+        # 6) Lucro (linha única)
+        tbl_l = doc.add_table(rows=1, cols=2)
+        tbl_l.style = 'Table Grid'
+        tbl_l.rows[0].cells[0].text = "Lucro Final"
+        tbl_l.rows[0].cells[1].text = _fmt_kz(serie_lucro[idx] if serie_lucro else 0)
+        try:
+            tbl_l.rows[0].cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        except Exception:
+            pass
+
+        # enviar DOCX
+        buf = BytesIO()
+        doc.save(buf)
+        buf.seek(0)
+        filename = f"Relatorio_Financas_{mes_param or label}.docx"
         from django.http import HttpResponse
-        response = HttpResponse(buffer.getvalue(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        return response
+        resp = HttpResponse(buf.getvalue(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        resp['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return resp
 
     return render(request, "dashboards/gerencia_financas.html", context)
 
