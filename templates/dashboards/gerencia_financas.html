@@ -6,248 +6,165 @@
 
 {% block content %}
 <style>
-    .bloco-title {
-        background: #eef2f7;
-        padding: 10px 14px;
-        border-radius: 10px;
-        font-weight: 700;
-        display:flex;
-        align-items:center;
-        gap:10px;
-        margin-bottom:8px;
-    }
-    .linha {
-        display:grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap:12px;
-        margin-bottom:18px;
-    }
-    .bloco {
-        background: #fff;
-        border:1px solid #e3e8ef;
-        padding:14px;
-        border-radius:10px;
-        text-align:center;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-    }
-    .bloco .titulo {
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        gap:8px;
-        font-weight:600;
-        margin-bottom:6px;
-        color:#334155;
-    }
-    .valor {
-        font-size:1.15rem;
-        font-weight:700;
-        color:#0f172a;
-    }
-    .muted { color:#64748b; font-size:0.9rem; }
-    .icon {
-        width:18px; height:18px; display:inline-block; vertical-align:middle;
-    }
-    .section-row { margin-top:18px; }
+.container { max-width:1100px; margin:18px auto; }
+.selector-row { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+.month-input { padding:6px 10px; border-radius:6px; border:1px solid #e6edf3; background:#fff; }
+
+.linha { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:18px; }
+.bloco { padding:14px; border-radius:10px; color:#fff; box-shadow: 0 2px 6px rgba(2,6,23,0.06); min-height:92px; display:flex; flex-direction:column; justify-content:space-between; }
+.bloco .titulo { font-weight:700; display:flex; align-items:center; gap:8px; font-size:0.95rem; }
+.bloco .valor { font-size:1.25rem; font-weight:800; margin-top:6px; }
+.muted { font-size:0.9rem; opacity:0.9; color:rgba(255,255,255,0.9); }
+
+/* cores requeridas */
+.bg-entradas { background: linear-gradient(135deg,#059669,#10b981); }   /* verde */
+.bg-saidas { background: linear-gradient(135deg,#b91c1c,#ef4444); }     /* vermelho */
+.bg-saldo { background: linear-gradient(135deg,#b45309,#f59e0b); }      /* amarelo/âmbar */
+.bg-lucro { background: linear-gradient(135deg,#c2410c,#f97316); }      /* laranja */
+.bg-combustivel { background: linear-gradient(135deg,#92400e,#f97316); } /* laranja-escuro */
+.bg-fixas { background: linear-gradient(135deg,#0369a1,#0ea5e9); }      /* azul */
+.bg-variaveis { background: linear-gradient(135deg,#6b21a8,#8b5cf6); }   /* roxo */
+
+.icon { width:18px; height:18px; display:inline-block; vertical-align:middle; }
+
+/* responsividade e pequenos ajustes */
+.small-muted { font-size:0.8rem; opacity:0.95; color:rgba(255,255,255,0.95); }
 </style>
 
 <div class="container">
 
-    <!-- ENTRADAS -->
-    <div class="bloco-title">
-        <!-- money SVG -->
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 3v4"></path><path d="M8 3v4"></path></svg>
-        Entradas
-    </div>
+    <!-- Seletor de mês -->
+    <form method="get" class="selector-row" style="justify-content:flex-end;">
+        <label for="mes" class="muted" style="color:#334155; font-weight:600; margin-right:8px;">Selecionar mês:</label>
+        <input id="mes" name="mes" type="month" class="month-input" value="{{ request.GET.mes|default:'' }}">
+        <button type="submit" class="month-input" style="background:#0f172a;color:#fff;border:0;padding:7px 10px;border-radius:6px;">Aplicar</button>
+    </form>
 
+    <!-- ENTRADAS (verde) -->
     <div class="linha">
-        <div class="bloco">
-            <div class="titulo">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v2"></path></svg>
-                Normal
-            </div>
-            <div class="valor">
-                {% localize on %}{{ serie_normal|last|floatformat:2 }}{% endlocalize %} Kz
-            </div>
-            <div class="muted">Série mensal</div>
+        <div class="bloco bg-entradas">
+            <div class="titulo"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22"/></svg> Normal</div>
+            <div class="valor">{% localize on %}{{ serie_normal|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Série mensal (último)</div>
         </div>
 
-        <div class="bloco">
-            <div class="titulo">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"></path></svg>
-                Luvu
-            </div>
-            <div class="valor">{% localize on %}{{ serie_luvu|last|floatformat:2 }}{% endlocalize %} Kz</div>
-            <div class="muted">Série mensal</div>
+        <div class="bloco bg-entradas">
+            <div class="titulo"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/></svg> Alunos</div>
+            <div class="valor">{% localize on %}{{ serie_alunos|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Série mensal (último)</div>
         </div>
 
-        <div class="bloco">
-            <div class="titulo">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22"></path><path d="M5 7h14"></path></svg>
-                Alunos
-            </div>
-            <div class="valor">{% localize on %}{{ serie_alunos|last|floatformat:2 }}{% endlocalize %} Kz</div>
-            <div class="muted">Série mensal</div>
+        <div class="bloco bg-entradas">
+            <div class="titulo"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/></svg> Luvu</div>
+            <div class="valor">{% localize on %}{{ serie_luvu|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Série mensal (último)</div>
         </div>
 
-        <div class="bloco">
-            <div class="titulo">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18"></path><path d="M5 11h14"></path></svg>
-                Frete / Outros
-            </div>
-            <div class="valor">{% localize on %}{{ serie_frete|last|floatformat:2 }}{% endlocalize %} Kz</div>
-            <div class="muted">Série mensal</div>
+        <div class="bloco bg-entradas">
+            <div class="titulo"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/></svg> Frete / Outros</div>
+            <div class="valor">{% localize on %}{{ serie_frete|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Série mensal (último)</div>
         </div>
     </div>
 
+    <!-- Entradas totais -->
     <div class="linha section-row">
-        <div class="bloco" style="grid-column: span 2;">
-            <div class="titulo">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#064e3b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12H3"></path><path d="M21 6H3"></path><path d="M21 18H3"></path></svg>
-                Entradas Totais (mês)
-            </div>
-            <div class="valor">{% localize on %}{{ serie_entradas|last|floatformat:2 }}{% endlocalize %} Kz</div>
-            <div class="muted">Soma de todas as entradas</div>
+        <div class="bloco bg-entradas" style="grid-column: span 2;">
+            <div class="titulo"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><path d="M12 1v22"/></svg> Entradas Totais</div>
+            <div class="valor">{% localize on %}{{ serie_entradas|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Soma de todas as entradas (último mês)</div>
         </div>
     </div>
 
-    <!-- SAÍDAS -->
-    <div class="bloco-title section-row">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Saídas
-    </div>
-
+    <!-- SAÍDAS (vermelho) -->
     <div class="linha">
-        <div class="bloco">
+        <div class="bloco bg-saidas">
             <div class="titulo">Alimentação</div>
-            <div class="valor">{% localize on %}{{ serie_alimentacao|last|floatformat:2 }}{% endlocalize %} Kz</div>
-            <div class="muted">Registro</div>
+            <div class="valor">{% localize on %}{{ serie_alimentacao|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Registro</div>
         </div>
 
-        <div class="bloco">
+        <div class="bloco bg-saidas">
             <div class="titulo">Parqueamento</div>
-            <div class="valor">{% localize on %}{{ serie_parqueamento|last|floatformat:2 }}{% endlocalize %} Kz</div>
-            <div class="muted">Registro</div>
+            <div class="valor">{% localize on %}{{ serie_parqueamento|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Registro</div>
         </div>
 
-        <div class="bloco">
+        <div class="bloco bg-saidas">
             <div class="titulo">Taxas</div>
-            <div class="valor">{% localize on %}{{ serie_taxa|last|floatformat:2 }}{% endlocalize %} Kz</div>
-            <div class="muted">Registro</div>
+            <div class="valor">{% localize on %}{{ serie_taxa|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Registro</div>
         </div>
 
-        <div class="bloco">
+        <div class="bloco bg-saidas">
             <div class="titulo">Outros</div>
-            <div class="valor">{% localize on %}{{ serie_outros|last|floatformat:2 }}{% endlocalize %} Kz</div>
-            <div class="muted">Registro</div>
+            <div class="valor">{% localize on %}{{ serie_outros|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Registro</div>
         </div>
     </div>
 
     <div class="linha section-row">
-        <div class="bloco" style="grid-column: span 2;">
-            <div class="titulo">Despesas Extra (livres)</div>
-            <div class="valor">{% localize on %}{{ serie_despesas_extra|last|floatformat:2 }}{% endlocalize %} Kz</div>
-            <div class="muted">Outras despesas não vinculadas</div>
+        <div class="bloco bg-saidas" style="grid-column: span 2;">
+            <div class="titulo">Despesas Extra (Relatórios)</div>
+            <div class="valor">{% localize on %}{{ serie_despesas_extra|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Despesa geral por sector</div>
         </div>
 
-        <div class="bloco" style="grid-column: span 2;">
-            <div class="titulo">Saídas Totais (registros)</div>
-            <div class="valor">{% localize on %}{{ serie_saidas|last|floatformat:2 }}{% endlocalize %} Kz</div>
-            <div class="muted">Soma das saídas registradas</div>
+        <div class="bloco bg-saidas" style="grid-column: span 2;">
+            <div class="titulo">Saídas Totais (inclui combustível e extras)</div>
+            <div class="valor">{% localize on %}{{ serie_saidas|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Soma das saídas (último mês)</div>
         </div>
     </div>
 
-    <!-- COMBUSTÍVEL -->
-    <div class="bloco-title section-row">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"></path></svg>
-        Combustível
-    </div>
-
+    <!-- COMBUSTÍVEL (separado) -->
     <div class="linha">
-        <div class="bloco">
-            <div class="titulo">Valor</div>
-            <div class="valor">{% localize on %}{{ serie_combustivel_valor|last|floatformat:2 }}{% endlocalize %} Kz</div>
-            <div class="muted">Total combustível</div>
+        <div class="bloco bg-combustivel">
+            <div class="titulo">Combustível (valor)</div>
+            <div class="valor">{% localize on %}{{ serie_combustivel_valor|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Total combustível</div>
         </div>
 
-        <div class="bloco">
+        <div class="bloco bg-combustivel">
             <div class="titulo">Sobragem / Filtros</div>
-            <div class="valor">{% localize on %}{{ serie_combustivel_sobragem|last|floatformat:2 }}{% endlocalize %} Kz</div>
-            <div class="muted">Sobragem</div>
+            <div class="valor">{% localize on %}{{ serie_combustivel_sobragem|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Sobragem/filtros</div>
         </div>
 
-        <div class="bloco">
+        <div class="bloco bg-combustivel">
             <div class="titulo">Lavagem</div>
-            <div class="valor">{% localize on %}{{ serie_combustivel_lavagem|last|floatformat:2 }}{% endlocalize %} Kz</div>
-            <div class="muted">Lavagem</div>
+            <div class="valor">{% localize on %}{{ serie_combustivel_lavagem|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Lavagem</div>
         </div>
     </div>
 
-    <!-- SALDO -->
-    <div class="bloco-title section-row">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22"></path></svg>
-        Saldo
-    </div>
+    <!-- SALDO (amarelo) e LUCRO (laranja) -->
+    <div class="linha section-row">
+        <div class="bloco bg-saldo" style="grid-column: span 2;">
+            <div class="titulo">Saldo (Entradas - Saídas)</div>
+            <div class="valor">{% localize on %}{{ serie_saldo|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Saldo do mês (último)</div>
+        </div>
 
-    <div class="linha">
-        <div class="bloco">
-            <div class="titulo">Saldo (mês)</div>
-            <div class="valor">{% localize on %}{{ serie_saldo|last|floatformat:2 }}{% endlocalize %} Kz</div>
-            <div class="muted">Entradas - Saídas</div>
+        <div class="bloco bg-lucro" style="grid-column: span 2;">
+            <div class="titulo">Lucro Final</div>
+            <div class="valor">{% localize on %}{{ serie_lucro|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Saldo menos despesas fixas e variáveis</div>
         </div>
     </div>
 
-    <!-- DESPESAS FIXAS -->
-    <div class="bloco-title section-row">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg>
-        Despesas Fixas
-    </div>
+    <!-- DESPESAS FIXAS (usa variável do contexto diretamente) -->
+    <div class="linha section-row">
+        <div class="bloco bg-fixas" style="grid-column: span 2;">
+            <div class="titulo">Despesas Fixas (Total)</div>
+            <div class="valor">{% localize on %}{{ serie_total_despesas_fixas|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Soma das despesas fixas (último mês)</div>
+        </div>
 
-    <div class="linha">
-        {% if serie_total_despesas_fixas %}
-            {% for nome, valor in serie_total_despesas_fixas.items %}
-                <div class="bloco">
-                    <div class="titulo">{{ nome }}</div>
-                    <div class="valor">{% localize on %}{{ valor|floatformat:2 }}{% endlocalize %} Kz</div>
-                    <div class="muted">Mensal</div>
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="bloco">Nenhuma despesa fixa cadastrada.</div>
-        {% endif %}
-    </div>
-
-    <!-- DESPESAS VARIÁVEIS -->
-    <div class="bloco-title section-row">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"></path></svg>
-        Despesas Variáveis
-    </div>
-
-    <div class="linha">
-        {% if serie_despesas_variaveis %}
-            {% for nome, valor in serie_despesas_variaveis.items %}
-                <div class="bloco">
-                    <div class="titulo">{{ nome }}</div>
-                    <div class="valor">{% localize on %}{{ valor|floatformat:2 }}{% endlocalize %} Kz</div>
-                    <div class="muted">Mês atual</div>
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="bloco">Nenhuma despesa variável.</div>
-        {% endif %}
-    </div>
-
-    <!-- LUCRO -->
-    <div class="bloco-title section-row">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"></path><circle cx="12" cy="12" r="4"></circle></svg>
-        Lucro Final
-    </div>
-
-    <div class="linha">
-        <div class="bloco">
-            <div class="titulo">Lucro (mês)</div>
-            <div class="valor">{% localize on %}{{ serie_lucro|last|floatformat:2 }}{% endlocalize %} Kz</div>
-            <div class="muted">Entradas - Saídas completas</div>
+        <div class="bloco bg-variaveis" style="grid-column: span 2;">
+            <div class="titulo">Despesas Variáveis (Total)</div>
+            <div class="valor">{% localize on %}{{ serie_despesas_variaveis|last|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
+            <div class="small-muted">Despesas variáveis (último mês)</div>
         </div>
     </div>
 
