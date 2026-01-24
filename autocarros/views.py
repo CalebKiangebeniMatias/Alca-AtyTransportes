@@ -85,7 +85,7 @@ def can_edit_required(view_func):
     return decorated_view
 
 
-class LoginView(View):
+def LoginView(View):
     def get(self, request):
         return render(request, 'auth/login.html')
 
