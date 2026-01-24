@@ -130,6 +130,11 @@ urlpatterns = [
     path('depositos/<int:pk>/', views.depositos_detail, name='depositos_detail'),
     path('depositos/<int:pk>/edit/', views.depositos_edit, name='depositos_edit'),
     path('depositos/delete/', views.depositos_delete, name='depositos_delete'),
+
+
+    #Mapas
+    path('mapas/mensal-financeiro/', views.mapa_geral_financeiro, name='mapa_geral_financeiro'),
+
 ]
 
 

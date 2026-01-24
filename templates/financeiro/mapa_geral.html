@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Mapa Geral Financeiro{% endblock %}
+
+{% block content %}
+
+<style>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: "Courier New", monospace;
+    font-size: 14px;
+  }
+  th, td {
+    border: 2px solid #333;
+    padding: 6px;
+    text-align: center;
+  }
+  th { background: #e9ecef; }
+  .section { background: #f2f2f2; font-weight: bold; }
+  .total-entradas { background: #d4edda; font-weight: bold; }
+  .total-despesas { background: #f8d7da; font-weight: bold; }
+  .saldo { background: #d1ecf1; font-weight: bold; }
+  td.text-start { text-align: left; padding-left: 10px; }
+  .filtro { margin-bottom: 20px; }
+</style>
+
+<h3>
+  MAPA GERAL – {{ sector.nome }} | {{ mes }}/{{ ano }}
+</h3>
+
+<!-- FILTRO -->
+<form method="get" class="filtro">
+  <label>Sector:</label>
+  <select name="sector" required>
+    {% for s in sectores %}
+      <option value="{{ s.id }}" {% if s.id == sector.id %}selected{% endif %}>
+        {{ s.nome }}
+      </option>
+    {% endfor %}
+  </select>
+
+  <label>Mês:</label>
+  <select name="mes">
+    {% for m in meses %}
+      <option value="{{ m }}" {% if m == mes %}selected{% endif %}>{{ m }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Ano:</label>
+  <input type="number" name="ano" value="{{ ano }}" style="width:90px">
+
+  <button type="submit">Aplicar</button>
+</form>
+
+<table>
+  <tr>
+    <th rowspan="2">DESCRIÇÃO</th>
+    <th colspan="4">SEMANAS</th>
+    <th rowspan="2">TOTAL</th>
+  </tr>
+  <tr>
+    <th>1ª</th><th>2ª</th><th>3ª</th><th>4ª</th>
+  </tr>
+
+  <!-- ENTRADAS -->
+  <tr class="section"><td colspan="6">ENTRADAS</td></tr>
+
+  {% for item in entradas %}
+  <tr>
+    <td class="text-start">{{ item.nome }}</td>
+    <td>{{ item.s1|intcomma }}</td>
+    <td>{{ item.s2|intcomma }}</td>
+    <td>{{ item.s3|intcomma }}</td>
+    <td>{{ item.s4|intcomma }}</td>
+    <td>{{ item.total|intcomma }}</td>
+  </tr>
+  {% endfor %}
+
+  <tr class="total-entradas">
+    <td class="text-start">TOTAL ENTRADAS</td>
+    <td>{{ totais.entradas.s1|intcomma }}</td>
+    <td>{{ totais.entradas.s2|intcomma }}</td>
+    <td>{{ totais.entradas.s3|intcomma }}</td>
+    <td>{{ totais.entradas.s4|intcomma }}</td>
+    <td>{{ totais.entradas.total|intcomma }}</td>
+  </tr>
+
+  <!-- DESPESAS -->
+  <tr class="section"><td colspan="6">DESPESAS</td></tr>
+
+  {% for item in despesas %}
+  <tr>
+    <td class="text-start">{{ item.nome }}</td>
+    <td>{{ item.s1|intcomma }}</td>
+    <td>{{ item.s2|intcomma }}</td>
+    <td>{{ item.s3|intcomma }}</td>
+    <td>{{ item.s4|intcomma }}</td>
+    <td>{{ item.total|intcomma }}</td>
+  </tr>
+  {% endfor %}
+
+  <tr class="total-despesas">
+    <td class="text-start">TOTAL DESPESAS</td>
+    <td>{{ totais.despesas.s1|intcomma }}</td>
+    <td>{{ totais.despesas.s2|intcomma }}</td>
+    <td>{{ totais.despesas.s3|intcomma }}</td>
+    <td>{{ totais.despesas.s4|intcomma }}</td>
+    <td>{{ totais.despesas.total|intcomma }}</td>
+  </tr>
+
+  <tr class="saldo">
+    <td class="text-start">SALDO LÍQUIDO</td>
+    <td>{{ totais.saldo.s1|intcomma }}</td>
+    <td>{{ totais.saldo.s2|intcomma }}</td>
+    <td>{{ totais.saldo.s3|intcomma }}</td>
+    <td>{{ totais.saldo.s4|intcomma }}</td>
+    <td>{{ totais.saldo.total|intcomma }}</td>
+  </tr>
+</table>
+
+{% endblock %}
