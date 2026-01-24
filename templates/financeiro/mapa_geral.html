@@ -9,115 +9,198 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    font-family: "Courier New", monospace;
+    font-family: Arial, sans-serif;
     font-size: 14px;
   }
   th, td {
-    border: 2px solid #333;
+    border: 2px solid #000;
     padding: 6px;
     text-align: center;
   }
-  th { background: #e9ecef; }
-  .section { background: #f2f2f2; font-weight: bold; }
-  .total-entradas { background: #d4edda; font-weight: bold; }
-  .total-despesas { background: #f8d7da; font-weight: bold; }
-  .saldo { background: #d1ecf1; font-weight: bold; }
+
+  .header-blue {
+    background: #05b3f0;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+  }
+
+  .subheader {
+    background: #ffe699;
+    font-weight: bold;
+  }
+
+  .week {
+    background: #3f4f63;
+    color: white;
+    font-weight: bold;
+  }
+
+  .left-title {
+    background: #05b3f0;
+    color: black;
+    font-weight: bold;
+  }
+
+  .row-green { background: #e7f2df; }
+  .total-green { background: #7cb342; color: black; font-weight: bold; }
+
+  .section-orange { background: #ff7a00; color: black; font-weight: bold; }
+
+  .row-orange { background: #fde9d9; }
+  .total-orange { background: #f4a460; font-weight: bold; }
+
+  .saldo-blue { background: #05b3f0; color: white; font-weight: bold; }
+  .saldo-yellow { background: #fff2a8; font-weight: bold; }
+  .saldo-red { background: #ff6b6b; font-weight: bold; }
+  .saldo-green { background: #6cc070; font-weight: bold; }
+
+  .final-green { background: #6cc070; font-weight: bold; }
+  .final-red { background: #ff6b6b; font-weight: bold; }
+  .final-yellow { background: #ffe066; font-weight: bold; }
+
   td.text-start { text-align: left; padding-left: 10px; }
-  .filtro { margin-bottom: 20px; }
+
+  @media print {
+  body {
+    background: white;
+  }
+
+  button, a {
+    display: none;
+  }
+
+  table {
+    font-size: 12px;
+  }
+
+  h2 {
+    margin-bottom: 10px;
+  }
+}
+
 </style>
 
-<h3>
-  MAPA GERAL – {{ sector.nome }} | {{ mes }}/{{ ano }}
-</h3>
+<h2 style="text-align:center;">MAPA GERAL FINANCEIRO</h2>
 
-<!-- FILTRO -->
-<form method="get" class="filtro">
-  <label>Sector:</label>
-  <select name="sector" required>
-    {% for s in sectores %}
-      <option value="{{ s.id }}" {% if s.id == sector.id %}selected{% endif %}>
-        {{ s.nome }}
-      </option>
-    {% endfor %}
-  </select>
+<div style="margin-bottom:15px; display:flex; gap:10px;">
+  <button onclick="window.print()" style="padding:8px 14px;">🖨️ Imprimir</button>
 
-  <label>Mês:</label>
-  <select name="mes">
-    {% for m in meses %}
-      <option value="{{ m }}" {% if m == mes %}selected{% endif %}>{{ m }}</option>
-    {% endfor %}
-  </select>
+  <a href="{% url 'mapa_geral_pdf' %}?sector={{ sector.id }}&mes={{ mes }}&ano={{ ano }}"
+     style="padding:8px 14px; background:#dc3545; color:white; text-decoration:none;">
+     📄 Exportar PDF
+  </a>
 
-  <label>Ano:</label>
-  <input type="number" name="ano" value="{{ ano }}" style="width:90px">
-
-  <button type="submit">Aplicar</button>
-</form>
+  <a href="{% url 'mapa_geral_excel' %}?sector={{ sector.id }}&mes={{ mes }}&ano={{ ano }}"
+     style="padding:8px 14px; background:#28a745; color:white; text-decoration:none;">
+     📊 Exportar Excel
+  </a>
+</div>
 
 <table>
+
+  <!-- CABEÇALHO -->
   <tr>
-    <th rowspan="2">DESCRIÇÃO</th>
-    <th colspan="4">SEMANAS</th>
-    <th rowspan="2">TOTAL</th>
+    <th class="header-blue" colspan="6">LUANDA</th>
   </tr>
   <tr>
-    <th>1ª</th><th>2ª</th><th>3ª</th><th>4ª</th>
+    <th class="left-title" rowspan="2">CONTROLO FINANCEIRO<br>MAPA GERAL</th>
+    <th class="subheader" colspan="4">{{ mes }}/{{ ano }}</th>
+    <th class="left-title" rowspan="2">TOTAL MENSAL</th>
+  </tr>
+  <tr>
+    <th class="week">1ª SEMANA</th>
+    <th class="week">2ª SEMANA</th>
+    <th class="week">3ª SEMANA</th>
+    <th class="week">4ª SEMANA</th>
   </tr>
 
   <!-- ENTRADAS -->
-  <tr class="section"><td colspan="6">ENTRADAS</td></tr>
+  <tr class="row-green">
+    <td class="text-start">DIÁRIA</td>
+    <td>{{ semanas.1.entradas.normal|intcomma }}</td>
+    <td>{{ semanas.2.entradas.normal|intcomma }}</td>
+    <td>{{ semanas.3.entradas.normal|intcomma }}</td>
+    <td>{{ semanas.4.entradas.normal|intcomma }}</td>
+    <td>{{ total_entradas|intcomma }}</td>
+  </tr>
 
-  {% for item in entradas %}
+  <tr class="row-green">
+    <td class="text-start">FRETE</td>
+    <td>{{ semanas.1.entradas.frete|intcomma }}</td>
+    <td>{{ semanas.2.entradas.frete|intcomma }}</td>
+    <td>{{ semanas.3.entradas.frete|intcomma }}</td>
+    <td>{{ semanas.4.entradas.frete|intcomma }}</td>
+    <td>{{ total_entradas|intcomma }}</td>
+  </tr>
+
+  <tr class="total-green">
+    <td class="text-start">TOTAL</td>
+    <td>{{ semanas.1.entradas.total|intcomma }}</td>
+    <td>{{ semanas.2.entradas.total|intcomma }}</td>
+    <td>{{ semanas.3.entradas.total|intcomma }}</td>
+    <td>{{ semanas.4.entradas.total|intcomma }}</td>
+    <td>{{ total_entradas|intcomma }}</td>
+  </tr>
+
+  <!-- DESPESAS FIXAS -->
+  <tr class="section-orange">
+    <td colspan="6">DESPESAS FIXAS</td>
+  </tr>
+
+  <tr class="row-orange">
+    <td class="text-start">COMBUSTÍVEL AUTOCARROS</td>
+    <td>{{ semanas.1.despesas.combustivel|intcomma }}</td>
+    <td>{{ semanas.2.despesas.combustivel|intcomma }}</td>
+    <td>{{ semanas.3.despesas.combustivel|intcomma }}</td>
+    <td>{{ semanas.4.despesas.combustivel|intcomma }}</td>
+    <td>{{ total_despesas|intcomma }}</td>
+  </tr>
+
+  <tr class="row-orange">
+    <td class="text-start">LAVAGEM</td>
+    <td>{{ semanas.1.despesas.lavagem|intcomma }}</td>
+    <td>{{ semanas.2.despesas.lavagem|intcomma }}</td>
+    <td>{{ semanas.3.despesas.lavagem|intcomma }}</td>
+    <td>{{ semanas.4.despesas.lavagem|intcomma }}</td>
+    <td>{{ total_despesas|intcomma }}</td>
+  </tr>
+
+  <tr class="total-orange">
+    <td class="text-start">TOTAL</td>
+    <td>{{ semanas.1.despesas.total|intcomma }}</td>
+    <td>{{ semanas.2.despesas.total|intcomma }}</td>
+    <td>{{ semanas.3.despesas.total|intcomma }}</td>
+    <td>{{ semanas.4.despesas.total|intcomma }}</td>
+    <td>{{ total_despesas|intcomma }}</td>
+  </tr>
+
+  <!-- SALDO SEMANAL -->
   <tr>
-    <td class="text-start">{{ item.nome }}</td>
-    <td>{{ item.s1|intcomma }}</td>
-    <td>{{ item.s2|intcomma }}</td>
-    <td>{{ item.s3|intcomma }}</td>
-    <td>{{ item.s4|intcomma }}</td>
-    <td>{{ item.total|intcomma }}</td>
-  </tr>
-  {% endfor %}
-
-  <tr class="total-entradas">
-    <td class="text-start">TOTAL ENTRADAS</td>
-    <td>{{ totais.entradas.s1|intcomma }}</td>
-    <td>{{ totais.entradas.s2|intcomma }}</td>
-    <td>{{ totais.entradas.s3|intcomma }}</td>
-    <td>{{ totais.entradas.s4|intcomma }}</td>
-    <td>{{ totais.entradas.total|intcomma }}</td>
+    <td class="saldo-blue text-start">SALDO SEMANAL</td>
+    <td class="saldo-yellow">{{ semanas.1.saldo|intcomma }}</td>
+    <td class="saldo-yellow">{{ semanas.2.saldo|intcomma }}</td>
+    <td class="saldo-red">{{ semanas.3.saldo|intcomma }}</td>
+    <td class="saldo-yellow">{{ semanas.4.saldo|intcomma }}</td>
+    <td class="saldo-green">{{ saldo_liquido|intcomma }}</td>
   </tr>
 
-  <!-- DESPESAS -->
-  <tr class="section"><td colspan="6">DESPESAS</td></tr>
-
-  {% for item in despesas %}
-  <tr>
-    <td class="text-start">{{ item.nome }}</td>
-    <td>{{ item.s1|intcomma }}</td>
-    <td>{{ item.s2|intcomma }}</td>
-    <td>{{ item.s3|intcomma }}</td>
-    <td>{{ item.s4|intcomma }}</td>
-    <td>{{ item.total|intcomma }}</td>
-  </tr>
-  {% endfor %}
-
-  <tr class="total-despesas">
-    <td class="text-start">TOTAL DESPESAS</td>
-    <td>{{ totais.despesas.s1|intcomma }}</td>
-    <td>{{ totais.despesas.s2|intcomma }}</td>
-    <td>{{ totais.despesas.s3|intcomma }}</td>
-    <td>{{ totais.despesas.s4|intcomma }}</td>
-    <td>{{ totais.despesas.total|intcomma }}</td>
+  <!-- RESUMO FINAL -->
+  <tr class="final-green">
+    <td class="text-start">ENTRADAS GERAIS</td>
+    <td colspan="5">{{ total_entradas|intcomma }}</td>
   </tr>
 
-  <tr class="saldo">
+  <tr class="final-red">
+    <td class="text-start">DESPESAS FIXAS E VARIÁVEIS</td>
+    <td colspan="5">{{ total_despesas|intcomma }}</td>
+  </tr>
+
+  <tr class="final-yellow">
     <td class="text-start">SALDO LÍQUIDO</td>
-    <td>{{ totais.saldo.s1|intcomma }}</td>
-    <td>{{ totais.saldo.s2|intcomma }}</td>
-    <td>{{ totais.saldo.s3|intcomma }}</td>
-    <td>{{ totais.saldo.s4|intcomma }}</td>
-    <td>{{ totais.saldo.total|intcomma }}</td>
+    <td colspan="5">{{ saldo_liquido|intcomma }}</td>
   </tr>
+
 </table>
 
 {% endblock %}
