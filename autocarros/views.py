@@ -3763,7 +3763,20 @@ def mapa_geral_financeiro(request):
         "total_entradas": total_entradas,
         "total_despesas": total_despesas,
         "saldo_liquido": total_entradas - total_despesas,
+        
+        "total_entradas_normal": sum(s["entradas"]["normal"] for s in semanas.values()),
+        "total_entradas_alunos": sum(s["entradas"]["alunos"] for s in semanas.values()),
+        "total_entradas_luvu": sum(s["entradas"]["luvu"] for s in semanas.values()),
+        "total_entradas_frete": sum(s["entradas"]["frete"] for s in semanas.values()),
+        "total_despesas_alimentacao": sum(s["despesas"]["alimentacao"] for s in semanas.values()),
+        "total_despesas_parqueamento": sum(s["despesas"]["parqueamento"] for s in semanas.values()),
+        "total_despesas_taxa": sum(s["despesas"]["taxa"] for s in semanas.values()),
+        "total_despesas_combustivel": sum(s["despesas"]["combustivel"] for s in semanas.values()),
+        "total_despesas_lavagem": sum(s["despesas"]["lavagem"] for s in semanas.values()),
+        "total_despesas_sopragem": sum(s["despesas"]["sopragem"] for s in semanas.values()),
+        "total_despesas_outros": sum(s["despesas"]["outros"] for s in semanas.values()),
     }
 
     return render(request, "financeiro/mapa_geral.html", context)
+
 
