@@ -3640,56 +3640,57 @@ from .models import (
 # ================================
 def semana_do_mes_4colunas(data):
     """
-    Semana do mês baseada em calendário real:
-    - Semana 1 começa no dia 1 até domingo
-    - Semanas seguintes: segunda a domingo
-    - Se existir 5ª semana, ela é fundida na 4ª
+    Semana do mês baseada em 4 colunas:
+    - Semana 1: dia 1 até domingo da primeira semana
+    - Semana 2: segunda-feira até domingo
+    - Semana 3: segunda-feira até domingo
+    - Semana 4: segunda-feira até fim do mês
     """
     primeiro_dia = data.replace(day=1)
-
-    # segunda=0, domingo=6
+    
+    # Calcular fim da primeira semana (domingo)
     dias_ate_domingo = 6 - primeiro_dia.weekday()
     fim_primeira_semana = primeiro_dia + timedelta(days=dias_ate_domingo)
-
+    
+    # Se a data está na primeira semana
     if data <= fim_primeira_semana:
         return 1
-
-    dias_restantes = (data - fim_primeira_semana).days - 1
-    semana = 2 + (dias_restantes // 7)
-
+    
+    # Para as semanas seguintes, contar semanas completas (seg-dom) após a primeira
+    dias_apos_primeira = (data - fim_primeira_semana).days
+    semana = 2 + (dias_apos_primeira // 7)
+    
+    # Limitar a 4 semanas (a quarta fica com os dias restantes)
     return min(semana, 4)
 
 
-# ================================
-# VIEW MAPA GERAL FINANCEIRO
-# ================================
+#  MAPA GERAL FINANCEIRO VIEW
+@login_required
+@acesso_restrito(['admin'])
 def mapa_geral_financeiro(request):
     sector_id = request.GET.get("sector")
     mes = int(request.GET.get("mes", now().month))
     ano = int(request.GET.get("ano", now().year))
 
     sectores = Sector.objects.all()
+    sector = None
 
-    if sector_id:
-        sector = Sector.objects.get(id=sector_id)
-    else:
-        sector = sectores.first()
-
-    # ---------------- REGISTOS ----------------
     registos = RegistoDiario.objects.filter(
-        autocarro__sector=sector,
         data__year=ano,
         data__month=mes,
         validado=True
     )
 
     combustiveis = DespesaCombustivel.objects.filter(
-        sector=sector,
         data__year=ano,
         data__month=mes
     )
 
-    # ---------------- ESTRUTURA BASE ----------------
+    if sector_id and sector_id != "all":
+        sector = Sector.objects.get(id=sector_id)
+        registos = registos.filter(autocarro__sector=sector)
+        combustiveis = combustiveis.filter(sector=sector)
+
     semanas = {
         i: {
             "entradas": {
@@ -3714,49 +3715,37 @@ def mapa_geral_financeiro(request):
         for i in range(1, 5)
     }
 
-    # ---------------- REGISTOS DIÁRIOS ----------------
     for r in registos:
         s = semana_do_mes_4colunas(r.data)
-
         semanas[s]["entradas"]["normal"] += r.normal
         semanas[s]["entradas"]["alunos"] += r.alunos
         semanas[s]["entradas"]["luvu"] += r.luvu
         semanas[s]["entradas"]["frete"] += r.frete
-
         semanas[s]["despesas"]["alimentacao"] += r.alimentacao
         semanas[s]["despesas"]["parqueamento"] += r.parqueamento
         semanas[s]["despesas"]["taxa"] += r.taxa
         semanas[s]["despesas"]["outros"] += r.outros
 
-    # ---------------- COMBUSTÍVEL / LAVAGEM / SOPRAGEM ----------------
     for d in combustiveis:
         s = semana_do_mes_4colunas(d.data)
-
         semanas[s]["despesas"]["combustivel"] += d.valor or 0
         semanas[s]["despesas"]["lavagem"] += d.lavagem or 0
         semanas[s]["despesas"]["sopragem"] += d.sobragem_filtros or 0
 
-    # ---------------- TOTAIS E SALDOS ----------------
     total_entradas = Decimal(0)
     total_despesas = Decimal(0)
 
     for s in semanas.values():
-        s["entradas"]["total"] = sum(
-            v for k, v in s["entradas"].items() if k != "total"
-        )
-
-        s["despesas"]["total"] = sum(
-            v for k, v in s["despesas"].items() if k != "total"
-        )
-
+        s["entradas"]["total"] = sum(v for k, v in s["entradas"].items() if k != "total")
+        s["despesas"]["total"] = sum(v for k, v in s["despesas"].items() if k != "total")
         s["saldo"] = s["entradas"]["total"] - s["despesas"]["total"]
 
         total_entradas += s["entradas"]["total"]
         total_despesas += s["despesas"]["total"]
 
     context = {
-        "sector": sector,
         "sectores": sectores,
+        "sector": sector,
         "mes": mes,
         "ano": ano,
         "semanas": semanas,
@@ -3778,5 +3767,4 @@ def mapa_geral_financeiro(request):
     }
 
     return render(request, "financeiro/mapa_geral.html", context)
-
 
