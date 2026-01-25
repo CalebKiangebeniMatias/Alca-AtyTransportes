@@ -1,188 +1,148 @@
 {% extends "base.html" %}
 {% load humanize %}
 
-{% block title %}Mapa Geral Financeiro{% endblock %}
-
 {% block content %}
 
 <style>
-  .report-wrapper {
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 14px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-    border: 1px solid #ccc;
+  body { background:#f4f6f8; }
+  h2 { text-align:center; margin-bottom:20px; }
+
+  .filtro-box{
+    display:flex; gap:15px; background:#fff; padding:15px;
+    border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,.08);
+    margin-bottom:25px; align-items:end;
+  }
+  .filtro-item{ display:flex; flex-direction:column; font-size:13px; }
+  .filtro-item label{ font-weight:bold; margin-bottom:4px; }
+  .filtro-item select,.filtro-item button{
+    padding:8px; border-radius:8px; border:1px solid #ccc;
+  }
+  .filtro-item button{
+    background:#05b3f0; color:#fff; font-weight:bold; border:none;
   }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    border-radius: 10px;
-    overflow: hidden;
+  table{
+    width:100%; background:#fff; border-radius:14px;
+    overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,.12);
+    border-collapse:separate; border-spacing:0;
   }
+  th,td{ padding:8px; text-align:center; border-bottom:1px solid #ddd; }
+  td.text-start{ text-align:left; padding-left:12px; }
 
-  th, td {
-    border: 1px solid #000;
-    padding: 8px;
-    text-align: center;
-  }
+  .header-blue{ background:#05b3f0; color:#fff; font-size:18px; }
+  .subheader{ background:#ffe699; font-weight:bold; }
+  .week{ background:#3f4f63; color:#fff; }
 
-  th {
-    font-weight: bold;
-    letter-spacing: .4px;
-  }
+  .row-green{ background:#eef7ee; }
+  .total-green{ background:#8bc34a; font-weight:bold; }
 
-  .header-blue {
-    background: #05b3f0;
-    color: white;
-    font-size: 18px;
-  }
+  .section-orange{ background:#ff9800; font-weight:bold; }
+  .row-orange{ background:#fff3e0; }
+  .total-orange{ background:#f4a460; font-weight:bold; }
 
-  .subheader {
-    background: #ffe699;
-    font-weight: bold;
-  }
+  .saldo-blue{ background:#05b3f0; color:#fff; font-weight:bold; }
+  .saldo-green{ background:#81c784; font-weight:bold; }
 
-  .week {
-    background: #3f4f63;
-    color: white;
-  }
-
-  .left-title {
-    background: #05b3f0;
-    color: black;
-    font-weight: bold;
-  }
-
-  .row-green { background: #e7f2df; }
-  .total-green { background: #7cb342; font-weight: bold; }
-
-  .section-orange {
-    background: #ff7a00;
-    font-weight: bold;
-    text-transform: uppercase;
-  }
-
-  .row-orange { background: #fde9d9; }
-  .total-orange { background: #f4a460; font-weight: bold; }
-
-  .saldo-blue { background: #05b3f0; color: white; font-weight: bold; }
-  .saldo-yellow { background: #fff2a8; font-weight: bold; }
-  .saldo-red { background: #ff6b6b; font-weight: bold; }
-  .saldo-green { background: #6cc070; font-weight: bold; }
-
-  .final-green { background: #6cc070; font-weight: bold; }
-  .final-red { background: #ff6b6b; font-weight: bold; }
-  .final-yellow { background: #ffe066; font-weight: bold; }
-
-  td.text-start {
-    text-align: left;
-    padding-left: 12px;
-    font-weight: 600;
-  }
-
-  .filters {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 15px;
-  }
-
-  .filters select,
-  .filters input {
-    padding: 6px 10px;
-    border-radius: 6px;
-    border: 1px solid #aaa;
-    font-weight: bold;
-  }
-
-  .filters button {
-    padding: 6px 14px;
-    font-weight: bold;
-  }
-
-  @media print {
-    body { background: white; }
-    .filters, .actions { display: none; }
-    .report-wrapper {
-      box-shadow: none;
-      border: none;
-      padding: 0;
-    }
-    table { font-size: 12px; }
+  @media print{
+    .filtro-box{ display:none; }
+    table{ box-shadow:none; }
   }
 </style>
 
-<h2 style="text-align:center;">MAPA GERAL FINANCEIRO</h2>
+<h2>MAPA GERAL FINANCEIRO</h2>
 
-<form method="get" class="filters">
-  <select name="sector">
-    <option value="all">Todos os sectores</option>
-    {% for s in sectores %}
-      <option value="{{ s.id }}" {% if sector and sector.id == s.id %}selected{% endif %}>
-        {{ s.nome }}
-      </option>
-    {% endfor %}
-  </select>
+<!-- FILTROS -->
+<form method="get" class="filtro-box">
+  <div class="filtro-item">
+    <label>Sector</label>
+    <select name="sector">
+      <option value="all">Todos</option>
+      {% for s in sectores %}
+        <option value="{{ s.id }}" {% if sector and sector.id == s.id %}selected{% endif %}>
+          {{ s.nome }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
 
-  <input type="number" name="mes" min="1" max="12" value="{{ mes }}" placeholder="Mês">
-  <input type="number" name="ano" min="2000" max="2100" value="{{ ano }}" placeholder="Ano">
+  <div class="filtro-item">
+    <label>Mês</label>
+    <select name="mes">
+      {% for i in "123456789101112"|make_list %}
+        <option value="{{ forloop.counter }}" {% if mes == forloop.counter %}selected{% endif %}>
+          {{ forloop.counter }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
 
-  <button type="submit">Filtrar</button>
+  <div class="filtro-item">
+    <label>Ano</label>
+    <select name="ano">
+      {% for y in 2023|add:5|make_list %}
+        {% with ano_op=2023|add:forloop.counter0 %}
+          <option value="{{ ano_op }}" {% if ano == ano_op %}selected{% endif %}>
+            {{ ano_op }}
+          </option>
+        {% endwith %}
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="filtro-item">
+    <button type="submit">Aplicar</button>
+  </div>
 </form>
 
-<div class="actions" style="margin-bottom:15px;">
-  <button onclick="window.print()">🖨️ Imprimir</button>
-</div>
-
-<div class="report-wrapper">
 <table>
-
+  <!-- CABEÇALHO -->
+  <tr><th colspan="6" class="header-blue">LUANDA</th></tr>
   <tr>
-    <th class="header-blue" colspan="6">
-      {% if sector %}
-        {{ sector.nome|upper }}
-      {% else %}
-        TODOS OS SECTORES – LUANDA
-      {% endif %}
-    </th>
+    <th rowspan="2">MAPA GERAL</th>
+    <th colspan="4" class="subheader">{{ mes }}/{{ ano }}</th>
+    <th rowspan="2">TOTAL</th>
+  </tr>
+  <tr>
+    <th class="week">1ª</th>
+    <th class="week">2ª</th>
+    <th class="week">3ª</th>
+    <th class="week">4ª</th>
   </tr>
 
-  <tr>
-    <th class="left-title" rowspan="2">CONTROLO FINANCEIRO<br>MAPA GERAL</th>
-    <th class="subheader" colspan="4">{{ mes }}/{{ ano }}</th>
-    <th class="left-title" rowspan="2">TOTAL MENSAL</th>
-  </tr>
-
-  <tr>
-    <th class="week">1ª SEMANA</th>
-    <th class="week">2ª SEMANA</th>
-    <th class="week">3ª SEMANA</th>
-    <th class="week">4ª SEMANA</th>
-  </tr>
-
-  <tr class="row-green">
-    <td class="text-start">DIÁRIA</td>
+  <!-- ENTRADAS -->
+  <tr class="row-green"><td class="text-start">Normal</td>
     <td>{{ semanas.1.entradas.normal|intcomma }}</td>
     <td>{{ semanas.2.entradas.normal|intcomma }}</td>
     <td>{{ semanas.3.entradas.normal|intcomma }}</td>
     <td>{{ semanas.4.entradas.normal|intcomma }}</td>
-    <td>{{ total_entradas|intcomma }}</td>
+    <td>{{ total_entradas_normal|intcomma }}</td>
   </tr>
 
-  <tr class="row-green">
-    <td class="text-start">FRETE</td>
+  <tr class="row-green"><td class="text-start">Alunos</td>
+    <td>{{ semanas.1.entradas.alunos|intcomma }}</td>
+    <td>{{ semanas.2.entradas.alunos|intcomma }}</td>
+    <td>{{ semanas.3.entradas.alunos|intcomma }}</td>
+    <td>{{ semanas.4.entradas.alunos|intcomma }}</td>
+    <td>{{ total_entradas_alunos|intcomma }}</td>
+  </tr>
+
+  <tr class="row-green"><td class="text-start">Luvu</td>
+    <td>{{ semanas.1.entradas.luvu|intcomma }}</td>
+    <td>{{ semanas.2.entradas.luvu|intcomma }}</td>
+    <td>{{ semanas.3.entradas.luvu|intcomma }}</td>
+    <td>{{ semanas.4.entradas.luvu|intcomma }}</td>
+    <td>{{ total_entradas_luvu|intcomma }}</td>
+  </tr>
+
+  <tr class="row-green"><td class="text-start">Frete</td>
     <td>{{ semanas.1.entradas.frete|intcomma }}</td>
     <td>{{ semanas.2.entradas.frete|intcomma }}</td>
     <td>{{ semanas.3.entradas.frete|intcomma }}</td>
     <td>{{ semanas.4.entradas.frete|intcomma }}</td>
-    <td>{{ total_entradas|intcomma }}</td>
+    <td>{{ total_entradas_frete|intcomma }}</td>
   </tr>
 
-  <tr class="total-green">
-    <td class="text-start">TOTAL ENTRADAS</td>
+  <tr class="total-green"><td class="text-start">TOTAL ENTRADAS</td>
     <td>{{ semanas.1.entradas.total|intcomma }}</td>
     <td>{{ semanas.2.entradas.total|intcomma }}</td>
     <td>{{ semanas.3.entradas.total|intcomma }}</td>
@@ -190,30 +150,66 @@
     <td>{{ total_entradas|intcomma }}</td>
   </tr>
 
-  <tr class="section-orange">
-    <td colspan="6">DESPESAS FIXAS</td>
+  <!-- SAÍDAS -->
+  <tr class="section-orange"><td colspan="6">SAÍDAS / DESPESAS</td></tr>
+
+  <tr class="row-orange"><td class="text-start">Alimentação</td>
+    <td>{{ semanas.1.despesas.alimentacao|intcomma }}</td>
+    <td>{{ semanas.2.despesas.alimentacao|intcomma }}</td>
+    <td>{{ semanas.3.despesas.alimentacao|intcomma }}</td>
+    <td>{{ semanas.4.despesas.alimentacao|intcomma }}</td>
+    <td>{{ total_despesas_alimentacao|intcomma }}</td>
   </tr>
 
-  <tr class="row-orange">
-    <td class="text-start">COMBUSTÍVEL</td>
+  <tr class="row-orange"><td class="text-start">Parqueamento</td>
+    <td>{{ semanas.1.despesas.parqueamento|intcomma }}</td>
+    <td>{{ semanas.2.despesas.parqueamento|intcomma }}</td>
+    <td>{{ semanas.3.despesas.parqueamento|intcomma }}</td>
+    <td>{{ semanas.4.despesas.parqueamento|intcomma }}</td>
+    <td>{{ total_despesas_parqueamento|intcomma }}</td>
+  </tr>
+
+  <tr class="row-orange"><td class="text-start">Taxas</td>
+    <td>{{ semanas.1.despesas.taxa|intcomma }}</td>
+    <td>{{ semanas.2.despesas.taxa|intcomma }}</td>
+    <td>{{ semanas.3.despesas.taxa|intcomma }}</td>
+    <td>{{ semanas.4.despesas.taxa|intcomma }}</td>
+    <td>{{ total_despesas_taxa|intcomma }}</td>
+  </tr>
+
+  <tr class="row-orange"><td class="text-start">Combustível</td>
     <td>{{ semanas.1.despesas.combustivel|intcomma }}</td>
     <td>{{ semanas.2.despesas.combustivel|intcomma }}</td>
     <td>{{ semanas.3.despesas.combustivel|intcomma }}</td>
     <td>{{ semanas.4.despesas.combustivel|intcomma }}</td>
-    <td>{{ total_despesas|intcomma }}</td>
+    <td>{{ total_despesas_combustivel|intcomma }}</td>
   </tr>
 
-  <tr class="row-orange">
-    <td class="text-start">LAVAGEM</td>
+  <tr class="row-orange"><td class="text-start">Lavagem</td>
     <td>{{ semanas.1.despesas.lavagem|intcomma }}</td>
     <td>{{ semanas.2.despesas.lavagem|intcomma }}</td>
     <td>{{ semanas.3.despesas.lavagem|intcomma }}</td>
     <td>{{ semanas.4.despesas.lavagem|intcomma }}</td>
-    <td>{{ total_despesas|intcomma }}</td>
+    <td>{{ total_despesas_lavagem|intcomma }}</td>
   </tr>
 
-  <tr class="total-orange">
-    <td class="text-start">TOTAL DESPESAS</td>
+  <tr class="row-orange"><td class="text-start">Sopragem</td>
+    <td>{{ semanas.1.despesas.sopragem|intcomma }}</td>
+    <td>{{ semanas.2.despesas.sopragem|intcomma }}</td>
+    <td>{{ semanas.3.despesas.sopragem|intcomma }}</td>
+    <td>{{ semanas.4.despesas.sopragem|intcomma }}</td>
+    <td>{{ total_despesas_sopragem|intcomma }}</td>
+  </tr>
+
+  <tr class="row-orange"><td class="text-start">Outros</td>
+    <td>{{ semanas.1.despesas.outros|intcomma }}</td>
+    <td>{{ semanas.2.despesas.outros|intcomma }}</td>
+    <td>{{ semanas.3.despesas.outros|intcomma }}</td>
+    <td>{{ semanas.4.despesas.outros|intcomma }}</td>
+    <td>{{ total_despesas_outros|intcomma }}</td>
+  </tr>
+
+  <tr class="total-orange"><td class="text-start">TOTAL SAÍDAS</td>
     <td>{{ semanas.1.despesas.total|intcomma }}</td>
     <td>{{ semanas.2.despesas.total|intcomma }}</td>
     <td>{{ semanas.3.despesas.total|intcomma }}</td>
@@ -221,31 +217,15 @@
     <td>{{ total_despesas|intcomma }}</td>
   </tr>
 
+  <!-- SALDO -->
   <tr>
     <td class="saldo-blue text-start">SALDO SEMANAL</td>
-    <td class="saldo-yellow">{{ semanas.1.saldo|intcomma }}</td>
-    <td class="saldo-yellow">{{ semanas.2.saldo|intcomma }}</td>
-    <td class="saldo-red">{{ semanas.3.saldo|intcomma }}</td>
-    <td class="saldo-yellow">{{ semanas.4.saldo|intcomma }}</td>
+    <td>{{ semanas.1.saldo|intcomma }}</td>
+    <td>{{ semanas.2.saldo|intcomma }}</td>
+    <td>{{ semanas.3.saldo|intcomma }}</td>
+    <td>{{ semanas.4.saldo|intcomma }}</td>
     <td class="saldo-green">{{ saldo_liquido|intcomma }}</td>
   </tr>
-
-  <tr class="final-green">
-    <td class="text-start">ENTRADAS GERAIS</td>
-    <td colspan="5">{{ total_entradas|intcomma }}</td>
-  </tr>
-
-  <tr class="final-red">
-    <td class="text-start">DESPESAS GERAIS</td>
-    <td colspan="5">{{ total_despesas|intcomma }}</td>
-  </tr>
-
-  <tr class="final-yellow">
-    <td class="text-start">SALDO LÍQUIDO</td>
-    <td colspan="5">{{ saldo_liquido|intcomma }}</td>
-  </tr>
-
 </table>
-</div>
 
 {% endblock %}
