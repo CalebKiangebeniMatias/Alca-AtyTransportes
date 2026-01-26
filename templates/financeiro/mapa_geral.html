@@ -388,49 +388,44 @@
           <th class="header-weeks">2ª SEMANA</th>
           <th class="header-weeks">3ª SEMANA</th>
           <th class="header-weeks">4ª SEMANA</th>
-          <th class="header-weeks">5ª SEMANA</th>
         </tr>
       </thead>
 
       <tbody>
         <!-- ===== INCOME SECTION ===== -->
         <tr class="row-income">
-          <td class="row-label">DIÁRIA</td>
+          <td class="row-label">MANHÃ/LAVRA/NORMAL</td>
           <td>{{ semanas.1.entradas.normal|intcomma }} Kz</td>
           <td>{{ semanas.2.entradas.normal|intcomma }} Kz</td>
           <td>{{ semanas.3.entradas.normal|intcomma }} Kz</td>
           <td>{{ semanas.4.entradas.normal|intcomma }} Kz</td>
-          <td>{{ semanas.5.entradas.normal|intcomma }} Kz</td>
           <td>{{ total_entradas_normal|intcomma }} Kz</td>
         </tr>
 
         <tr class="row-income">
-          <td class="row-label">FRETE</td>
+          <td class="row-label">FRETE/ALUGUEL</td>
           <td>{{ semanas.1.entradas.frete|intcomma }} Kz</td>
           <td>{{ semanas.2.entradas.frete|intcomma }} Kz</td>
           <td>{{ semanas.3.entradas.frete|intcomma }} Kz</td>
           <td>{{ semanas.4.entradas.frete|intcomma }} Kz</td>
-          <td>{{ semanas.5.entradas.frete|intcomma }} Kz</td>
           <td>{{ total_entradas_frete|intcomma }} Kz</td>
         </tr>
 
         <tr class="row-income">
-          <td class="row-label">ALUGUEL</td>
+          <td class="row-label">ALUNOS/TARDE</td>
           <td>{{ semanas.1.entradas.alunos|intcomma }} Kz</td>
           <td>{{ semanas.2.entradas.alunos|intcomma }} Kz</td>
           <td>{{ semanas.3.entradas.alunos|intcomma }} Kz</td>
           <td>{{ semanas.4.entradas.alunos|intcomma }} Kz</td>
-          <td>{{ semanas.5.entradas.alunos|intcomma }} Kz</td>
           <td>{{ total_entradas_alunos|intcomma }} Kz</td>
         </tr>
 
         <tr class="row-income">
-          <td class="row-label">OUTROS</td>
+          <td class="row-label">LUVU</td>
           <td>{{ semanas.1.entradas.luvu|intcomma }} Kz</td>
           <td>{{ semanas.2.entradas.luvu|intcomma }} Kz</td>
           <td>{{ semanas.3.entradas.luvu|intcomma }} Kz</td>
           <td>{{ semanas.4.entradas.luvu|intcomma }} Kz</td>
-          <td>{{ semanas.5.entradas.luvu|intcomma }} Kz</td>
           <td>{{ total_entradas_luvu|intcomma }} Kz</td>
         </tr>
 
@@ -440,7 +435,6 @@
           <td>{{ semanas.2.entradas.total|intcomma }} Kz</td>
           <td>{{ semanas.3.entradas.total|intcomma }} Kz</td>
           <td>{{ semanas.4.entradas.total|intcomma }} Kz</td>
-          <td>{{ semanas.5.entradas.total|intcomma }} Kz</td>
           <td>{{ total_entradas|intcomma }} Kz</td>
         </tr>
 
@@ -455,7 +449,6 @@
           <td>{{ semanas.2.despesas.combustivel|intcomma }} Kz</td>
           <td>{{ semanas.3.despesas.combustivel|intcomma }} Kz</td>
           <td>{{ semanas.4.despesas.combustivel|intcomma }} Kz</td>
-          <td>{{ semanas.5.despesas.combustivel|intcomma }} Kz</td>
           <td>{{ total_despesas_combustivel|intcomma }} Kz</td>
         </tr>
 
@@ -465,7 +458,6 @@
           <td>{{ semanas.2.despesas.alimentacao|intcomma }} Kz</td>
           <td>{{ semanas.3.despesas.alimentacao|intcomma }} Kz</td>
           <td>{{ semanas.4.despesas.alimentacao|intcomma }} Kz</td>
-          <td>{{ semanas.5.despesas.alimentacao|intcomma }} Kz</td>
           <td>{{ total_despesas_alimentacao|intcomma }} Kz</td>
         </tr>
 
@@ -485,7 +477,6 @@
           <td>{{ semanas.2.despesas.lavagem|intcomma }} Kz</td>
           <td>{{ semanas.3.despesas.lavagem|intcomma }} Kz</td>
           <td>{{ semanas.4.despesas.lavagem|intcomma }} Kz</td>
-          <td>{{ semanas.5.despesas.lavagem|intcomma }} Kz</td>
           <td>{{ total_despesas_lavagem|intcomma }} Kz</td>
         </tr>
 
@@ -495,7 +486,6 @@
           <td>{{ semanas.2.despesas.sopragem|intcomma }} Kz</td>
           <td>{{ semanas.3.despesas.sopragem|intcomma }} Kz</td>
           <td>{{ semanas.4.despesas.sopragem|intcomma }} Kz</td>
-          <td>{{ semanas.5.despesas.sopragem|intcomma }} Kz</td>
           <td>{{ total_despesas_sopragem|intcomma }} Kz</td>
         </tr>
 
@@ -505,7 +495,6 @@
           <td>{{ semanas.2.despesas.taxa|intcomma }} Kz</td>
           <td>{{ semanas.3.despesas.taxa|intcomma }} Kz</td>
           <td>{{ semanas.4.despesas.taxa|intcomma }} Kz</td>
-          <td>{{ semanas.5.despesas.taxa|intcomma }} Kz</td>
           <td>{{ total_despesas_taxa|intcomma }} Kz</td>
         </tr>
 
@@ -515,7 +504,6 @@
           <td>{{ semanas.2.despesas.parqueamento|intcomma }} Kz</td>
           <td>{{ semanas.3.despesas.parqueamento|intcomma }} Kz</td>
           <td>{{ semanas.4.despesas.parqueamento|intcomma }} Kz</td>
-          <td>{{ semanas.5.despesas.parqueamento|intcomma }} Kz</td>
           <td>{{ total_despesas_parqueamento|intcomma }} Kz</td>
         </tr>
 
@@ -525,8 +513,16 @@
           <td>{{ semanas.2.despesas.outros|intcomma }} Kz</td>
           <td>{{ semanas.3.despesas.outros|intcomma }} Kz</td>
           <td>{{ semanas.4.despesas.outros|intcomma }} Kz</td>
-          <td>{{ semanas.5.despesas.outros|intcomma }} Kz</td>
           <td>{{ total_despesas_outros|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="row-expense">
+          <td class="row-label">DESPESA GERAL</td>
+          <td>{{ semanas.1.despesas.despesa_geral|intcomma }} Kz</td>
+          <td>{{ semanas.2.despesas.despesa_geral|intcomma }} Kz</td>
+          <td>{{ semanas.3.despesas.despesa_geral|intcomma }} Kz</td>
+          <td>{{ semanas.4.despesas.despesa_geral|intcomma }} Kz</td>
+          <td>{{ despesa_geral|intcomma }} Kz</td>
         </tr>
 
         <tr class="total-expense">
@@ -535,7 +531,6 @@
           <td>{{ semanas.2.despesas.total|intcomma }} Kz</td>
           <td>{{ semanas.3.despesas.total|intcomma }} Kz</td>
           <td>{{ semanas.4.despesas.total|intcomma }} Kz</td>
-          <td>{{ semanas.5.despesas.total|intcomma }} Kz</td>
           <td>{{ total_despesas|intcomma }} Kz</td>
         </tr>
 
@@ -546,7 +541,6 @@
           <td>{{ semanas.2.saldo|intcomma }} Kz</td>
           <td>{{ semanas.3.saldo|intcomma }} Kz</td>
           <td>{{ semanas.4.saldo|intcomma }} Kz</td>
-          <td>{{ semanas.5.saldo|intcomma }} Kz</td>
           <td>{{ saldo_liquido|intcomma }} Kz</td>
         </tr>
 
