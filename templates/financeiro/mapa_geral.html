@@ -358,7 +358,7 @@
       <thead>
         <!-- Location Header -->
         <tr>
-          <th class="header-location" colspan="7">LUANDA-M`BANZA KONGO-SOYO</th>
+          <th class="header-location" colspan="7">{{ sector.nome }}</th>
         </tr>
         
         <!-- Title and Month -->
@@ -377,6 +377,7 @@
             {% if mes == 10 %}OUTUBRO{% endif %}
             {% if mes == 11 %}NOVEMBRO{% endif %}
             {% if mes == 12 %}DEZEMBRO{% endif %}
+            / {{ ano }}
           </th>
           <th class="header-title" rowspan="2">TOTAL MENSAL</th>
         </tr>
