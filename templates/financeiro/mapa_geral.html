@@ -190,38 +190,129 @@
     text-align: left !important;
     padding-left: 20px !important;
   }
+
+  .filtro-box.card {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.filtro-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.filtro-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.filtro-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.filtro-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #555;
+}
+
+.form-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background-color: white;
+}
+
+.filtro-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-primary, .btn-secondary, .btn-icon {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-icon {
+  background: transparent;
+  color: #555;
+}
+
+.icon {
+  font-size: 16px;
+}
 </style>
 
 <!-- ================= FILTRO ================= -->
-<form method="get" class="filtro-box">
-  <button type="button" onclick="window.print()">Imprimir</button>
-
-  <select name="sector">
-    <option value="all">Todos os Sectores</option>
-    {% for s in sectores %}
-      <option value="{{ s.id }}" {% if sector and sector.id == s.id %}selected{% endif %}>
-        {{ s.nome }}
-      </option>
-    {% endfor %}
-  </select>
-
-  <select name="mes">
-    {% for i in "123456789101112"|make_list %}
-      <option value="{{ forloop.counter }}" {% if mes == forloop.counter %}selected{% endif %}>
-        {{ forloop.counter }}
-      </option>
-    {% endfor %}
-  </select>
-
-  <select name="ano">
-    {% for y in "202520262027202820292030"|make_list %}
-      <option value="{{ y }}" {% if ano|stringformat:"s" == y %}selected{% endif %}>
-        {{ y }}
-      </option>
-    {% endfor %}
-  </select>
-
-  <button type="submit">Filtrar</button>
+<!-- Versão mínima com melhorias essenciais -->
+<form method="GET" class="filtro-simples">
+  <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: end;">
+    <div>
+      <label style="display: block; font-size: 0.9em; margin-bottom: 4px;">Setor</label>
+      <select name="sector" style="padding: 8px;">
+        <option value="">Todos</option>
+        {% for s in sectores %}
+          <option value="{{ s.id }}" {% if sector and sector.id == s.id %}selected{% endif %}>
+            {{ s.nome }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div>
+      <label style="display: block; font-size: 0.9em; margin-bottom: 4px;">Mês</label>
+      <select name="mes" style="padding: 8px;">
+        {% for i in "123456789101112"|make_list %}
+          <option value="{{ forloop.counter }}" {% if mes == forloop.counter %}selected{% endif %}>
+            {{ forloop.counter|stringformat:"02d" }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div>
+      <label style="display: block; font-size: 0.9em; margin-bottom: 4px;">Ano</label>
+      <select name="ano" style="padding: 8px;">
+        {% for y in anos_disponiveis %}
+          <option value="{{ y }}" {% if ano == y %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    <button type="submit" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px;">
+      Filtrar
+    </button>
+    <button type="button" onclick="window.print()" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px;">
+      Imprimir
+    </button>
+  </div>
 </form>
 
 <!-- ================= TABELA ================= -->
