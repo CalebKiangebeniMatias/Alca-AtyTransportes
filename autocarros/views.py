@@ -3657,7 +3657,8 @@ def semana_do_mes_4colunas(data):
         return 1
     
     # Para as semanas seguintes, contar semanas completas (seg-dom) após a primeira
-    dias_apos_primeira = (data - fim_primeira_semana).days
+    # Adicionar 1 dia para começar a contar a partir de segunda-feira
+    dias_apos_primeira = (data - fim_primeira_semana).days - 1
     semana = 2 + (dias_apos_primeira // 7)
     
     # Limitar a 4 semanas (a quarta fica com os dias restantes)
