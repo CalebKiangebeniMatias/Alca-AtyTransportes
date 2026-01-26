@@ -3679,7 +3679,6 @@ def semana_do_mes_5colunas(data):
 @login_required
 @acesso_restrito(['admin'])
 def mapa_geral_financeiro(request):
-    anos_disponiveis = range(2024, 2031)
     sector_id = request.GET.get("sector")
     mes = int(request.GET.get("mes", now().month))
     ano = int(request.GET.get("ano", now().year))
@@ -3773,7 +3772,6 @@ def mapa_geral_financeiro(request):
         total_despesas += s["despesas"]["total"]
 
     context = {
-        "anos_disponiveis": anos_disponiveis,
         "sectores": sectores,
         "sector": sector,
         "mes": mes,
