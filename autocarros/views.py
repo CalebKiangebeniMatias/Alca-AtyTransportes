@@ -3622,46 +3622,28 @@ def registro_km_save(request):
 
 
 # ---------- Mapa Geral Financeiro View ----------#
-
 from decimal import Decimal
 from datetime import timedelta
 
 from django.shortcuts import render
 from django.utils.timezone import now
+from django.contrib.auth.decorators import login_required
+
+from django.db.models import Sum
 
 from .models import (
     RegistoDiario,
     DespesaCombustivel,
     Sector,
+    RelatorioSector,
 )
-
-# ================================
-# FUNÇÃO DE SEMANA (4 COLUNAS)
-# ================================
-from decimal import Decimal
-from datetime import datetime
-from django.shortcuts import render
-from django.utils.timezone import now
-from django.contrib.auth.decorators import login_required
-
-from .models import RegistoDiario, DespesaCombustivel, Sector
 from .decorators import acesso_restrito
 
 
 # ================================
-# FUNÇÃO: SEMANA DO MÊS (5 COLUNAS)
+# FUNÇÃO: SEMANA DO MÊS (4 COLUNAS)
 # ================================
-from datetime import timedelta
-
 def semana_do_mes_4colunas(data):
-    """
-    Semana do mês baseada em 4 colunas:
-    - Semana 1: do dia 1 até o primeiro domingo
-    - Semana 2: segunda a domingo
-    - Semana 3: segunda a domingo
-    - Semana 4: segunda até o último dia do mês
-    """
-
     primeiro_dia = data.replace(day=1)
 
     # weekday(): segunda=0 ... domingo=6
@@ -3672,17 +3654,14 @@ def semana_do_mes_4colunas(data):
             days=(6 - primeiro_dia.weekday())
         )
 
-    # Semana 1
     if data <= fim_primeira_semana:
         return 1
 
-    # Dias após a primeira semana
     dias_apos = (data - fim_primeira_semana).days
-
-    # Semana 2, 3 ou 4
     semana = 1 + ((dias_apos - 1) // 7) + 1
 
     return min(semana, 4)
+
 
 # ================================
 # MAPA GERAL FINANCEIRO
@@ -3697,11 +3676,6 @@ def mapa_geral_financeiro(request):
     sectores = Sector.objects.all()
     sector = None
 
-    despesa_geral = RelatorioSector.objects.filter(
-        data__year=ano,
-        data__month=mes
-    ).aggregate(despesa_geral=Sum('despesa_geral'))['despesa_geral'] or Decimal(0)
-
     registos = RegistoDiario.objects.filter(
         data__year=ano,
         data__month=mes,
@@ -3712,14 +3686,19 @@ def mapa_geral_financeiro(request):
         data__month=mes
     )
 
+    despesas_gerais = RelatorioSector.objects.filter(
+        data__year=ano,
+        data__month=mes
+    )
+
     if sector_id and sector_id != "all":
         sector = Sector.objects.get(id=sector_id)
         registos = registos.filter(autocarro__sector=sector)
         combustiveis = combustiveis.filter(sector=sector)
-        despesa_geral = despesa_geral.filter(sector=sector).aggregate(despesa_geral=Sum('despesa_geral'))['despesa_geral'] or Decimal(0)
+        despesas_gerais = despesas_gerais.filter(sector=sector)
 
     # ================================
-    # ESTRUTURA DAS 5 SEMANAS
+    # ESTRUTURA DAS 4 SEMANAS
     # ================================
     semanas = {
         i: {
@@ -3738,8 +3717,8 @@ def mapa_geral_financeiro(request):
                 "combustivel": Decimal(0),
                 "lavagem": Decimal(0),
                 "sopragem": Decimal(0),
-                "total": Decimal(0),
                 "despesa_geral": Decimal(0),
+                "total": Decimal(0),
             },
             "saldo": Decimal(0),
         }
@@ -3747,10 +3726,11 @@ def mapa_geral_financeiro(request):
     }
 
     # ================================
-    # PROCESSAR REGISTOS DIÁRIOS
+    # REGISTOS DIÁRIOS
     # ================================
     for r in registos:
         s = semana_do_mes_4colunas(r.data)
+
         semanas[s]["entradas"]["normal"] += r.normal
         semanas[s]["entradas"]["alunos"] += r.alunos
         semanas[s]["entradas"]["luvu"] += r.luvu
@@ -3762,17 +3742,21 @@ def mapa_geral_financeiro(request):
         semanas[s]["despesas"]["outros"] += r.outros
 
     # ================================
-    # PROCESSAR DESPESAS DE COMBUSTÍVEL
+    # DESPESAS DE COMBUSTÍVEL
     # ================================
     for d in combustiveis:
         s = semana_do_mes_4colunas(d.data)
-        semanas[s]["despesas"]["combustivel"] += d.valor or 0
-        semanas[s]["despesas"]["lavagem"] += d.lavagem or 0
-        semanas[s]["despesas"]["sopragem"] += d.sobragem_filtros or 0
 
-    for ds in despesa_geral:
-        s = semana_do_mes_4colunas(ds.data)
-        semanas[s]["despesas"]["despesa_geral"] += ds.despesa_geral or 0
+        semanas[s]["despesas"]["combustivel"] += d.valor or Decimal(0)
+        semanas[s]["despesas"]["lavagem"] += d.lavagem or Decimal(0)
+        semanas[s]["despesas"]["sopragem"] += d.sobragem_filtros or Decimal(0)
+
+    # ================================
+    # DESPESA GERAL (CORREÇÃO PRINCIPAL)
+    # ================================
+    for dg in despesas_gerais:
+        s = semana_do_mes_4colunas(dg.data)
+        semanas[s]["despesas"]["despesa_geral"] += dg.despesa_geral or Decimal(0)
 
     # ================================
     # TOTAIS E SALDOS
@@ -3815,7 +3799,7 @@ def mapa_geral_financeiro(request):
         "total_despesas_lavagem": sum(s["despesas"]["lavagem"] for s in semanas.values()),
         "total_despesas_sopragem": sum(s["despesas"]["sopragem"] for s in semanas.values()),
         "total_despesas_outros": sum(s["despesas"]["outros"] for s in semanas.values()),
-        "despesa_geral": sum(semanas[s]["despesas"]["total"] for s in semanas).values(),
+        "total_despesa_geral": sum(s["despesas"]["despesa_geral"] for s in semanas.values()),
     }
 
     return render(request, "financeiro/mapa_geral.html", context)
