@@ -240,7 +240,7 @@
 <div class="table-responsive">
   <table class="mapa-financeiro">
     <thead>
-      <tr><th colspan="6" class="header-blue">RELATÓRIO CONSOLIDADO</th></tr>
+      <tr><th colspan="6" class="header-blue">RELATÓRIO MENSAL DE PRODUÇÃO</th></tr>
       <tr>
         <th rowspan="2" style="width: 200px;">CATEGORIA</th>
         <th colspan="4" class="subheader">
@@ -258,7 +258,7 @@
     <tbody>
       <!-- INCOME SECTION -->
       <tr class="row-green">
-        <td class="text-start">Receita Normal</td>
+        <td class="text-start">Normal</td>
         <td>{{ semanas.1.entradas.normal|intcomma }}</td>
         <td>{{ semanas.2.entradas.normal|intcomma }}</td>
         <td>{{ semanas.3.entradas.normal|intcomma }}</td>
@@ -282,7 +282,7 @@
         <td>{{ total_entradas_luvu|intcomma }}</td>
       </tr>
       <tr class="row-green">
-        <td class="text-start">Frete</td>
+        <td class="text-start">Frete/Aluguel</td>
         <td>{{ semanas.1.entradas.frete|intcomma }}</td>
         <td>{{ semanas.2.entradas.frete|intcomma }}</td>
         <td>{{ semanas.3.entradas.frete|intcomma }}</td>
@@ -300,7 +300,7 @@
 
       <!-- EXPENSE SECTION -->
       <tr class="section-orange">
-        <td colspan="6">SAÍDAS / DESPESAS</td>
+        <td colspan="6">DESPESAS FIXAS</td>
       </tr>
       <tr class="row-orange">
         <td class="text-start">Alimentação</td>

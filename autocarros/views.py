@@ -3639,6 +3639,9 @@ from .models import (
 # FUNÇÃO DE SEMANA (4 COLUNAS)
 # ================================
 
+from datetime import timedelta
+import calendar
+
 def semana_do_mes_4colunas(data):
     """
     Divisão fixa em 4 semanas:
@@ -3648,14 +3651,18 @@ def semana_do_mes_4colunas(data):
     - Semana 4: segunda até o último dia do mês
       (qualquer 5ª semana é incorporada aqui)
     """
-
     primeiro_dia = data.replace(day=1)
+    ano = data.year
+    mes = data.month
+    ultimo_dia_num = calendar.monthrange(ano, mes)[1]
+    ultimo_dia = data.replace(day=ultimo_dia_num)
 
     # Domingo = 6
     if primeiro_dia.weekday() == 6:
         fim_semana_1 = primeiro_dia
     else:
         fim_semana_1 = primeiro_dia + timedelta(days=(6 - primeiro_dia.weekday()))
+    fim_semana_1 = min(fim_semana_1, ultimo_dia)
 
     # Semana 1
     if data <= fim_semana_1:
@@ -3663,21 +3670,27 @@ def semana_do_mes_4colunas(data):
 
     # Início da semana 2
     inicio_semana_2 = fim_semana_1 + timedelta(days=1)
+    if inicio_semana_2 > ultimo_dia:
+        return 1  # Todo o mês na semana 1 (improvável, mas robusto)
 
-    # Semana 2 (7 dias)
+    # Semana 2 (7 dias ou menos se mês acabar)
     fim_semana_2 = inicio_semana_2 + timedelta(days=6)
+    fim_semana_2 = min(fim_semana_2, ultimo_dia)
     if data <= fim_semana_2:
         return 2
 
-    # Semana 3 (7 dias)
+    # Semana 3
     inicio_semana_3 = fim_semana_2 + timedelta(days=1)
+    if inicio_semana_3 > ultimo_dia:
+        return 2  # Sem semana 3 ou 4
+
     fim_semana_3 = inicio_semana_3 + timedelta(days=6)
+    fim_semana_3 = min(fim_semana_3, ultimo_dia)
     if data <= fim_semana_3:
         return 3
 
-    # Semana 4 → tudo que sobrar (inclui a 5ª)
+    # Semana 4 → tudo que sobrar
     return 4
-
 
 #  MAPA GERAL FINANCEIRO VIEW
 @login_required
