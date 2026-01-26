@@ -243,7 +243,7 @@
       <tr><th colspan="6" class="header-blue">RELATÓRIO CONSOLIDADO</th></tr>
       <tr>
         <th rowspan="2" style="width: 200px;">CATEGORIA</th>
-        <th colspan="4" class="subheader">{{ mes }}/{{ ano }}</th>
+        <th colspan="4" class="subheader">{% widthratio mes 1 1 %} de {% blocktranslate count counter=ano %}{{ counter }}{% endblocktranslate %} {% if sector %}| {{ sector.nome }}{% endif %}</th>
         <th rowspan="2" class="subheader">TOTAL MENSAL</th>
       </tr>
       <tr>

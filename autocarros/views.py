@@ -3505,7 +3505,7 @@ def manutencao_list(request):
 
 
 @login_required
-@acesso_restrito(['admin', 'gestor'])
+@acesso_restrito(['admin'])
 def manutencao_edit(request, pk):
     manut = get_object_or_404(Manutencao, pk=pk)
     if request.method == 'POST':
@@ -3638,31 +3638,45 @@ from .models import (
 # ================================
 # FUNÇÃO DE SEMANA (4 COLUNAS)
 # ================================
+
 def semana_do_mes_4colunas(data):
     """
-    Semana do mês baseada em 4 colunas:
-    - Semana 1: dia 1 até domingo da primeira semana
-    - Semana 2: segunda-feira até domingo
-    - Semana 3: segunda-feira até domingo
-    - Semana 4: segunda-feira até fim do mês
+    Divisão fixa em 4 semanas:
+    - Semana 1: do dia 1 até o primeiro domingo
+    - Semana 2: segunda a domingo
+    - Semana 3: segunda a domingo
+    - Semana 4: segunda até o último dia do mês
+      (qualquer 5ª semana é incorporada aqui)
     """
+
     primeiro_dia = data.replace(day=1)
-    
-    # Calcular fim da primeira semana (domingo)
-    dias_ate_domingo = 6 - primeiro_dia.weekday()
-    fim_primeira_semana = primeiro_dia + timedelta(days=dias_ate_domingo)
-    
-    # Se a data está na primeira semana
-    if data <= fim_primeira_semana:
+
+    # Domingo = 6
+    if primeiro_dia.weekday() == 6:
+        fim_semana_1 = primeiro_dia
+    else:
+        fim_semana_1 = primeiro_dia + timedelta(days=(6 - primeiro_dia.weekday()))
+
+    # Semana 1
+    if data <= fim_semana_1:
         return 1
-    
-    # Para as semanas seguintes, contar semanas completas (seg-dom) após a primeira
-    # Adicionar 1 dia para começar a contar a partir de segunda-feira
-    dias_apos_primeira = (data - fim_primeira_semana).days - 1
-    semana = 2 + (dias_apos_primeira // 7)
-    
-    # Limitar a 4 semanas (a quarta fica com os dias restantes)
-    return min(semana, 4)
+
+    # Início da semana 2
+    inicio_semana_2 = fim_semana_1 + timedelta(days=1)
+
+    # Semana 2 (7 dias)
+    fim_semana_2 = inicio_semana_2 + timedelta(days=6)
+    if data <= fim_semana_2:
+        return 2
+
+    # Semana 3 (7 dias)
+    inicio_semana_3 = fim_semana_2 + timedelta(days=1)
+    fim_semana_3 = inicio_semana_3 + timedelta(days=6)
+    if data <= fim_semana_3:
+        return 3
+
+    # Semana 4 → tudo que sobrar (inclui a 5ª)
+    return 4
 
 
 #  MAPA GERAL FINANCEIRO VIEW
