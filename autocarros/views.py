@@ -3801,5 +3801,4 @@ def mapa_geral_financeiro(request):
         "total_despesas_outros": sum(s["despesas"]["outros"] for s in semanas.values()),
         "total_despesa_geral": sum(s["despesas"]["despesa_geral"] for s in semanas.values()),
     }
-
     return render(request, "financeiro/mapa_geral.html", context)

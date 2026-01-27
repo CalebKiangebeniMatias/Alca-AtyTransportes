@@ -324,7 +324,7 @@
 
   <!-- ===== HEADER ===== -->
   <div class="page-header">
-    <h1>Controlo Financeiro - Mapa Geral</h1>
+    </h5>Controlo Financeiro - Mapa Geral</h5>
   </div>
 
   <!-- ===== FILTER SECTION ===== -->
@@ -385,7 +385,7 @@
       <thead>
         <!-- Location Header -->
         <tr>
-          <th class="header-location" colspan="6">{{ sector.nome }}</th>
+          <th class="header-location" colspan="6"> {{ sector.nome if sector.nome else "M`BANZA KONGO-SOYO-LUANDA" }} </th>
         </tr>
         
         <!-- Title and Month -->
@@ -539,7 +539,7 @@
           <td>{{ semanas.2.despesas.despesa_geral|intcomma }} Kz</td>
           <td>{{ semanas.3.despesas.despesa_geral|intcomma }} Kz</td>
           <td>{{ semanas.4.despesas.despesa_geral|intcomma }} Kz</td>
-          <td>{{ despesa_geral|intcomma }} Kz</td>
+          <td>{{ total_despesa_geral|intcomma }} Kz</td>
         </tr>
 
         <tr class="total-expense">
