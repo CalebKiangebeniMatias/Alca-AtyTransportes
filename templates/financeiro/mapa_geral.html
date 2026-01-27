@@ -311,6 +311,41 @@
       font-size: 1.8rem;
     }
   }
+
+  /* ===== FILTER INLINE (ONE LINE) ===== */
+  .filter-inline {
+    padding: 15px 20px;
+  }
+
+  .filter-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .filter-row .filter-item {
+    min-width: 160px;
+  }
+
+  .filter-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  /* Mobile fallback */
+  @media (max-width: 768px) {
+    .filter-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .filter-buttons {
+      justify-content: flex-start;
+    }
+  }
+
+  
 </style>
 
 <div class="page-container">
@@ -328,8 +363,8 @@
   </div>
 
   <!-- ===== FILTER SECTION ===== -->
-  <form method="GET" class="filter-section">
-    <div class="filter-grid">
+  <form method="GET" class="filter-section filter-inline">
+    <div class="filter-row">
       <div class="filter-item">
         <label>Setor</label>
         <select name="sector">
@@ -341,10 +376,12 @@
           {% endfor %}
         </select>
       </div>
-      
+
       <div class="filter-item">
         <label>Mês</label>
         <select name="mes">
+          {% for i in "123456789101112"|make_list %}
+          {% endfor %}
           <option value="1" {% if mes == 1 %}selected{% endif %}>Janeiro</option>
           <option value="2" {% if mes == 2 %}selected{% endif %}>Fevereiro</option>
           <option value="3" {% if mes == 3 %}selected{% endif %}>Março</option>
@@ -359,7 +396,7 @@
           <option value="12" {% if mes == 12 %}selected{% endif %}>Dezembro</option>
         </select>
       </div>
-      
+
       <div class="filter-item">
         <label>Ano</label>
         <select name="ano">
@@ -371,13 +408,14 @@
           <option value="2030" {% if ano == 2030 %}selected{% endif %}>2030</option>
         </select>
       </div>
-    </div>
-    
-    <div class="filter-actions">
-      <button type="submit" class="btn btn-primary">Filtrar</button>
-      <button type="button" onclick="window.print()" class="btn btn-secondary">Imprimir</button>
+
+      <div class="filter-buttons">
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+        <button type="button" onclick="window.print()" class="btn btn-secondary">Imprimir</button>
+      </div>
     </div>
   </form>
+
 
   <!-- ===== TABLE ===== -->
   <div class="table-container">
@@ -385,7 +423,13 @@
       <thead>
         <!-- Location Header -->
         <tr>
-          <th class="header-location" colspan="6"> {{ sector.nome if sector.nome else "M`BANZA KONGO-SOYO-LUANDA" }} </th>
+          <th class="header-location" colspan="6">
+            {% if sector %}
+              {{ sector.nome }}
+            {% else %}
+              M`BANZA KONGO-SOYO-LUANDA
+            {% endif %}
+          </th>
         </tr>
         
         <!-- Title and Month -->
