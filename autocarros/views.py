@@ -1307,18 +1307,19 @@ def listar_registros(request):
                 'total_saidas': Decimal('0'),
                 'total_saldo': Decimal('0'),
                 'despesa_geral': Decimal('0'),
+                'alimentacao_estaleiro': Decimal('0'),
             }
 
             # 🔹 Buscar o relatório apenas uma vez por grupo (otimizado)
             relatorio_sector = (
                 RelatorioSector.objects
                 .filter(sector=registro.autocarro.sector, data=registro.data)
-                .only('despesa_geral')  # otimiza a query
+                .only('despesa_geral', 'alimentacao_estaleiro')  # otimiza a query
                 .first()
             )
             if relatorio_sector:
                 registros_agrupados[chave]['despesa_geral'] = relatorio_sector.despesa_geral or Decimal('0')
-
+                registros_agrupados[chave]['alimentacao_estaleiro'] = relatorio_sector.alimentacao_estaleiro or Decimal('0')
         # 🔹 Processamento do registro (combustível, entradas, saídas, etc)
         key = f"{registro.autocarro_id}_{registro.data.isoformat()}"
         comb = combustivel_map.get(key)
@@ -1372,6 +1373,7 @@ def listar_registros(request):
     for grupo in registros_agrupados.values():
         # 🔹 Somar despesa_geral nas saídas totais
         grupo['total_saidas'] += grupo.get('despesa_geral', Decimal('0'))
+        grupo['total_saidas'] += grupo.get('alimentacao_estaleiro', Decimal('0'))
 
         # 🔹 Agora calcula o saldo líquido
         grupo['total_saldo'] = (
@@ -1444,6 +1446,7 @@ def listar_registros(request):
             parts.append(f"Parqueamento: {fmt_money(getattr(reg, 'parqueamento', 0))}kz")
             parts.append(f"Taxa: {fmt_money(getattr(reg, 'taxa', 0))}kz")
             parts.append(f"Outros: {fmt_money(getattr(reg, 'outros', 0))}kz")
+            parts.append(f"Taxi: {fmt_money(getattr(reg, 'taxi', 0))}kz")
             parts.append(f"Combustível: {fmt_money(reg.combustivel_total)}kz")
             parts.append(f"Sobragem/Filtros: {fmt_money(reg.combustivel_sobragem)}kz")
             parts.append(f"Lavagem: {fmt_money(reg.combustivel_lavagem)}kz")
@@ -1456,11 +1459,12 @@ def listar_registros(request):
             parts.append(f"💰 Saldo Liquído: {fmt_money(reg.saldo_liquido_incl_combustivel)}kz")
 
         parts.append("")
-        parts.append("__________________________________________")
+        parts.append("____________________________")
         parts.append("")
         parts.append("📊 Resumo Geral")
         parts.append(f"✅ Entrada Geral: {fmt_money(total_entradas)}kz")
-        parts.append(f"Despesa Geral: {fmt_money(g.get('despesa_geral', 0))}kz")
+        parts.append(f"❌Despesa Feita Na Produção: {fmt_money(g.get('despesa_geral', 0))}kz")
+        parts.append(f"❌Alimentação Estaleiro: {fmt_money(g.get('alimentacao_estaleiro', 0))}kz")
         parts.append(f"❌ Saída Geral: {fmt_money(total_saidas)}kz")
         parts.append(f"💰 Liquído Geral: {fmt_money(total_saldo)}kz")
         parts.append("")
@@ -2886,7 +2890,9 @@ def gerencia_financas(request):
     serie_parqueamento = [float(r['total_parqueamento'] or 0) for r in registros]
     serie_taxa = [float(r['total_taxa'] or 0) for r in registros]
     serie_outros = [float(r['total_outros'] or 0) for r in registros]
-
+    serie_taxi = [float(r['total_taxi'] or 0) for r in registros]
+    
+    serie_alimentacao_estaleiro = [float(r['total_alimentacao_estaleiro'] or 0) for r in registros]
     serie_despesas_extra = [float(despesas_rel_map.get(r['mes'], 0)) for r in registros]
 
     serie_combustivel_valor = [float(combustivel_map_valor.get(r['mes'], 0)) for r in registros]
@@ -2899,7 +2905,9 @@ def gerencia_financas(request):
             serie_parqueamento[i] +
             serie_taxa[i] +
             serie_outros[i] +
+            serie_taxi[i] +
             serie_despesas_extra[i] +
+            serie_alimentacao_estaleiro[i] +
             serie_combustivel_valor[i] +
             serie_combustivel_sobragem[i] +
             serie_combustivel_lavagem[i]
@@ -2974,7 +2982,9 @@ def gerencia_financas(request):
         "serie_parqueamento": serie_parqueamento,
         "serie_taxa": serie_taxa,
         "serie_outros": serie_outros,
+        "serie_taxi": serie_taxi,
         "serie_despesas_extra": serie_despesas_extra,
+        "serie_alimentacao_estaleiro": serie_alimentacao_estaleiro,
 
         # Combustível
         "serie_combustivel_valor": serie_combustivel_valor,
@@ -3714,10 +3724,12 @@ def mapa_geral_financeiro(request):
                 "parqueamento": Decimal(0),
                 "taxa": Decimal(0),
                 "outros": Decimal(0),
+                "taxi": Decimal(0),
                 "combustivel": Decimal(0),
                 "lavagem": Decimal(0),
                 "sopragem": Decimal(0),
                 "despesa_geral": Decimal(0),
+                "alimentacao_estaleiro": Decimal(0),
                 "total": Decimal(0),
             },
             "saldo": Decimal(0),
@@ -3740,7 +3752,7 @@ def mapa_geral_financeiro(request):
         semanas[s]["despesas"]["parqueamento"] += r.parqueamento
         semanas[s]["despesas"]["taxa"] += r.taxa
         semanas[s]["despesas"]["outros"] += r.outros
-
+        semanas[s]["despesas"]["taxi"] += r.taxi
     # ================================
     # DESPESAS DE COMBUSTÍVEL
     # ================================
@@ -3757,6 +3769,7 @@ def mapa_geral_financeiro(request):
     for dg in despesas_gerais:
         s = semana_do_mes_4colunas(dg.data)
         semanas[s]["despesas"]["despesa_geral"] += dg.despesa_geral or Decimal(0)
+        semanas[s]["despesas"]["alimentacao_estaleiro"] += dg.alimentacao_estaleiro or Decimal(0)
 
     # ================================
     # TOTAIS E SALDOS
@@ -3799,6 +3812,8 @@ def mapa_geral_financeiro(request):
         "total_despesas_lavagem": sum(s["despesas"]["lavagem"] for s in semanas.values()),
         "total_despesas_sopragem": sum(s["despesas"]["sopragem"] for s in semanas.values()),
         "total_despesas_outros": sum(s["despesas"]["outros"] for s in semanas.values()),
+        "total_despesas_taxi": sum(s["despesas"]["taxi"] for s in semanas.values()),
         "total_despesa_geral": sum(s["despesas"]["despesa_geral"] for s in semanas.values()),
+        "total_despesa_alimentacao_estaleiro": sum(s["despesas"]["alimentacao_estaleiro"] for s in semanas.values()),
     }
     return render(request, "financeiro/mapa_geral.html", context)

@@ -83,7 +83,7 @@ class MultiFileInput(forms.ClearableFileInput):
 class RelatorioSectorForm(forms.ModelForm):
     class Meta:
         model = RelatorioSector
-        fields = ['sector', 'data', 'descricao', 'despesa_geral']  # 🔹 adicionamos o campo aqui
+        fields = ['sector', 'data', 'descricao', 'despesa_geral', 'alimentacao_estaleiro']  # 🔹 adicionamos o campo aqui
         widgets = {
             'sector': forms.Select(attrs={'class': 'form-select'}),
             'data': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
@@ -101,6 +101,7 @@ class RelatorioSectorForm(forms.ModelForm):
         }
         labels = {
             'despesa_geral': 'Despesa geral do setor (sem autocarro)',
+            'alimentacao_estaleiro': 'Alimentação Estaleiro',
         }
 
 
@@ -119,6 +120,7 @@ class RegistoDiarioForm(forms.ModelForm):
             'parqueamento': forms.NumberInput(attrs={'class': 'form-control'}),
             'taxa': forms.NumberInput(attrs={'class': 'form-control'}),
             'outros': forms.NumberInput(attrs={'class': 'form-control'}),
+            'taxi': forms.NumberInput(attrs={'class': 'form-control'}),
             'numero_passageiros': forms.NumberInput(attrs={'class': 'form-control'}),
             'numero_viagens': forms.NumberInput(attrs={'class': 'form-control'}),
             'km_percorridos': forms.NumberInput(attrs={'class': 'form-control'}),

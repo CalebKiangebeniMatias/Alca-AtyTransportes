@@ -292,6 +292,9 @@
                                                 <i class="fas fa-ellipsis-h text-danger"></i> Outros: <strong>{% localize on %}{{ reg.outros|floatformat:2 }}{% endlocalize %} Kz</strong>
                                             </div>
                                             <div class="col-6">
+                                                <i class="fas fa-ellipsis-h text-danger"></i> Taxi: <strong>{% localize on %}{{ reg.taxi|floatformat:2 }}{% endlocalize %} Kz</strong>
+                                            </div>
+                                            <div class="col-6">
                                                 <i class="fas fa-gas-pump text-danger"></i> Combustível: <strong>{% localize on %}{{ reg.combustivel_total|floatformat:2 }}{% endlocalize %} Kz</strong>
                                             </div>
                                             <div class="col-6">
@@ -346,6 +349,12 @@
                             <small class="text-muted me-2">
                                 <i class="fas fa-coins text-primary me-1"></i>
                                 <strong>Despesa Geral:</strong> {{ grupo.despesa_geral|floatformat:2 }} Kz
+                            </small>
+                        {% endif %}
+                        {% if grupo.alimentacao_estaleiro %}
+                            <small class="text-muted">
+                                <i class="fas fa-coins text-primary me-1"></i>
+                                <strong>Alimentação Estaleiro:</strong> {{ grupo.alimentacao_estaleiro|floatformat:2 }} Kz
                             </small>
                         {% endif %}
                     </div>

@@ -533,6 +533,15 @@
         </tr>
 
         <tr class="row-expense">
+          <td class="row-label">TRANSPORTE MOTORISTAS/COBRAD/OUTROS</td>
+          <td>{{ semanas.1.despesas.taxi|intcomma }} Kz</td>
+          <td>{{ semanas.2.despesas.taxi|intcomma }} Kz</td>
+          <td>{{ semanas.3.despesas.taxi|intcomma }} Kz</td>
+          <td>{{ semanas.4.despesas.taxi|intcomma }} Kz</td>
+          <td>{{ total_despesas_taxi|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="row-expense">
           <td class="row-label">LAVAGEM</td>
           <td>{{ semanas.1.despesas.lavagem|intcomma }} Kz</td>
           <td>{{ semanas.2.despesas.lavagem|intcomma }} Kz</td>
@@ -585,6 +594,16 @@
           <td>{{ semanas.4.despesas.despesa_geral|intcomma }} Kz</td>
           <td>{{ total_despesa_geral|intcomma }} Kz</td>
         </tr>
+
+        <tr class="row-expense">
+          <td class="row-label">ALIMENTAÇÃO DO ESTALEIRO</td>
+          <td>{{ semanas.1.despesas.alimentacao_estaleiro|intcomma }} Kz</td>
+          <td>{{ semanas.2.despesas.alimentacao_estaleiro|intcomma }} Kz</td>
+          <td>{{ semanas.3.despesas.alimentacao_estaleiro|intcomma }} Kz</td>
+          <td>{{ semanas.4.despesas.alimentacao_estaleiro|intcomma }} Kz</td>
+          <td>{{ total_despesas_alimentacao_estaleiro|intcomma }} Kz</td>
+        </tr>
+
 
         <tr class="total-expense">
           <td class="row-label"><strong>TOTAL</strong></td>

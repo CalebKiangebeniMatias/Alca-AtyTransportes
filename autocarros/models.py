@@ -140,7 +140,14 @@ class RelatorioSector(models.Model):
         default=0,
         verbose_name="Despesa geral do setor"
     )
-    
+
+    alimentacao_estaleiro = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        verbose_name="Despesa com alimentação do estaleiro"
+    )
+
     class Meta:
         unique_together = ['sector', 'data']  # 🔹 IMPEDE MÚLTIPLOS RELATÓRIOS POR DIA
         ordering = ['-data']
@@ -205,8 +212,10 @@ class RegistoDiario(models.Model):
     alimentacao = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     parqueamento = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     taxa = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    taxi = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     outros = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    
+
+
     numero_passageiros = models.PositiveIntegerField(default=0)
     numero_viagens = models.PositiveIntegerField(default=0)
     km_percorridos = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -223,7 +232,7 @@ class RegistoDiario(models.Model):
         return self.normal + self.alunos + self.luvu + self.frete
 
     def saidas_total(self):
-        return self.alimentacao + self.parqueamento + self.taxa + self.outros
+        return self.alimentacao + self.parqueamento + self.taxa + self.outros + self.taxi
 
     def saldo_liquido(self):
         return self.entradas_total() - self.saidas_total()
