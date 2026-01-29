@@ -2,7 +2,7 @@ from django import forms
 from .models import (
     Comprovativo, ComprovativoRelatorio, DespesaCombustivel, DespesaFixa,
     EstadoAutocarro, Manutencao, RegistoDiario, Autocarro, Despesa,
-    RelatorioSector, Sector
+    RelatorioSector, Sector, SubCategoriaDespesa
 )
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -362,3 +362,41 @@ class ManutencaoForm(forms.ModelForm):
         }
 
 
+# ---- SubCategoriaDespesa ---- #
+class SubCategoriaDespesaForm(forms.ModelForm):
+    class Meta:
+        model = SubCategoriaDespesa
+        fields = ["categoria", "nome"]
+
+
+# financeiro/forms.py
+from django import forms
+from .models import Despesa, SubCategoria
+
+class DespesaForm2(forms.ModelForm):
+    class Meta:
+        model = Despesa
+        fields = ['data', 'categoria', 'subcategoria', 'valor', 'descricao']
+        widgets = {
+            'data': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Inicialmente sem subcategorias
+        self.fields['subcategoria'].queryset = SubCategoria.objects.none()
+
+        if 'categoria' in self.data:
+            try:
+                categoria_id = int(self.data.get('categoria'))
+                self.fields['subcategoria'].queryset = SubCategoria.objects.filter(
+                    categoria_id=categoria_id
+                ).order_by('nome')
+            except (ValueError, TypeError):
+                pass
+
+        elif self.instance.pk:
+            self.fields['subcategoria'].queryset = SubCategoria.objects.filter(
+                categoria=self.instance.categoria
+            )

@@ -1,0 +1,36 @@
+<!-- templates/financeiro/despesa_form.html -->
+{% extends "base.html" %}
+{% block content %}
+
+<h3>Lançar Despesa</h3>
+
+<form method="post">
+  {% csrf_token %}
+
+  {{ form.data.label }} {{ form.data }}<br><br>
+  {{ form.categoria.label }} {{ form.categoria }}<br><br>
+  {{ form.subcategoria.label }} {{ form.subcategoria }}<br><br>
+  {{ form.valor.label }} {{ form.valor }}<br><br>
+  {{ form.descricao.label }} {{ form.descricao }}<br><br>
+
+  <button type="submit">Salvar</button>
+</form>
+
+<script>
+document.getElementById("id_categoria").addEventListener("change", function () {
+    fetch("{% url 'ajax_subcategorias' %}?categoria=" + this.value)
+        .then(response => response.json())
+        .then(data => {
+            let select = document.getElementById("id_subcategoria");
+            select.innerHTML = "";
+            data.forEach(item => {
+                let option = document.createElement("option");
+                option.value = item.id;
+                option.text = item.nome;
+                select.appendChild(option);
+            });
+        });
+});
+</script>
+
+{% endblock %}

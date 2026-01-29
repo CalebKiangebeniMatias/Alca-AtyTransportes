@@ -504,3 +504,84 @@ class RegistroKMItem(models.Model):
 
     def __str__(self):
         return f"{self.autocarro.numero} — {self.km_atual}"
+
+
+# <----- Modelo para Categoria de Despesa -----> #
+from django.db import models
+
+class CategoriaDespesa(models.Model):
+    TIPO_CHOICES = (
+        ('FIXA', 'Despesa Fixa'),
+        ('VARIAVEL', 'Despesa Variável'),
+    )
+
+    nome = models.CharField(
+        max_length=20,
+        choices=TIPO_CHOICES,
+        unique=True
+    )
+
+    ativa = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Categoria de Despesa"
+        verbose_name_plural = "Categorias de Despesa"
+
+    def __str__(self):
+        return self.get_nome_display()
+
+# <----- Modelo para Subcategoria de Despesa -----> #
+class SubCategoriaDespesa(models.Model):
+    categoria = models.ForeignKey(
+        CategoriaDespesa,
+        on_delete=models.PROTECT,
+        related_name='subcategorias'
+    )
+
+    nome = models.CharField(max_length=100)
+    ativa = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Subcategoria de Despesa"
+        verbose_name_plural = "Subcategorias de Despesa"
+        unique_together = ('categoria', 'nome')
+        ordering = ['categoria', 'nome']
+
+    def __str__(self):
+        return f"{self.nome} ({self.categoria})"
+
+# <----- Modelo para Despesa -----> #
+class Despesa2(models.Model):
+    categoria = models.ForeignKey(
+        CategoriaDespesa,
+        on_delete=models.PROTECT
+    )
+
+    subcategoria = models.ForeignKey(
+        SubCategoriaDespesa,
+        on_delete=models.PROTECT,
+        related_name='despesas'
+    )
+
+    data = models.DateField()
+    valor = models.DecimalField(max_digits=14, decimal_places=2)
+
+    descricao = models.CharField(max_length=255, blank=True)
+    observacao = models.TextField(blank=True)
+
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Despesa"
+        verbose_name_plural = "Despesas"
+        ordering = ['-data']
+
+    def clean(self):
+        # Garante coerência: subcategoria pertence à categoria
+        if self.subcategoria.categoria != self.categoria:
+            raise ValidationError(
+                "A subcategoria não pertence à categoria selecionada."
+            )
+
+    def __str__(self):
+        return f"{self.data} - {self.subcategoria.nome} - {self.valor}"

@@ -702,6 +702,17 @@
                         </a>
                         <ul class="dropdown-menu shadow-lg border-0 rounded-3">
                             <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'despesa_list' %}">
+                                    <i class="fas fa-list me-2 text-primary"></i>Despesas Gerais
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'despesa_create' %}">
+                                    <i class="fas fa-list me-2 text-primary"></i>Add Despesas Gerais
+                                </a>
+                            </li>
+
+                            <li>
                                 <a class="dropdown-item d-flex align-items-center" href="{% url 'listar_despesas' %}">
                                     <i class="fas fa-list me-2 text-primary"></i> Listar Despesas Variáveis
                                 </a>

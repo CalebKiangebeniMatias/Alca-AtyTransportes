@@ -11,8 +11,8 @@ from django.utils.dateparse import parse_date
 from django.forms import modelformset_factory
 from django.db.models.functions import TruncMonth
 from autocarros.decorators import acesso_restrito
-from .models import Autocarro, CobradorViagem, Comprovativo, ComprovativoRelatorio, Deposito, DespesaCombustivel, DespesaFixa, Manutencao, RegistoDiario, Despesa, RegistroKM, RegistroKMItem, RelatorioSector, Sector, Motorista
-from .forms import DespesaCombustivelForm, DespesaFixaForm, EstadoAutocarroForm, AutocarroForm, DespesaForm, ComprovativoFormSet, ManutencaoForm, MultiFileForm,RegistoDiarioFormSet, RelatorioSectorForm, SectorForm, SectorGestorForm, SelecionarSectorCombustivelForm, RegistoDiarioForm
+from .models import Autocarro, CobradorViagem, Comprovativo, ComprovativoRelatorio, Deposito, Despesa2, DespesaCombustivel, DespesaFixa, Manutencao, RegistoDiario, Despesa, RegistroKM, RegistroKMItem, RelatorioSector, Sector, Motorista, SubCategoriaDespesa
+from .forms import DespesaCombustivelForm, DespesaFixaForm, DespesaForm2, EstadoAutocarroForm, AutocarroForm, DespesaForm, ComprovativoFormSet, ManutencaoForm, MultiFileForm,RegistoDiarioFormSet, RelatorioSectorForm, SectorForm, SectorGestorForm, SelecionarSectorCombustivelForm, RegistoDiarioForm, SubCategoriaDespesaForm
 from autocarros import models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
@@ -3817,3 +3817,51 @@ def mapa_geral_financeiro(request):
         "total_despesa_alimentacao_estaleiro": sum(s["despesas"]["alimentacao_estaleiro"] for s in semanas.values()),
     }
     return render(request, "financeiro/mapa_geral.html", context)
+
+
+# ---------- Gestão de Despesas Views ----------#
+
+# -------- SUBCATEGORIAS --------
+def subcategoria_list(request):
+    subcategorias = SubCategoriaDespesa.objects.select_related("categoria")
+    return render(request, "financeiro/subcategoria_list.html", {"subcategorias": subcategorias})
+
+
+def subcategoria_create(request):
+    form = SubCategoriaDespesaForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        return redirect("subcategoria_list")
+    return render(request, "financeiro/subcategoria_form.html", {"form": form})
+
+
+# -------- DESPESAS --------
+def despesa_list(request):
+    mes = int(request.GET.get("mes", now().month))
+    ano = int(request.GET.get("ano", now().year))
+
+    despesas = (
+        Despesa2.objects
+        .filter(data__month=mes, data__year=ano)
+        .select_related("categoria", "subcategoria")
+        .order_by("data")
+    )
+
+    total = sum(d.valor for d in despesas)
+
+    context = {
+        "despesas": despesas,
+        "mes": mes,
+        "ano": ano,
+        "total": total,
+    }
+    return render(request, "financeiro/despesa_list.html", context)
+
+
+def despesa_create(request):
+    form = DespesaForm2(request.POST or None)
+    if form.is_valid():
+        form.save()
+        return redirect("despesa_list")
+    return render(request, "financeiro/despesa_create.html", {"form": form})
+

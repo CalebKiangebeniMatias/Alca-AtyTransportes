@@ -80,6 +80,11 @@ urlpatterns = [
     path('despesas/<int:pk>/editar/', views.editar_despesa, name='editar_despesa'),
     path('despesas/<int:pk>/deletar/', views.deletar_despesa, name='deletar_despesa'),
 
+    # Despesa nova
+    path('despesa/nova/', views.despesa_create, name='despesa_create'),
+    path('despesa/', views.despesa_list, name='despesa_list'),
+    path('ajax/subcategorias/', views.carregar_subcategorias, name='ajax_subcategorias'),
+
     # Despesas Fixas
     path('despesas-fixas/', views.listar_despesas_fixas, name='listar_despesas_fixas'),
     path('despesas-fixas/adicionar/', views.adicionar_despesa_fixa, name='adicionar_despesa_fixa'),

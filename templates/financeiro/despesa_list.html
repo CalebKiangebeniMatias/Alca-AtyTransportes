@@ -1,0 +1,52 @@
+<!-- templates/financeiro/despesa_lista.html -->
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+
+<h3>Despesas</h3>
+
+<form method="get">
+  <select name="categoria">
+    <option value="">Todas Categorias</option>
+    {% for c in categorias %}
+      <option value="{{ c.id }}">{{ c }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Filtrar</button>
+</form>
+
+<table border="1" width="100%">
+<tr>
+  <th>Data</th>
+  <th>Categoria</th>
+  <th>Subcategoria</th>
+  <th>Valor</th>
+</tr>
+
+{% for d in despesas %}
+<tr>
+  <td>{{ d.data }}</td>
+  <td>{{ d.categoria }}</td>
+  <td>{{ d.subcategoria.nome }}</td>
+  <td>{{ d.valor|intcomma }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<hr>
+
+<h4>Total por Categoria</h4>
+<ul>
+{% for t in totais_categoria %}
+  <li>{{ t.categoria__nome }}: {{ t.total|intcomma }}</li>
+{% endfor %}
+</ul>
+
+<h4>Total por Subcategoria</h4>
+<ul>
+{% for t in totais_subcategoria %}
+  <li>{{ t.subcategoria__nome }}: {{ t.total|intcomma }}</li>
+{% endfor %}
+</ul>
+
+{% endblock %}
