@@ -3835,6 +3835,26 @@ def subcategoria_create(request):
     return render(request, "financeiro/subcategoria_form.html", {"form": form})
 
 
+from django.http import JsonResponse
+from .models import CategoriaDespesa, SubCategoriaDespesa
+
+def carregar_subcategorias(request):
+    categoria_id = request.GET.get('categoria_id')  # pega o id da categoria enviada pelo AJAX
+    subcategorias = []
+
+    if categoria_id:
+        # Filtra subcategorias ativas da categoria selecionada
+        subcategorias_qs = SubCategoriaDespesa.objects.filter(
+            categoria_id=categoria_id,
+            ativa=True
+        ).order_by('nome')
+
+        # Monta lista de dicionários
+        subcategorias = [{'id': s.id, 'nome': s.nome} for s in subcategorias_qs]
+
+    return JsonResponse({'subcategorias': subcategorias})
+
+
 # -------- DESPESAS --------
 def despesa_list(request):
     mes = int(request.GET.get("mes", now().month))

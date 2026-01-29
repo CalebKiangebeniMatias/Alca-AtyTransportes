@@ -1,6 +1,6 @@
 from django import forms
 from .models import (
-    Comprovativo, ComprovativoRelatorio, DespesaCombustivel, DespesaFixa,
+    Comprovativo, ComprovativoRelatorio, Despesa2, DespesaCombustivel, DespesaFixa,
     EstadoAutocarro, Manutencao, RegistoDiario, Autocarro, Despesa,
     RelatorioSector, Sector, SubCategoriaDespesa
 )
@@ -362,6 +362,7 @@ class ManutencaoForm(forms.ModelForm):
         }
 
 
+
 # ---- SubCategoriaDespesa ---- #
 class SubCategoriaDespesaForm(forms.ModelForm):
     class Meta:
@@ -369,13 +370,10 @@ class SubCategoriaDespesaForm(forms.ModelForm):
         fields = ["categoria", "nome"]
 
 
-# financeiro/forms.py
-from django import forms
-from .models import Despesa, SubCategoria
-
+# ---- Despesa ---- #
 class DespesaForm2(forms.ModelForm):
     class Meta:
-        model = Despesa
+        model = Despesa2
         fields = ['data', 'categoria', 'subcategoria', 'valor', 'descricao']
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
@@ -385,18 +383,22 @@ class DespesaForm2(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # Inicialmente sem subcategorias
-        self.fields['subcategoria'].queryset = SubCategoria.objects.none()
+        self.fields['subcategoria'].queryset = SubCategoriaDespesa.objects.none()
 
         if 'categoria' in self.data:
             try:
                 categoria_id = int(self.data.get('categoria'))
-                self.fields['subcategoria'].queryset = SubCategoria.objects.filter(
-                    categoria_id=categoria_id
-                ).order_by('nome')
+                self.fields['subcategoria'].queryset = (
+                    SubCategoriaDespesa.objects
+                    .filter(categoria_id=categoria_id, ativa=True)
+                    .order_by('nome')
+                )
             except (ValueError, TypeError):
                 pass
 
         elif self.instance.pk:
-            self.fields['subcategoria'].queryset = SubCategoria.objects.filter(
-                categoria=self.instance.categoria
+            self.fields['subcategoria'].queryset = (
+                SubCategoriaDespesa.objects
+                .filter(categoria=self.instance.categoria, ativa=True)
+                .order_by('nome')
             )
