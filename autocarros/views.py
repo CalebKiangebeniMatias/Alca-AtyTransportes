@@ -2291,6 +2291,7 @@ def listar_despesas(request):
 
 
 @login_required
+@acesso_restrito(['admin'])
 # adicionar despesas 'normais ou variáveis'
 def adicionar_despesa(request):
     if request.method == 'POST':
@@ -2319,6 +2320,7 @@ def adicionar_despesa(request):
 
 @login_required
 # editar despesas 'normais ou variáveis'
+@acesso_restrito(['admin'])
 def editar_despesa(request, pk):
     try:
         despesa = Despesa.objects.get(pk=pk)
@@ -2344,6 +2346,7 @@ def editar_despesa(request, pk):
 
 @login_required
 # deletar despesas 'normais ou variáveis'
+@acesso_restrito(['admin'])
 def deletar_despesa(request, pk):
     try:
         despesa = Despesa.objects.get(pk=pk)
@@ -3822,11 +3825,14 @@ def mapa_geral_financeiro(request):
 # ---------- Gestão de Despesas Views ----------#
 
 # -------- SUBCATEGORIAS --------
+@login_required
+@acesso_restrito(['admin'])
 def subcategoria_list(request):
     subcategorias = SubCategoriaDespesa.objects.select_related("categoria")
     return render(request, "financeiro/subcategoria_list.html", {"subcategorias": subcategorias})
 
-
+@login_required
+@acesso_restrito(['admin'])
 def subcategoria_create(request):
     form = SubCategoriaDespesaForm(request.POST or None)
     if form.is_valid():
@@ -3838,6 +3844,8 @@ def subcategoria_create(request):
 from django.http import JsonResponse
 from .models import CategoriaDespesa, SubCategoriaDespesa
 
+@login_required
+@acesso_restrito(['admin'])
 def carregar_subcategorias(request):
     categoria_id = request.GET.get('categoria_id')  # pega o id da categoria enviada pelo AJAX
     subcategorias = []
@@ -3856,6 +3864,8 @@ def carregar_subcategorias(request):
 
 
 # -------- DESPESAS --------
+@login_required
+@acesso_restrito(['admin'])
 def despesa_list(request):
     mes = int(request.GET.get("mes", now().month))
     ano = int(request.GET.get("ano", now().year))
@@ -3877,7 +3887,8 @@ def despesa_list(request):
     }
     return render(request, "financeiro/despesa_list.html", context)
 
-
+@login_required
+@acesso_restrito(['admin'])
 def despesa_create(request):
     form = DespesaForm2(request.POST or None)
     if form.is_valid():
