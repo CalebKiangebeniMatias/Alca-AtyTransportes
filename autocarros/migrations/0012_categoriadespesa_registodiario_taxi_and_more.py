@@ -23,16 +23,6 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Categorias de Despesa',
             },
         ),
-        migrations.AddField(
-            model_name='registodiario',
-            name='taxi',
-            field=models.DecimalField(decimal_places=2, default=0, max_digits=10),
-        ),
-        migrations.AddField(
-            model_name='relatoriosector',
-            name='alimentacao_estaleiro',
-            field=models.DecimalField(decimal_places=2, default=0, max_digits=12, verbose_name='Despesa com alimentação do estaleiro'),
-        ),
         migrations.AlterField(
             model_name='despesafixa',
             name='categoria',
