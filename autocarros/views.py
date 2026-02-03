@@ -3656,7 +3656,7 @@ from .decorators import acesso_restrito
 # ================================
 # FUNÇÃO: SEMANA DO MÊS (4 COLUNAS)
 # ================================
-def semana_do_mes_4colunas(data):
+"""def semana_do_mes_4colunas(data):
     primeiro_dia = data.replace(day=1)
 
     # weekday(): segunda=0 ... domingo=6
@@ -3672,6 +3672,25 @@ def semana_do_mes_4colunas(data):
 
     dias_apos = (data - fim_primeira_semana).days
     semana = 1 + ((dias_apos - 1) // 7) + 1
+
+    return min(semana, 4)"""
+
+# Resovido problema de primeira semana começar no domingo
+def semana_do_mes_4colunas(data):
+    primeiro_dia = data.replace(day=1)
+
+    if primeiro_dia.weekday() == 6:  # domingo
+        fim_primeira_semana = primeiro_dia + timedelta(days=6)
+    else:
+        fim_primeira_semana = primeiro_dia + timedelta(
+            days=(6 - primeiro_dia.weekday())
+        )
+
+    if data <= fim_primeira_semana:
+        return 1
+
+    dias_apos = (data - fim_primeira_semana).days
+    semana = 2 + ((dias_apos - 1) // 7)
 
     return min(semana, 4)
 
