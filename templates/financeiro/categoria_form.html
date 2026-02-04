@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+.card-box {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.table-box {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.btn-primary {
+    border-radius: 12px;
+}
+</style>
+
+<div class="container mt-4">
+
+    <div class="card-box">
+        <h4 class="mb-3">Cadastrar Categoria de Despesa</h4>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label">Tipo de Despesa</label>
+                {{ form.nome }}
+            </div>
+
+            <div class="form-check mb-3">
+                {{ form.ativa }}
+                <label class="form-check-label">Ativa</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                Salvar Categoria
+            </button>
+        </form>
+    </div>
+
+    <div class="card-box table-box">
+        <h5 class="mb-3">Categorias Cadastradas</h5>
+
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in categorias %}
+                <tr>
+                    <td>{{ c.get_nome_display }}</td>
+                    <td>
+                        {% if c.ativa %}
+                            <span class="badge bg-success">Ativa</span>
+                        {% else %}
+                            <span class="badge bg-danger">Inativa</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2">Nenhuma categoria cadastrada</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

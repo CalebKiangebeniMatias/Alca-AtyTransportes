@@ -84,6 +84,9 @@ urlpatterns = [
     path('despesa/nova/', views.despesa_create, name='despesa_create'),
     path('despesa/', views.despesa_list, name='despesa_list'),
     path('ajax/subcategorias/', views.carregar_subcategorias, name='ajax_subcategorias'),
+    # categorias e subcategorias
+    path('categorias/nova/', views.categoria_create, name='categoria_create'),
+    path('subcategorias/nova/', views.subcategoria_create, name='subcategoria_create'),
 
     # Despesas Fixas
     path('despesas-fixas/', views.listar_despesas_fixas, name='listar_despesas_fixas'),

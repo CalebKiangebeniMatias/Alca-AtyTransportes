@@ -364,10 +364,29 @@ class ManutencaoForm(forms.ModelForm):
 
 
 # ---- SubCategoriaDespesa ---- #
+from django import forms
+from .models import CategoriaDespesa, SubCategoriaDespesa
+
+
+class CategoriaDespesaForm(forms.ModelForm):
+    class Meta:
+        model = CategoriaDespesa
+        fields = ['nome', 'ativa']
+        widgets = {
+            'nome': forms.Select(attrs={'class': 'form-control'}),
+            'ativa': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+
 class SubCategoriaDespesaForm(forms.ModelForm):
     class Meta:
         model = SubCategoriaDespesa
-        fields = ["categoria", "nome"]
+        fields = ['categoria', 'nome', 'ativa']
+        widgets = {
+            'categoria': forms.Select(attrs={'class': 'form-control'}),
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'ativa': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
 
 
 # ---- Despesa ---- #

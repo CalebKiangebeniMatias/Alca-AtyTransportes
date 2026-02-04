@@ -3842,22 +3842,51 @@ def mapa_geral_financeiro(request):
 
 
 # ---------- Gestão de Despesas Views ----------#
+from django.shortcuts import render, redirect
+from django.contrib import messages
 
-# -------- SUBCATEGORIAS --------
-@login_required
-@acesso_restrito(['admin'])
-def subcategoria_list(request):
-    subcategorias = SubCategoriaDespesa.objects.select_related("categoria")
-    return render(request, "financeiro/subcategoria_list.html", {"subcategorias": subcategorias})
+from .models import CategoriaDespesa, SubCategoriaDespesa
+from .forms import CategoriaDespesaForm, SubCategoriaDespesaForm
 
-@login_required
-@acesso_restrito(['admin'])
+
+# =============================
+# CADASTRAR CATEGORIA
+# =============================
+def categoria_create(request):
+    if request.method == 'POST':
+        form = CategoriaDespesaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Categoria cadastrada com sucesso.')
+            return redirect('categoria_create')
+    else:
+        form = CategoriaDespesaForm()
+
+    categorias = CategoriaDespesa.objects.all()
+    return render(request, 'financeiro/categoria_form.html', {
+        'form': form,
+        'categorias': categorias
+    })
+
+
+# =============================
+# CADASTRAR SUBCATEGORIA
+# =============================
 def subcategoria_create(request):
-    form = SubCategoriaDespesaForm(request.POST or None)
-    if form.is_valid():
-        form.save()
-        return redirect("subcategoria_list")
-    return render(request, "financeiro/subcategoria_form.html", {"form": form})
+    if request.method == 'POST':
+        form = SubCategoriaDespesaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Subcategoria cadastrada com sucesso.')
+            return redirect('subcategoria_create')
+    else:
+        form = SubCategoriaDespesaForm()
+
+    subcategorias = SubCategoriaDespesa.objects.select_related('categoria')
+    return render(request, 'financeiro/subcategoria_form.html', {
+        'form': form,
+        'subcategorias': subcategorias
+    })
 
 
 from django.http import JsonResponse
