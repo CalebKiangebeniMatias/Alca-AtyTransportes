@@ -2257,7 +2257,7 @@ def deletar_combustivel(request, pk):
         try:
             despesa.delete()
             messages.success(request, "✅ Despesa de combustível apagada com sucesso!")
-            return redirect("listar_despesas")
+            return redirect("listar_combustivel")
         except Exception as e:
             messages.error(request, f"❌ Erro ao apagar combustível: {str(e)}")
 
@@ -3842,25 +3842,26 @@ def mapa_geral_financeiro(request):
 
 
 # ---------- Gestão de Despesas Views ----------#
-from django.shortcuts import render, redirect
+# =============================
+# CADASTRAR CATEGORIA
+# =============================
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.contrib import messages
 
 from .models import CategoriaDespesa, SubCategoriaDespesa
 from .forms import CategoriaDespesaForm, SubCategoriaDespesaForm
 
 
-# =============================
-# CADASTRAR CATEGORIA
-# =============================
+# ============================
+# CATEGORIA
+# ============================
 def categoria_create(request):
-    if request.method == 'POST':
-        form = CategoriaDespesaForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Categoria cadastrada com sucesso.')
-            return redirect('categoria_create')
-    else:
-        form = CategoriaDespesaForm()
+    form = CategoriaDespesaForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Categoria cadastrada com sucesso.')
+        return redirect('categoria_create')
 
     categorias = CategoriaDespesa.objects.all()
     return render(request, 'financeiro/categoria_form.html', {
@@ -3869,24 +3870,90 @@ def categoria_create(request):
     })
 
 
-# =============================
-# CADASTRAR SUBCATEGORIA
-# =============================
+def categoria_update(request, pk):
+    categoria = get_object_or_404(CategoriaDespesa, pk=pk)
+    form = CategoriaDespesaForm(request.POST or None, instance=categoria)
+
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Categoria atualizada.')
+        return redirect('categoria_create')
+
+    return render(request, 'financeiro/categoria_form.html', {
+        'form': form,
+        'categorias': CategoriaDespesa.objects.all(),
+        'editando': True
+    })
+
+
+def categoria_delete(request, pk):
+    categoria = get_object_or_404(CategoriaDespesa, pk=pk)
+    categoria.delete()
+    messages.success(request, 'Categoria removida.')
+    return redirect('categoria_create')
+
+
+# ============================
+# SUBCATEGORIA
+# ============================
 def subcategoria_create(request):
-    if request.method == 'POST':
-        form = SubCategoriaDespesaForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Subcategoria cadastrada com sucesso.')
-            return redirect('subcategoria_create')
-    else:
-        form = SubCategoriaDespesaForm()
+    categoria_id = request.GET.get('categoria')
+
+    form = SubCategoriaDespesaForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Subcategoria cadastrada.')
+        return redirect('subcategoria_create')
 
     subcategorias = SubCategoriaDespesa.objects.select_related('categoria')
+
+    if categoria_id:
+        subcategorias = subcategorias.filter(categoria_id=categoria_id)
+
+    categorias = CategoriaDespesa.objects.filter(ativa=True)
+
     return render(request, 'financeiro/subcategoria_form.html', {
         'form': form,
-        'subcategorias': subcategorias
+        'subcategorias': subcategorias,
+        'categorias': categorias,
+        'categoria_selecionada': categoria_id
     })
+
+
+def subcategoria_update(request, pk):
+    sub = get_object_or_404(SubCategoriaDespesa, pk=pk)
+    form = SubCategoriaDespesaForm(request.POST or None, instance=sub)
+
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Subcategoria atualizada.')
+        return redirect('subcategoria_create')
+
+    return render(request, 'financeiro/subcategoria_form.html', {
+        'form': form,
+        'subcategorias': SubCategoriaDespesa.objects.select_related('categoria'),
+        'categorias': CategoriaDespesa.objects.filter(ativa=True),
+        'editando': True
+    })
+
+
+def subcategoria_delete(request, pk):
+    sub = get_object_or_404(SubCategoriaDespesa, pk=pk)
+    sub.delete()
+    messages.success(request, 'Subcategoria removida.')
+    return redirect('subcategoria_create')
+
+
+# ============================
+# AJAX
+# ============================
+def subcategorias_por_categoria(request):
+    categoria_id = request.GET.get('categoria_id')
+    subcategorias = SubCategoriaDespesa.objects.filter(
+        categoria_id=categoria_id, ativa=True
+    ).values('id', 'nome')
+
+    return JsonResponse(list(subcategorias), safe=False)
 
 
 from django.http import JsonResponse
