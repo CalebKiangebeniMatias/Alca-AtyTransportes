@@ -83,11 +83,15 @@
         </div>
 
         <div class="form-group">
+            <label> Valor da Despesa </label>
+            💲
             {{ form.valor.label_tag }}
             {{ form.valor }}
         </div>
 
         <div class="form-group">
+            <label> Descrição da Despesa </label>
+             📝
             {{ form.descricao.label_tag }}
             {{ form.descricao }}
         </div>
@@ -106,16 +110,25 @@ document.getElementById("id_categoria").addEventListener("change", function () {
 
     subSelect.innerHTML = '<option value="">Carregando...</option>';
 
+    if (!categoriaId) {
+        subSelect.innerHTML = '<option value="">Selecione a categoria primeiro</option>';
+        return;
+    }
+
     fetch("{% url 'ajax_subcategorias' %}?categoria_id=" + categoriaId)
         .then(response => response.json())
         .then(data => {
             subSelect.innerHTML = '<option value="">Selecione a subcategoria</option>';
+
             data.forEach(item => {
-                let option = document.createElement("option");
+                const option = document.createElement("option");
                 option.value = item.id;
-                option.textContent = item.nome;
+                option.textContent = item.label; // 🔹 usa label
                 subSelect.appendChild(option);
             });
+        })
+        .catch(() => {
+            subSelect.innerHTML = '<option value="">Erro ao carregar</option>';
         });
 });
 </script>

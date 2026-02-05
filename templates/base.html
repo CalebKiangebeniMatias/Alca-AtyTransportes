@@ -703,15 +703,15 @@
                         <ul class="dropdown-menu shadow-lg border-0 rounded-3">
                             <li>
                                 <a class="dropdown-item d-flex align-items-center" href="{% url 'despesa_list' %}">
-                                    <i class="fas fa-list me-2 text-primary"></i>Despesas Gerais
+                                    <i class="fas fa-list me-2 text-primary"></i>Listar Despesas
                                 </a>
                             </li>
                             <li>
                                 <a class="dropdown-item d-flex align-items-center" href="{% url 'despesa_create' %}">
-                                    <i class="fas fa-list me-2 text-primary"></i>Add Despesas Gerais
+                                    <i class="fas fa-plus me-2 text-success"></i>Add Despesas
                                 </a>
                             </li>
-
+                            <li><hr class="dropdown-divider"></li>
                             <li>
                                 <a class="dropdown-item d-flex align-items-center" href="{% url 'categoria_create' %}">
                                     <i class="fas fa-plus me-2 text-primary"></i>Add Categorias de Despesas
@@ -722,21 +722,20 @@
                                     <i class="fas fa-plus me-2 text-primary"></i>Add Subcategorias de Despesas
                                 </a>
                             </li>
-
+                            <li><hr class="dropdown-divider"></li>
                             <li>
                                 <a class="dropdown-item d-flex align-items-center" href="{% url 'listar_despesas' %}">
-                                    <i class="fas fa-list me-2 text-primary"></i> Listar Despesas Variáveis
+                                    <i class="fas fa-list me-2 text-primary"></i>Despesas Variaveis Antigas
                                 </a>
                             </li>
                             <li>
                                 <a class="dropdown-item d-flex align-items-center" href="{% url 'adicionar_despesa' %}">
-                                    <i class="fas fa-plus me-2 text-success"></i> Add Despesas Variáveis
+                                    <i class="fas fa-plus me-2 text-success"></i> Add Despesas
                                 </a>
                             </li>
-                            <li><hr class="dropdown-divider"></li>
                             <li>
                                 <a class="dropdown-item d-flex align-items-center" href="{% url 'listar_despesas_fixas' %}">
-                                    <i class="fas fa-list me-2 text-secondary"></i> Listar Despesas Fixas
+                                    <i class="fas fa-list me-2 text-secondary"></i> Listar Despesas Fixas Antigas
                                 </a>
                             </li>
                             <li>

@@ -3856,6 +3856,8 @@ from .forms import CategoriaDespesaForm, SubCategoriaDespesaForm
 # ============================
 # CATEGORIA
 # ============================
+@login_required
+@acesso_restrito(['admin'])
 def categoria_create(request):
     form = CategoriaDespesaForm(request.POST or None)
     if form.is_valid():
@@ -3869,7 +3871,8 @@ def categoria_create(request):
         'categorias': categorias
     })
 
-
+@login_required
+@acesso_restrito(['admin'])
 def categoria_update(request, pk):
     categoria = get_object_or_404(CategoriaDespesa, pk=pk)
     form = CategoriaDespesaForm(request.POST or None, instance=categoria)
@@ -3885,7 +3888,8 @@ def categoria_update(request, pk):
         'editando': True
     })
 
-
+@login_required
+@acesso_restrito(['admin'])
 def categoria_delete(request, pk):
     categoria = get_object_or_404(CategoriaDespesa, pk=pk)
     categoria.delete()
@@ -3896,6 +3900,8 @@ def categoria_delete(request, pk):
 # ============================
 # SUBCATEGORIA
 # ============================
+@login_required
+@acesso_restrito(['admin'])
 def subcategoria_create(request):
     categoria_id = request.GET.get('categoria')
 
@@ -3919,7 +3925,8 @@ def subcategoria_create(request):
         'categoria_selecionada': categoria_id
     })
 
-
+@login_required
+@acesso_restrito(['admin'])
 def subcategoria_update(request, pk):
     sub = get_object_or_404(SubCategoriaDespesa, pk=pk)
     form = SubCategoriaDespesaForm(request.POST or None, instance=sub)
@@ -3936,7 +3943,8 @@ def subcategoria_update(request, pk):
         'editando': True
     })
 
-
+@login_required
+@acesso_restrito(['admin'])
 def subcategoria_delete(request, pk):
     sub = get_object_or_404(SubCategoriaDespesa, pk=pk)
     sub.delete()
@@ -3947,6 +3955,8 @@ def subcategoria_delete(request, pk):
 # ============================
 # AJAX
 # ============================
+@login_required
+@acesso_restrito(['admin'])
 def subcategorias_por_categoria(request):
     categoria_id = request.GET.get('categoria_id')
     subcategorias = SubCategoriaDespesa.objects.filter(
@@ -3961,21 +3971,26 @@ from .models import CategoriaDespesa, SubCategoriaDespesa
 
 @login_required
 @acesso_restrito(['admin'])
-def carregar_subcategorias(request):
-    categoria_id = request.GET.get('categoria_id')  # pega o id da categoria enviada pelo AJAX
+def ajax_subcategorias(request):
+    categoria_id = request.GET.get("categoria_id")
+
     subcategorias = []
 
     if categoria_id:
-        # Filtra subcategorias ativas da categoria selecionada
-        subcategorias_qs = SubCategoriaDespesa.objects.filter(
+        qs = SubCategoriaDespesa.objects.filter(
             categoria_id=categoria_id,
             ativa=True
-        ).order_by('nome')
+        ).order_by("nome")
 
-        # Monta lista de dicionários
-        subcategorias = [{'id': s.id, 'nome': s.nome} for s in subcategorias_qs]
+        subcategorias = [
+            {
+                "id": s.id,
+                "label": s.nome  # 🔹 label explícito
+            }
+            for s in qs
+        ]
 
-    return JsonResponse({'subcategorias': subcategorias})
+    return JsonResponse(subcategorias, safe=False)
 
 
 # -------- DESPESAS --------

@@ -390,34 +390,27 @@ class SubCategoriaDespesaForm(forms.ModelForm):
 
 
 # ---- Despesa ---- #
+# forms.py
+from django import forms
+from .models import Despesa2, SubCategoriaDespesa
+
 class DespesaForm2(forms.ModelForm):
     class Meta:
         model = Despesa2
-        fields = ['data', 'categoria', 'subcategoria', 'valor', 'descricao']
+        fields = ["data", "categoria", "subcategoria", "valor", "descricao"]
+        labels = {
+            "data": "Data da Despesa",
+            "categoria": "Categoria",
+            "subcategoria": "Subcategoria",
+            "valor": "Valor (Kz)",
+            "descricao": "Descrição",
+        }
         widgets = {
-            'data': forms.DateInput(attrs={'type': 'date'}),
+            "data": forms.DateInput(attrs={"type": "date"}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Inicialmente sem subcategorias
-        self.fields['subcategoria'].queryset = SubCategoriaDespesa.objects.none()
-
-        if 'categoria' in self.data:
-            try:
-                categoria_id = int(self.data.get('categoria'))
-                self.fields['subcategoria'].queryset = (
-                    SubCategoriaDespesa.objects
-                    .filter(categoria_id=categoria_id, ativa=True)
-                    .order_by('nome')
-                )
-            except (ValueError, TypeError):
-                pass
-
-        elif self.instance.pk:
-            self.fields['subcategoria'].queryset = (
-                SubCategoriaDespesa.objects
-                .filter(categoria=self.instance.categoria, ativa=True)
-                .order_by('nome')
-            )
+        # 🔹 subcategoria começa vazia
+        self.fields["subcategoria"].queryset = SubCategoriaDespesa.objects.none()
