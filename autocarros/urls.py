@@ -83,9 +83,6 @@ urlpatterns = [
     # Despesa nova
     path('despesa/nova/', views.despesa_create, name='despesa_create'),
     path('despesa/', views.despesa_list, name='despesa_list'),
-    #path('ajax/subcategorias/', views.carregar_subcategorias, name='ajax_subcategorias'),
-    # urls.py
-    path("ajax/subcategorias/", views.ajax_subcategorias, name="ajax_subcategorias"),
 
     # categorias e subcategorias
     path('categorias/', views.categoria_create, name='categoria_create'),
@@ -94,6 +91,9 @@ urlpatterns = [
     path('subcategorias/', views.subcategoria_create, name='subcategoria_create'),
     path('subcategorias/<int:pk>/editar/', views.subcategoria_update, name='subcategoria_update'),
     path('subcategorias/<int:pk>/excluir/', views.subcategoria_delete, name='subcategoria_delete'),
+
+    path("ajax/subcategorias/", views.ajax_subcategorias, name="ajax_subcategorias"),
+    
     # AJAX
     path('ajax/subcategoria/', views.subcategorias_por_categoria, name='ajax_subcategoria'),
 

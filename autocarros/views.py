@@ -3967,30 +3967,23 @@ def subcategorias_por_categoria(request):
 
 
 from django.http import JsonResponse
-from .models import CategoriaDespesa, SubCategoriaDespesa
+from autocarros.models import SubCategoriaDespesa  # ✅ IMPORT CERTO
 
 @login_required
 @acesso_restrito(['admin'])
 def ajax_subcategorias(request):
     categoria_id = request.GET.get("categoria_id")
 
-    subcategorias = []
+    qs = SubCategoriaDespesa.objects.filter(
+        categoria_id=categoria_id
+    ).order_by("nome")
 
-    if categoria_id:
-        qs = SubCategoriaDespesa.objects.filter(
-            categoria_id=categoria_id,
-            ativa=True
-        ).order_by("nome")
+    data = [
+        {"id": s.id, "label": s.nome}
+        for s in qs
+    ]
 
-        subcategorias = [
-            {
-                "id": s.id,
-                "label": s.nome  # 🔹 label explícito
-            }
-            for s in qs
-        ]
-
-    return JsonResponse(subcategorias, safe=False)
+    return JsonResponse(data, safe=False)
 
 
 # -------- DESPESAS --------
