@@ -391,20 +391,10 @@ class SubCategoriaDespesaForm(forms.ModelForm):
 
 # ---- Despesa ---- #
 # forms.py
-from django import forms
-from .models import Despesa2, SubCategoriaDespesa
-
 class DespesaForm2(forms.ModelForm):
     class Meta:
         model = Despesa2
         fields = ["data", "categoria", "subcategoria", "valor", "descricao"]
-        labels = {
-            "data": "Data da Despesa",
-            "categoria": "Categoria",
-            "subcategoria": "Subcategoria",
-            "valor": "Valor (Kz)",
-            "descricao": "Descrição",
-        }
         widgets = {
             "data": forms.DateInput(attrs={"type": "date"}),
         }
@@ -412,5 +402,22 @@ class DespesaForm2(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # 🔹 subcategoria começa vazia
         self.fields["subcategoria"].queryset = SubCategoriaDespesa.objects.none()
+
+        # 👉 POST (criação)
+        if self.data.get("categoria"):
+            try:
+                categoria_id = int(self.data.get("categoria"))
+                self.fields["subcategoria"].queryset = (
+                    SubCategoriaDespesa.objects.filter(categoria_id=categoria_id)
+                )
+            except (ValueError, TypeError):
+                pass
+
+        # 👉 EDIT (edição)
+        elif self.instance.pk and self.instance.categoria:
+            self.fields["subcategoria"].queryset = (
+                SubCategoriaDespesa.objects.filter(
+                    categoria=self.instance.categoria
+                )
+            )

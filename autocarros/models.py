@@ -576,11 +576,17 @@ class Despesa2(models.Model):
         verbose_name_plural = "Despesas"
         ordering = ['-data']
 
+    from django.core.exceptions import ValidationError
+
     def clean(self):
-        # Garante coerência: subcategoria pertence à categoria
+        super().clean()
+
+        if not self.subcategoria or not self.categoria:
+            return
+
         if self.subcategoria.categoria != self.categoria:
             raise ValidationError(
-                "A subcategoria não pertence à categoria selecionada."
+                {"subcategoria": "A subcategoria não pertence à categoria selecionada."}
             )
 
     def __str__(self):

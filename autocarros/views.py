@@ -4013,9 +4013,12 @@ def despesa_list(request):
 @login_required
 @acesso_restrito(['admin'])
 def despesa_create(request):
-    form = DespesaForm2(request.POST or None)
-    if form.is_valid():
-        form.save()
-        return redirect("despesa_list")
-    return render(request, "financeiro/despesa_create.html", {"form": form})
+    if request.method == "POST":
+        form = DespesaForm2(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("despesa_lista")
+    else:
+        form = DespesaForm2()
 
+    return render(request, "despesa_form.html", {"form": form})
