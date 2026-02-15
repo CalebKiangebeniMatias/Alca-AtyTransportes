@@ -16,7 +16,14 @@
 
     <div class="col-md-2">
       <label>Ano</label>
-      <input type="number" name="ano" value="{{ ano }}" class="form-control">
+      <input
+        type="text"
+        name="ano"
+        value="{{ ano }}"
+        class="form-control"
+        pattern="[0-9]{4}"
+        inputmode="numeric"
+        placeholder="2026">
     </div>
 
     <div class="col-md-4">
@@ -48,6 +55,7 @@
           <th>Categoria</th>
           <th>Subcategoria</th>
           <th class="text-end">Valor</th>
+          <th class="text-center">Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -57,11 +65,23 @@
           <td>{{ d.categoria.nome }}</td>
           <td>{{ d.subcategoria.nome }}</td>
           <td class="text-end">{{ d.valor|intcomma }} Kz</td>
+          <td class="text-center">
+            <a href="{% url 'despesa_editar' d.id %}"
+              class="btn btn-sm btn-warning">
+              ✏️
+            </a>
+
+            <a href="{% url 'despesa_eliminar' d.id %}"
+              class="btn btn-sm btn-danger"
+              onclick="return confirm('Deseja realmente eliminar esta despesa?');">
+              🗑️
+            </a>
+          </td>
         </tr>
         {% empty %}
-        <tr>
-          <td colspan="4" class="text-center">Nenhuma despesa encontrada</td>
-        </tr>
+          <tr>
+            <td colspan="4" class="text-center">Nenhuma despesa encontrada</td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>

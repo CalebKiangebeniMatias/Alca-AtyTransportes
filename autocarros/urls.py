@@ -82,7 +82,10 @@ urlpatterns = [
 
     # Despesa nova
     path('despesa/nova/', views.despesa_create, name='despesa_create'),
-    path('despesa/', views.despesa_list, name='despesa_list'),
+    path('despesa/nova/list/', views.despesa_list, name='despesa_list'),
+    path("despesa/nova/<int:pk>/editar/", views.despesa_editar, name="despesa_editar"),
+    path("despesa/nova/<int:pk>/eliminar/", views.despesa_eliminar, name="despesa_eliminar"),
+
 
     # categorias e subcategorias
     path('categorias/', views.categoria_create, name='categoria_create'),

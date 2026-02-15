@@ -3990,8 +3990,15 @@ def ajax_subcategorias(request):
 @login_required
 @acesso_restrito(['admin'])
 def despesa_list(request):
-    mes = int(request.GET.get("mes", now().month))
-    ano = int(request.GET.get("ano", now().year))
+
+    def to_int(valor, padrao):
+        try:
+            return int(str(valor).replace(".", ""))
+        except (TypeError, ValueError):
+            return padrao
+
+    mes = to_int(request.GET.get("mes"), now().month)
+    ano = to_int(request.GET.get("ano"), now().year)
     categoria_id = request.GET.get("categoria")
 
     despesas = (
@@ -4044,8 +4051,36 @@ def despesa_create(request):
         form = DespesaForm2(request.POST)
         if form.is_valid():
             form.save()
-            return redirect("despesa_lista")
+            return redirect("despesa_list")
     else:
         form = DespesaForm2()
 
     return render(request, "financeiro/despesa_create.html", {"form": form})
+
+
+@login_required
+@acesso_restrito(['admin'])
+def despesa_editar(request, pk):
+    despesa = get_object_or_404(Despesa2, pk=pk)
+
+    if request.method == "POST":
+        form = DespesaForm2(request.POST, instance=despesa)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Despesa atualizada com sucesso.")
+            return redirect("despesa_list")
+    else:
+        form = DespesaForm2(instance=despesa)
+
+    return render(request, "financeiro/despesa_create.html", {
+        "form": form,
+        "titulo": "Editar Despesa"
+    })
+
+
+@login_required
+@acesso_restrito(['admin'])
+def despesa_eliminar(request, pk):
+    despesa = get_object_or_404(Despesa2, pk=pk)
+    despesa.delete()
+    return redirect("despesa_lista")
