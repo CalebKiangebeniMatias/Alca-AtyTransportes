@@ -161,30 +161,40 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function(){
+            // 🔹 1. PEGAR O CANVAS
+            const canvas = document.getElementById('graficoResumo');
+            if (!canvas) {
+                console.error('Canvas graficoResumo não encontrado!');
+                return;
+            }
 
-            const ctx = document.getElementById('graficoResumo');
-            if (!ctx) return;
-
+            // 🔹 2. PEGAR O CONTAINER COM OS DADOS
             const container = document.getElementById('resumo_values');
+            if (!container) {
+                console.error('Container resumo_values não encontrado!');
+                return;
+            }
 
+            // 🔹 3. FUNÇÃO PARA CONVERTER VALORES
             function toNumberRaw(v){
                 if (v === undefined || v === null) return 0;
                 const s = String(v).trim();
                 if (s === '') return 0;
+                // Remove pontos de milhar e troca vírgula por ponto
                 const normalized = s.replace(/\./g, '').replace(',', '.');
                 const n = Number(normalized);
                 return isNaN(n) ? 0 : n;
             }
 
-            // 🔹 PEGAR VALORES PRIMEIRO
+            // 🔹 4. EXTRAIR OS VALORES
             const entradas = toNumberRaw(container.dataset.entradas);
             const saidas   = toNumberRaw(container.dataset.saidas);
             const saldo    = toNumberRaw(container.dataset.saldo);
 
-            // 🔹 AGORA CRIAR O GRÁFICO
-            const ctx = document.getElementById('graficoResumo');
+            console.log('Valores do gráfico:', { entradas, saidas, saldo });
 
-            new Chart(ctx, {
+            // 🔹 5. CRIAR O GRÁFICO
+            new Chart(canvas, {
                 type: 'bar',
                 data: {
                     labels: ['Entradas', 'Saídas', 'Saldo'],
@@ -195,30 +205,55 @@
                             'rgba(220, 53, 69, 0.7)',   // vermelho
                             'rgba(255, 193, 7, 0.7)'    // amarelo
                         ],
-                        borderRadius: 8,
-                        borderWidth: 1
+                        borderColor: [
+                            'rgba(40, 167, 69, 1)',
+                            'rgba(220, 53, 69, 1)',
+                            'rgba(255, 193, 7, 1)'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: true,
                     plugins: {
-                        legend: { display: false }
+                        legend: { 
+                            display: false 
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y.toLocaleString('pt-PT') + ' Kz';
+                                }
+                            }
+                        }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
                             ticks: {
+                                color: '#fff',
                                 callback: function(value){
                                     return value.toLocaleString('pt-PT') + ' Kz';
                                 }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#fff'
+                            },
+                            grid: {
+                                display: false
                             }
                         }
                     }
                 }
             });
         });
-        </script>
+    </script>
 
 {% endblock %}
-
-
