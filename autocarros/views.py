@@ -4034,7 +4034,7 @@ def despesa_list(request):
         "totais_subcategoria": totais_subcategoria,
     }
 
-    return render(request, "financeiro/despesa_lista.html", context)
+    return render(request, "financeiro/despesa_list.html", context)
 
 
 @login_required
