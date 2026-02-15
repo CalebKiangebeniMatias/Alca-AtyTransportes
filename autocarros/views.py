@@ -4083,4 +4083,4 @@ def despesa_editar(request, pk):
 def despesa_eliminar(request, pk):
     despesa = get_object_or_404(Despesa2, pk=pk)
     despesa.delete()
-    return redirect("despesa_lista")
+    return redirect("despesa_list")
