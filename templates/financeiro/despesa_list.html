@@ -1,52 +1,111 @@
-<!-- templates/financeiro/despesa_lista.html -->
 {% extends "base.html" %}
 {% load humanize %}
 {% block content %}
 
-<h3>Despesas</h3>
+<div class="card shadow p-4">
 
-<form method="get">
-  <select name="categoria">
-    <option value="">Todas Categorias</option>
-    {% for c in categorias %}
-      <option value="{{ c.id }}">{{ c }}</option>
-    {% endfor %}
-  </select>
-  <button type="submit">Filtrar</button>
-</form>
+  <h3 class="mb-4">📊 Despesas</h3>
 
-<table border="1" width="100%">
-<tr>
-  <th>Data</th>
-  <th>Categoria</th>
-  <th>Subcategoria</th>
-  <th>Valor</th>
-</tr>
+  <!-- FILTROS -->
+  <form method="get" class="row g-3 align-items-end mb-4">
 
-{% for d in despesas %}
-<tr>
-  <td>{{ d.data }}</td>
-  <td>{{ d.categoria }}</td>
-  <td>{{ d.subcategoria.nome }}</td>
-  <td>{{ d.valor|intcomma }}</td>
-</tr>
-{% endfor %}
-</table>
+    <div class="col-md-2">
+      <label>Mês</label>
+      <input type="number" name="mes" value="{{ mes }}" min="1" max="12" class="form-control">
+    </div>
 
-<hr>
+    <div class="col-md-2">
+      <label>Ano</label>
+      <input type="number" name="ano" value="{{ ano }}" class="form-control">
+    </div>
 
-<h4>Total por Categoria</h4>
-<ul>
-{% for t in totais_categoria %}
-  <li>{{ t.categoria__nome }}: {{ t.total|intcomma }}</li>
-{% endfor %}
-</ul>
+    <div class="col-md-4">
+      <label>Categoria</label>
+      <select name="categoria" class="form-select">
+        <option value="">Todas</option>
+        {% for c in categorias %}
+          <option value="{{ c.id }}" {% if categoria_id == c.id|stringformat:"s" %}selected{% endif %}>
+            {{ c.nome }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
 
-<h4>Total por Subcategoria</h4>
-<ul>
-{% for t in totais_subcategoria %}
-  <li>{{ t.subcategoria__nome }}: {{ t.total|intcomma }}</li>
-{% endfor %}
-</ul>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-primary w-100">
+        Filtrar
+      </button>
+    </div>
+
+  </form>
+
+  <!-- TABELA -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Data</th>
+          <th>Categoria</th>
+          <th>Subcategoria</th>
+          <th class="text-end">Valor</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in despesas %}
+        <tr>
+          <td>{{ d.data|date:"d/m/Y" }}</td>
+          <td>{{ d.categoria.nome }}</td>
+          <td>{{ d.subcategoria.nome }}</td>
+          <td class="text-end">{{ d.valor|intcomma }} Kz</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" class="text-center">Nenhuma despesa encontrada</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-3 text-end">
+    <h5>Total Geral: <strong>{{ total|intcomma }} Kz</strong></h5>
+  </div>
+
+</div>
+
+<hr class="my-4">
+
+<!-- RESUMOS -->
+<div class="row">
+
+  <div class="col-md-6">
+    <div class="card p-3 shadow-sm">
+      <h5>Total por Categoria</h5>
+      <ul class="list-group list-group-flush">
+        {% for t in totais_categoria %}
+          <li class="list-group-item d-flex justify-content-between">
+            {{ t.categoria__nome }}
+            <strong>{{ t.total|intcomma }} Kz</strong>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card p-3 shadow-sm">
+      <h5>Total por Subcategoria</h5>
+      <ul class="list-group list-group-flush">
+        {% for t in totais_subcategoria %}
+          <li class="list-group-item d-flex justify-content-between">
+            {{ t.subcategoria__nome }}
+            <strong>{{ t.total|intcomma }} Kz</strong>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+</div>
 
 {% endblock %}

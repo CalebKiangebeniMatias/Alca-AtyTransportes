@@ -3992,23 +3992,50 @@ def ajax_subcategorias(request):
 def despesa_list(request):
     mes = int(request.GET.get("mes", now().month))
     ano = int(request.GET.get("ano", now().year))
+    categoria_id = request.GET.get("categoria")
 
     despesas = (
         Despesa2.objects
         .filter(data__month=mes, data__year=ano)
         .select_related("categoria", "subcategoria")
-        .order_by("data")
     )
 
-    total = sum(d.valor for d in despesas)
+    if categoria_id:
+        despesas = despesas.filter(categoria_id=categoria_id)
+
+    despesas = despesas.order_by("data")
+
+    total = despesas.aggregate(total=Sum("valor"))["total"] or 0
+
+    totais_categoria = (
+        despesas
+        .values("categoria__nome")
+        .annotate(total=Sum("valor"))
+        .order_by("categoria__nome")
+    )
+
+    totais_subcategoria = (
+        despesas
+        .values("subcategoria__nome")
+        .annotate(total=Sum("valor"))
+        .order_by("subcategoria__nome")
+    )
+
+    categorias = CategoriaDespesa.objects.all().order_by("nome")
 
     context = {
         "despesas": despesas,
+        "categorias": categorias,
         "mes": mes,
         "ano": ano,
+        "categoria_id": categoria_id,
         "total": total,
+        "totais_categoria": totais_categoria,
+        "totais_subcategoria": totais_subcategoria,
     }
-    return render(request, "financeiro/despesa_list.html", context)
+
+    return render(request, "financeiro/despesa_lista.html", context)
+
 
 @login_required
 @acesso_restrito(['admin'])
