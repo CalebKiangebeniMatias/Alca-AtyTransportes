@@ -544,6 +544,7 @@ def dashboard(request):
         "total_despesa_geral": total_despesa_geral,
         "total_saidas_despesas": total_saidas_despesas,
         "total_despesa2": total_despesa2,
+        "total_despesas_fixas": total_despesas_fixas,
         "total_resto": total_resto,
         "total_lucro": total_lucro,
         "autocarros_stats": autocarros_stats,

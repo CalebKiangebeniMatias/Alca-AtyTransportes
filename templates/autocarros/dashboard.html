@@ -56,7 +56,7 @@
             <div id="resumo_values"
                  data-entradas="{{ total_entradas }}"
                  data-saidas="{{ total_saidas }}"
-                 data-despesas="{{ total_despesa2 }}"
+                 data-despesas="{{ total_despesa2 + total_despesas_fixas + total_saidas_despesas }}"
                  data-lucro="{{ total_lucro }}"
                  data-saldo="{{ total_resto }}"
             ></div>
@@ -119,6 +119,11 @@
             <div class="col-md-4 col-sm-6 mb-3">
                 <div class="card h-100 shadow-sm bg-azul-forte">
                     <div class="card-body text-center">
+                        <!-- Gráfico individual por autocarro -->
+                        <div style="height:180px;">
+                            <canvas id="chart-{{ stats.autocarro.id }}"></canvas>
+                        </div>
+
                         <i class="fas fa-bus fa-2x mb-2 text-primary"></i>
                         <h5 class="card-title">{{ stats.autocarro.numero }}</h5>
                         <p class="text-muted">{{ stats.autocarro.modelo }}</p>
@@ -167,6 +172,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Script para o gráfico de saldo -->
     <script>
         document.addEventListener('DOMContentLoaded', function(){
             // 🔹 1. PEGAR O CANVAS
@@ -264,6 +270,7 @@
         });
     </script>
 
+    <!-- GRÁFICO DE LUCRO -->
     <script>
         document.addEventListener('DOMContentLoaded', function(){
             // 🔹 1. PEGAR O CANVAS
@@ -358,6 +365,42 @@
                     }
                 }
             });
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            {% for stats in autocarros_stats %}
+            
+            new Chart(document.getElementById("chart-{{ stats.autocarro.id }}"), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Entradas', 'Despesas'],
+                    datasets: [{
+                        data: [
+                            {{ stats.total_entradas|default:0 }},
+                            {{ stats.total_saidas|default:0 }}
+                        ],
+                        backgroundColor: [
+                            '#28a745',
+                            '#dc3545'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            {% endfor %}
         });
     </script>
 
