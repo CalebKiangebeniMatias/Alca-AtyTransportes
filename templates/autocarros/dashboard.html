@@ -376,15 +376,17 @@
             new Chart(document.getElementById("chart-{{ stats.autocarro.id }}"), {
                 type: 'doughnut',
                 data: {
-                    labels: ['Entradas', 'Despesas'],
+                    labels: ['Entradas', 'Despesas', 'Saldo'],
                     datasets: [{
                         data: [
                             {{ stats.total_entradas|default:0 }},
-                            {{ stats.total_saidas|default:0 }}
+                            {{ stats.total_saidas|default:0 }},
+                            {{ stats.resto|default:0 }}
                         ],
                         backgroundColor: [
-                            '#28a745',
-                            '#dc3545'
+                            '#28a745',  // Verde para Entradas
+                            '#dc3545',  // Vermelho para Despesas
+                            '#17a2b8'   // Azul ciano para Saldo
                         ],
                         borderWidth: 2,
                         borderColor: '#1a1a2e'
