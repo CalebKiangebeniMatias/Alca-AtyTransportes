@@ -455,8 +455,8 @@ def dashboard(request):
             + total_despesa_geral
     )
     total_resto = total_entradas - total_saidas
-
-    total_lucro = total_resto - total_despesa2 - total_despesas_fixas - total_saidas_despesas
+    total_despesa2_1 = total_despesa2 + total_despesas_fixas + total_saidas_despesas
+    total_lucro = total_resto - total_despesa2_1
 
     # 🔹 Estatísticas por autocarro
     autocarros_stats = []
@@ -543,7 +543,7 @@ def dashboard(request):
         "total_saidas_registos": total_saidas_registos,
         "total_despesa_geral": total_despesa_geral,
         "total_saidas_despesas": total_saidas_despesas,
-        "total_despesa2": total_despesa2,
+        "total_despesa2": total_despesa2_1,
         "total_despesas_fixas": total_despesas_fixas,
         "total_resto": total_resto,
         "total_lucro": total_lucro,
