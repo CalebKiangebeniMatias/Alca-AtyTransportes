@@ -435,14 +435,20 @@ def dashboard(request):
     )
 
     total_combustivel_valor = total_combustivel.get('total_valor') or Decimal('0')
-    total_combustivel_litros = total_combustivel.get('total_litros') or Decimal('0')
     total_combustivel_sobragem = total_combustivel.get('total_sobragem') or Decimal('0')
     total_combustivel_lavagem = total_combustivel.get('total_lavagem') or Decimal('0')
+
+    # 🔹 Total Despesa2 (variáveis do mês)
+    total_despesa2 = Despesa2.objects.filter(
+        data__year=ano,
+        data__month=mes
+    ).aggregate(
+        total=Sum("valor", output_field=DecimalField())
+    )["total"] or Decimal("0")
 
     # total de saídas inclui registos, despesas (Despesas) e combustíveis + sobragem/lavagem + despesas fixas
     total_saidas = (
             total_saidas_registos
-            + total_saidas_despesas
             + total_combustivel_valor
             + total_combustivel_sobragem
             + total_combustivel_lavagem
@@ -450,11 +456,7 @@ def dashboard(request):
     )
     total_resto = total_entradas - total_saidas
 
-    total_variaveis = total_saidas_despesas or Decimal('0')
-
-    total_saidas_sem_variaveis = total_saidas - total_variaveis
-
-    total_sobragem_filtros_lavagem = total_combustivel_sobragem + total_combustivel_lavagem
+    total_lucro = total_resto - total_despesa2 - total_despesas_fixas - total_saidas_despesas
 
     # 🔹 Estatísticas por autocarro
     autocarros_stats = []
@@ -541,22 +543,12 @@ def dashboard(request):
         "total_saidas_registos": total_saidas_registos,
         "total_despesa_geral": total_despesa_geral,
         "total_saidas_despesas": total_saidas_despesas,
-        "total_variaveis": total_variaveis,
-        "total_saidas_sem_variaveis": total_saidas_sem_variaveis,
+        "total_despesa2": total_despesa2,
         "total_resto": total_resto,
-        "total_combustivel_valor": total_combustivel_valor,
-        # mostramos aqui o total de "alimentacao + outros" agregados no período
-        "total_alim_outros": registos.aggregate(
-            total=Sum(F("alimentacao") + F("outros"), output_field=DecimalField())
-        )["total"] or Decimal('0'),
-        "total_combustivel_litros": total_combustivel_litros,
-        "total_combustivel_sobragem": total_combustivel_sobragem,
-        "total_combustivel_lavagem": total_combustivel_lavagem,
-        "total_despesas_fixas": total_despesas_fixas,
+        "total_lucro": total_lucro,
         "autocarros_stats": autocarros_stats,
         "registos_recentes": registos_recentes,
         "max_saldo": max_saldo,
-        "total_sobragem_filtros_lavagem": total_sobragem_filtros_lavagem,
     }
     return render(request, "autocarros/dashboard.html", context)
 
@@ -3990,7 +3982,6 @@ def ajax_subcategorias(request):
 @login_required
 @acesso_restrito(['admin'])
 def despesa_list(request):
-
     def to_int(valor, padrao):
         try:
             return int(str(valor).replace(".", ""))
