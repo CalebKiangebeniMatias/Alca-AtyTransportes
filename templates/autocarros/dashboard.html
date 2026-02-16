@@ -172,7 +172,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Script para o gráfico de saldo -->
+    <!-- Script para o gráfico de PRODUÇÃO (cores diferentes) -->
     <script>
         document.addEventListener('DOMContentLoaded', function(){
             // 🔹 1. PEGAR O CANVAS
@@ -205,9 +205,9 @@
             const saidas   = toNumberRaw(container.dataset.saidas);
             const saldo    = toNumberRaw(container.dataset.saldo);
 
-            console.log('Valores do gráfico:', { entradas, saidas, saldo });
+            console.log('Valores do gráfico de Produção:', { entradas, saidas, saldo });
 
-            // 🔹 5. CRIAR O GRÁFICO
+            // 🔹 5. CRIAR O GRÁFICO COM CORES DIFERENTES
             new Chart(canvas, {
                 type: 'bar',
                 data: {
@@ -215,14 +215,14 @@
                     datasets: [{
                         data: [entradas, saidas, saldo],
                         backgroundColor: [
-                            'rgba(40, 167, 69, 0.7)',   // verde
-                            'rgba(220, 53, 69, 0.7)',   // vermelho
-                            'rgba(255, 193, 7, 0.7)'    // amarelo
+                            'rgba(40, 167, 69, 0.7)',    // verde para Entradas
+                            'rgba(220, 53, 69, 0.7)',    // vermelho para Saídas
+                            'rgba(23, 162, 184, 0.7)'    // azul ciano para Saldo
                         ],
                         borderColor: [
                             'rgba(40, 167, 69, 1)',
                             'rgba(220, 53, 69, 1)',
-                            'rgba(255, 193, 7, 1)'
+                            'rgba(23, 162, 184, 1)'
                         ],
                         borderWidth: 2,
                         borderRadius: 8
@@ -270,7 +270,7 @@
         });
     </script>
 
-    <!-- GRÁFICO DE LUCRO -->
+    <!-- GRÁFICO DE LUCRO (cores diferentes) -->
     <script>
         document.addEventListener('DOMContentLoaded', function(){
             // 🔹 1. PEGAR O CANVAS
@@ -303,9 +303,9 @@
             const despesas  = toNumberRaw(container.dataset.despesas);
             const lucro    = toNumberRaw(container.dataset.lucro);
 
-            console.log('Valores do gráfico:', { saldo, despesas, lucro });
+            console.log('Valores do gráfico de Lucro:', { saldo, despesas, lucro });
 
-            // 🔹 5. CRIAR O GRÁFICO
+            // 🔹 5. CRIAR O GRÁFICO COM CORES DIFERENTES
             new Chart(canvas, {
                 type: 'bar',
                 data: {
@@ -313,14 +313,14 @@
                     datasets: [{
                         data: [saldo, despesas, lucro],
                         backgroundColor: [
-                            'rgba(40, 167, 69, 0.7)',   // verde
-                            'rgba(220, 53, 69, 0.7)',   // vermelho
-                            'rgba(255, 193, 7, 0.7)'    // amarelo
+                            'rgba(255, 193, 7, 0.7)',    // amarelo/dourado para Saldo
+                            'rgba(253, 126, 20, 0.7)',   // laranja para Despesas
+                            'rgba(111, 66, 193, 0.7)'    // roxo para Lucro
                         ],
                         borderColor: [
-                            'rgba(40, 167, 69, 1)',
-                            'rgba(220, 53, 69, 1)',
-                            'rgba(255, 193, 7, 1)'
+                            'rgba(255, 193, 7, 1)',
+                            'rgba(253, 126, 20, 1)',
+                            'rgba(111, 66, 193, 1)'
                         ],
                         borderWidth: 2,
                         borderRadius: 8
@@ -368,10 +368,11 @@
         });
     </script>
 
+    <!-- Gráficos individuais por autocarro (CORRIGIDO com localize off) -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             {% for stats in autocarros_stats %}
-            
+            {% localize off %}
             new Chart(document.getElementById("chart-{{ stats.autocarro.id }}"), {
                 type: 'doughnut',
                 data: {
@@ -385,7 +386,8 @@
                             '#28a745',
                             '#dc3545'
                         ],
-                        borderWidth: 1
+                        borderWidth: 2,
+                        borderColor: '#1a1a2e'
                     }]
                 },
                 options: {
@@ -394,12 +396,26 @@
                     cutout: '60%',
                     plugins: {
                         legend: {
-                            position: 'bottom'
+                            position: 'bottom',
+                            labels: {
+                                color: '#fff',
+                                padding: 10,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed.toLocaleString('pt-PT') + ' Kz';
+                                }
+                            }
                         }
                     }
                 }
             });
-
+            {% endlocalize %}
             {% endfor %}
         });
     </script>

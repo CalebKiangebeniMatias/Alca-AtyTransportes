@@ -534,6 +534,7 @@ def dashboard(request):
         reg.saldo_liquido_incl_combustivel = reg.entradas_total() - reg.saidas_total_incl_combustivel
         registos_recentes.append(reg)
 
+
     context = {
         "ano": ano,
         "mes": f"{ano}-{mes:02d}",
@@ -543,7 +544,7 @@ def dashboard(request):
         "total_saidas_registos": total_saidas_registos,
         "total_despesa_geral": total_despesa_geral,
         "total_saidas_despesas": total_saidas_despesas,
-        "total_despesa2": total_despesa2_1,
+        "total_despesa2_1": total_despesa2_1,
         "total_despesas_fixas": total_despesas_fixas,
         "total_resto": total_resto,
         "total_lucro": total_lucro,
