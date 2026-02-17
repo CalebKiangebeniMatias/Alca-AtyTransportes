@@ -315,7 +315,7 @@
                         backgroundColor: [
                             'rgba(255, 193, 7, 0.7)',    // amarelo/dourado para Saldo
                             'rgba(253, 126, 20, 0.7)',   // laranja para Despesas
-                            'rgba(81, 193, 66, 0.7)'    // roxo para Lucro
+                            lucro >= 0 ? 'rgba(81, 193, 66, 0.7)' : 'rgba(255, 69, 69, 0.7)'    // verde para Lucro positivo, vermelho para negativo
                         ],
                         borderColor: [
                             'rgba(255, 193, 7, 1)',
