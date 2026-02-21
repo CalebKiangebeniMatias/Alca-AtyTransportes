@@ -393,6 +393,12 @@ def dashboard(request):
         total=Sum('despesa_geral', output_field=DecimalField())
     )['total'] or Decimal('0')
 
+    total_alimentacao_estaleiro = RelatorioSector.objects.filter(
+        data__year=ano,
+        data__month=mes
+    ).aggregate(
+        total=Sum('alimentacao_estaleiro', output_field=DecimalField())
+    )['total'] or Decimal('0')
 
     qs_fixas = DespesaFixa.objects.filter(ativo=True)
 
@@ -453,6 +459,7 @@ def dashboard(request):
             + total_combustivel_sobragem
             + total_combustivel_lavagem
             + total_despesa_geral
+            + total_alimentacao_estaleiro
     )
     total_resto = total_entradas - total_saidas
     total_despesa2_1 = total_despesa2 + total_despesas_fixas + total_saidas_despesas
@@ -4077,3 +4084,4 @@ def despesa_eliminar(request, pk):
     despesa = get_object_or_404(Despesa2, pk=pk)
     despesa.delete()
     return redirect("despesa_list")
+
