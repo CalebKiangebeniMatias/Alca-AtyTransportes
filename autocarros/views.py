@@ -373,7 +373,7 @@ def dashboard(request):
 
     total_saidas_registos = registos.aggregate(
         total=Sum(
-            F("alimentacao") + F("parqueamento") + F("taxa") + F("outros"),
+            F("alimentacao") + F("parqueamento") + F("taxi") + F("taxa") + F("outros"),
             output_field=DecimalField()
         )
     )["total"] or Decimal("0")
@@ -4084,5 +4084,6 @@ def despesa_eliminar(request, pk):
     despesa = get_object_or_404(Despesa2, pk=pk)
     despesa.delete()
     return redirect("despesa_list")
+
 
 
