@@ -133,7 +133,7 @@
                             <strong>Entradas:</strong> {% localize on %}{{ stats.total_entradas|floatformat:2 }}{% endlocalize %} Kz
                         </p>
                         <p class="text-danger">
-                            <strong>Despesas:</strong> {% localize on %}{{ stats.total_saidas|floatformat:2 }}{% endlocalize %} Kz
+                            <strong>Outas Despesas:</strong> {% localize on %}{{ stats.total_saidas|floatformat:2 }}{% endlocalize %} Kz
                         </p>
                         {% if stats.total_combustivel %}
                         <p class="text-danger">
@@ -421,5 +421,6 @@
             {% endfor %}
         });
     </script>
+
 
 {% endblock %}
