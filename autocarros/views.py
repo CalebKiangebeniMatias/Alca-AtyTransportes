@@ -513,10 +513,10 @@ def dashboard(request):
         comb_lav = stats['total_combustivel_lavagem']
 
         # incluir combustível e respetivas taxas nas saídas por autocarro
-        stats['total_saidas'] += stats['total_combustivel'] + comb_sobr + comb_lav
+        stats['total_saidas'] += comb_sobr + comb_lav
         # OBS: 'total_alim_outros' já faz parte de 'total_saidas' (porque veio de registos_auto agregados),
         # mas mantemos o campo separado para exibição no lugar de "litros".
-        stats["resto"] = stats["total_entradas"] - stats["total_saidas"]
+        stats["resto"] = stats["total_entradas"] - stats["total_saidas"] - stats['total_combustivel']
 
         autocarros_stats.append(stats)
 
@@ -4084,6 +4084,7 @@ def despesa_eliminar(request, pk):
     despesa = get_object_or_404(Despesa2, pk=pk)
     despesa.delete()
     return redirect("despesa_list")
+
 
 
 
