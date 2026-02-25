@@ -1,1 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
 
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">
+                {% if object %}
+                    Editar Motorista
+                {% else %}
+                    Novo Motorista
+                {% endif %}
+            </h4>
+        </div>
+
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label">Nome</label>
+                    {{ form.nome }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Telefone</label>
+                    {{ form.telefone }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Número BI</label>
+                    {{ form.numero_bi }}
+                </div>
+
+                <div class="form-check mb-3">
+                    {{ form.ativo }}
+                    <label class="form-check-label">
+                        Ativo
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    Salvar
+                </button>
+                <a href="{% url 'motorista_list' %}" class="btn btn-secondary">
+                    Cancelar
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
