@@ -421,3 +421,19 @@ class DespesaForm2(forms.ModelForm):
                     categoria=self.instance.categoria
                 )
             )
+
+
+# Cadastro dos motoristas
+from django import forms
+from .models import Motorista
+
+class MotoristaForm(forms.ModelForm):
+    class Meta:
+        model = Motorista
+        fields = ['nome', 'telefone', 'numero_bi', 'ativo']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'telefone': forms.TextInput(attrs={'class': 'form-control'}),
+            'numero_bi': forms.TextInput(attrs={'class': 'form-control'}),
+            'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
