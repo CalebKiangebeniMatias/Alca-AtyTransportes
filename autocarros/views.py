@@ -955,6 +955,10 @@ def resumo_sector(request, slug):
         total=Sum("taxa", output_field=DecimalField())
     )["total"] or Decimal('0')
 
+    total_taxis = registos.aggregate(
+        total=Sum("taxi", output_field=DecimalField())
+    )["total"] or Decimal('0')
+
     total_km = registos.aggregate(Sum("km_percorridos"))["km_percorridos__sum"] or 0
     total_passageiros = registos.aggregate(Sum("numero_passageiros"))["numero_passageiros__sum"] or 0
     total_viagens = registos.aggregate(Sum("numero_viagens"))["numero_viagens__sum"] or 0
@@ -1014,6 +1018,7 @@ def resumo_sector(request, slug):
         + total_despesas_fixas
         + despesa_geral_total
         + total_taxas
+        + total_taxis
     )
 
     resto = total_entradas - total_saidas_final
@@ -1026,7 +1031,7 @@ def resumo_sector(request, slug):
             total=Sum(F("normal") + F("alunos") + F("luvu") + F("frete"), output_field=DecimalField())
         )["total"] or Decimal('0')
         saidas_auto = registos_auto.aggregate(
-            total=Sum(F("alimentacao") + F("parqueamento") + F("taxa") + F("outros"), output_field=DecimalField())
+            total=Sum(F("alimentacao") + F("parqueamento") + F("taxi") + F("taxa") + F("outros"), output_field=DecimalField())
         )["total"] or Decimal('0')
 
         comb_auto = combustivel_qs.filter(autocarro=autocarro).aggregate(
@@ -1105,6 +1110,7 @@ def resumo_sector(request, slug):
         "total_despesas_fixas": total_despesas_fixas,
         "despesa_geral_total": despesa_geral_total,
         "total_taxas": total_taxas,
+        "total_taxis": total_taxis,
         "whatsapp_message": whatsapp_text,
         "whatsapp_link": whatsapp_link,
     }
@@ -4084,6 +4090,7 @@ def despesa_eliminar(request, pk):
     despesa = get_object_or_404(Despesa2, pk=pk)
     despesa.delete()
     return redirect("despesa_list")
+
 
 
 
