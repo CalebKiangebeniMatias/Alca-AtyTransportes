@@ -1,1 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
 
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h3>Lista de Motoristas</h3>
+        <a href="{% url 'motorista_create' %}" class="btn btn-success">
+            + Novo Motorista
+        </a>
+    </div>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Nome</th>
+                <th>Telefone</th>
+                <th>BI</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for motorista in motoristas %}
+            <tr>
+                <td>{{ motorista.nome }}</td>
+                <td>{{ motorista.telefone }}</td>
+                <td>{{ motorista.numero_bi }}</td>
+                <td>
+                    {% if motorista.ativo %}
+                        <span class="badge bg-success">Ativo</span>
+                    {% else %}
+                        <span class="badge bg-danger">Inativo</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'motorista_update' motorista.pk %}" 
+                       class="btn btn-sm btn-primary">
+                       Editar
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center">
+                    Nenhum motorista cadastrado.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
