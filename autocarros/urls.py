@@ -151,7 +151,11 @@ urlpatterns = [
     path('depositos/<int:pk>/edit/', views.depositos_edit, name='depositos_edit'),
     path('depositos/delete/', views.depositos_delete, name='depositos_delete'),
 
-
+    # Motoristas
+    path('motoristas/', MotoristaListView.as_view(), name='motorista_list'),
+    path('motoristas/novo/', MotoristaCreateView.as_view(), name='motorista_create'),
+    path('motoristas/<int:pk>/editar/', MotoristaUpdateView.as_view(), name='motorista_update'),
+    
     #Mapas
     path('mapas/mensal-financeiro/', views.mapa_geral_financeiro, name='mapa_geral_financeiro'),
 
@@ -161,3 +165,4 @@ urlpatterns = [
 # Servir arquivos de mídia em modo DEBUG
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
