@@ -4110,13 +4110,14 @@ class MotoristaCreateView(CreateView):
     model = Motorista
     form_class = MotoristaForm
     template_name = 'cobradores/motoristas_form.html'
-    success_url = reverse_lazy('motoristas_list')
+    success_url = reverse_lazy('motorista_list')
 
 
 class MotoristaUpdateView(UpdateView):
     model = Motorista
     form_class = MotoristaForm
     template_name = 'cobradores/motoristas_form.html'
-    success_url = reverse_lazy('motoristas_list')
+    success_url = reverse_lazy('motorista_list')
+
 
 
