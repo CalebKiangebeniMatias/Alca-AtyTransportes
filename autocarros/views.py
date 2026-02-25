@@ -4099,7 +4099,6 @@ from django.views.generic import ListView, CreateView, UpdateView
 from .models import Motorista
 from .forms import MotoristaForm
 
-
 class MotoristaListView(ListView):
     model = Motorista
     template_name = 'cobradores/motorista_list.html'
@@ -4119,5 +4118,4 @@ class MotoristaUpdateView(UpdateView):
     form_class = MotoristaForm
     template_name = 'cobradores/motorista_form.html'
     success_url = reverse_lazy('motorista_list')
-
 
