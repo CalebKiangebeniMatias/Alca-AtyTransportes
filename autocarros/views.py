@@ -4101,7 +4101,7 @@ from .forms import MotoristaForm
 
 class MotoristaListView(ListView):
     model = Motorista
-    template_name = 'cobradores/motorista_list.html'
+    template_name = 'cobradores/motoristas_list.html'
     context_object_name = 'motoristas'
     ordering = ['nome']
 
@@ -4109,13 +4109,14 @@ class MotoristaListView(ListView):
 class MotoristaCreateView(CreateView):
     model = Motorista
     form_class = MotoristaForm
-    template_name = 'cobradores/motorista_form.html'
-    success_url = reverse_lazy('motorista_list')
+    template_name = 'cobradores/motoristas_form.html'
+    success_url = reverse_lazy('motoristas_list')
 
 
 class MotoristaUpdateView(UpdateView):
     model = Motorista
     form_class = MotoristaForm
-    template_name = 'cobradores/motorista_form.html'
-    success_url = reverse_lazy('motorista_list')
+    template_name = 'cobradores/motoristas_form.html'
+    success_url = reverse_lazy('motoristas_list')
+
 
