@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+
+<h3 class="mb-4">📊 Comparação Registo vs Depósito</h3>
+
+<form method="get" class="row mb-4">
+
+    <div class="col-md-3">
+        <label>Sector</label>
+        <select name="sector" class="form-control">
+            <option value="">Todos</option>
+            {% for s in sectores %}
+                <option value="{{ s.id }}" {% if sector_id == s.id|stringformat:"s" %}selected{% endif %}>
+                    {{ s.nome }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label>Ano</label>
+        <input type="number" name="year" value="{{ year }}" class="form-control">
+    </div>
+
+    <div class="col-md-2">
+        <label>Mês</label>
+        <input type="number" name="month" value="{{ month }}" min="1" max="12" class="form-control">
+    </div>
+
+    <div class="col-md-2 align-self-end">
+        <button class="btn btn-primary w-100">Filtrar</button>
+    </div>
+
+</form>
+
+
+<div class="table-responsive">
+<table class="table table-bordered table-striped">
+    <thead class="table-dark text-center">
+        <tr>
+            <th>Data</th>
+            <th>Sector</th>
+            <th>Entrada</th>
+            <th>Saída</th>
+            <th>Resto</th>
+            <th>Depositado</th>
+            <th>Diferença</th>
+        </tr>
+    </thead>
+    <tbody class="text-center">
+        {% for item in dados %}
+        <tr>
+            <td>{{ item.data|date:"d/m/Y" }}</td>
+            <td>{{ item.sector.nome }}</td>
+            <td>{{ item.entrada|intcomma }} kz</td>
+            <td>{{ item.saida|intcomma }} kz</td>
+            <td class="fw-bold">{{ item.resto|intcomma }} kz</td>
+            <td>{{ item.depositado|intcomma }} kz</td>
+
+            <td class="
+                {% if item.diferenca > 500 or item.diferenca < -500 %}
+                    text-danger fw-bold
+                {% else %}
+                    text-success
+                {% endif %}
+            ">
+                {{ item.diferenca|intcomma }} kz
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">Sem dados no período selecionado.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+    <tfoot class="table-secondary text-center fw-bold">
+        <tr>
+            <td colspan="2">TOTAL</td>
+            <td>{{ total_entrada|intcomma }} kz</td>
+            <td>{{ total_saida|intcomma }} kz</td>
+            <td>{{ total_resto|intcomma }} kz</td>
+            <td>{{ total_depositado|intcomma }} kz</td>
+            <td>{{ total_diferenca|intcomma }} kz</td>
+        </tr>
+    </tfoot>
+
+</table>
+</div>
+
+{% endblock %}

@@ -161,6 +161,12 @@ urlpatterns = [
     path('motoristas/', MotoristaListView.as_view(), name='motorista_list'),
     path('motoristas/novo/', MotoristaCreateView.as_view(), name='motorista_create'),
     path('motoristas/<int:pk>/editar/', MotoristaUpdateView.as_view(), name='motorista_update'),
+
+    # Comparação Registo vs Depósito
+    path('comparacao-registo-deposito/',
+        views.comparacao_registo_deposito,
+        name='comparacao_registo_deposito'
+    ),
     
     #Mapas
     path('mapas/mensal-financeiro/', views.mapa_geral_financeiro, name='mapa_geral_financeiro'),

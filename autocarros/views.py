@@ -4119,5 +4119,104 @@ class MotoristaUpdateView(UpdateView):
     template_name = 'cobradores/motoristas_form.html'
     success_url = reverse_lazy('motorista_list')
 
+# Comparação Registo vs Depósito feito em 2026
+from django.db.models import Sum
+from django.utils import timezone
+from decimal import Decimal
+from calendar import monthrange
+from django.contrib.auth.decorators import login_required
 
+@login_required
+def comparacao_registo_deposito(request):
+    hoje = timezone.now().date()
 
+    sector_id = request.GET.get('sector')
+    year = request.GET.get('year')
+    month = request.GET.get('month')
+
+    # defaults
+    if not year:
+        year = hoje.year
+    if not month:
+        month = hoje.month
+
+    year = int(year)
+    month = int(month)
+
+    # intervalo do mês
+    ultimo_dia = monthrange(year, month)[1]
+
+    data_inicio = f"{year}-{month:02d}-01"
+    data_fim = f"{year}-{month:02d}-{ultimo_dia}"
+
+    # filtros base
+    registros = RegistoDiario.objects.filter(
+        data__range=[data_inicio, data_fim]
+    ).select_related('autocarro__sector')
+
+    depositos = Deposito.objects.filter(
+        data_deposito__year=year,
+        data_deposito__month=month
+    )
+
+    if sector_id:
+        registros = registros.filter(autocarro__sector_id=sector_id)
+        depositos = depositos.filter(sector_id=sector_id)
+
+    # 🔹 AGRUPAR POR DATA + SECTOR
+    resultado = {}
+
+    for reg in registros:
+        chave = (reg.data, reg.autocarro.sector.id)
+
+        if chave not in resultado:
+            resultado[chave] = {
+                'data': reg.data,
+                'sector': reg.autocarro.sector,
+                'entrada': Decimal('0'),
+                'saida': Decimal('0'),
+                'resto': Decimal('0'),
+                'depositado': Decimal('0'),
+                'diferenca': Decimal('0'),
+            }
+
+        entrada = reg.entradas_total()
+        saida = reg.saidas_total()
+        saldo = entrada - saida
+
+        resultado[chave]['entrada'] += entrada
+        resultado[chave]['saida'] += saida
+        resultado[chave]['resto'] += saldo
+
+    # 🔹 SOMAR DEPÓSITOS
+    for dep in depositos:
+        for chave in resultado:
+            data, sector_pk = chave
+            if data == dep.data_deposito and sector_pk == dep.sector_id:
+                resultado[chave]['depositado'] += dep.valor
+
+    # 🔹 CALCULAR DIFERENÇA
+    for chave, item in resultado.items():
+        item['diferenca'] = item['resto'] - item['depositado']
+
+    # Totais gerais
+    total_entrada = sum(i['entrada'] for i in resultado.values())
+    total_saida = sum(i['saida'] for i in resultado.values())
+    total_resto = sum(i['resto'] for i in resultado.values())
+    total_depositado = sum(i['depositado'] for i in resultado.values())
+    total_diferenca = sum(i['diferenca'] for i in resultado.values())
+
+    context = {
+        'dados': sorted(resultado.values(), key=lambda x: x['data'], reverse=True),
+        'sectores': Sector.objects.all(),
+        'sector_id': sector_id,
+        'year': year,
+        'month': month,
+        'total_entrada': total_entrada,
+        'total_saida': total_saida,
+        'total_resto': total_resto,
+        'total_depositado': total_depositado,
+        'total_diferenca': total_diferenca,
+    }
+
+    return render(request, 'financeiro/comparacao_registo_deposito.html', context)

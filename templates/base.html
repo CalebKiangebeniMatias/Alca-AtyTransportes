@@ -530,7 +530,7 @@
                 <a href="{% url 'perfil' %}" class="btn-flutuante" title="Ver Perfil">
                     <i class="fas fa-user"></i>
                 </a>
-                <a href="{% url 'cobrador_viagens' %}" class="btn-flutuante" title="Viagens Cobrador">
+                <a href="{% url '' %}" class="btn-flutuante" title="Viagens Cobrador">
                     <i class="fas fa-gavel"></i>
                 </a>
                 <a href="#" class="btn-flutuante" title="Outros">
@@ -646,6 +646,12 @@
                                     <i class="fas fa-tools me-2 text-danger"></i> Atualizar Estado
                                 </a>
                             </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'motorista_list' %}">
+                                    <i class="fas fa-person me-2 text-secondary"></i> Listar Motoristas
+                                </a>
+                            </li>
+
                         </ul>
                     </div>
 
@@ -664,12 +670,6 @@
                             <li>
                                 <a class="dropdown-item d-flex align-items-center" href="{% url 'listar_registros' %}">
                                     <i class="fas fa-map me-2 text-secondary"></i> Mapas Anuais
-                                </a>
-                            </li>
-
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center" href="{% url 'motorista_list' %}">
-                                    <i class="fas fa-person me-2 text-secondary"></i> Listar Motoristas
                                 </a>
                             </li>
 
