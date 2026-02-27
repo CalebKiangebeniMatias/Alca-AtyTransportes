@@ -3683,7 +3683,7 @@ from .decorators import acesso_restrito
     return min(semana, 4)"""
 
 # Resovido problema de primeira semana começar no domingo
-def semana_do_mes_4colunas(data):
+"""def semana_do_mes_4colunas(data):
     primeiro_dia = data.replace(day=1)
 
     if primeiro_dia.weekday() == 6:  # domingo
@@ -3699,8 +3699,33 @@ def semana_do_mes_4colunas(data):
     dias_apos = (data - fim_primeira_semana).days
     semana = 2 + ((dias_apos - 1) // 7)
 
-    return min(semana, 4)
+    return min(semana, 4)"""
 
+from datetime import timedelta
+
+def semana_do_mes_4colunas(data):
+    primeiro_dia = data.replace(day=1)
+
+    # 🔹 Descobrir fim da primeira semana natural (domingo)
+    dias_ate_domingo = (6 - primeiro_dia.weekday()) % 7
+    fim_primeira_semana = primeiro_dia + timedelta(days=dias_ate_domingo)
+
+    # 🔹 Quantos dias tem essa primeira semana
+    total_dias_primeira_semana = (fim_primeira_semana - primeiro_dia).days + 1
+
+    # 🔴 REGRA: se tiver 3 dias ou menos, juntar com a próxima
+    if total_dias_primeira_semana <= 3:
+        fim_primeira_semana = fim_primeira_semana + timedelta(days=7)
+
+    # 🔹 Se a data estiver dentro da primeira semana ajustada
+    if data <= fim_primeira_semana:
+        return 1
+
+    # 🔹 Calcular semanas seguintes
+    dias_apos = (data - fim_primeira_semana).days
+    semana = 2 + ((dias_apos - 1) // 7)
+
+    return min(semana, 4)
 
 # ================================
 # MAPA GERAL FINANCEIRO

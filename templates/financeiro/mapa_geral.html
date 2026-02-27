@@ -416,342 +416,364 @@
       </div>
     </form>
 
-    <div class="table-container">
+  <!-- ============================================================
+      INSTRUÇÕES: Substitua TODO o bloco abaixo no seu template
+      (desde o primeiro <div class="table-container"> até </div>
+      que fecha o page-container, incluindo os scripts)
+      ============================================================ -->
 
-    <div style="background:white; padding:20px; border-radius:8px; margin-bottom:25px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
-      <h4 style="text-align:center; margin-bottom:20px;">📊 Resumo Financeiro Semanal</h4>
-      <canvas id="graficoSemanal" height="120"></canvas>
-    </div>
-
-    <!-- ===== TABLE ===== -->
-    <div class="table-container">
-      <table class="mapa-financeiro">
-        <thead>
-          <!-- Location Header -->
-          <tr>
-            <th class="header-location" colspan="6">
-              {% if sector %}
-                {{ sector.nome }}
-              {% else %}
-                M`BANZA KONGO-SOYO-LUANDA
-              {% endif %}
-            </th>
-          </tr>
-          
-          <!-- Title and Month -->
-          <tr>
-            <th class="header-title" rowspan="2">CONTROLO FINANCEIRO<br>MAPA GERAL</th>
-            <th class="header-month" colspan="4">
-              {% if mes == 1 %}JANEIRO{% endif %}
-              {% if mes == 2 %}FEVEREIRO{% endif %}
-              {% if mes == 3 %}MARÇO{% endif %}
-              {% if mes == 4 %}ABRIL{% endif %}
-              {% if mes == 5 %}MAIO{% endif %}
-              {% if mes == 6 %}JUNHO{% endif %}
-              {% if mes == 7 %}JULHO{% endif %}
-              {% if mes == 8 %}AGOSTO{% endif %}
-              {% if mes == 9 %}SETEMBRO{% endif %}
-              {% if mes == 10 %}OUTUBRO{% endif %}
-              {% if mes == 11 %}NOVEMBRO{% endif %}
-              {% if mes == 12 %}DEZEMBRO{% endif %}
-              / {{ ano|intcomma }}
-            </th>
-            <th class="header-title" rowspan="2">TOTAL MENSAL</th>
-          </tr>
-          
-          <!-- Week Headers -->
-          <tr>
-            <th class="header-weeks">1ª SEMANA</th>
-            <th class="header-weeks">2ª SEMANA</th>
-            <th class="header-weeks">3ª SEMANA</th>
-            <th class="header-weeks">4ª SEMANA</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <!-- ===== INCOME SECTION ===== -->
-          <tr class="row-income">
-            <td class="row-label">MANHÃ/LAVRA/NORMAL</td>
-            <td>{{ semanas.1.entradas.normal|intcomma }} Kz</td>
-            <td>{{ semanas.2.entradas.normal|intcomma }} Kz</td>
-            <td>{{ semanas.3.entradas.normal|intcomma }} Kz</td>
-            <td>{{ semanas.4.entradas.normal|intcomma }} Kz</td>
-            <td>{{ total_entradas_normal|intcomma }} Kz</td>
-          </tr>
-
-          <tr class="row-income">
-            <td class="row-label">FRETE/ALUGUEL</td>
-            <td>{{ semanas.1.entradas.frete|intcomma }} Kz</td>
-            <td>{{ semanas.2.entradas.frete|intcomma }} Kz</td>
-            <td>{{ semanas.3.entradas.frete|intcomma }} Kz</td>
-            <td>{{ semanas.4.entradas.frete|intcomma }} Kz</td>
-            <td>{{ total_entradas_frete|intcomma }} Kz</td>
-          </tr>
-
-          <tr class="row-income">
-            <td class="row-label">ALUNOS/TARDE</td>
-            <td>{{ semanas.1.entradas.alunos|intcomma }} Kz</td>
-            <td>{{ semanas.2.entradas.alunos|intcomma }} Kz</td>
-            <td>{{ semanas.3.entradas.alunos|intcomma }} Kz</td>
-            <td>{{ semanas.4.entradas.alunos|intcomma }} Kz</td>
-            <td>{{ total_entradas_alunos|intcomma }} Kz</td>
-          </tr>
-
-          <tr class="row-income">
-            <td class="row-label">LUVU</td>
-            <td>{{ semanas.1.entradas.luvu|intcomma }} Kz</td>
-            <td>{{ semanas.2.entradas.luvu|intcomma }} Kz</td>
-            <td>{{ semanas.3.entradas.luvu|intcomma }} Kz</td>
-            <td>{{ semanas.4.entradas.luvu|intcomma }} Kz</td>
-            <td>{{ total_entradas_luvu|intcomma }} Kz</td>
-          </tr>
-
-          <tr class="total-income">
-            <td class="row-label"><strong>TOTAL</strong></td>
-            <td>{{ semanas.1.entradas.total|intcomma }} Kz</td>
-            <td>{{ semanas.2.entradas.total|intcomma }} Kz</td>
-            <td>{{ semanas.3.entradas.total|intcomma }} Kz</td>
-            <td>{{ semanas.4.entradas.total|intcomma }} Kz</td>
-            <td>{{ total_entradas|intcomma }} Kz</td>
-          </tr>
-
-          <!-- ===== EXPENSES SECTION ===== -->
-          <tr class="section-expenses">
-            <td colspan="6">DESPESAS FIXAS</td>
-          </tr>
-
-          <tr class="row-expense">
-            <td class="row-label">COMBÚSTIVEL AUTOCARROS</td>
-            <td>{{ semanas.1.despesas.combustivel|intcomma }} Kz</td>
-            <td>{{ semanas.2.despesas.combustivel|intcomma }} Kz</td>
-            <td>{{ semanas.3.despesas.combustivel|intcomma }} Kz</td>
-            <td>{{ semanas.4.despesas.combustivel|intcomma }} Kz</td>
-            <td>{{ total_despesas_combustivel|intcomma }} Kz</td>
-          </tr>
-
-          <tr class="row-expense">
-            <td class="row-label">ALIMENTAÇÃO MOTORISTAS E COBRAD</td>
-            <td>{{ semanas.1.despesas.alimentacao|intcomma }} Kz</td>
-            <td>{{ semanas.2.despesas.alimentacao|intcomma }} Kz</td>
-            <td>{{ semanas.3.despesas.alimentacao|intcomma }} Kz</td>
-            <td>{{ semanas.4.despesas.alimentacao|intcomma }} Kz</td>
-            <td>{{ total_despesas_alimentacao|intcomma }} Kz</td>
-          </tr>
-
-          <tr class="row-expense">
-            <td class="row-label">TRANSPORTE MOTORISTAS/COBRAD/OUTROS</td>
-            <td>{{ semanas.1.despesas.taxi|intcomma }} Kz</td>
-            <td>{{ semanas.2.despesas.taxi|intcomma }} Kz</td>
-            <td>{{ semanas.3.despesas.taxi|intcomma }} Kz</td>
-            <td>{{ semanas.4.despesas.taxi|intcomma }} Kz</td>
-            <td>{{ total_despesas_taxi|intcomma }} Kz</td>
-          </tr>
-
-          <tr class="row-expense">
-            <td class="row-label">LAVAGEM</td>
-            <td>{{ semanas.1.despesas.lavagem|intcomma }} Kz</td>
-            <td>{{ semanas.2.despesas.lavagem|intcomma }} Kz</td>
-            <td>{{ semanas.3.despesas.lavagem|intcomma }} Kz</td>
-            <td>{{ semanas.4.despesas.lavagem|intcomma }} Kz</td>
-            <td>{{ total_despesas_lavagem|intcomma }} Kz</td>
-          </tr>
-
-          <tr class="row-expense">
-            <td class="row-label">SOPRAGENS DE FILTROS</td>
-            <td>{{ semanas.1.despesas.sopragem|intcomma }} Kz</td>
-            <td>{{ semanas.2.despesas.sopragem|intcomma }} Kz</td>
-            <td>{{ semanas.3.despesas.sopragem|intcomma }} Kz</td>
-            <td>{{ semanas.4.despesas.sopragem|intcomma }} Kz</td>
-            <td>{{ total_despesas_sopragem|intcomma }} Kz</td>
-          </tr>
-
-          <tr class="row-expense">
-            <td class="row-label">TAXA LOTAÇÃO</td>
-            <td>{{ semanas.1.despesas.taxa|intcomma }} Kz</td>
-            <td>{{ semanas.2.despesas.taxa|intcomma }} Kz</td>
-            <td>{{ semanas.3.despesas.taxa|intcomma }} Kz</td>
-            <td>{{ semanas.4.despesas.taxa|intcomma }} Kz</td>
-            <td>{{ total_despesas_taxa|intcomma }} Kz</td>
-          </tr>
-
-          <tr class="row-expense">
-            <td class="row-label">SEGURANÇA/PARQUE</td>
-            <td>{{ semanas.1.despesas.parqueamento|intcomma }} Kz</td>
-            <td>{{ semanas.2.despesas.parqueamento|intcomma }} Kz</td>
-            <td>{{ semanas.3.despesas.parqueamento|intcomma }} Kz</td>
-            <td>{{ semanas.4.despesas.parqueamento|intcomma }} Kz</td>
-            <td>{{ total_despesas_parqueamento|intcomma }} Kz</td>
-          </tr>
-
-          <tr class="row-expense">
-            <td class="row-label">OUTROS</td>
-            <td>{{ semanas.1.despesas.outros|intcomma }} Kz</td>
-            <td>{{ semanas.2.despesas.outros|intcomma }} Kz</td>
-            <td>{{ semanas.3.despesas.outros|intcomma }} Kz</td>
-            <td>{{ semanas.4.despesas.outros|intcomma }} Kz</td>
-            <td>{{ total_despesas_outros|intcomma }} Kz</td>
-          </tr>
-
-          <tr class="row-expense">
-            <td class="row-label">DESPESA FEITA NA PRODUÇÃO</td>
-            <td>{{ semanas.1.despesas.despesa_geral|intcomma }} Kz</td>
-            <td>{{ semanas.2.despesas.despesa_geral|intcomma }} Kz</td>
-            <td>{{ semanas.3.despesas.despesa_geral|intcomma }} Kz</td>
-            <td>{{ semanas.4.despesas.despesa_geral|intcomma }} Kz</td>
-            <td>{{ total_despesa_geral|intcomma }} Kz</td>
-          </tr>
-
-          <tr class="row-expense">
-            <td class="row-label">ALIMENTAÇÃO DO ESTALEIRO</td>
-            <td>{{ semanas.1.despesas.alimentacao_estaleiro|intcomma }} Kz</td>
-            <td>{{ semanas.2.despesas.alimentacao_estaleiro|intcomma }} Kz</td>
-            <td>{{ semanas.3.despesas.alimentacao_estaleiro|intcomma }} Kz</td>
-            <td>{{ semanas.4.despesas.alimentacao_estaleiro|intcomma }} Kz</td>
-            <td>{{ total_despesa_alimentacao_estaleiro|intcomma }} Kz</td>
-          </tr>
-
-
-          <tr class="total-expense">
-            <td class="row-label"><strong>TOTAL</strong></td>
-            <td>{{ semanas.1.despesas.total|intcomma }} Kz</td>
-            <td>{{ semanas.2.despesas.total|intcomma }} Kz</td>
-            <td>{{ semanas.3.despesas.total|intcomma }} Kz</td>
-            <td>{{ semanas.4.despesas.total|intcomma }} Kz</td>
-            <td>{{ total_despesas|intcomma }} Kz</td>
-          </tr>
-
-          <!-- ===== WEEKLY BALANCE ===== -->
-          <tr class="total-balance">
-            <td class="row-label"><strong>SALDO SEMANAL</strong></td>
-            <td>{{ semanas.1.saldo|intcomma }} Kz</td>
-            <td>{{ semanas.2.saldo|intcomma }} Kz</td>
-            <td>{{ semanas.3.saldo|intcomma }} Kz</td>
-            <td>{{ semanas.4.saldo|intcomma }} Kz</td>
-            <td>{{ saldo_liquido|intcomma }} Kz</td>
-          </tr>
-
-          <!-- ===== SUMMARY ===== -->
-          <tr class="summary-income">
-            <td class="row-label"><strong>ENTRADAS GERAIS</strong></td>
-            <td colspan="4"></td>
-            <td>{{ total_entradas|intcomma }} Kz</td>
-          </tr>
-
-          <tr class="summary-expense">
-            <td class="row-label"><strong>DESPESAS FIXAS E VARIÁVEIS</strong></td>
-            <td colspan="4"></td>
-            <td>{{ total_despesas|intcomma }} Kz</td>
-          </tr>
-
-          <tr class="summary-balance">
-            <td class="row-label"><strong>SALDO LÍQUIDO</strong></td>
-            <td colspan="4"></td>
-            <td>{{ saldo_liquido|intcomma }} Kz</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  <!-- ===== GRÁFICO SEMANAL ===== -->
+  <div style="background:white; padding:20px; border-radius:8px; margin-bottom:25px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+    <h4 style="text-align:center; margin-bottom:20px;">📊 Resumo Financeiro Semanal</h4>
+    <canvas id="graficoSemanal" height="120"></canvas>
   </div>
 
+  <!-- ===== TABLE ===== -->
+  <div class="table-container">
+    <table class="mapa-financeiro">
+      <thead>
+        <tr>
+          <th class="header-location" colspan="6">
+            {% if sector %}
+              {{ sector.nome }}
+            {% else %}
+              M`BANZA KONGO-SOYO-LUANDA
+            {% endif %}
+          </th>
+        </tr>
+        
+        <tr>
+          <th class="header-title" rowspan="2">CONTROLO FINANCEIRO<br>MAPA GERAL</th>
+          <th class="header-month" colspan="4">
+            {% if mes == 1 %}JANEIRO{% endif %}
+            {% if mes == 2 %}FEVEREIRO{% endif %}
+            {% if mes == 3 %}MARÇO{% endif %}
+            {% if mes == 4 %}ABRIL{% endif %}
+            {% if mes == 5 %}MAIO{% endif %}
+            {% if mes == 6 %}JUNHO{% endif %}
+            {% if mes == 7 %}JULHO{% endif %}
+            {% if mes == 8 %}AGOSTO{% endif %}
+            {% if mes == 9 %}SETEMBRO{% endif %}
+            {% if mes == 10 %}OUTUBRO{% endif %}
+            {% if mes == 11 %}NOVEMBRO{% endif %}
+            {% if mes == 12 %}DEZEMBRO{% endif %}
+            / {{ ano|intcomma }}
+          </th>
+          <th class="header-title" rowspan="2">TOTAL MENSAL</th>
+        </tr>
+        
+        <tr>
+          <th class="header-weeks">1ª SEMANA</th>
+          <th class="header-weeks">2ª SEMANA</th>
+          <th class="header-weeks">3ª SEMANA</th>
+          <th class="header-weeks">4ª SEMANA</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <!-- ENTRADAS -->
+        <tr>
+          <td colspan="6" class="section-income">ENTRADAS</td>
+        </tr>
+
+        <tr class="row-income">
+          <td class="row-label">MANHÃ/LAVRA/NORMAL</td>
+          <td>{{ semanas.1.entradas.normal|intcomma }} Kz</td>
+          <td>{{ semanas.2.entradas.normal|intcomma }} Kz</td>
+          <td>{{ semanas.3.entradas.normal|intcomma }} Kz</td>
+          <td>{{ semanas.4.entradas.normal|intcomma }} Kz</td>
+          <td>{{ total_entradas_normal|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="row-income">
+          <td class="row-label">FRETE/ALUGUEL</td>
+          <td>{{ semanas.1.entradas.frete|intcomma }} Kz</td>
+          <td>{{ semanas.2.entradas.frete|intcomma }} Kz</td>
+          <td>{{ semanas.3.entradas.frete|intcomma }} Kz</td>
+          <td>{{ semanas.4.entradas.frete|intcomma }} Kz</td>
+          <td>{{ total_entradas_frete|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="row-income">
+          <td class="row-label">ALUNOS/TARDE</td>
+          <td>{{ semanas.1.entradas.alunos|intcomma }} Kz</td>
+          <td>{{ semanas.2.entradas.alunos|intcomma }} Kz</td>
+          <td>{{ semanas.3.entradas.alunos|intcomma }} Kz</td>
+          <td>{{ semanas.4.entradas.alunos|intcomma }} Kz</td>
+          <td>{{ total_entradas_alunos|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="row-income">
+          <td class="row-label">LUVU</td>
+          <td>{{ semanas.1.entradas.luvu|intcomma }} Kz</td>
+          <td>{{ semanas.2.entradas.luvu|intcomma }} Kz</td>
+          <td>{{ semanas.3.entradas.luvu|intcomma }} Kz</td>
+          <td>{{ semanas.4.entradas.luvu|intcomma }} Kz</td>
+          <td>{{ total_entradas_luvu|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="total-income">
+          <td class="row-label"><strong>TOTAL ENTRADAS</strong></td>
+          <td>{{ semanas.1.entradas.total|intcomma }} Kz</td>
+          <td>{{ semanas.2.entradas.total|intcomma }} Kz</td>
+          <td>{{ semanas.3.entradas.total|intcomma }} Kz</td>
+          <td>{{ semanas.4.entradas.total|intcomma }} Kz</td>
+          <td>{{ total_entradas|intcomma }} Kz</td>
+        </tr>
+
+        <!-- DESPESAS -->
+        <tr>
+          <td colspan="6" class="section-expenses">DESPESAS FIXAS</td>
+        </tr>
+
+        <tr class="row-expense">
+          <td class="row-label">COMBÚSTIVEL AUTOCARROS</td>
+          <td>{{ semanas.1.despesas.combustivel|intcomma }} Kz</td>
+          <td>{{ semanas.2.despesas.combustivel|intcomma }} Kz</td>
+          <td>{{ semanas.3.despesas.combustivel|intcomma }} Kz</td>
+          <td>{{ semanas.4.despesas.combustivel|intcomma }} Kz</td>
+          <td>{{ total_despesas_combustivel|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="row-expense">
+          <td class="row-label">ALIMENTAÇÃO MOTORISTAS E COBRAD</td>
+          <td>{{ semanas.1.despesas.alimentacao|intcomma }} Kz</td>
+          <td>{{ semanas.2.despesas.alimentacao|intcomma }} Kz</td>
+          <td>{{ semanas.3.despesas.alimentacao|intcomma }} Kz</td>
+          <td>{{ semanas.4.despesas.alimentacao|intcomma }} Kz</td>
+          <td>{{ total_despesas_alimentacao|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="row-expense">
+          <td class="row-label">TRANSPORTE MOTORISTAS/COBRAD/OUTROS</td>
+          <td>{{ semanas.1.despesas.taxi|intcomma }} Kz</td>
+          <td>{{ semanas.2.despesas.taxi|intcomma }} Kz</td>
+          <td>{{ semanas.3.despesas.taxi|intcomma }} Kz</td>
+          <td>{{ semanas.4.despesas.taxi|intcomma }} Kz</td>
+          <td>{{ total_despesas_taxi|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="row-expense">
+          <td class="row-label">LAVAGEM</td>
+          <td>{{ semanas.1.despesas.lavagem|intcomma }} Kz</td>
+          <td>{{ semanas.2.despesas.lavagem|intcomma }} Kz</td>
+          <td>{{ semanas.3.despesas.lavagem|intcomma }} Kz</td>
+          <td>{{ semanas.4.despesas.lavagem|intcomma }} Kz</td>
+          <td>{{ total_despesas_lavagem|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="row-expense">
+          <td class="row-label">SOPRAGENS DE FILTROS</td>
+          <td>{{ semanas.1.despesas.sopragem|intcomma }} Kz</td>
+          <td>{{ semanas.2.despesas.sopragem|intcomma }} Kz</td>
+          <td>{{ semanas.3.despesas.sopragem|intcomma }} Kz</td>
+          <td>{{ semanas.4.despesas.sopragem|intcomma }} Kz</td>
+          <td>{{ total_despesas_sopragem|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="row-expense">
+          <td class="row-label">TAXA LOTAÇÃO</td>
+          <td>{{ semanas.1.despesas.taxa|intcomma }} Kz</td>
+          <td>{{ semanas.2.despesas.taxa|intcomma }} Kz</td>
+          <td>{{ semanas.3.despesas.taxa|intcomma }} Kz</td>
+          <td>{{ semanas.4.despesas.taxa|intcomma }} Kz</td>
+          <td>{{ total_despesas_taxa|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="row-expense">
+          <td class="row-label">SEGURANÇA/PARQUE</td>
+          <td>{{ semanas.1.despesas.parqueamento|intcomma }} Kz</td>
+          <td>{{ semanas.2.despesas.parqueamento|intcomma }} Kz</td>
+          <td>{{ semanas.3.despesas.parqueamento|intcomma }} Kz</td>
+          <td>{{ semanas.4.despesas.parqueamento|intcomma }} Kz</td>
+          <td>{{ total_despesas_parqueamento|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="row-expense">
+          <td class="row-label">OUTROS</td>
+          <td>{{ semanas.1.despesas.outros|intcomma }} Kz</td>
+          <td>{{ semanas.2.despesas.outros|intcomma }} Kz</td>
+          <td>{{ semanas.3.despesas.outros|intcomma }} Kz</td>
+          <td>{{ semanas.4.despesas.outros|intcomma }} Kz</td>
+          <td>{{ total_despesas_outros|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="row-expense">
+          <td class="row-label">DESPESA FEITA NA PRODUÇÃO</td>
+          <td>{{ semanas.1.despesas.despesa_geral|intcomma }} Kz</td>
+          <td>{{ semanas.2.despesas.despesa_geral|intcomma }} Kz</td>
+          <td>{{ semanas.3.despesas.despesa_geral|intcomma }} Kz</td>
+          <td>{{ semanas.4.despesas.despesa_geral|intcomma }} Kz</td>
+          <td>{{ total_despesa_geral|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="row-expense">
+          <td class="row-label">ALIMENTAÇÃO DO ESTALEIRO</td>
+          <td>{{ semanas.1.despesas.alimentacao_estaleiro|intcomma }} Kz</td>
+          <td>{{ semanas.2.despesas.alimentacao_estaleiro|intcomma }} Kz</td>
+          <td>{{ semanas.3.despesas.alimentacao_estaleiro|intcomma }} Kz</td>
+          <td>{{ semanas.4.despesas.alimentacao_estaleiro|intcomma }} Kz</td>
+          <td>{{ total_despesa_alimentacao_estaleiro|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="total-expense">
+          <td class="row-label"><strong>TOTAL DESPESAS</strong></td>
+          <td>{{ semanas.1.despesas.total|intcomma }} Kz</td>
+          <td>{{ semanas.2.despesas.total|intcomma }} Kz</td>
+          <td>{{ semanas.3.despesas.total|intcomma }} Kz</td>
+          <td>{{ semanas.4.despesas.total|intcomma }} Kz</td>
+          <td>{{ total_despesas|intcomma }} Kz</td>
+        </tr>
+
+        <!-- SALDO -->
+        <tr class="total-balance">
+          <td class="row-label"><strong>SALDO SEMANAL</strong></td>
+          <td>{{ semanas.1.saldo|intcomma }} Kz</td>
+          <td>{{ semanas.2.saldo|intcomma }} Kz</td>
+          <td>{{ semanas.3.saldo|intcomma }} Kz</td>
+          <td>{{ semanas.4.saldo|intcomma }} Kz</td>
+          <td>{{ saldo_liquido|intcomma }} Kz</td>
+        </tr>
+
+        <!-- RESUMO FINAL -->
+        <tr class="summary-income">
+          <td class="row-label"><strong>ENTRADAS GERAIS</strong></td>
+          <td colspan="4"></td>
+          <td>{{ total_entradas|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="summary-expense">
+          <td class="row-label"><strong>DESPESAS FIXAS E VARIÁVEIS</strong></td>
+          <td colspan="4"></td>
+          <td>{{ total_despesas|intcomma }} Kz</td>
+        </tr>
+
+        <tr class="summary-balance {% if saldo_liquido < 0 %}negative-balance{% endif %}">
+          <td class="row-label"><strong>SALDO LÍQUIDO</strong></td>
+          <td colspan="4"></td>
+          <td>{{ saldo_liquido|intcomma }} Kz</td>
+        </tr>
+      </tbody>
+    </table>
+  </div><!-- fim .table-container -->
+
+  </div><!-- fim .page-container -->
+
+  <!-- ===== CHART.JS ===== -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <script>
-    const ctx = document.getElementById('graficoSemanal');
+    // ✅ CORREÇÃO 1: Aguardar o DOM estar completamente carregado
+    document.addEventListener('DOMContentLoaded', function () {
 
-    const entradas = [
+      // ✅ CORREÇÃO 2: Verificar se o canvas existe antes de usar
+      const canvasEl = document.getElementById('graficoSemanal');
+      if (!canvasEl) {
+        console.warn('Canvas #graficoSemanal não encontrado.');
+        return;
+      }
+
+      // Dados vindos do Django (valores numéricos, sem formatação)
+      const entradas = [
         {{ semanas.1.entradas.total|default:0 }},
         {{ semanas.2.entradas.total|default:0 }},
         {{ semanas.3.entradas.total|default:0 }},
         {{ semanas.4.entradas.total|default:0 }},
-    ];
+      ];
 
-    const saidas = [
+      const saidas = [
         {{ semanas.1.despesas.total|default:0 }},
         {{ semanas.2.despesas.total|default:0 }},
         {{ semanas.3.despesas.total|default:0 }},
         {{ semanas.4.despesas.total|default:0 }},
-    ];
+      ];
 
-    const saldo = [
+      const saldo = [
         {{ semanas.1.saldo|default:0 }},
         {{ semanas.2.saldo|default:0 }},
         {{ semanas.3.saldo|default:0 }},
         {{ semanas.4.saldo|default:0 }},
-    ];
+      ];
 
-    // Cor dinâmica do saldo
-    const saldoCores = saldo.map(valor => 
+      // Cor dinâmica do saldo: verde se positivo, vermelho se negativo
+      const saldoCores = saldo.map(valor =>
         valor >= 0 ? 'rgba(16,185,129,0.9)' : 'rgba(239,68,68,0.9)'
-    );
+      );
 
-    new Chart(ctx, {
+      // ✅ CORREÇÃO 3: Destruir chart anterior se existir (evita erro ao filtrar)
+      if (window._graficoSemanal instanceof Chart) {
+        window._graficoSemanal.destroy();
+      }
+
+      window._graficoSemanal = new Chart(canvasEl, {
         type: 'bar',
         data: {
-            labels: [
-                '1ª Semana',
-                '2ª Semana',
-                '3ª Semana',
-                '4ª Semana'
-            ],
-            datasets: [
-                {
-                    label: 'Entradas',
-                    data: entradas,
-                    backgroundColor: 'rgba(16,185,129,0.8)',
-                    borderRadius: 6
-                },
-                {
-                    label: 'Saídas',
-                    data: saidas,
-                    backgroundColor: 'rgba(239,68,68,0.8)',
-                    borderRadius: 6
-                },
-                {
-                    label: 'Saldo',
-                    data: saldo,
-                    backgroundColor: saldoCores,
-                    borderRadius: 6
-                }
-            ]
+          labels: ['1ª Semana', '2ª Semana', '3ª Semana', '4ª Semana'],
+          datasets: [
+            {
+              label: '📈 Entradas',
+              data: entradas,
+              backgroundColor: 'rgba(16,185,129,0.8)',
+              borderColor: 'rgba(16,185,129,1)',
+              borderWidth: 1,
+              borderRadius: 6,
+            },
+            {
+              label: '📉 Saídas',
+              data: saidas,
+              backgroundColor: 'rgba(239,68,68,0.8)',
+              borderColor: 'rgba(239,68,68,1)',
+              borderWidth: 1,
+              borderRadius: 6,
+            },
+            {
+              label: '⚖️ Saldo',
+              data: saldo,
+              backgroundColor: saldoCores,
+              borderColor: saldoCores,
+              borderWidth: 1,
+              borderRadius: 6,
+            }
+          ]
         },
         options: {
-            responsive: true,
-            interaction: {
-                mode: 'index',
-                intersect: false
+          responsive: true,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                font: { size: 13, weight: 'bold' }
+              }
             },
-            plugins: {
-                legend: {
-                    position: 'top'
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.dataset.label + ': ' + 
-                                  new Intl.NumberFormat('pt-AO').format(context.raw) + ' Kz';
-                        }
-                    }
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return context.dataset.label + ': ' +
+                    new Intl.NumberFormat('pt-AO').format(context.raw) + ' Kz';
                 }
-            },
-            scales: {
-                x: {
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        font: { weight: 'bold' }
-                    }
-                },
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return new Intl.NumberFormat('pt-AO').format(value) + ' Kz';
-                        }
-                    }
-                }
+              }
             }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { weight: 'bold' } }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function (value) {
+                  return new Intl.NumberFormat('pt-AO').format(value) + ' Kz';
+                }
+              }
+            }
+          }
         }
-    });
+      });
+    }); // fim DOMContentLoaded
   </script>
+
 {% endblock %}
