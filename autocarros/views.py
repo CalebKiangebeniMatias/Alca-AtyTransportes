@@ -4125,31 +4125,22 @@ from django.utils import timezone
 from decimal import Decimal
 from calendar import monthrange
 from django.contrib.auth.decorators import login_required
+from collections import defaultdict
 
 @login_required
 def comparacao_registo_deposito(request):
+
     hoje = timezone.now().date()
 
     sector_id = request.GET.get('sector')
-    year = request.GET.get('year')
-    month = request.GET.get('month')
+    year = int(request.GET.get('year', hoje.year))
+    month = int(request.GET.get('month', hoje.month))
 
-    # defaults
-    if not year:
-        year = hoje.year
-    if not month:
-        month = hoje.month
-
-    year = int(year)
-    month = int(month)
-
-    # intervalo do mês
     ultimo_dia = monthrange(year, month)[1]
 
     data_inicio = f"{year}-{month:02d}-01"
     data_fim = f"{year}-{month:02d}-{ultimo_dia}"
 
-    # filtros base
     registros = RegistoDiario.objects.filter(
         data__range=[data_inicio, data_fim]
     ).select_related('autocarro__sector')
@@ -4163,10 +4154,28 @@ def comparacao_registo_deposito(request):
         registros = registros.filter(autocarro__sector_id=sector_id)
         depositos = depositos.filter(sector_id=sector_id)
 
-    # 🔹 AGRUPAR POR DATA + SECTOR
+    # 🔹 AGRUPAMENTO
     resultado = {}
 
+    # 🔹 Combustível agregado
+    combustivel_qs = DespesaCombustivel.objects.filter(
+        data__range=[data_inicio, data_fim]
+    )
+
+    combustivel_map = defaultdict(lambda: {
+        'valor': Decimal('0'),
+        'sobragem': Decimal('0'),
+        'lavagem': Decimal('0'),
+    })
+
+    for c in combustivel_qs:
+        key = (c.autocarro_id, c.data)
+        combustivel_map[key]['valor'] += c.valor or Decimal('0')
+        combustivel_map[key]['sobragem'] += c.sobragem_filtros or Decimal('0')
+        combustivel_map[key]['lavagem'] += c.lavagem or Decimal('0')
+
     for reg in registros:
+
         chave = (reg.data, reg.autocarro.sector.id)
 
         if chave not in resultado:
@@ -4178,25 +4187,48 @@ def comparacao_registo_deposito(request):
                 'resto': Decimal('0'),
                 'depositado': Decimal('0'),
                 'diferenca': Decimal('0'),
+                'despesa_geral': Decimal('0'),
+                'alimentacao_estaleiro': Decimal('0'),
             }
 
+            # 🔹 Buscar RelatorioSector (1x)
+            relatorio = RelatorioSector.objects.filter(
+                sector=reg.autocarro.sector,
+                data=reg.data
+            ).first()
+
+            if relatorio:
+                resultado[chave]['despesa_geral'] = relatorio.despesa_geral or Decimal('0')
+                resultado[chave]['alimentacao_estaleiro'] = relatorio.alimentacao_estaleiro or Decimal('0')
+
         entrada = reg.entradas_total()
-        saida = reg.saidas_total()
-        saldo = entrada - saida
+
+        comb = combustivel_map.get((reg.autocarro_id, reg.data), {})
+
+        saida_real = (
+            reg.saidas_total()
+            + comb.get('valor', Decimal('0'))
+            + comb.get('sobragem', Decimal('0'))
+            + comb.get('lavagem', Decimal('0'))
+        )
 
         resultado[chave]['entrada'] += entrada
-        resultado[chave]['saida'] += saida
-        resultado[chave]['resto'] += saldo
+        resultado[chave]['saida'] += saida_real
 
-    # 🔹 SOMAR DEPÓSITOS
+    # 🔹 SOMAR despesas gerais 1x por grupo
+    for item in resultado.values():
+        item['saida'] += item['despesa_geral']
+        item['saida'] += item['alimentacao_estaleiro']
+        item['resto'] = item['entrada'] - item['saida']
+
+    # 🔹 Depositos
     for dep in depositos:
-        for chave in resultado:
-            data, sector_pk = chave
-            if data == dep.data_deposito and sector_pk == dep.sector_id:
-                resultado[chave]['depositado'] += dep.valor
+        chave = (dep.data_deposito, dep.sector_id)
+        if chave in resultado:
+            resultado[chave]['depositado'] += dep.valor
 
-    # 🔹 CALCULAR DIFERENÇA
-    for chave, item in resultado.items():
+    # 🔹 Diferença
+    for item in resultado.values():
         item['diferenca'] = item['resto'] - item['depositado']
 
     # Totais gerais
