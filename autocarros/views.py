@@ -3663,43 +3663,6 @@ from .decorators import acesso_restrito
 # ================================
 # FUNÇÃO: SEMANA DO MÊS (4 COLUNAS)
 # ================================
-"""def semana_do_mes_4colunas(data):
-    primeiro_dia = data.replace(day=1)
-
-    # weekday(): segunda=0 ... domingo=6
-    if primeiro_dia.weekday() == 6:
-        fim_primeira_semana = primeiro_dia
-    else:
-        fim_primeira_semana = primeiro_dia + timedelta(
-            days=(6 - primeiro_dia.weekday())
-        )
-
-    if data <= fim_primeira_semana:
-        return 1
-
-    dias_apos = (data - fim_primeira_semana).days
-    semana = 1 + ((dias_apos - 1) // 7) + 1
-
-    return min(semana, 4)"""
-
-# Resovido problema de primeira semana começar no domingo
-"""def semana_do_mes_4colunas(data):
-    primeiro_dia = data.replace(day=1)
-
-    if primeiro_dia.weekday() == 6:  # domingo
-        fim_primeira_semana = primeiro_dia + timedelta(days=6)
-    else:
-        fim_primeira_semana = primeiro_dia + timedelta(
-            days=(6 - primeiro_dia.weekday())
-        )
-
-    if data <= fim_primeira_semana:
-        return 1
-
-    dias_apos = (data - fim_primeira_semana).days
-    semana = 2 + ((dias_apos - 1) // 7)
-
-    return min(semana, 4)"""
 
 from datetime import timedelta
 
@@ -3714,7 +3677,7 @@ def semana_do_mes_4colunas(data):
     total_dias_primeira_semana = (fim_primeira_semana - primeiro_dia).days + 1
 
     # 🔴 REGRA: se tiver 3 dias ou menos, juntar com a próxima
-    if total_dias_primeira_semana <= 3:
+    if total_dias_primeira_semana <= 4:
         fim_primeira_semana = fim_primeira_semana + timedelta(days=7)
 
     # 🔹 Se a data estiver dentro da primeira semana ajustada
