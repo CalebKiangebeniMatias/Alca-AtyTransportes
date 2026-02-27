@@ -423,11 +423,28 @@
       ============================================================ -->
 
   <!-- ===== GRÁFICO SEMANAL ===== -->
-  <div style="background:white; padding:20px; border-radius:8px; margin-bottom:25px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
-    <h4 style="text-align:center; margin-bottom:20px;">📊 Resumo Financeiro Semanal</h4>
-    <canvas id="graficoSemanal" height="120"></canvas>
+  <div id="resumo_semanal_values"
+      data-entrada1="{{ semanas.1.entradas.total|default:0 }}"
+      data-saida1="{{ semanas.1.despesas.total|default:0 }}"
+      data-saldo1="{{ semanas.1.saldo|default:0 }}"
+
+      data-entrada2="{{ semanas.2.entradas.total|default:0 }}"
+      data-saida2="{{ semanas.2.despesas.total|default:0 }}"
+      data-saldo2="{{ semanas.2.saldo|default:0 }}"
+
+      data-entrada3="{{ semanas.3.entradas.total|default:0 }}"
+      data-saida3="{{ semanas.3.despesas.total|default:0 }}"
+      data-saldo3="{{ semanas.3.saldo|default:0 }}"
+
+      data-entrada4="{{ semanas.4.entradas.total|default:0 }}"
+      data-saida4="{{ semanas.4.despesas.total|default:0 }}"
+      data-saldo4="{{ semanas.4.saldo|default:0 }}">
   </div>
 
+  <div style="background:white; padding:20px; border-radius:8px; margin-bottom:25px;">
+      <canvas id="graficoSemanal"></canvas>
+  </div>
+    
   <!-- ===== TABLE ===== -->
   <div class="table-container">
     <table class="mapa-financeiro">
@@ -662,118 +679,121 @@
   <!-- ===== CHART.JS ===== -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // ✅ CORREÇÃO 1: Aguardar o DOM estar completamente carregado
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function(){
 
-      // ✅ CORREÇÃO 2: Verificar se o canvas existe antes de usar
-      const canvasEl = document.getElementById('graficoSemanal');
-      if (!canvasEl) {
-        console.warn('Canvas #graficoSemanal não encontrado.');
-        return;
-      }
-
-      // Dados vindos do Django (valores numéricos, sem formatação)
-      const entradas = [
-        {{ semanas.1.entradas.total|default:0 }},
-        {{ semanas.2.entradas.total|default:0 }},
-        {{ semanas.3.entradas.total|default:0 }},
-        {{ semanas.4.entradas.total|default:0 }},
-      ];
-
-      const saidas = [
-        {{ semanas.1.despesas.total|default:0 }},
-        {{ semanas.2.despesas.total|default:0 }},
-        {{ semanas.3.despesas.total|default:0 }},
-        {{ semanas.4.despesas.total|default:0 }},
-      ];
-
-      const saldo = [
-        {{ semanas.1.saldo|default:0 }},
-        {{ semanas.2.saldo|default:0 }},
-        {{ semanas.3.saldo|default:0 }},
-        {{ semanas.4.saldo|default:0 }},
-      ];
-
-      // Cor dinâmica do saldo: verde se positivo, vermelho se negativo
-      const saldoCores = saldo.map(valor =>
-        valor >= 0 ? 'rgba(16,185,129,0.9)' : 'rgba(239,68,68,0.9)'
-      );
-
-      // ✅ CORREÇÃO 3: Destruir chart anterior se existir (evita erro ao filtrar)
-      if (window._graficoSemanal instanceof Chart) {
-        window._graficoSemanal.destroy();
-      }
-
-      window._graficoSemanal = new Chart(canvasEl, {
-        type: 'bar',
-        data: {
-          labels: ['1ª Semana', '2ª Semana', '3ª Semana', '4ª Semana'],
-          datasets: [
-            {
-              label: '📈 Entradas',
-              data: entradas,
-              backgroundColor: 'rgba(16,185,129,0.8)',
-              borderColor: 'rgba(16,185,129,1)',
-              borderWidth: 1,
-              borderRadius: 6,
-            },
-            {
-              label: '📉 Saídas',
-              data: saidas,
-              backgroundColor: 'rgba(239,68,68,0.8)',
-              borderColor: 'rgba(239,68,68,1)',
-              borderWidth: 1,
-              borderRadius: 6,
-            },
-            {
-              label: '⚖️ Saldo',
-              data: saldo,
-              backgroundColor: saldoCores,
-              borderColor: saldoCores,
-              borderWidth: 1,
-              borderRadius: 6,
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          interaction: {
-            mode: 'index',
-            intersect: false
-          },
-          plugins: {
-            legend: {
-              position: 'top',
-              labels: {
-                font: { size: 13, weight: 'bold' }
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function (context) {
-                  return context.dataset.label + ': ' +
-                    new Intl.NumberFormat('pt-AO').format(context.raw) + ' Kz';
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              grid: { display: false },
-              ticks: { font: { weight: 'bold' } }
-            },
-            y: {
-              beginAtZero: true,
-              ticks: {
-                callback: function (value) {
-                  return new Intl.NumberFormat('pt-AO').format(value) + ' Kz';
-                }
-              }
-            }
-          }
+        const canvas = document.getElementById('graficoSemanal');
+        if (!canvas) {
+            console.error('Canvas graficoSemanal não encontrado!');
+            return;
         }
-      });
-    }); // fim DOMContentLoaded
+
+        const container = document.getElementById('resumo_semanal_values');
+        if (!container) {
+            console.error('Container resumo_semanal_values não encontrado!');
+            return;
+        }
+
+        function toNumberRaw(v){
+            if (!v) return 0;
+            const normalized = String(v).replace(/\./g, '').replace(',', '.');
+            const n = Number(normalized);
+            return isNaN(n) ? 0 : n;
+        }
+
+        const entradas = [
+            toNumberRaw(container.dataset.entrada1),
+            toNumberRaw(container.dataset.entrada2),
+            toNumberRaw(container.dataset.entrada3),
+            toNumberRaw(container.dataset.entrada4),
+        ];
+
+        const saidas = [
+            toNumberRaw(container.dataset.saida1),
+            toNumberRaw(container.dataset.saida2),
+            toNumberRaw(container.dataset.saida3),
+            toNumberRaw(container.dataset.saida4),
+        ];
+
+        const saldos = [
+            toNumberRaw(container.dataset.saldo1),
+            toNumberRaw(container.dataset.saldo2),
+            toNumberRaw(container.dataset.saldo3),
+            toNumberRaw(container.dataset.saldo4),
+        ];
+
+        console.log('Valores Semanais:', { entradas, saidas, saldos });
+
+        new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: [
+                    '1ª Semana',
+                    '2ª Semana',
+                    '3ª Semana',
+                    '4ª Semana'
+                ],
+                datasets: [
+                    {
+                        label: 'Entradas',
+                        data: entradas,
+                        backgroundColor: 'rgba(81, 193, 66, 0.7)',
+                        borderColor: 'rgba(81, 193, 66, 1)',
+                        borderWidth: 2,
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Saídas',
+                        data: saidas,
+                        backgroundColor: 'rgba(255, 69, 69, 0.7)',
+                        borderColor: 'rgba(255, 69, 69, 1)',
+                        borderWidth: 2,
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Saldo',
+                        data: saldos,
+                        backgroundColor: saldos.map(v =>
+                            v >= 0
+                            ? 'rgba(81, 193, 66, 0.7)'
+                            : 'rgba(255, 69, 69, 0.7)'
+                        ),
+                        borderColor: saldos.map(v =>
+                            v >= 0
+                            ? 'rgba(81, 193, 66, 1)'
+                            : 'rgba(255, 69, 69, 1)'
+                        ),
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y.toLocaleString('pt-PT') + ' Kz';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value){
+                                return value.toLocaleString('pt-PT') + ' Kz';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+    });
   </script>
 
 {% endblock %}
