@@ -106,6 +106,72 @@
         </div>
     </div>
 
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-8">
+                    <label for="mes" class="form-label text-white">Selecionar Mês/Ano</label>
+                    <input type="month" name="mes" id="mes" value="{{ mes }}" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumo Geral (com toggle para despesas variáveis) -->
+    <div class="row mb-4">
+        <div class="col-12 mb-3">
+            <!-- container de valores brutos para o JS -->
+            <div id="resumo_values"
+                 data-entradas="{{ total_entradas }}"
+                 data-saidas="{{ total_saidas }}"
+                 data-despesas="{{ total_despesa2_1 }}"
+                 data-lucro="{{ total_lucro }}"
+                 data-saldo="{{ total_resto }}"
+            ></div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card stats-card text-center bg-azul-forte">
+                <div class="card-body">
+                    <i class="fas fa-arrow-down icon-stat text-success"></i>
+                    <div class="stats-number">
+                        {% localize on %}<strong id="display_saldo">{{ total_resto|floatformat:2 }}{% endlocalize %} Kz</strong>
+                    </div>
+                    <h5 class="card-title">Saldo</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card stats-card text-center bg-azul-forte">
+                <div class="card-body">
+                    <i class="fas fa-arrow-up icon-stat text-danger"></i>
+                    <div class="stats-number text-danger">
+                        {% localize on %}<strong id="display_despesas2_1">{{ total_despesa2_1|floatformat:2 }}{% endlocalize %} Kz</strong>
+                    </div>
+                    <h5 class="card-title">Despesas Variáveis&Fixas</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card stats-card text-center bg-azul-forte">
+                <div class="card-body">
+                    <i class="fas fa-piggy-bank icon-stat text-warning"></i>
+                    <div class="stats-number text-warning">
+                        {% localize on %}<strong id="display_lucro">{{ total_lucro|floatformat:2 }}{% endlocalize %} Kz</strong>
+                    </div>
+                    <h5 class="card-title">Lucro</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card shadow mb-4 bg-azul-forte">
         <div class="card-body">
             <h5 class="text-white text-center mb-3">Gráfico de Resumo De Lucro</h5>
