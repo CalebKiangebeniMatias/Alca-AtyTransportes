@@ -28,6 +28,9 @@ from django.views.decorators.http import require_POST
 
 
 
+def site_oficial(request):
+    return redirect("site_oficial.html")
+
 
 # === Decorator para só admins poderem associar gestores === #
 @login_required

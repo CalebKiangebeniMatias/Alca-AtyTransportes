@@ -17,6 +17,9 @@ from .views import (
 # Define os padrões de URL para a app "autocarros"
 urlpatterns = [
 
+    # Página Inicial
+    path('', views.site_oficial, name='site_oficial'),
+
     # Autenticação
     path('login/', views.LoginView.as_view(), name='login'),
     path('logout/', views.logout_view, name='logout'),
@@ -52,7 +55,7 @@ urlpatterns = [
     path("sectores/<int:pk>/apagar/", views.apagar_sector, name="apagar_sector"),
 
     # Painel de Controle
-    path('', views.dashboard, name='dashboard'),
+    path('dashboard/', views.dashboard, name='dashboard'),
     path('autocarro/<int:autocarro_id>/', views.detalhe_autocarro, name='detalhe_autocarro'),
 
     # Relatórios Diários por Sector

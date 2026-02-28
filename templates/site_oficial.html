@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALCA & ATY Transportes</title>
+
+<style>
+:root {
+    --primary: #0a3d62;
+    --secondary: #38ada9;
+    --light: #f5f6fa;
+    --dark: #1e272e;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: var(--light);
+    color: var(--dark);
+}
+
+header {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 80px 20px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5rem;
+}
+
+header p {
+    margin-top: 15px;
+    font-size: 1.1rem;
+}
+
+.btn {
+    display: inline-block;
+    margin-top: 25px;
+    padding: 12px 25px;
+    background: white;
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 30px;
+    transition: 0.3s;
+}
+
+.btn:hover {
+    background: var(--dark);
+    color: white;
+}
+
+section {
+    padding: 60px 20px;
+    max-width: 1100px;
+    margin: auto;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 40px;
+    font-size: 1.8rem;
+    color: var(--primary);
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+}
+
+.card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.card-content {
+    padding: 20px;
+}
+
+.card-content h3 {
+    color: var(--primary);
+    margin-bottom: 10px;
+}
+
+footer {
+    background: var(--dark);
+    color: white;
+    text-align: center;
+    padding: 30px 20px;
+}
+
+.contact-box {
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.hidden {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: 0.6s ease;
+}
+
+.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>ALCA & ATY Transportes</h1>
+    <p>Transporte Inter-Urbano e Serviços Express desde 2020</p>
+
+    <!-- 🔗 COLOQUE AQUI O LINK DO SEU ADMIN -->
+    <a href="{% url 'dashboard' %}" class="btn" id="adminBtn">Área Administrativa</a>
+</header>
+
+<section>
+    <h2 class="section-title">Sobre a Empresa</h2>
+    <p style="text-align:center; max-width:800px; margin:auto;">
+        A ALCA & ATY Transportes atua no setor de transporte rodoviário de passageiros
+        desde 2020, operando nas cidades de Soyo, Mbanza-Kongo e Luanda.
+        Oferecemos transporte inter-urbano e serviços expressos dentro de Luanda
+        com foco em segurança, pontualidade e conforto.
+    </p>
+</section>
+
+<section>
+    <h2 class="section-title">Nossas Rotas</h2>
+    <div class="cards">
+        <div class="card hidden">
+            <!-- 🔁 TROQUE A URL DA IMAGEM -->
+            <img src="https://via.placeholder.com/400x300" alt="Soyo">
+            <div class="card-content">
+                <h3>Soyo</h3>
+                <p>Transporte regular inter-urbano com segurança e conforto.</p>
+            </div>
+        </div>
+
+        <div class="card hidden">
+            <img src="https://via.placeholder.com/400x300" alt="Mbanza-Kongo">
+            <div class="card-content">
+                <h3>Mbanza-Kongo</h3>
+                <p>Conectando províncias com pontualidade e eficiência.</p>
+            </div>
+        </div>
+
+        <div class="card hidden">
+            <img src="https://via.placeholder.com/400x300" alt="Luanda">
+            <div class="card-content">
+                <h3>Luanda</h3>
+                <p>Serviços expressos rápidos e seguros dentro da capital.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2 class="section-title">Contacto</h2>
+    <div class="contact-box">
+        📞 +244 927 267 303 <br><br>
+        Atendimento disponível para reservas e informações.
+    </div>
+</section>
+
+<footer>
+    © <span id="year"></span> @Kiangebeni Matias - Todos os direitos reservados.
+</footer>
+
+<script>
+// Ano automático no rodapé
+document.getElementById("year").textContent = new Date().getFullYear();
+
+// Animação ao rolar
+const elements = document.querySelectorAll(".hidden");
+
+function showOnScroll() {
+    const triggerBottom = window.innerHeight * 0.85;
+    elements.forEach(el => {
+        const boxTop = el.getBoundingClientRect().top;
+        if (boxTop < triggerBottom) {
+            el.classList.add("show");
+        }
+    });
+}
+
+window.addEventListener("scroll", showOnScroll);
+showOnScroll();
+
+// Botão admin - você pode trocar o link aqui também via JS
+document.getElementById("adminBtn").addEventListener("click", function(e){
+    // e.preventDefault(); // ative se quiser bloquear antes de definir link
+    console.log("Botão Admin clicado");
+});
+</script>
+
+</body>
+</html>
