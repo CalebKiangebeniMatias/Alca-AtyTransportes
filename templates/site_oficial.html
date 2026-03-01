@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -126,10 +128,73 @@ footer {
     opacity: 1;
     transform: translateY(0);
 }
+
+/* ===== LOADER FULLSCREEN ===== */
+#loader {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #0a3d62, #38ada9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.4s ease, visibility 0.4s;
+}
+
+#loader.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+.loader-container {
+    text-align: center;
+    color: white;
+}
+
+.loader-box {
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+.loader-logo {
+    width: 80px;
+}
+
+.loader-text {
+    margin-top: 20px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+/* animação */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
 </style>
 </head>
 
 <body>
+	<!-- LOADER -->
+<div id="loader">
+    <div class="loader-container">
+        <div class="loader-box">
+            <img src="{% static 'img/logo_alca.png' %}"
+                 class="loader-logo"
+                 alt="Logo">
+        </div>
+        <p class="loader-text">
+            A carregar...
+        </p>
+    </div>
+</div>
 
 <header>
     <h1>ALCA & ATY Transportes</h1>
@@ -154,7 +219,7 @@ footer {
     <div class="cards">
         <div class="card hidden">
             <!-- 🔁 TROQUE A URL DA IMAGEM -->
-            <img src="img/002.jpg" alt="Soyo">
+            <img src="{% static 'img/002.jpg' %}" alt="Soyo">
             <div class="card-content">
                 <h3>Soyo</h3>
                 <p>Transporte regular inter-urbano com segurança e conforto.</p>
@@ -162,7 +227,7 @@ footer {
         </div>
 
         <div class="card hidden">
-            <img src="img/001.jpg" alt="Mbanza-Kongo">
+            <img src="{% static 'img/001.jpg' %}" alt="Mbanza-Kongo">
             <div class="card-content">
                 <h3>Mbanza-Kongo</h3>
                 <p>Conectando províncias com pontualidade e eficiência.</p>
@@ -170,7 +235,7 @@ footer {
         </div>
 
         <div class="card hidden">
-            <img src="img/003.jpg" alt="Luanda">
+            <img src="{% static 'img/003.jpg' %}" alt="Luanda">
             <div class="card-content">
                 <h3>Luanda</h3>
                 <p>Serviços expressos rápidos e seguros dentro da capital.</p>
