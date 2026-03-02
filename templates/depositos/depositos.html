@@ -1,378 +1,856 @@
 {% extends 'base.html' %}
+{% block title %}Depósitos por Sector{% endblock %}
+{% block breadcrumb %}Finanças › Depósitos por Sector{% endblock %}
+
 {% block content %}
-<div class="container py-4">
-  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-    <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(90deg,#007bff,#00bcd4);">
-      <h5 class="mb-0 fw-semibold"><i class="fas fa-piggy-bank me-2"></i>Depósitos por Sector</h5>
-      <small class="fw-light">Registe e consulte depósitos</small>
-    </div>
+<style>
+/* ════════════════════════════════════════════════════
+   DEPÓSITOS POR SECTOR
+════════════════════════════════════════════════════ */
 
-    <div class="card-body p-4">
-      <!-- Tabs -->
-      <ul class="nav nav-tabs mb-3" id="tabs-dep">
-        <li class="nav-item"><button class="nav-link active fw-semibold" data-bs-toggle="tab" data-bs-target="#tab-reg"><i class="fas fa-plus-circle me-1"></i>Registrar</button></li>
-        <li class="nav-item"><button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#tab-list"><i class="fas fa-list me-1"></i>Listar</button></li>
-        <li class="nav-item"><button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#tab-total"><i class="fas fa-coins me-1"></i>Totais</button></li>
-      </ul>
+.dep-wrapper {
+  max-width: 1000px;
+  margin: 0 auto;
+  animation: depIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes depIn {
+  from { opacity:0; transform:translateY(18px); }
+  to   { opacity:1; transform:translateY(0); }
+}
 
-      <div class="tab-content mt-3">
-        <!-- REGISTRAR -->
-        <div class="tab-pane fade show active" id="tab-reg">
-          <form id="form_deposito" class="row g-3" onsubmit="return false;">
-            {% csrf_token %}
-            <div class="col-md-4">
-              <label class="form-label fw-semibold">Sector</label>
-              <select id="dep_sector" class="form-select shadow-sm">
-                <option value="">-- Escolha sector --</option>
-                {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label fw-semibold">Data</label>
-              <input id="dep_data" type="date" class="form-control shadow-sm" value="{{ now|date:'Y-m-d' }}">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label fw-semibold">Valor</label>
-              <input id="dep_valor" type="number" step="0.01" class="form-control shadow-sm" placeholder="0.00">
-            </div>
-            <div class="col-12">
-              <label class="form-label fw-semibold">Observação</label>
-              <textarea id="dep_obs" class="form-control shadow-sm" rows="2" placeholder="Observações opcionais..."></textarea>
-            </div>
-            <div class="col-12 text-end mt-2">
-              <button id="btn_dep_save" class="btn btn-primary px-4 shadow-sm"><i class="fas fa-save me-1"></i>Salvar Depósito</button>
-            </div>
-          </form>
-        </div>
+/* ── TABS ────────────────────────────────────────── */
+.dep-tabs {
+  display: flex; gap: 4px;
+  border-bottom: 1px solid var(--glass-border);
+  margin-bottom: 28px;
+  overflow-x: auto;
+  padding-bottom: 0;
+}
+.dep-tab {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 20px;
+  background: transparent;
+  border: none; border-bottom: 2px solid transparent;
+  color: rgba(255,255,255,.45);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .9rem;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  cursor: pointer; white-space: nowrap;
+  transition: color var(--ease-fast), border-color var(--ease-fast);
+}
+.dep-tab i { font-size: .85rem; }
+.dep-tab:hover { color: rgba(255,255,255,.75); }
+.dep-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
 
-        <!-- LISTAR -->
-        <div class="tab-pane fade" id="tab-list">
-          <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
-            <select id="filter_sector" class="form-select w-auto shadow-sm">
-              <option value="">Todos sectores</option>
-              {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
-            </select>
+/* ── TAB PANES ───────────────────────────────────── */
+.dep-pane { display: none; }
+.dep-pane.active { display: block; animation: paneIn .3s ease; }
+@keyframes paneIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 
-            <!-- 🔹 Filtros mensais -->
-            <select id="filter_year" class="form-select w-auto shadow-sm">
-              <option value="">Ano</option>
-              <option value="2025">2025</option>
-              <option value="2026">2026</option>
-              <option value="2027">2027</option>
-              <option value="2028">2028</option>
-              <option value="2029">2029</option>
-            </select>
+/* ── FORM FIELDS ─────────────────────────────────── */
+.dep-wrapper .form-control,
+.dep-wrapper .form-select,
+.dep-wrapper select,
+.dep-wrapper input[type="text"],
+.dep-wrapper input[type="number"],
+.dep-wrapper input[type="date"],
+.dep-wrapper textarea {
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 9px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .9rem !important;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+  outline: none !important;
+  width: 100%;
+}
+.dep-wrapper .form-control:focus,
+.dep-wrapper select:focus,
+.dep-wrapper input:focus,
+.dep-wrapper textarea:focus {
+  border-color: var(--accent) !important;
+  background: rgba(4,30,66,.85) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+}
+.dep-wrapper input::placeholder,
+.dep-wrapper textarea::placeholder { color: rgba(255,255,255,.3) !important; }
+.dep-wrapper select option { background: var(--navy); color: var(--white); }
+.dep-wrapper textarea { resize: vertical; min-height: 76px; }
 
-            <select id="filter_month" class="form-select w-auto shadow-sm">
-              <option value="">Mês</option>
-              <option value="01">Janeiro</option>
-              <option value="02">Fevereiro</option>
-              <option value="03">Março</option>
-              <option value="04">Abril</option>
-              <option value="05">Maio</option>
-              <option value="06">Junho</option>
-              <option value="07">Julho</option>
-              <option value="08">Agosto</option>
-              <option value="09">Setembro</option>
-              <option value="10">Outubro</option>
-              <option value="11">Novembro</option>
-              <option value="12">Dezembro</option>
-            </select>
+.f-label {
+  display: block;
+  font-size: .72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.48);
+  margin-bottom: 6px;
+}
 
-            <button id="btn_reload" class="btn btn-outline-primary shadow-sm"><i class="fas fa-sync-alt me-1"></i>Recarregar</button>
-          </div>
-          <div id="lista_depositos" class="p-2 bg-light rounded-3 shadow-sm" style="max-height:420px; overflow:auto;"></div>
-        </div>
+/* Kz suffix */
+.kz-wrap { position: relative; }
+.kz-wrap input { padding-right: 34px !important; text-align: right; }
+.kz-sym {
+  position: absolute; right: 11px; top: 50%;
+  transform: translateY(-50%);
+  font-size: .72rem; font-weight: 700;
+  color: var(--accent); pointer-events: none;
+}
 
-        <!-- TOTAIS -->
-        <div class="tab-pane fade" id="tab-total">
-          <div class="row g-4 align-items-end">
-            <div class="col-md-3">
-              <label class="form-label fw-semibold">Sector</label>
-              <select id="total_sector" class="form-select shadow-sm">
-                <option value="">Todos sectores</option>
-                {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
-              </select>
-            </div>
+/* ── SECTION CARD ────────────────────────────────── */
+.dep-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 24px;
+  margin-bottom: 20px;
+}
 
-            <div class="col-md-3">
-              <label class="form-label fw-semibold">Ano</label>
-              <select id="total_year" class="form-select shadow-sm">
-                <option value="">Ano</option>
-                <option value="2025">2025</option>
-                <option value="2026">2026</option>
-                <option value="2027">2027</option>
-                <option value="2028">2028</option>
-                <option value="2029">2029</option>
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label fw-semibold">Mês</label>
-              <select id="total_month" class="form-select shadow-sm">
-                <option value="">Mês</option>
-                <option value="01">Janeiro</option>
-                <option value="02">Fevereiro</option>
-                <option value="03">Março</option>
-                <option value="04">Abril</option>
-                <option value="05">Maio</option>
-                <option value="06">Junho</option>
-                <option value="07">Julho</option>
-                <option value="08">Agosto</option>
-                <option value="09">Setembro</option>
-                <option value="10">Outubro</option>
-                <option value="11">Novembro</option>
-                <option value="12">Dezembro</option>
-              </select>
-            </div>
+/* ── FILTER BAR ──────────────────────────────────── */
+.filter-bar {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  align-items: flex-end;
+  background: rgba(4,30,66,.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.filter-bar .f-group { display: flex; flex-direction: column; gap: 5px; }
+.filter-bar select { min-width: 140px; }
+.filter-bar-actions { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
 
-            <div class="col-md-3 text-end">
-              <label class="form-label fw-semibold">Total de Depósitos</label>
-              <div class="h3 text-success fw-bold" id="total_valor">0,00 Kz</div>
-              <button id="btn_total_reload" class="btn btn-outline-primary mt-2 shadow-sm"><i class="fas fa-sync-alt me-1"></i>Atualizar</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+/* ── LISTA DE DEPÓSITOS ──────────────────────────── */
+#lista_depositos {
+  max-height: 440px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex; flex-direction: column; gap: 8px;
+}
+#lista_depositos::-webkit-scrollbar { width: 4px; }
+#lista_depositos::-webkit-scrollbar-thumb { background: var(--blue-mid); border-radius: 4px; }
+
+.dep-item {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  background: rgba(4,30,66,.45);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  gap: 14px;
+  transition: background var(--ease-fast), border-color var(--ease-fast);
+  animation: depItemIn .25s ease;
+}
+.dep-item:hover {
+  background: rgba(36,99,163,.22);
+  border-color: rgba(79,195,247,.25);
+}
+@keyframes depItemIn { from { opacity:0; transform:translateX(-6px); } to { opacity:1; transform:translateX(0); } }
+
+.dep-item-left { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.dep-item-sector {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 1rem; letter-spacing: .5px;
+  color: var(--white);
+}
+.dep-item-date { font-size: .75rem; color: var(--grey); }
+.dep-item-obs  { font-size: .78rem; color: rgba(255,255,255,.45); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 280px; }
+
+.dep-item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.dep-item-valor {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.25rem; letter-spacing: 1px;
+  color: #69f0ae;
+}
+.dep-item-btns { display: flex; gap: 6px; }
+
+.btn-dep-action {
+  width: 28px; height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .75rem; cursor: pointer; background: transparent;
+  transition: background var(--ease-fast), transform var(--ease-spring);
+}
+.btn-dep-action:hover { transform: scale(1.12); }
+.btn-dep-edit   { border-color: rgba(79,195,247,.35); color: var(--accent); }
+.btn-dep-edit:hover  { background: rgba(79,195,247,.15); }
+.btn-dep-del    { border-color: rgba(231,76,60,.35);  color: #ff8a80; }
+.btn-dep-del:hover   { background: rgba(231,76,60,.15); }
+
+/* Empty state */
+.dep-empty {
+  text-align: center; padding: 44px 20px;
+  color: rgba(255,255,255,.28);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.dep-empty i { font-size: 2.2rem; opacity: .5; }
+
+/* Loading */
+.dep-loading {
+  text-align: center; padding: 40px 20px;
+  color: rgba(255,255,255,.4);
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.dep-spinner {
+  width: 32px; height: 32px;
+  border: 3px solid rgba(79,195,247,.15);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+
+/* ── TOTAIS ──────────────────────────────────────── */
+.total-display {
+  background: rgba(39,174,96,.1);
+  border: 1px solid rgba(39,174,96,.3);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  text-align: center;
+  margin-top: 20px;
+}
+.total-label {
+  font-size: .75rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: rgba(255,255,255,.45); margin-bottom: 6px;
+}
+.total-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.6rem; letter-spacing: 3px;
+  color: #69f0ae;
+  animation: none;
+}
+.total-value.loading { animation: lPulse 1s ease-in-out infinite; }
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn-dep {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 20px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .88rem;
+  letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; white-space: nowrap;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+}
+.btn-dep:hover { transform: translateY(-2px); }
+.btn-dep:active { transform: scale(.97); }
+.btn-dep-primary { background: var(--grad-btn); color: var(--white); box-shadow: var(--shadow-sm); }
+.btn-dep-primary:hover { box-shadow: 0 6px 20px rgba(36,99,163,.38); }
+.btn-dep-outline {
+  background: transparent;
+  border: 1px solid var(--glass-border) !important;
+  color: rgba(255,255,255,.65);
+}
+.btn-dep-outline:hover { background: rgba(255,255,255,.07); color: var(--white); }
+.btn-dep-print {
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.3) !important;
+  color: var(--accent);
+}
+.btn-dep-print:hover { background: rgba(79,195,247,.2); }
+
+.btn-dep .sp {
+  display:none; width:13px; height:13px;
+  border:2px solid rgba(255,255,255,.3); border-top-color:white;
+  border-radius:50%; animation:spin .7s linear infinite;
+}
+.btn-dep.loading .sp { display:inline-block; }
+.btn-dep.loading .btn-text { opacity:.7; }
+
+/* ── MODAL ───────────────────────────────────────── */
+.modal-content {
+  background: rgba(4,30,66,.97);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(16px);
+  color: var(--white);
+}
+.modal-header {
+  background: var(--grad-header);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border-bottom: 1px solid var(--glass-border);
+  padding: 14px 22px;
+}
+.modal-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 1.1rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+}
+.modal-footer { border-top: 1px solid var(--glass-border); padding: 12px 22px; }
+.modal-backdrop { background: rgba(4,30,66,.75); backdrop-filter: blur(4px); }
+
+/* ── TOAST ───────────────────────────────────────── */
+.dep-toast {
+  position: fixed; top: 70px; right: 20px; z-index: 9000;
+  background: rgba(4,30,66,.95);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  font-size: .88rem; font-weight: 600;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn .3s cubic-bezier(.34,1.56,.64,1);
+  backdrop-filter: blur(12px);
+  min-width: 220px;
+}
+.dep-toast.success { border-left: 3px solid var(--success); color: #c8e6c9; }
+.dep-toast.error   { border-left: 3px solid var(--danger);  color: #ffcdd2; }
+.dep-toast.warning { border-left: 3px solid var(--warning); color: #fff9c4; }
+@keyframes toastIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+@keyframes toastOut { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(20px); } }
+
+/* ════════════════════════════════════════════════════
+   PRINT STYLES
+════════════════════════════════════════════════════ */
+@media print {
+  body * { visibility: hidden !important; }
+  #print-area, #print-area * { visibility: visible !important; }
+  #print-area {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    background: white !important;
+    color: #000 !important;
+    font-family: Arial, sans-serif !important;
+    padding: 20px !important;
+    z-index: 99999 !important;
+  }
+  @page { margin: 15mm; }
+}
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 640px) {
+  .filter-bar { flex-direction: column; }
+  .filter-bar-actions { margin-left: 0; width: 100%; }
+  .btn-dep { width: 100%; justify-content: center; }
+  .dep-item { flex-direction: column; align-items: flex-start; }
+  .dep-item-right { align-items: flex-start; flex-direction: row; justify-content: space-between; width: 100%; }
+}
+</style>
+
+<div class="dep-wrapper">
+
+  <!-- TABS -->
+  <div class="dep-tabs">
+    <button class="dep-tab active" data-tab="tab-reg">
+      <i class="fas fa-plus-circle"></i> Registar
+    </button>
+    <button class="dep-tab" data-tab="tab-list">
+      <i class="fas fa-list"></i> Listar
+    </button>
+    <button class="dep-tab" data-tab="tab-total">
+      <i class="fas fa-coins"></i> Totais
+    </button>
   </div>
-</div>
 
-<!-- MODAL EDITAR -->
-<div class="modal fade" id="modalEditarDeposito" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <form id="form_edit_deposito" class="modal-content border-0 shadow rounded-4" onsubmit="return false;">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title"><i class="fas fa-edit me-1"></i>Editar Depósito</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  <!-- ══ TAB: REGISTAR ══ -->
+  <div class="dep-pane active" id="tab-reg">
+    <div class="dep-card">
+      <div style="margin-bottom:20px">
+        <div class="page-topbar-title" style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;margin-bottom:4px">
+          Novo <span style="color:var(--accent)">Depósito</span>
+        </div>
+        <div style="font-size:.8rem;color:var(--grey)">Registe um novo depósito para um sector</div>
       </div>
-      <div class="modal-body">
-        <input type="hidden" id="edit_id">
-        <div class="mb-2">
-          <label class="form-label">Sector</label>
-          <select id="edit_sector" class="form-select shadow-sm">
+
+      <div class="row g-3">
+        <div class="col-md-4 col-sm-6">
+          <label class="f-label">Sector</label>
+          <select id="dep_sector">
             <option value="">-- Escolha sector --</option>
             {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
           </select>
         </div>
-        <div class="mb-2">
-          <label class="form-label">Data</label>
-          <input id="edit_data" type="date" class="form-control shadow-sm">
+        <div class="col-md-3 col-sm-6">
+          <label class="f-label">Data</label>
+          <input id="dep_data" type="date" value="{{ now|date:'Y-m-d' }}">
         </div>
-        <div class="mb-2">
-          <label class="form-label">Valor</label>
-          <input id="edit_valor" type="number" step="0.01" class="form-control shadow-sm">
+        <div class="col-md-3 col-sm-6">
+          <label class="f-label">Valor</label>
+          <div class="kz-wrap">
+            <input id="dep_valor" type="number" step="0.01" placeholder="0.00">
+            <span class="kz-sym">Kz</span>
+          </div>
         </div>
-        <div class="mb-2">
-          <label class="form-label">Observação</label>
-          <textarea id="edit_obs" class="form-control shadow-sm" rows="2"></textarea>
+        <div class="col-12">
+          <label class="f-label">Observação</label>
+          <textarea id="dep_obs" rows="2" placeholder="Observações opcionais..."></textarea>
+        </div>
+        <div class="col-12" style="display:flex;justify-content:flex-end">
+          <button id="btn_dep_save" class="btn-dep btn-dep-primary">
+            <span class="sp"></span>
+            <span class="btn-text"><i class="fas fa-floppy-disk"></i> Guardar Depósito</span>
+          </button>
         </div>
       </div>
-      <div class="modal-footer">
-        <button id="btn_edit_save" class="btn btn-primary px-4"><i class="fas fa-save me-1"></i>Salvar</button>
-        <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Fechar</button>
+    </div>
+  </div>
+
+  <!-- ══ TAB: LISTAR ══ -->
+  <div class="dep-pane" id="tab-list">
+
+    <!-- Filtros -->
+    <div class="filter-bar">
+      <div class="f-group">
+        <label class="f-label">Sector</label>
+        <select id="filter_sector">
+          <option value="">Todos os sectores</option>
+          {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
+        </select>
       </div>
-    </form>
+      <div class="f-group">
+        <label class="f-label">Ano</label>
+        <select id="filter_year">
+          <option value="">Todos</option>
+          {% for y in anos %}<option value="{{ y }}">{{ y }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="f-group">
+        <label class="f-label">Mês</label>
+        <select id="filter_month">
+          <option value="">Todos</option>
+          <option value="01">Janeiro</option><option value="02">Fevereiro</option>
+          <option value="03">Março</option><option value="04">Abril</option>
+          <option value="05">Maio</option><option value="06">Junho</option>
+          <option value="07">Julho</option><option value="08">Agosto</option>
+          <option value="09">Setembro</option><option value="10">Outubro</option>
+          <option value="11">Novembro</option><option value="12">Dezembro</option>
+        </select>
+      </div>
+      <div class="filter-bar-actions">
+        <button id="btn_reload" class="btn-dep btn-dep-outline">
+          <i class="fas fa-sync-alt"></i> Recarregar
+        </button>
+        <button id="btn_print" class="btn-dep btn-dep-print">
+          <i class="fas fa-print"></i> Imprimir Extrato
+        </button>
+      </div>
+    </div>
+
+    <!-- Lista -->
+    <div id="lista_depositos">
+      <div class="dep-loading">
+        <div class="dep-spinner"></div>
+        <span>A carregar depósitos...</span>
+      </div>
+    </div>
+
+    <!-- Total inline da lista -->
+    <div style="display:flex;justify-content:flex-end;margin-top:14px;align-items:center;gap:10px">
+      <span style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--grey)">Total filtrado:</span>
+      <span id="lista_total" style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px;color:#69f0ae">— Kz</span>
+    </div>
+
+  </div>
+
+  <!-- ══ TAB: TOTAIS ══ -->
+  <div class="dep-pane" id="tab-total">
+    <div class="dep-card">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3 col-sm-6">
+          <label class="f-label">Sector</label>
+          <select id="total_sector">
+            <option value="">Todos os sectores</option>
+            {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <label class="f-label">Ano</label>
+          <select id="total_year">
+            <option value="">Todos</option>
+            {% for y in anos %}<option value="{{ y }}">{{ y }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <label class="f-label">Mês</label>
+          <select id="total_month">
+            <option value="">Todos</option>
+            <option value="01">Janeiro</option><option value="02">Fevereiro</option>
+            <option value="03">Março</option><option value="04">Abril</option>
+            <option value="05">Maio</option><option value="06">Junho</option>
+            <option value="07">Julho</option><option value="08">Agosto</option>
+            <option value="09">Setembro</option><option value="10">Outubro</option>
+            <option value="11">Novembro</option><option value="12">Dezembro</option>
+          </select>
+        </div>
+        <div class="col-md-3 col-sm-6" style="display:flex;align-items:flex-end">
+          <button id="btn_total_reload" class="btn-dep btn-dep-primary" style="width:100%;justify-content:center">
+            <i class="fas fa-sync-alt"></i> Calcular
+          </button>
+        </div>
+      </div>
+
+      <div class="total-display">
+        <div class="total-label">Total de Depósitos</div>
+        <div class="total-value" id="total_valor">0,00 Kz</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- dep-wrapper -->
+
+<!-- ══ MODAL EDITAR ══ -->
+<div class="modal fade" id="modalEditarDeposito" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-pen" style="color:var(--accent);margin-right:8px"></i>Editar Depósito</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="padding:22px">
+        <input type="hidden" id="edit_id">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="f-label">Sector</label>
+            <select id="edit_sector">
+              <option value="">-- Escolha sector --</option>
+              {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="f-label">Data</label>
+            <input id="edit_data" type="date">
+          </div>
+          <div class="col-6">
+            <label class="f-label">Valor</label>
+            <div class="kz-wrap">
+              <input id="edit_valor" type="number" step="0.01">
+              <span class="kz-sym">Kz</span>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="f-label">Observação</label>
+            <textarea id="edit_obs" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="gap:10px">
+        <button type="button" class="btn-dep btn-dep-outline" data-bs-dismiss="modal">
+          <i class="fas fa-xmark"></i> Fechar
+        </button>
+        <button id="btn_edit_save" class="btn-dep btn-dep-primary">
+          <span class="sp"></span>
+          <span class="btn-text"><i class="fas fa-floppy-disk"></i> Guardar</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- SCRIPT PRINCIPAL -->
+<!-- ══ ÁREA DE IMPRESSÃO ══ -->
+<div id="print-area" style="display:none"></div>
+
+{% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function(){
-  const csrftoken = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)')?.pop() || '';
-  const saveUrl = "{% url 'depositos_save' %}";
-  const listUrl = "{% url 'depositos_list' %}";
-  const detailUrlTemplate = "{% url 'depositos_detail' 0 %}";
-  const editUrlTemplate = "{% url 'depositos_edit' 0 %}";
-  const deleteUrl = "{% url 'depositos_delete' %}";
+(function () {
+  const csrftoken  = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)')?.pop() || '';
+  const saveUrl    = "{% url 'depositos_save' %}";
+  const listUrl    = "{% url 'depositos_list' %}";
+  const detailBase = "{% url 'depositos_detail' 0 %}";
+  const editBase   = "{% url 'depositos_edit' 0 %}";
+  const deleteUrl  = "{% url 'depositos_delete' %}";
 
-  const fmt = new Intl.NumberFormat('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = new Intl.NumberFormat('pt-PT', { minimumFractionDigits:2, maximumFractionDigits:2 });
+  const meses = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-  const listaDiv = document.getElementById('lista_depositos');
-  const btnSave = document.getElementById('btn_dep_save');
-  const totalValor = document.getElementById('total_valor');
-
-  function toast(msg, type='success'){
-    const color = type === 'error' ? 'bg-danger' :
-                  type === 'warning' ? 'bg-warning text-dark' : 'bg-success';
-    const toast = document.createElement('div');
-    toast.className = `toast align-items-center text-white ${color} border-0 position-fixed top-0 end-0 m-3`;
-    toast.role = 'alert';
-    toast.innerHTML = `
-      <div class="d-flex">
-        <div class="toast-body">${msg}</div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-      </div>`;
-    document.body.appendChild(toast);
-    const bsToast = new bootstrap.Toast(toast, {delay: 3000});
-    bsToast.show();
-    toast.addEventListener('hidden.bs.toast', () => toast.remove());
-  }
-
-  function detailUrlFor(id){ return detailUrlTemplate.replace('/0/','/'+id+'/'); }
-  function editUrlFor(id){ return editUrlTemplate.replace('/0/','/'+id+'/edit/').replace('/0/edit/','/'+id+'/edit/'); }
-
-  async function carregarLista(sec=null){
-    const year = document.getElementById('filter_year').value || '';
-    const month = document.getElementById('filter_month').value || '';
-
-    const params = new URLSearchParams();
-    if(sec) params.append('sector_id', sec);
-    if(year) params.append('year', year);
-    if(month) params.append('month', month);
-
-    listaDiv.innerHTML = '<div class="text-center text-muted py-4"><div class="spinner-border"></div><br>Carregando...</div>';
-    const res = await fetch(listUrl + '?' + params.toString(), {credentials:'same-origin'});
-    if (!res.ok) return;
-    const data = await res.json();
-    listaDiv.innerHTML = '';
-    if (!data.ok || data.depositos.length === 0){
-      listaDiv.innerHTML = '<div class="alert alert-light text-center">Nenhum depósito encontrado</div>';
-      return;
-    }
-    data.depositos.forEach(d=>{
-      const valorFmt = fmt.format(parseFloat(d.valor || 0)) + ' Kz';
-      const el = document.createElement('div');
-      el.className = 'border rounded p-2 mb-2 bg-light text-dark fade-in';
-      el.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <strong>${d.sector}</strong> — ${d.data_deposito || '—'}
-            <div class="small text-muted">${d.observacao || ''}</div>
-          </div>
-          <div class="text-end">
-            <div class="text-success fw-bold">${valorFmt}</div>
-            <div class="mt-2">
-              <button class="btn btn-sm btn-outline-secondary btn-edit" data-id="${d.id}">Editar</button>
-              <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${d.id}">Eliminar</button>
-            </div>
-          </div>
-        </div>`;
-      listaDiv.appendChild(el);
+  // ── TABS ───────────────────────────────────────
+  document.querySelectorAll('.dep-tab').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.dep-tab').forEach(function (b) { b.classList.remove('active'); });
+      document.querySelectorAll('.dep-pane').forEach(function (p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
     });
-  }
-
-  async function carregarTotal(sec=null){
-    const year = document.getElementById('total_year').value || '';
-    const month = document.getElementById('total_month').value || '';
-
-    const params = new URLSearchParams();
-    if(sec) params.append('sector_id', sec);
-    if(year) params.append('year', year);
-    if(month) params.append('month', month);
-
-    totalValor.textContent = '...';
-    const res = await fetch(listUrl + '?' + params.toString(), {credentials:'same-origin'});
-    if (!res.ok) return;
-    const data = await res.json();
-    const total = parseFloat(data.total || 0);
-    totalValor.textContent = fmt.format(total) + ' Kz';
-  }
-
-  // Salvar novo depósito
-  btnSave.addEventListener('click', async e=>{
-    e.preventDefault();
-    const sector = document.getElementById('dep_sector').value;
-    const data = document.getElementById('dep_data').value;
-    const valor = document.getElementById('dep_valor').value;
-    const obs = document.getElementById('dep_obs').value;
-    if (!sector || !valor){ toast('Sector e valor são obrigatórios', 'warning'); return; }
-
-    btnSave.disabled = true;
-    btnSave.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
-    const res = await fetch(saveUrl, {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: {'Content-Type':'application/json','X-CSRFToken':csrftoken},
-      body: JSON.stringify({sector_id: parseInt(sector), data_deposito: data, valor: valor, observacao: obs})
-    });
-    btnSave.disabled = false;
-    btnSave.textContent = 'Salvar Depósito';
-    const r = await res.json();
-    if (!r.ok){ toast(r.error || 'Erro ao salvar', 'error'); return; }
-    toast('✅ Depósito registrado com sucesso!');
-    document.getElementById('dep_valor').value = '';
-    document.getElementById('dep_obs').value = '';
-    carregarLista(); carregarTotal();
   });
 
-  // Listar e Totais
-  document.getElementById('btn_reload').addEventListener('click', () => carregarLista(document.getElementById('filter_sector').value || null));
-  document.getElementById('btn_total_reload').addEventListener('click', () => carregarTotal(document.getElementById('total_sector').value || null));
+  // ── TOAST ──────────────────────────────────────
+  function toast(msg, type) {
+    type = type || 'success';
+    const icons = { success:'check-circle', error:'circle-exclamation', warning:'triangle-exclamation' };
+    const el = document.createElement('div');
+    el.className = 'dep-toast ' + type;
+    el.innerHTML = '<i class="fas fa-' + icons[type] + '"></i>' + msg;
+    document.body.appendChild(el);
+    setTimeout(function () {
+      el.style.animation = 'toastOut .3s ease forwards';
+      setTimeout(function () { el.remove(); }, 300);
+    }, 3200);
+  }
 
-  // Editar / Excluir
-  listaDiv.addEventListener('click', async e=>{
+  // ── URL HELPERS ────────────────────────────────
+  function detailUrl(id) { return detailBase.replace('/0/', '/' + id + '/'); }
+  function editUrl(id)   { return editBase.replace('/0/', '/' + id + '/edit/'); }
+
+  // ── CARREGAR LISTA ─────────────────────────────
+  var _lastDepositos = [];
+
+  async function carregarLista() {
+    const params = new URLSearchParams();
+    const sec   = document.getElementById('filter_sector').value;
+    const year  = document.getElementById('filter_year').value;
+    const month = document.getElementById('filter_month').value;
+    if (sec)   params.append('sector_id', sec);
+    if (year)  params.append('year', year);
+    if (month) params.append('month', month);
+
+    const lista = document.getElementById('lista_depositos');
+    lista.innerHTML = '<div class="dep-loading"><div class="dep-spinner"></div><span>A carregar...</span></div>';
+
+    try {
+      const res  = await fetch(listUrl + '?' + params.toString(), { credentials:'same-origin' });
+      const data = await res.json();
+      _lastDepositos = data.depositos || [];
+
+      lista.innerHTML = '';
+      if (!data.ok || _lastDepositos.length === 0) {
+        lista.innerHTML = '<div class="dep-empty"><i class="fas fa-inbox"></i>Nenhum depósito encontrado para os filtros selecionados.</div>';
+        document.getElementById('lista_total').textContent = '0,00 Kz';
+        return;
+      }
+
+      var total = 0;
+      _lastDepositos.forEach(function (d) {
+        const v = parseFloat(d.valor || 0);
+        total += v;
+        const el = document.createElement('div');
+        el.className = 'dep-item';
+        el.innerHTML =
+          '<div class="dep-item-left">' +
+            '<span class="dep-item-sector">' + (d.sector || '—') + '</span>' +
+            '<span class="dep-item-date"><i class="fas fa-calendar-day" style="font-size:.65rem;margin-right:4px;color:var(--accent)"></i>' + (d.data_deposito || '—') + '</span>' +
+            (d.observacao ? '<span class="dep-item-obs">' + d.observacao + '</span>' : '') +
+          '</div>' +
+          '<div class="dep-item-right">' +
+            '<span class="dep-item-valor">' + fmt.format(v) + ' Kz</span>' +
+            '<div class="dep-item-btns">' +
+              '<button class="btn-dep-action btn-dep-edit" data-id="' + d.id + '" title="Editar"><i class="fas fa-pen"></i></button>' +
+              '<button class="btn-dep-action btn-dep-del" data-id="' + d.id + '" title="Eliminar"><i class="fas fa-trash-can"></i></button>' +
+            '</div>' +
+          '</div>';
+        lista.appendChild(el);
+      });
+
+      document.getElementById('lista_total').textContent = fmt.format(total) + ' Kz';
+    } catch (err) {
+      lista.innerHTML = '<div class="dep-empty"><i class="fas fa-triangle-exclamation"></i>Erro ao carregar depósitos.</div>';
+    }
+  }
+
+  // ── CARREGAR TOTAL ─────────────────────────────
+  async function carregarTotal() {
+    const params = new URLSearchParams();
+    const sec   = document.getElementById('total_sector').value;
+    const year  = document.getElementById('total_year').value;
+    const month = document.getElementById('total_month').value;
+    if (sec)   params.append('sector_id', sec);
+    if (year)  params.append('year', year);
+    if (month) params.append('month', month);
+
+    const el = document.getElementById('total_valor');
+    el.textContent = '...';
+    el.classList.add('loading');
+
+    try {
+      const res  = await fetch(listUrl + '?' + params.toString(), { credentials:'same-origin' });
+      const data = await res.json();
+      el.classList.remove('loading');
+      el.textContent = fmt.format(parseFloat(data.total || 0)) + ' Kz';
+    } catch (e) {
+      el.classList.remove('loading');
+      el.textContent = 'Erro';
+    }
+  }
+
+  // ── GUARDAR NOVO ───────────────────────────────
+  var btnSave = document.getElementById('btn_dep_save');
+  btnSave.addEventListener('click', async function () {
+    const sector = document.getElementById('dep_sector').value;
+    const valor  = document.getElementById('dep_valor').value;
+    if (!sector || !valor) { toast('Sector e valor são obrigatórios', 'warning'); return; }
+
+    btnSave.classList.add('loading'); btnSave.disabled = true;
+    try {
+      const res = await fetch(saveUrl, {
+        method:'POST', credentials:'same-origin',
+        headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},
+        body: JSON.stringify({
+          sector_id: parseInt(sector),
+          data_deposito: document.getElementById('dep_data').value,
+          valor: valor,
+          observacao: document.getElementById('dep_obs').value
+        })
+      });
+      const r = await res.json();
+      if (!r.ok) { toast(r.error || 'Erro ao guardar', 'error'); return; }
+      toast('Depósito registado com sucesso!');
+      document.getElementById('dep_valor').value = '';
+      document.getElementById('dep_obs').value   = '';
+      carregarLista(); carregarTotal();
+    } catch(e) { toast('Erro de ligação', 'error'); }
+    finally { btnSave.classList.remove('loading'); btnSave.disabled = false; }
+  });
+
+  // ── BOTÕES LISTA (editar / eliminar) ───────────
+  document.getElementById('lista_depositos').addEventListener('click', async function (e) {
     const btn = e.target.closest('button'); if (!btn) return;
     const id = btn.dataset.id;
 
-    if (btn.classList.contains('btn-edit')){
-      const res = await fetch(detailUrlFor(id), {credentials:'same-origin'});
-      const r = await res.json();
-      if (!r.ok){ toast(r.error || 'Erro ao carregar', 'error'); return; }
-      const d = r.deposito;
-      document.getElementById('edit_id').value = d.id;
-      document.getElementById('edit_sector').value = d.sector_id || '';
-      document.getElementById('edit_data').value = d.data_deposito || '';
-      document.getElementById('edit_valor').value = d.valor || '';
-      document.getElementById('edit_obs').value = d.observacao || '';
-      new bootstrap.Modal(document.getElementById('modalEditarDeposito')).show();
+    if (btn.classList.contains('btn-dep-edit')) {
+      try {
+        const res = await fetch(detailUrl(id), { credentials:'same-origin' });
+        const r   = await res.json();
+        if (!r.ok) { toast(r.error || 'Erro ao carregar', 'error'); return; }
+        const d = r.deposito;
+        document.getElementById('edit_id').value    = d.id;
+        document.getElementById('edit_sector').value= d.sector_id || '';
+        document.getElementById('edit_data').value  = d.data_deposito || '';
+        document.getElementById('edit_valor').value = d.valor || '';
+        document.getElementById('edit_obs').value   = d.observacao || '';
+        new bootstrap.Modal(document.getElementById('modalEditarDeposito')).show();
+      } catch(e) { toast('Erro de ligação', 'error'); }
     }
 
-    if (btn.classList.contains('btn-delete')){
+    if (btn.classList.contains('btn-dep-del')) {
       if (!confirm('Eliminar este depósito?')) return;
-      const res = await fetch(deleteUrl, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {'Content-Type':'application/json','X-CSRFToken': csrftoken},
-        body: JSON.stringify({id})
+      try {
+        const res = await fetch(deleteUrl, {
+          method:'POST', credentials:'same-origin',
+          headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},
+          body: JSON.stringify({ id })
+        });
+        const r = await res.json();
+        if (!r.ok) { toast(r.error || 'Erro ao eliminar', 'error'); return; }
+        toast('Depósito removido.');
+        carregarLista(); carregarTotal();
+      } catch(e) { toast('Erro de ligação', 'error'); }
+    }
+  });
+
+  // ── GUARDAR EDIÇÃO ─────────────────────────────
+  var btnEditSave = document.getElementById('btn_edit_save');
+  btnEditSave.addEventListener('click', async function () {
+    const id = document.getElementById('edit_id').value;
+    btnEditSave.classList.add('loading'); btnEditSave.disabled = true;
+    try {
+      const res = await fetch(editUrl(id), {
+        method:'POST', credentials:'same-origin',
+        headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},
+        body: JSON.stringify({
+          sector_id:    document.getElementById('edit_sector').value || null,
+          data_deposito:document.getElementById('edit_data').value || null,
+          valor:        document.getElementById('edit_valor').value || null,
+          observacao:   document.getElementById('edit_obs').value || ''
+        })
       });
       const r = await res.json();
-      if (!r.ok){ toast(r.error || 'Erro ao eliminar', 'error'); return; }
-      toast('🗑️ Depósito removido.');
+      if (!r.ok) { toast(r.error || 'Erro ao actualizar', 'error'); return; }
+      bootstrap.Modal.getInstance(document.getElementById('modalEditarDeposito')).hide();
+      toast('Depósito actualizado!');
       carregarLista(); carregarTotal();
-    }
+    } catch(e) { toast('Erro de ligação', 'error'); }
+    finally { btnEditSave.classList.remove('loading'); btnEditSave.disabled = false; }
   });
 
-  // Salvar edição
-  document.getElementById('btn_edit_save').addEventListener('click', async ()=>{
-    const id = document.getElementById('edit_id').value;
-    const payload = {
-      sector_id: document.getElementById('edit_sector').value || null,
-      data_deposito: document.getElementById('edit_data').value || null,
-      valor: document.getElementById('edit_valor').value || null,
-      observacao: document.getElementById('edit_obs').value || ''
-    };
-    const res = await fetch(editUrlFor(id), {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: {'Content-Type':'application/json','X-CSRFToken': csrftoken},
-      body: JSON.stringify(payload)
-    });
-    const r = await res.json();
-    if (!r.ok){ toast(r.error || 'Erro ao atualizar', 'error'); return; }
-    bootstrap.Modal.getInstance(document.getElementById('modalEditarDeposito')).hide();
-    toast('✏️ Depósito atualizado!');
-    carregarLista(); carregarTotal();
+  // ── RECARREGAR ─────────────────────────────────
+  document.getElementById('btn_reload').addEventListener('click', carregarLista);
+  document.getElementById('btn_total_reload').addEventListener('click', carregarTotal);
+
+  // ── IMPRIMIR EXTRATO ───────────────────────────
+  document.getElementById('btn_print').addEventListener('click', function () {
+    if (_lastDepositos.length === 0) { toast('Nenhum depósito para imprimir', 'warning'); return; }
+
+    const sec   = document.getElementById('filter_sector');
+    const year  = document.getElementById('filter_year').value;
+    const month = document.getElementById('filter_month').value;
+    const secText = sec.options[sec.selectedIndex]?.text || 'Todos os sectores';
+
+    var periodoText = '';
+    if (year && month) periodoText = meses[parseInt(month)] + ' de ' + year;
+    else if (year)     periodoText = 'Ano de ' + year;
+    else if (month)    periodoText = meses[parseInt(month)];
+    else               periodoText = 'Todo o período';
+
+    var total = _lastDepositos.reduce(function (s, d) { return s + parseFloat(d.valor || 0); }, 0);
+
+    var rows = _lastDepositos.map(function (d, i) {
+      return '<tr>' +
+        '<td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:center">' + (i+1) + '</td>' +
+        '<td style="padding:8px 12px;border-bottom:1px solid #eee;font-weight:600">' + (d.sector || '—') + '</td>' +
+        '<td style="padding:8px 12px;border-bottom:1px solid #eee">' + (d.data_deposito || '—') + '</td>' +
+        '<td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right;font-weight:600;color:#1a7a3b">' + fmt.format(parseFloat(d.valor||0)) + ' Kz</td>' +
+        '<td style="padding:8px 12px;border-bottom:1px solid #eee;color:#555">' + (d.observacao || '—') + '</td>' +
+      '</tr>';
+    }).join('');
+
+    var now = new Date();
+    var dataImpressao = now.toLocaleDateString('pt-PT') + ' ' + now.toLocaleTimeString('pt-PT', {hour:'2-digit',minute:'2-digit'});
+
+    var html =
+      '<div style="font-family:Arial,sans-serif;color:#111;max-width:860px;margin:0 auto">' +
+
+        /* HEADER */
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1565c0;padding-bottom:16px;margin-bottom:20px">' +
+          '<div>' +
+            '<div style="font-size:22px;font-weight:900;letter-spacing:2px;color:#1565c0">ALCA &amp; ATY TRANSPORTES</div>' +
+            '<div style="font-size:13px;color:#555;margin-top:3px">Extrato de Depósitos por Sector</div>' +
+          '</div>' +
+          '<div style="text-align:right;font-size:11px;color:#888">' +
+            '<div>Impresso em: ' + dataImpressao + '</div>' +
+            '<div>Sector: <strong>' + secText + '</strong></div>' +
+            '<div>Período: <strong>' + periodoText + '</strong></div>' +
+          '</div>' +
+        '</div>' +
+
+        /* TABELA */
+        '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
+          '<thead>' +
+            '<tr style="background:#1565c0;color:white">' +
+              '<th style="padding:10px 12px;text-align:center;font-weight:700;letter-spacing:1px">#</th>' +
+              '<th style="padding:10px 12px;font-weight:700;letter-spacing:1px">SECTOR</th>' +
+              '<th style="padding:10px 12px;font-weight:700;letter-spacing:1px">DATA</th>' +
+              '<th style="padding:10px 12px;text-align:right;font-weight:700;letter-spacing:1px">VALOR</th>' +
+              '<th style="padding:10px 12px;font-weight:700;letter-spacing:1px">OBSERVAÇÃO</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' + rows + '</tbody>' +
+        '</table>' +
+
+        /* TOTAL */
+        '<div style="display:flex;justify-content:flex-end;margin-top:20px;padding-top:12px;border-top:2px solid #1565c0">' +
+          '<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:12px 24px;text-align:right">' +
+            '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#555;margin-bottom:4px">Total de Depósitos</div>' +
+            '<div style="font-size:22px;font-weight:900;color:#1a7a3b">' + fmt.format(total) + ' Kz</div>' +
+            '<div style="font-size:11px;color:#888;margin-top:2px">' + _lastDepositos.length + ' registo(s)</div>' +
+          '</div>' +
+        '</div>' +
+
+        /* RODAPÉ */
+        '<div style="margin-top:40px;padding-top:12px;border-top:1px solid #ddd;font-size:10px;color:#aaa;display:flex;justify-content:space-between">' +
+          '<span>ALCA &amp; ATY Transportes — Sistema de Gestão</span>' +
+          '<span>© ' + now.getFullYear() + ' @Kiangebeni Kaleba Matias</span>' +
+        '</div>' +
+
+      '</div>';
+
+    var printArea = document.getElementById('print-area');
+    printArea.innerHTML = html;
+    printArea.style.display = 'block';
+    window.print();
+    printArea.style.display = 'none';
   });
 
-  // Iniciar
+  // ── INICIAR ────────────────────────────────────
   carregarLista();
   carregarTotal();
-});
+
+})();
 </script>
-
-<style>
-  .form-control, .form-select { border-radius: 10px; transition: 0.2s; }
-  .form-control:focus, .form-select:focus { border-color: #0d6efd; box-shadow: 0 0 0 0.15rem rgba(13,110,253,0.25); }
-
-  .nav-tabs .nav-link {
-    border: none; color: #495057; background: #f8f9fa;
-    border-radius: 8px 8px 0 0; margin-right: 5px;
-  }
-  .nav-tabs .nav-link.active {
-    background: linear-gradient(90deg, #007bff, #00bcd4);
-    color: white; box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
-  }
-  .fade-in { animation: fadeIn .3s ease-in-out; }
-  @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
-</style>
+{% endblock %}
 {% endblock %}

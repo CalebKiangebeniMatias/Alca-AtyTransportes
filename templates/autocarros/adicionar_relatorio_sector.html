@@ -1,198 +1,651 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    {% if relatorio.id %}Editar Relatório do Setor{% else %}Novo Relatório do Setor{% endif %}
+  {% if relatorio.id %}Editar Relatório — {{ sector.nome }}{% else %}Novo Relatório{% endif %}
+{% endblock %}
+
+{% block breadcrumb %}
+  Registos › {% if relatorio.id %}Editar Relatório{% else %}Novo Relatório{% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-11">
-        <div class="card shadow-lg">
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">
-                    <i class="fas fa-clipboard-list me-2"></i>
-                    {% if relatorio.id %}
-                        Editar Relatório - {{ sector.nome }}
-                    {% else %}
-                        Novo Relatório do Setor
-                    {% endif %}
-                </h4>
-                <small>{{ data|date:"d/m/Y" }}</small>
-            </div>
-
-            <div class="card-body">
-                <!-- 🔹 Mensagens -->
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-
-                <form method="post" enctype="multipart/form-data" id="relatorioForm">
-                    {% csrf_token %}
-
-                    <!-- 🔹 Dados do Relatório -->
-                    <div class="border rounded p-3 mb-4 bg-light">
-                        <h5 class="text-primary mb-3">
-                            <i class="fas fa-info-circle me-2"></i> Dados do Relatório
-                        </h5>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">{{ relatorio_form.sector.label }}</label>
-                                    {{ relatorio_form.sector }}
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">{{ relatorio_form.data.label }}</label>
-                                    {{ relatorio_form.data }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-danger">
-                                <i class="fas fa-coins me-1"></i> {{ relatorio_form.despesa_geral.label }}
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text">Kz</span>
-                                {{ relatorio_form.despesa_geral }}
-                            </div>
-                            <small class="text-muted">
-                                Exemplo: 15000.00 — despesas gerais do setor.
-                            </small>
-
-                            <label class="form-label fw-bold text-danger">
-                                <i class="fas fa-coins me-1"></i> {{ relatorio_form.alimentacao_estaleiro.label }}
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text">Kz</span>
-                                {{ relatorio_form.alimentacao_estaleiro }}
-                            </div>
-                            <small class="text-muted">
-                                Exemplo: 15000.00 — despesas gerais do setor.
-                            </small>
-
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">{{ relatorio_form.descricao.label }}</label>
-                            {{ relatorio_form.descricao }}
-                        </div>
-                    </div>
-
-                    <!-- 🔹 Comprovativos -->
-                    <div class="border rounded p-3 mb-4 bg-light">
-                        <h5 class="text-primary mb-3">
-                            <i class="fas fa-paperclip me-2"></i> Comprovativos
-                        </h5>
-
-                        {% if relatorio.comprovativorelatorio_set.all %}
-                            <ul class="list-group mb-3">
-                                {% for c in relatorio.comprovativorelatorio_set.all %}
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <i class="fas fa-file me-2"></i>
-                                            <a href="{{ c.arquivo.url }}" target="_blank">{{ c.arquivo.name|slice:":50" }}</a>
-                                        </div>
-                                        <a href="{% url 'remover_comprovativo' c.id %}" class="btn btn-sm btn-danger">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </a>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            <p class="text-muted">Nenhum comprovativo anexado ainda.</p>
-                        {% endif %}
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Adicionar novos arquivos</label>
-                            <input type="file" name="novos_comprovativos" multiple class="form-control" id="fileInput">
-                            <div id="file-preview" class="mt-3"></div>
-                        </div>
-                    </div>
-
-                    <!-- 🔹 Registos dos Autocarros -->
-                    <div class="border rounded p-3 mb-4 bg-light">
-                        <h5 class="text-primary mb-3">
-                            <i class="fas fa-bus me-2"></i> Registos dos Autocarros
-                        </h5>
-
-                        {% for item in forms %}
-                            <div class="card mb-3">
-                                <div class="card-header bg-secondary text-white d-flex justify-content-between">
-                                    <strong>{{ item.registro.autocarro.numero }}</strong>
-                                    <small>{{ item.registro.autocarro.matricula }}</small>
-                                </div>
-                                <div class="card-body">
-                                    {{ item.form.as_p }}
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- 🔹 Botões -->
-                    <div class="text-center mt-4">
-                        <button type="submit" class="btn btn-success btn-lg me-2">
-                            <i class="fas fa-save me-2"></i>
-                            {% if relatorio.id %}Salvar Alterações{% else %}Criar Relatório{% endif %}
-                        </button>
-                        <a href="{% url 'listar_registros' %}" class="btn btn-secondary btn-lg">
-                            <i class="fas fa-times me-2"></i> Cancelar
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>        
-    </div>
-</div>
-
-<!-- 🔹 Preview e validação de arquivos -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const fileInput = document.getElementById('fileInput');
-    const preview = document.getElementById('file-preview');
-    if (!fileInput) return;
-
-    fileInput.addEventListener('change', function() {
-        preview.innerHTML = '';
-        if (this.files.length > 0) {
-            const list = document.createElement('ul');
-            list.className = 'list-group';
-            Array.from(this.files).forEach((file, index) => {
-                const li = document.createElement('li');
-                li.className = 'list-group-item d-flex justify-content-between align-items-center';
-                li.innerHTML = `
-                    <span><i class="fas fa-file me-2"></i>${file.name}</span>
-                    <span class="badge bg-primary">${(file.size / 1024).toFixed(1)} KB</span>`;
-                list.appendChild(li);
-            });
-            preview.appendChild(list);
-        }
-    });
-});
-</script>
-
 <style>
-.form-control:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25);
+/* ════════════════════════════════════════════════════
+   FORM RELATÓRIO
+════════════════════════════════════════════════════ */
+
+.relatorio-wrapper {
+  max-width: 960px;
+  margin: 0 auto;
+  animation: formIn .55s cubic-bezier(.34,1.56,.64,1) both;
 }
-.btn-success {
-    background: linear-gradient(45deg, #198754, #20c997);
-    border: none;
+
+@keyframes formIn {
+  from { opacity:0; transform:translateY(22px) scale(.98); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
 }
-.btn-success:hover {
-    background: linear-gradient(45deg, #157347, #1aa179);
+
+/* ── PAGE HEADER ─────────────────────────────────── */
+.form-page-header {
+  display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 28px;
 }
-.list-group-item {
-    border-radius: 6px;
-    margin-bottom: 5px;
+.form-page-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.9rem; letter-spacing: 2px; line-height: 1;
+}
+.form-page-title span { color: var(--accent); }
+.form-page-date {
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(79,195,247,.08);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 7px 14px;
+  font-size: .82rem; font-weight: 700;
+  letter-spacing: 1px; color: var(--accent);
+}
+
+/* ── SECTION BLOCK ───────────────────────────────── */
+.form-section {
+  background: rgba(13,43,94,.45);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 8px 28px rgba(4,30,66,.3);
+  overflow: hidden;
+  margin-bottom: 20px;
+  transition: border-color var(--ease-fast);
+}
+.form-section:focus-within {
+  border-color: rgba(79,195,247,.35);
+}
+
+.form-section-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 14px 22px;
+  background: linear-gradient(90deg, rgba(36,99,163,.35) 0%, rgba(4,30,66,.2) 100%);
+  border-bottom: 1px solid var(--glass-border);
+  gap: 10px;
+}
+.form-section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 1rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--white);
+  display: flex; align-items: center; gap: 10px;
+}
+.form-section-title i { color: var(--accent); font-size: .9rem; }
+
+.form-section-body { padding: 24px 22px; }
+
+/* ── FORM FIELDS ─────────────────────────────────── */
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.field-group { margin-bottom: 18px; }
+.field-group:last-child { margin-bottom: 0; }
+
+.field-label {
+  display: block;
+  font-size: .75rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.55);
+  margin-bottom: 7px;
+}
+.field-label i { margin-right: 5px; }
+.field-label.danger { color: #ff8a80; }
+.field-label.danger i { color: #ff8a80; }
+
+/* Override Django widgets */
+.relatorio-wrapper .form-control,
+.relatorio-wrapper .form-select,
+.relatorio-wrapper select,
+.relatorio-wrapper input[type="text"],
+.relatorio-wrapper input[type="number"],
+.relatorio-wrapper input[type="date"],
+.relatorio-wrapper input[type="file"],
+.relatorio-wrapper textarea {
+  width: 100%;
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 10px 14px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .92rem !important;
+  transition: border-color var(--ease-fast),
+              box-shadow var(--ease-fast),
+              background var(--ease-fast) !important;
+  outline: none !important;
+  -webkit-appearance: none;
+}
+.relatorio-wrapper .form-control:focus,
+.relatorio-wrapper .form-select:focus,
+.relatorio-wrapper select:focus,
+.relatorio-wrapper input[type="text"]:focus,
+.relatorio-wrapper input[type="number"]:focus,
+.relatorio-wrapper input[type="date"]:focus,
+.relatorio-wrapper textarea:focus {
+  border-color: var(--accent) !important;
+  background: rgba(4,30,66,.8) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.18) !important;
+}
+.relatorio-wrapper input::placeholder,
+.relatorio-wrapper textarea::placeholder { color: rgba(255,255,255,.3) !important; }
+.relatorio-wrapper select option { background: var(--navy); color: var(--white); }
+.relatorio-wrapper textarea { resize: vertical; min-height: 90px; }
+
+/* Input group Kz */
+.kz-group {
+  display: flex; align-items: stretch;
+}
+.kz-prefix {
+  background: rgba(36,99,163,.35);
+  border: 1px solid var(--glass-border);
+  border-right: none;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  padding: 10px 14px;
+  color: var(--accent);
+  font-weight: 700; font-size: .88rem;
+  display: flex; align-items: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.kz-group input {
+  border-radius: 0 var(--radius-md) var(--radius-md) 0 !important;
+  flex: 1;
+}
+
+.field-hint {
+  margin-top: 5px;
+  font-size: .75rem;
+  color: rgba(255,255,255,.35);
+  display: flex; align-items: center; gap: 5px;
+}
+
+/* ── COMPROVATIVOS ───────────────────────────────── */
+.file-list { list-style: none; margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
+.file-list-item {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  background: rgba(4,30,66,.4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  gap: 12px;
+  transition: background var(--ease-fast);
+}
+.file-list-item:hover { background: rgba(36,99,163,.2); }
+.file-list-item a {
+  color: var(--accent); text-decoration: none;
+  font-size: .88rem; display: flex; align-items: center; gap: 8px;
+  flex: 1; min-width: 0;
+}
+.file-list-item a span {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.file-list-item a:hover { color: var(--white); }
+.btn-remove-file {
+  width: 30px; height: 30px;
+  border-radius: var(--radius-sm);
+  background: rgba(231,76,60,.15);
+  border: 1px solid rgba(231,76,60,.3);
+  color: #ff8a80; font-size: .8rem;
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none; flex-shrink: 0;
+  transition: background var(--ease-fast), border-color var(--ease-fast);
+}
+.btn-remove-file:hover {
+  background: rgba(231,76,60,.3);
+  border-color: rgba(231,76,60,.6);
+  color: #ff8a80;
+}
+
+.empty-files {
+  text-align: center; padding: 20px 0;
+  color: rgba(255,255,255,.3);
+  font-size: .88rem;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+}
+.empty-files i { font-size: 1.8rem; opacity: .5; }
+
+/* Drop zone */
+.drop-zone {
+  border: 2px dashed rgba(79,195,247,.25);
+  border-radius: var(--radius-md);
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--ease-fast), background var(--ease-fast);
+  position: relative;
+}
+.drop-zone:hover,
+.drop-zone.dragover {
+  border-color: var(--accent);
+  background: rgba(79,195,247,.06);
+}
+.drop-zone input[type="file"] {
+  position: absolute; inset: 0;
+  opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+}
+.drop-zone-icon { font-size: 2rem; color: var(--accent); opacity: .6; margin-bottom: 8px; }
+.drop-zone-text { font-size: .88rem; color: rgba(255,255,255,.5); }
+.drop-zone-text strong { color: var(--accent); }
+
+/* Preview de arquivos selecionados */
+#file-preview { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.preview-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(79,195,247,.06);
+  border: 1px solid rgba(79,195,247,.15);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: .83rem; color: rgba(255,255,255,.75);
+  gap: 10px;
+  animation: previewIn .25s ease;
+}
+@keyframes previewIn { from { opacity:0; transform:translateX(-6px); } to { opacity:1; transform:translateX(0); } }
+.preview-item i { color: var(--accent); flex-shrink:0; }
+.preview-item .fname { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.preview-badge {
+  background: rgba(36,99,163,.5);
+  border-radius: 30px;
+  padding: 2px 10px;
+  font-size: .72rem; font-weight: 700;
+  color: var(--accent); flex-shrink:0;
+}
+
+/* ── AUTOCARROS ──────────────────────────────────── */
+.autocarro-card {
+  background: rgba(4,30,66,.45);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 14px;
+  transition: border-color var(--ease-fast);
+}
+.autocarro-card:last-child { margin-bottom: 0; }
+.autocarro-card:focus-within { border-color: rgba(79,195,247,.35); }
+
+.autocarro-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 11px 18px;
+  background: rgba(36,99,163,.25);
+  border-bottom: 1px solid var(--glass-border);
+}
+.autocarro-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 1rem;
+  letter-spacing: 1px; color: var(--white);
+  display: flex; align-items: center; gap: 8px;
+}
+.autocarro-num i { color: var(--accent); }
+.autocarro-matricula {
+  font-size: .78rem; font-weight: 700;
+  letter-spacing: 1.5px; color: var(--grey);
+  background: rgba(4,30,66,.5);
+  border: 1px solid var(--glass-border);
+  border-radius: 4px; padding: 3px 10px;
+}
+
+.autocarro-body { padding: 18px; }
+
+/* Django form as_p override */
+.autocarro-body p {
+  margin-bottom: 14px;
+}
+.autocarro-body label {
+  display: block;
+  font-size: .75rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.5);
+  margin-bottom: 6px;
+}
+
+/* ── ACTION BAR ──────────────────────────────────── */
+.form-actions {
+  display: flex; align-items: center;
+  justify-content: flex-end;
+  gap: 12px; flex-wrap: wrap;
+  background: rgba(4,30,66,.4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  margin-top: 8px;
+}
+.form-actions-left { margin-right: auto; font-size: .82rem; color: var(--grey); }
+
+.btn-submit {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 30px;
+  background: var(--success);
+  border: none; border-radius: var(--radius-md);
+  color: var(--white);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 1rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(39,174,96,.3);
+  transition: transform var(--ease-spring),
+              box-shadow var(--ease-base),
+              background var(--ease-fast);
+  position: relative; overflow: hidden;
+}
+.btn-submit::before {
+  content:'';
+  position:absolute; inset:0;
+  background: linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);
+  transform: translateX(-100%);
+  transition: transform .5s ease;
+}
+.btn-submit:hover::before { transform: translateX(100%); }
+.btn-submit:hover {
+  background: #219150;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(39,174,96,.4);
+}
+.btn-submit:active { transform: scale(.98); }
+.btn-submit .spinner {
+  display: none;
+  width: 15px; height: 15px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+.btn-submit.loading .spinner { display: inline-block; }
+
+.btn-cancel {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 22px;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: rgba(255,255,255,.6);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 1rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  text-decoration: none;
+  transition: background var(--ease-fast),
+              border-color var(--ease-fast),
+              color var(--ease-fast);
+}
+.btn-cancel:hover {
+  background: rgba(255,255,255,.07);
+  border-color: rgba(255,255,255,.3);
+  color: var(--white);
+}
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 640px) {
+  .form-row-2 { grid-template-columns: 1fr; }
+  .form-page-header { flex-direction: column; align-items: flex-start; }
+  .form-section-body { padding: 16px 14px; }
+  .form-actions { flex-direction: column; }
+  .btn-submit, .btn-cancel { width: 100%; justify-content: center; }
+  .form-actions-left { margin-right: 0; }
+  .autocarro-body { padding: 14px; }
 }
 </style>
+
+<!-- PAGE HEADER -->
+<div class="relatorio-wrapper">
+  <div class="form-page-header">
+    <div class="form-page-title">
+      {% if relatorio.id %}
+        Editar Relatório — <span>{{ sector.nome }}</span>
+      {% else %}
+        Novo <span>Relatório</span>
+      {% endif %}
+    </div>
+    <div class="form-page-date">
+      <i class="fas fa-calendar-day"></i>
+      {{ data|date:"d/m/Y" }}
+    </div>
+  </div>
+
+  <!-- Mensagens -->
+  {% if messages %}
+    <div style="margin-bottom:20px">
+      {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+          {{ message }}
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" id="relatorioForm">
+    {% csrf_token %}
+
+    <!-- ══ DADOS DO RELATÓRIO ══ -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <div class="form-section-title">
+          <i class="fas fa-info-circle"></i> Dados do Relatório
+        </div>
+      </div>
+      <div class="form-section-body">
+
+        <div class="form-row-2">
+          <div class="field-group">
+            <label class="field-label">{{ relatorio_form.sector.label }}</label>
+            {{ relatorio_form.sector }}
+          </div>
+          <div class="field-group">
+            <label class="field-label">{{ relatorio_form.data.label }}</label>
+            {{ relatorio_form.data }}
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="field-group">
+            <label class="field-label danger">
+              <i class="fas fa-coins"></i> {{ relatorio_form.despesa_geral.label }}
+            </label>
+            <div class="kz-group">
+              <span class="kz-prefix">Kz</span>
+              {{ relatorio_form.despesa_geral }}
+            </div>
+            <p class="field-hint"><i class="fas fa-circle-info"></i> Ex: 15000.00</p>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label danger">
+              <i class="fas fa-utensils"></i> {{ relatorio_form.alimentacao_estaleiro.label }}
+            </label>
+            <div class="kz-group">
+              <span class="kz-prefix">Kz</span>
+              {{ relatorio_form.alimentacao_estaleiro }}
+            </div>
+            <p class="field-hint"><i class="fas fa-circle-info"></i> Ex: 5000.00</p>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">{{ relatorio_form.descricao.label }}</label>
+          {{ relatorio_form.descricao }}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ COMPROVATIVOS ══ -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <div class="form-section-title">
+          <i class="fas fa-paperclip"></i> Comprovativos
+        </div>
+        {% if relatorio.comprovativorelatorio_set.all %}
+          <span style="font-size:.75rem;color:var(--grey)">
+            {{ relatorio.comprovativorelatorio_set.count }} ficheiro(s)
+          </span>
+        {% endif %}
+      </div>
+      <div class="form-section-body">
+
+        {% if relatorio.comprovativorelatorio_set.all %}
+          <ul class="file-list">
+            {% for c in relatorio.comprovativorelatorio_set.all %}
+              <li class="file-list-item">
+                <a href="{{ c.arquivo.url }}" target="_blank">
+                  <i class="fas fa-file-lines"></i>
+                  <span>{{ c.arquivo.name|slice:":60" }}</span>
+                </a>
+                <a href="{% url 'remover_comprovativo' c.id %}" class="btn-remove-file" title="Remover">
+                  <i class="fas fa-trash-can"></i>
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="empty-files">
+            <i class="fas fa-folder-open"></i>
+            Nenhum comprovativo anexado ainda.
+          </div>
+        {% endif %}
+
+        <!-- Drop zone -->
+        <div class="drop-zone" id="dropZone">
+          <input type="file" name="novos_comprovativos" multiple id="fileInput" accept="*/*">
+          <div class="drop-zone-icon"><i class="fas fa-cloud-arrow-up"></i></div>
+          <div class="drop-zone-text">
+            Arraste ficheiros aqui ou <strong>clique para selecionar</strong>
+          </div>
+        </div>
+
+        <div id="file-preview"></div>
+
+      </div>
+    </div>
+
+    <!-- ══ REGISTOS DOS AUTOCARROS ══ -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <div class="form-section-title">
+          <i class="fas fa-bus"></i> Registos dos Autocarros
+        </div>
+        <span style="font-size:.75rem;color:var(--grey)">{{ forms|length }} autocarro(s)</span>
+      </div>
+      <div class="form-section-body">
+
+        {% for item in forms %}
+          <div class="autocarro-card">
+            <div class="autocarro-header">
+              <div class="autocarro-num">
+                <i class="fas fa-bus"></i>
+                {{ item.registro.autocarro.numero }}
+              </div>
+              <span class="autocarro-matricula">{{ item.registro.autocarro.matricula }}</span>
+            </div>
+            <div class="autocarro-body">
+              {{ item.form.as_p }}
+            </div>
+          </div>
+        {% empty %}
+          <div class="empty-files">
+            <i class="fas fa-bus-slash"></i>
+            Nenhum autocarro registado neste setor.
+          </div>
+        {% endfor %}
+
+      </div>
+    </div>
+
+    <!-- ══ BOTÕES ══ -->
+    <div class="form-actions">
+      <span class="form-actions-left">
+        <i class="fas fa-circle-info" style="color:var(--accent)"></i>
+        Todos os campos obrigatórios devem ser preenchidos.
+      </span>
+      <a href="{% url 'listar_registros' %}" class="btn-cancel">
+        <i class="fas fa-xmark"></i> Cancelar
+      </a>
+      <button type="submit" class="btn-submit" id="btnSubmit">
+        <span class="spinner"></span>
+        <i class="fas fa-floppy-disk"></i>
+        {% if relatorio.id %}Guardar Alterações{% else %}Criar Relatório{% endif %}
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<script>
+(function () {
+
+  /* ── DROP ZONE ───────────────────────────────────── */
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const preview   = document.getElementById('file-preview');
+
+  function renderPreview(files) {
+    preview.innerHTML = '';
+    Array.from(files).forEach(function (file) {
+      const item = document.createElement('div');
+      item.className = 'preview-item';
+      item.innerHTML = `
+        <i class="fas fa-file"></i>
+        <span class="fname">${file.name}</span>
+        <span class="preview-badge">${(file.size / 1024).toFixed(1)} KB</span>
+      `;
+      preview.appendChild(item);
+    });
+  }
+
+  if (fileInput) {
+    fileInput.addEventListener('change', function () {
+      if (this.files.length) renderPreview(this.files);
+      else preview.innerHTML = '';
+    });
+  }
+
+  if (dropZone) {
+    ['dragenter','dragover'].forEach(function (ev) {
+      dropZone.addEventListener(ev, function (e) {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      });
+    });
+    ['dragleave','drop'].forEach(function (ev) {
+      dropZone.addEventListener(ev, function (e) {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (ev === 'drop' && e.dataTransfer.files.length) {
+          fileInput.files = e.dataTransfer.files;
+          renderPreview(e.dataTransfer.files);
+        }
+      });
+    });
+  }
+
+  /* ── LOADING NO SUBMIT ───────────────────────────── */
+  const form      = document.getElementById('relatorioForm');
+  const btnSubmit = document.getElementById('btnSubmit');
+
+  if (form && btnSubmit) {
+    form.addEventListener('submit', function () {
+      btnSubmit.classList.add('loading');
+      btnSubmit.disabled = true;
+      setTimeout(function () {
+        btnSubmit.classList.remove('loading');
+        btnSubmit.disabled = false;
+      }, 10000);
+    });
+  }
+
+})();
+</script>
 {% endblock %}

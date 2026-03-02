@@ -1,110 +1,410 @@
 {% extends 'base.html' %}
-{% block title %}Login - Gestão de Autocarros{% endblock %}
+{% block title %}Login — ALCA & ATY Transportes{% endblock %}
+{% block breadcrumb %}Autenticação{% endblock %}
 
 {% block content %}
 <style>
-  /* Usar variáveis do tema em base.html para manter consistência visual */
+/* ── LOGIN PAGE ─────────────────────────────────── */
 
+/* Centra verticalmente ocupando o espaço disponível */
+.login-wrapper {
+  min-height: calc(100vh - var(--topbar-h) - 80px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+/* Card principal */
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(13, 43, 94, 0.55);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 24px 64px rgba(4,30,66,.5),
+              0 0 0 1px rgba(79,195,247,.08);
+  padding: 44px 40px 36px;
+  animation: loginIn .6s cubic-bezier(.34,1.56,.64,1) both;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Brilho decorativo no topo */
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: -60px; left: 50%;
+  transform: translateX(-50%);
+  width: 220px; height: 120px;
+  background: radial-gradient(ellipse, rgba(79,195,247,.18), transparent 70%);
+  pointer-events: none;
+}
+
+/* Linha de accent no topo */
+.login-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 10%; right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  border-radius: 2px;
+}
+
+@keyframes loginIn {
+  from { opacity: 0; transform: translateY(32px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Avatar */
+.login-avatar {
+  width: 76px; height: 76px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue-mid), var(--navy));
+  border: 2px solid var(--glass-border);
+  box-shadow: 0 0 0 6px rgba(79,195,247,.08),
+              0 8px 24px rgba(4,30,66,.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; color: var(--accent);
+  margin: 0 auto 20px;
+  animation: avatarPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes avatarPulse {
+  0%, 100% { box-shadow: 0 0 0 6px rgba(79,195,247,.08), 0 8px 24px rgba(4,30,66,.4); }
+  50%       { box-shadow: 0 0 0 12px rgba(79,195,247,.04), 0 8px 24px rgba(4,30,66,.4); }
+}
+
+/* Título */
+.login-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.9rem;
+  letter-spacing: 3px;
+  color: var(--white);
+  text-align: center;
+  margin-bottom: 4px;
+}
+.login-subtitle {
+  text-align: center;
+  font-size: .82rem;
+  color: var(--grey);
+  letter-spacing: .5px;
+  margin-bottom: 32px;
+}
+
+/* Divider */
+.login-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+  margin: 24px 0;
+}
+
+/* Input group com ícone */
+.input-group-icon {
+  position: relative;
+  margin-bottom: 16px;
+}
+.input-group-icon .field-icon {
+  position: absolute;
+  left: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--grey);
+  font-size: .9rem;
+  pointer-events: none;
+  transition: color var(--ease-fast);
+  z-index: 2;
+}
+.input-group-icon:focus-within .field-icon {
+  color: var(--accent);
+}
+
+.input-group-icon input {
+  width: 100%;
+  background: rgba(4,30,66,.55);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--white);
+  padding: 12px 42px 12px 40px;
+  font-size: .95rem;
+  font-family: 'Barlow', sans-serif;
+  transition: border-color var(--ease-fast),
+              box-shadow var(--ease-fast),
+              background var(--ease-fast);
+  outline: none;
+  -webkit-appearance: none;
+}
+.input-group-icon input:focus {
+  border-color: var(--accent);
+  background: rgba(4,30,66,.8);
+  box-shadow: 0 0 0 3px rgba(79,195,247,.18);
+}
+.input-group-icon input::placeholder {
+  color: rgba(255,255,255,.3);
+  font-size: .88rem;
+}
+
+/* Toggle mostrar senha */
+.toggle-pw {
+  position: absolute;
+  right: 13px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  color: var(--grey); font-size: .88rem;
+  cursor: pointer; padding: 4px;
+  transition: color var(--ease-fast);
+  z-index: 2;
+}
+.toggle-pw:hover { color: var(--accent); }
+
+/* Erro de campo */
+.field-error {
+  font-size: .76rem;
+  color: #ff8a80;
+  margin-top: 5px;
+  display: flex; align-items: center; gap: 5px;
+  padding-left: 4px;
+}
+
+/* Alerta de erro geral */
+.login-alert {
+  background: rgba(231,76,60,.15);
+  border: 1px solid rgba(231,76,60,.4);
+  border-left: 3px solid var(--danger);
+  border-radius: var(--radius-md);
+  padding: 11px 14px;
+  font-size: .88rem;
+  color: #ffcdd2;
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px;
+  animation: alertIn .3s ease;
+}
+@keyframes alertIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+
+/* Botão submit */
+.btn-login {
+  width: 100%;
+  padding: 13px;
+  margin-top: 8px;
+  background: linear-gradient(90deg, var(--blue-mid) 0%, var(--blue) 100%);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--white);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: 3px;
+  cursor: pointer;
+  position: relative; overflow: hidden;
+  transition: transform var(--ease-spring),
+              box-shadow var(--ease-base);
+  box-shadow: 0 4px 20px rgba(36,99,163,.35);
+}
+.btn-login::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.08) 50%, transparent 100%);
+  transform: translateX(-100%);
+  transition: transform .5s ease;
+}
+.btn-login:hover::before { transform: translateX(100%); }
+.btn-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(36,99,163,.5);
+}
+.btn-login:active { transform: scale(.98); }
+.btn-login:disabled {
+  opacity: .6; cursor: not-allowed;
+  transform: none; box-shadow: none;
+}
+
+/* Spinner no botão */
+.btn-login .spinner {
+  display: none;
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,.35);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  margin-right: 8px;
+}
+.btn-login.loading .spinner { display: inline-block; }
+.btn-login.loading .btn-text { opacity: .7; }
+
+/* Footer do card */
+.login-footer {
+  text-align: center;
+  margin-top: 24px;
+  font-size: .84rem;
+  color: var(--grey);
+}
+.login-footer a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color var(--ease-fast), text-decoration var(--ease-fast);
+}
+.login-footer a:hover { color: var(--white); text-decoration: underline; }
+
+/* Brand no topo do card */
+.login-brand {
+  text-align: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,.3);
+  margin-bottom: 28px;
+}
+.login-brand span { color: var(--accent); }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 480px) {
   .login-card {
-    border: none;
-    border-radius: 18px;
-    background: var(--glass-bg);
-    color: var(--accent-color);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-    transition: all 0.4s ease;
-    animation: fadeInUp 0.7s ease forwards;
+    padding: 32px 22px 28px;
+    border-radius: var(--radius-md);
   }
-
-  .login-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
-  }
-
-  .login-card h3 { font-weight: 600; color: var(--secondary-color); }
-
-  .form-control {
-    border-radius: 12px;
-    border: 1.5px solid rgba(255,255,255,0.06);
-    padding: 10px 15px;
-    transition: all 0.3s ease;
-    background: rgba(255,255,255,0.02);
-    color: var(--accent-color);
-  }
-
-  .form-control:focus {
-    border-color: var(--secondary-color);
-    box-shadow: 0 0 0 0.2rem rgba(36,99,163,0.12);
-  }
-
-  .btn-primary {
-    border-radius: 12px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-    background: linear-gradient(90deg, var(--secondary-color) 60%, var(--primary-color) 100%);
-    border: none;
-    color: var(--accent-color);
-  }
-
-  .btn-primary:hover { transform: scale(1.02); }
-
-  .avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--accent-color);
-    font-size: 35px;
-    margin: 0 auto 15px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
-    animation: pulse 2s infinite ease-in-out;
-  }
-
-  .card-footer { border-top: none; background: none; margin-top: 10px; font-size: 0.9rem; }
-
-  .card-footer a { color: var(--secondary-color); text-decoration: none; font-weight: 500; }
-
-  .card-footer a:hover { text-decoration: underline; }
-
-  @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(0,0,0,0.08); }
-    70% { box-shadow: 0 0 0 12px rgba(0,0,0,0); }
-    100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
-  }
-
-  @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+  .login-avatar { width: 64px; height: 64px; font-size: 1.7rem; }
+  .login-title  { font-size: 1.6rem; }
+}
 </style>
 
-<div class="d-flex justify-content-center align-items-center" style="min-height: 90vh;">
-  <div class="card login-card p-5 text-center" style="max-width: 420px; width: 100%;">
-    <div class="avatar mb-3">
+<div class="login-wrapper">
+  <div class="login-card">
+
+    <!-- Mini brand -->
+    <div class="login-brand"><span>ALCA</span> &amp; ATY</div>
+
+    <!-- Avatar -->
+    <div class="login-avatar">
       <i class="fas fa-bus"></i>
     </div>
 
-    <h3 class="mb-4">Iniciar Sessão</h3>
+    <!-- Título -->
+    <div class="login-title">Iniciar Sessão</div>
+    <div class="login-subtitle">Sistema de Gestão de Autocarros</div>
 
-    <form method="POST">
+    <div class="login-divider"></div>
+
+    <!-- Alerta de erro Django -->
+    {% if form.non_field_errors %}
+      <div class="login-alert">
+        <i class="fas fa-circle-exclamation"></i>
+        {{ form.non_field_errors|striptags }}
+      </div>
+    {% endif %}
+
+    {% if error %}
+      <div class="login-alert">
+        <i class="fas fa-circle-exclamation"></i>
+        {{ error }}
+      </div>
+    {% endif %}
+
+    <!-- Mensagens Django -->
+    {% for message in messages %}
+      <div class="login-alert" style="{% if 'success' in message.tags %}background:rgba(39,174,96,.15);border-color:rgba(39,174,96,.4);border-left-color:var(--success);color:#c8e6c9{% endif %}">
+        <i class="fas fa-{% if 'success' in message.tags %}check-circle{% else %}circle-exclamation{% endif %}"></i>
+        {{ message }}
+      </div>
+    {% endfor %}
+
+    <!-- Formulário -->
+    <form method="POST" id="loginForm" novalidate>
       {% csrf_token %}
 
-      <div class="mb-3">
-        <input type="text" class="form-control text-center" name="username" placeholder="Usuário" required>
+      <!-- Utilizador -->
+      <div class="input-group-icon">
+        <i class="fas fa-user field-icon"></i>
+        <input
+          type="text"
+          name="username"
+          id="id_username"
+          placeholder="Nome de utilizador"
+          autocomplete="username"
+          autocapitalize="none"
+          required
+          value="{{ form.username.value|default:'' }}"
+        >
       </div>
+      {% if form.username.errors %}
+        <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.username.errors|striptags }}</div>
+      {% endif %}
 
-      <div class="mb-3">
-        <input type="password" class="form-control text-center" name="password" placeholder="Senha" required>
+      <!-- Senha -->
+      <div class="input-group-icon">
+        <i class="fas fa-lock field-icon"></i>
+        <input
+          type="password"
+          name="password"
+          id="id_password"
+          placeholder="Palavra-passe"
+          autocomplete="current-password"
+          required
+        >
+        <button type="button" class="toggle-pw" id="togglePw" title="Mostrar/Ocultar senha">
+          <i class="fas fa-eye" id="togglePwIcon"></i>
+        </button>
       </div>
+      {% if form.password.errors %}
+        <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.password.errors|striptags }}</div>
+      {% endif %}
 
-      <button type="submit" class="btn btn-primary w-100 py-2 mt-3">
-        <i class="fas fa-sign-in-alt me-2"></i> Entrar
+      <!-- Submit -->
+      <button type="submit" class="btn-login" id="btnLogin">
+        <span class="spinner"></span>
+        <span class="btn-text">
+          <i class="fas fa-right-to-bracket" style="margin-right:8px"></i>ENTRAR
+        </span>
       </button>
     </form>
 
-    <div class="card-footer mt-4">
-      <p>Não tem conta? <a href="{% url 'register' %}">Registre-se</a></p>
+    <!-- Footer -->
+    <div class="login-footer">
+      Não tem conta? <a href="{% url 'register' %}">Criar conta</a>
     </div>
+
   </div>
 </div>
+
+<script>
+(function () {
+  // ── Toggle mostrar senha ──────────────────────────
+  const pwInput   = document.getElementById('id_password');
+  const toggleBtn = document.getElementById('togglePw');
+  const toggleIcon= document.getElementById('togglePwIcon');
+
+  if (toggleBtn && pwInput) {
+    toggleBtn.addEventListener('click', function () {
+      const isText = pwInput.type === 'text';
+      pwInput.type = isText ? 'password' : 'text';
+      toggleIcon.className = isText ? 'fas fa-eye' : 'fas fa-eye-slash';
+    });
+  }
+
+  // ── Loading no submit ─────────────────────────────
+  const form    = document.getElementById('loginForm');
+  const btnLogin= document.getElementById('btnLogin');
+
+  if (form && btnLogin) {
+    form.addEventListener('submit', function () {
+      // Validação nativa do browser já passou, mostrar loading
+      btnLogin.classList.add('loading');
+      btnLogin.disabled = true;
+
+      // Safety: se demorar mais de 8s volta ao normal
+      setTimeout(function () {
+        btnLogin.classList.remove('loading');
+        btnLogin.disabled = false;
+      }, 8000);
+    });
+  }
+
+  // ── Focus automático no primeiro campo ───────────
+  const usernameField = document.getElementById('id_username');
+  if (usernameField && !usernameField.value) {
+    // Pequeno delay para não conflituar com animação do card
+    setTimeout(function () { usernameField.focus(); }, 650);
+  }
+})();
+</script>
 {% endblock %}

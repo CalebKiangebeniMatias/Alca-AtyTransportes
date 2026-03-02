@@ -1,415 +1,739 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Editar Registos - {{ sector.nome }} - {{ data|date:"d/m/Y" }}{% endblock %}
+{% block title %}Editar Registos — {{ sector.nome }} — {{ data|date:"d/m/Y" }}{% endblock %}
+{% block breadcrumb %}Registos › Editar — {{ sector.nome }}{% endblock %}
 
 {% block extra_css %}
 <style>
-    .card {
-        border: none;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        margin-bottom: 1rem;
-    }
-    .card-header {
-        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
-        color: white;
-        border-radius: 8px 8px 0 0 !important;
-    }
-    .input-group-custom { position: relative; }
-    .input-group-custom .form-control { padding-right: 2.5rem; text-align: right; }
-    .input-group-custom .currency-symbol {
-        position: absolute; right: 12px; top: 50%;
-        transform: translateY(-50%); color: #6c757d; font-weight: 500;
-    }
-    .resumo-card {
-        background: #f8f9fa;
-        border-left: 4px solid #0d6efd;
-        padding: 1rem; border-radius: 6px; margin-bottom: 1rem;
-    }
-    .resumo-valor { font-size: 1.1rem; font-weight: 600; }
-    .entradas-card { border-left: 4px solid #198754; background: #f8fff9; }
-    .saidas-card { border-left: 4px solid #dc3545; background: #fff8f8; }
-    .form-control:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
-    }
-    .btn-success {
-        background: linear-gradient(135deg, #198754 0%, #20c997 100%);
-        border: none; font-weight: 600;
-    }
-    .numeric-input { text-align: right; }
-    @media (max-width: 768px) {
-        .container { padding: 0 10px; }
-        .btn-lg { font-size: 1rem; padding: 0.75rem 1.5rem; }
-    }
+/* ════════════════════════════════════════════════════
+   EDITAR REGISTOS
+════════════════════════════════════════════════════ */
+
+.registos-wrapper {
+  animation: pageIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes pageIn {
+  from { opacity:0; transform:translateY(18px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── TOP BAR ─────────────────────────────────────── */
+.page-topbar {
+  display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 14px; margin-bottom: 24px;
+}
+.page-topbar-left { display: flex; flex-direction: column; gap: 5px; }
+.page-topbar-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.9rem; letter-spacing: 2px; line-height: 1;
+}
+.page-topbar-title span { color: var(--accent); }
+.page-topbar-meta {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 14px;
+  font-size: .8rem; color: var(--grey);
+}
+.meta-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(79,195,247,.08);
+  border: 1px solid var(--glass-border);
+  border-radius: 30px; padding: 4px 12px;
+  font-size: .75rem; font-weight: 700; letter-spacing: .8px;
+  color: rgba(255,255,255,.65);
+}
+.meta-pill i { color: var(--accent); font-size: .7rem; }
+
+.page-topbar-right { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ── DESPESA GERAL ───────────────────────────────── */
+.despesa-section {
+  background: rgba(13,43,94,.45);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 8px 28px rgba(4,30,66,.28);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.despesa-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 13px 22px;
+  background: linear-gradient(90deg, rgba(36,99,163,.35), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+}
+.despesa-header-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 1rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--white); display: flex; align-items: center; gap: 9px;
+}
+.despesa-header-title i { color: var(--accent); }
+.despesa-body { padding: 22px; }
+
+/* ── FORM FIELDS (override Django) ──────────────── */
+.registos-wrapper .form-control,
+.registos-wrapper .form-select,
+.registos-wrapper select,
+.registos-wrapper input[type="text"],
+.registos-wrapper input[type="number"],
+.registos-wrapper input[type="date"],
+.registos-wrapper input[type="file"],
+.registos-wrapper textarea {
+  width: 100%;
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 9px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .88rem !important;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+  outline: none !important;
+  -webkit-appearance: none;
+}
+.registos-wrapper .form-control:focus,
+.registos-wrapper select:focus,
+.registos-wrapper input[type="text"]:focus,
+.registos-wrapper input[type="number"]:focus,
+.registos-wrapper textarea:focus {
+  border-color: var(--accent) !important;
+  background: rgba(4,30,66,.8) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+}
+.registos-wrapper input[type="number"] { text-align: right; }
+.registos-wrapper select option { background: var(--navy); color: var(--white); }
+.registos-wrapper textarea { resize: vertical; min-height: 80px; }
+
+/* Field label */
+.f-label {
+  display: block;
+  font-size: .7rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.48);
+  margin-bottom: 5px;
+}
+
+/* Kz input group */
+.kz-wrap { position: relative; }
+.kz-wrap input { padding-right: 36px !important; }
+.kz-sym {
+  position: absolute; right: 11px; top: 50%;
+  transform: translateY(-50%);
+  font-size: .75rem; font-weight: 700;
+  color: var(--accent); pointer-events: none;
+}
+
+/* File input */
+.file-item {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  background: rgba(4,30,66,.4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px; margin-top: 6px; gap: 10px;
+}
+.file-item a {
+  color: var(--accent); text-decoration: none;
+  font-size: .8rem; display: flex; align-items: center;
+  gap: 6px; flex:1; min-width:0;
+}
+.file-item a span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.file-item a:hover { color: var(--white); }
+.btn-rm {
+  width: 26px; height: 26px; flex-shrink:0;
+  background: rgba(231,76,60,.15);
+  border: 1px solid rgba(231,76,60,.3);
+  border-radius: 4px;
+  color: #ff8a80; font-size: .75rem;
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none;
+  transition: background var(--ease-fast);
+}
+.btn-rm:hover { background: rgba(231,76,60,.3); color: #ff8a80; }
+
+/* Checkboxes */
+.check-row {
+  display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.check-item {
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer;
+}
+.check-item input[type="checkbox"] {
+  width: 16px !important; height: 16px !important;
+  border-radius: 4px !important; padding: 0 !important;
+  cursor: pointer; flex-shrink: 0;
+  accent-color: var(--accent);
+}
+.check-label {
+  font-size: .82rem; font-weight: 600;
+  color: rgba(255,255,255,.7);
+}
+
+/* ── AUTOCARRO CARD ──────────────────────────────── */
+.autocarro-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  height: 100%;
+  display: flex; flex-direction: column;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-base);
+}
+.autocarro-card:focus-within {
+  border-color: rgba(79,195,247,.35);
+  box-shadow: 0 8px 28px rgba(4,30,66,.3);
+}
+
+.ac-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 11px 16px;
+  background: linear-gradient(90deg, rgba(36,99,163,.3), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+  gap: 10px;
+}
+.ac-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .95rem; letter-spacing: 1px;
+  color: var(--white); display: flex; align-items: center; gap: 7px;
+}
+.ac-title i { color: var(--accent); font-size: .85rem; }
+
+/* Badge de status */
+.status-badge {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .7rem; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 30px;
+}
+.status-validado  { background: rgba(39,174,96,.2);  border: 1px solid rgba(39,174,96,.4);  color: #69f0ae; }
+.status-concluido { background: rgba(243,156,18,.18); border: 1px solid rgba(243,156,18,.4); color: #ffd54f; }
+.status-pendente  { background: rgba(141,163,196,.12);border: 1px solid rgba(141,163,196,.25);color: var(--grey); }
+
+.ac-body { padding: 16px; flex: 1; }
+
+/* ── RESUMO MINI ─────────────────────────────────── */
+.resumo-mini {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 1px;
+  background: var(--glass-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.resumo-col {
+  background: rgba(4,30,66,.5);
+  padding: 10px 6px;
+  text-align: center;
+  transition: background var(--ease-fast);
+}
+.resumo-col:hover { background: rgba(36,99,163,.22); }
+.resumo-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.15rem; letter-spacing: .5px;
+  transition: color var(--ease-fast);
+}
+.resumo-val.positive { color: #69f0ae; }
+.resumo-val.negative { color: #ff8a80; }
+.resumo-val.neutral  { color: rgba(255,255,255,.7); }
+.resumo-lbl {
+  font-size: .62rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: var(--grey); margin-top: 2px;
+}
+
+/* ── SUB SECTIONS (entradas/saídas) ──────────────── */
+.sub-section {
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.sub-section:last-child { margin-bottom: 0; }
+.sub-section.entradas {
+  background: rgba(39,174,96,.07);
+  border: 1px solid rgba(39,174,96,.2);
+}
+.sub-section.saidas {
+  background: rgba(231,76,60,.07);
+  border: 1px solid rgba(231,76,60,.2);
+}
+.sub-section.operacional {
+  background: rgba(79,195,247,.05);
+  border: 1px solid rgba(79,195,247,.12);
+}
+.sub-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .82rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 7px;
+}
+.sub-title.verde { color: #69f0ae; }
+.sub-title.vermelho { color: #ff8a80; }
+.sub-title.azul { color: var(--accent); }
+.fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* ── PESSOAL ─────────────────────────────────────── */
+.pessoal-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+/* ── ACTION BAR ──────────────────────────────────── */
+.form-actions {
+  display: flex; align-items: center;
+  justify-content: flex-end; gap: 12px;
+  flex-wrap: wrap;
+  background: rgba(4,30,66,.4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 22px;
+  margin-top: 8px;
+}
+.form-actions-left { margin-right: auto; font-size: .8rem; color: var(--grey); }
+
+.btn-guardar {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 28px;
+  background: var(--success);
+  border: none; border-radius: var(--radius-md);
+  color: var(--white);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .98rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(39,174,96,.3);
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+  position: relative; overflow: hidden;
+}
+.btn-guardar::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);
+  transform:translateX(-100%); transition:transform .5s ease;
+}
+.btn-guardar:hover::before { transform:translateX(100%); }
+.btn-guardar:hover { background:#219150; transform:translateY(-2px); box-shadow:0 8px 24px rgba(39,174,96,.42); }
+.btn-guardar:active { transform:scale(.98); }
+.btn-guardar .sp {
+  display:none; width:14px; height:14px;
+  border:2px solid rgba(255,255,255,.3); border-top-color:white;
+  border-radius:50%; animation:spin .7s linear infinite;
+}
+.btn-guardar.loading .sp { display:inline-block; }
+
+.btn-voltar {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 11px 20px;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: rgba(255,255,255,.6);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .95rem;
+  letter-spacing: 1px; text-transform: uppercase;
+  text-decoration: none;
+  transition: background var(--ease-fast), border-color var(--ease-fast), color var(--ease-fast);
+}
+.btn-voltar:hover { background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.3); color:var(--white); }
+
+/* nav btn pequeno */
+.btn-sm-nav {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .82rem;
+  letter-spacing: 1px; text-transform: uppercase;
+  text-decoration: none; cursor: pointer; border: none;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+}
+.btn-sm-nav:hover { transform: translateY(-2px); }
+.btn-outline-nav {
+  background: transparent;
+  border: 1px solid var(--glass-border) !important;
+  color: rgba(255,255,255,.6) !important;
+}
+.btn-outline-nav:hover { background:rgba(255,255,255,.07) !important; color:var(--white) !important; }
+.btn-edit-nav {
+  background: var(--grad-btn);
+  color: var(--white) !important;
+  box-shadow: var(--shadow-sm);
+}
+.btn-edit-nav:hover { box-shadow: 0 6px 20px rgba(36,99,163,.35); }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 768px) {
+  .fields-grid { grid-template-columns: 1fr 1fr; }
+  .page-topbar { flex-direction: column; align-items: flex-start; }
+  .page-topbar-right { width: 100%; justify-content: flex-start; }
+}
+@media (max-width: 480px) {
+  .fields-grid { grid-template-columns: 1fr; }
+  .despesa-body { padding: 14px; }
+  .form-actions { flex-direction: column; }
+  .btn-guardar, .btn-voltar { width: 100%; justify-content: center; }
+  .form-actions-left { margin-right: 0; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3">
-    <!-- 🔹 Cabeçalho -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h4 class="mb-1">
-                        <i class="fas fa-edit me-2"></i>Editando {{ sector.nome }}
-                    </h4>
-                    <p class="text-muted mb-0">
-                        <i class="fas fa-calendar me-1"></i>{{ data|date:"d/m/Y" }} • 
-                        <i class="fas fa-bus me-1"></i>{{ total_registros }}/{{ total_autocarros }} Autocarros
-                    </p>
-                </div>
+<div class="registos-wrapper">
 
-                <div class="col-md-4 text-md-end">
-                    <!-- 🔙 Botão voltar -->
-                    <a href="{% url 'listar_registros' %}" class="btn btn-outline-secondary btn-sm me-2">
-                        <i class="fas fa-arrow-left me-1"></i> Voltar
-                    </a>
+  <!-- TOP BAR -->
+  <div class="page-topbar">
+    <div class="page-topbar-left">
+      <div class="page-topbar-title">
+        Editar — <span>{{ sector.nome }}</span>
+      </div>
+      <div class="page-topbar-meta">
+        <span class="meta-pill"><i class="fas fa-calendar-day"></i>{{ data|date:"d/m/Y" }}</span>
+        <span class="meta-pill"><i class="fas fa-bus"></i>{{ total_registros }}/{{ total_autocarros }} Autocarros</span>
+      </div>
+    </div>
+    <div class="page-topbar-right">
+      <a href="{% url 'listar_registros' %}" class="btn-sm-nav btn-outline-nav">
+        <i class="fas fa-arrow-left"></i> Voltar
+      </a>
+      {% if relatorio and relatorio.id %}
+        <a href="{% url 'editar_relatorio_sector_geral' relatorio.id %}" class="btn-sm-nav btn-edit-nav">
+          <i class="fas fa-pen"></i> Editar Relatório
+        </a>
+      {% endif %}
+    </div>
+  </div>
 
-                    <!-- ✏️ Botão editar relatório -->
-                    {% if relatorio and relatorio.id %}
-                        <a href="{% url 'editar_relatorio_sector_geral' relatorio.id %}" 
-                        class="btn btn-primary btn-sm">
-                            <i class="fas fa-pen me-1"></i> Editar Relatório
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
+  <!-- Mensagens -->
+  {% if messages %}
+    <div style="margin-bottom:20px">
+      {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+          {{ message }}
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
         </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" id="relatorioForm">
+    {% csrf_token %}
+    {{ relatorio_form.non_field_errors }}
+
+    <!-- ══ DESPESA GERAL ══ -->
+    {% with relatorio=forms.0.registro.relatorio %}
+    {% if relatorio %}
+    <div class="despesa-section">
+      <div class="despesa-header">
+        <div class="despesa-header-title">
+          <i class="fas fa-wallet"></i> Despesa Geral do Setor
+        </div>
+        <span class="meta-pill"><i class="fas fa-calendar"></i>{{ data|date:"d/m/Y" }}</span>
+      </div>
+      <div class="despesa-body">
+
+        <div class="row g-3">
+
+          <!-- Despesa Geral -->
+          <div class="col-md-6">
+            <label class="f-label">Despesa Geral</label>
+            <div class="kz-wrap">
+              {{ relatorio_form.despesa_geral }}
+              <span class="kz-sym">Kz</span>
+            </div>
+            {% if relatorio_form.despesa_geral.errors %}
+              <div style="color:#ff8a80;font-size:.75rem;margin-top:4px">{{ relatorio_form.despesa_geral.errors.as_text }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Comprovativos -->
+          <div class="col-md-6">
+            <label class="f-label"><i class="fas fa-paperclip" style="color:var(--accent)"></i> Adicionar Comprovativos</label>
+            <input type="file" name="novos_comprovativos" multiple class="form-control">
+            {% if relatorio.comprovativos.exists %}
+              {% for comp in relatorio.comprovativos.all %}
+                <div class="file-item">
+                  <a href="{{ comp.arquivo.url }}" target="_blank">
+                    <i class="fas fa-file-lines"></i>
+                    <span>{{ comp.arquivo.name|slice:"-35:" }}</span>
+                  </a>
+                  <a href="#" class="btn-rm" title="Remover" onclick="return confirm('Remover este comprovativo?');">
+                    <i class="fas fa-trash-can"></i>
+                  </a>
+                </div>
+              {% endfor %}
+            {% endif %}
+          </div>
+
+          <!-- Observações -->
+          <div class="col-12">
+            <label class="f-label">Observações do Relatório</label>
+            {{ relatorio_form.descricao }}
+            {% if relatorio_form.descricao.errors %}
+              <div style="color:#ff8a80;font-size:.75rem;margin-top:4px">{{ relatorio_form.descricao.errors.as_text }}</div>
+            {% endif %}
+          </div>
+
+        </div>
+
+        <!-- Campos ocultos -->
+        <div style="display:none">
+          {{ relatorio_form.sector }}
+          {{ relatorio_form.data }}
+        </div>
+
+      </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- ══ AUTOCARROS GRID ══ -->
+    <div class="row g-3" style="margin-bottom:8px">
+      {% for item in forms %}
+      <div class="col-xl-6 col-12">
+        <div class="autocarro-card">
+
+          <!-- Header -->
+          <div class="ac-header">
+            <div class="ac-title">
+              <i class="fas fa-bus"></i>
+              {{ item.registro.autocarro.numero }}
+              <span style="color:var(--grey);font-weight:400;font-size:.82rem">— {{ item.registro.autocarro.modelo }}</span>
+            </div>
+            {% if item.registro.validado %}
+              <span class="status-badge status-validado">Validado</span>
+            {% elif item.registro.concluido %}
+              <span class="status-badge status-concluido">Concluído</span>
+            {% else %}
+              <span class="status-badge status-pendente">Pendente</span>
+            {% endif %}
+          </div>
+
+          <div class="ac-body">
+
+            <!-- Resumo dinâmico -->
+            <div class="resumo-mini">
+              <div class="resumo-col">
+                <div class="resumo-val positive" id="entradas_total_{{ item.registro.id }}">0.00</div>
+                <div class="resumo-lbl">Entradas</div>
+              </div>
+              <div class="resumo-col">
+                <div class="resumo-val negative" id="saidas_total_{{ item.registro.id }}">0.00</div>
+                <div class="resumo-lbl">Saídas</div>
+              </div>
+              <div class="resumo-col">
+                <div class="resumo-val neutral" id="saldo_liquido_{{ item.registro.id }}">0.00</div>
+                <div class="resumo-lbl">Saldo</div>
+              </div>
+            </div>
+
+            <!-- Status checkboxes -->
+            <div class="check-row">
+              <label class="check-item">
+                {{ item.form.concluido }}
+                <span class="check-label">Concluído</span>
+              </label>
+              <label class="check-item">
+                {{ item.form.validado }}
+                <span class="check-label">Validado</span>
+              </label>
+            </div>
+
+            <!-- Pessoal -->
+            <div class="pessoal-grid">
+              <div>
+                <label class="f-label">{{ item.form.motorista.label }}</label>
+                {{ item.form.motorista }}
+              </div>
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="f-label">{{ item.form.cobrador_principal.label }}</label>
+                  {{ item.form.cobrador_principal }}
+                </div>
+                <div class="col-6">
+                  <label class="f-label">{{ item.form.cobrador_auxiliar.label }}</label>
+                  {{ item.form.cobrador_auxiliar }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Entradas -->
+            <div class="sub-section entradas">
+              <div class="sub-title verde">
+                <i class="fas fa-arrow-down"></i> Entradas (Kz)
+              </div>
+              <div class="fields-grid">
+                <div>
+                  <label class="f-label">{{ item.form.normal.label }}</label>
+                  <div class="kz-wrap">{{ item.form.normal }}<span class="kz-sym">Kz</span></div>
+                </div>
+                <div>
+                  <label class="f-label">{{ item.form.alunos.label }}</label>
+                  <div class="kz-wrap">{{ item.form.alunos }}<span class="kz-sym">Kz</span></div>
+                </div>
+                <div>
+                  <label class="f-label">{{ item.form.luvu.label }}</label>
+                  <div class="kz-wrap">{{ item.form.luvu }}<span class="kz-sym">Kz</span></div>
+                </div>
+                <div>
+                  <label class="f-label">{{ item.form.frete.label }}</label>
+                  <div class="kz-wrap">{{ item.form.frete }}<span class="kz-sym">Kz</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Saídas -->
+            <div class="sub-section saidas">
+              <div class="sub-title vermelho">
+                <i class="fas fa-arrow-up"></i> Saídas (Kz)
+              </div>
+              <div class="fields-grid">
+                <div>
+                  <label class="f-label">{{ item.form.alimentacao.label }}</label>
+                  <div class="kz-wrap">{{ item.form.alimentacao }}<span class="kz-sym">Kz</span></div>
+                </div>
+                <div>
+                  <label class="f-label">{{ item.form.parqueamento.label }}</label>
+                  <div class="kz-wrap">{{ item.form.parqueamento }}<span class="kz-sym">Kz</span></div>
+                </div>
+                <div>
+                  <label class="f-label">{{ item.form.taxa.label }}</label>
+                  <div class="kz-wrap">{{ item.form.taxa }}<span class="kz-sym">Kz</span></div>
+                </div>
+                <div>
+                  <label class="f-label">{{ item.form.outros.label }}</label>
+                  <div class="kz-wrap">{{ item.form.outros }}<span class="kz-sym">Kz</span></div>
+                </div>
+                <div>
+                  <label class="f-label">{{ item.form.taxi.label }}</label>
+                  <div class="kz-wrap">{{ item.form.taxi }}<span class="kz-sym">Kz</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Operacional -->
+            <div class="sub-section operacional">
+              <div class="sub-title azul">
+                <i class="fas fa-chart-bar"></i> Dados Operacionais
+              </div>
+              <div class="fields-grid">
+                <div>
+                  <label class="f-label">Nº de Viagens</label>
+                  {{ item.form.numero_viagens }}
+                </div>
+                <div>
+                  <label class="f-label">Km Percorridos</label>
+                  {{ item.form.km_percorridos }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Hidden id -->
+            <div style="display:none">{{ item.form.id }}</div>
+
+          </div><!-- ac-body -->
+        </div><!-- autocarro-card -->
+      </div>
+      {% empty %}
+        <div class="col-12">
+          <div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,.35)">
+            <i class="fas fa-bus-slash" style="font-size:2rem;margin-bottom:10px;display:block"></i>
+            Nenhum autocarro registado neste setor.
+          </div>
+        </div>
+      {% endfor %}
     </div>
 
-    <!-- 🔹 Formulário único: relatório do setor + registros -->
-    <form method="post" enctype="multipart/form-data" id="relatorioForm">
-        {% csrf_token %}
-        {{ relatorio_form.non_field_errors }}
+    <!-- ══ ACÇÕES ══ -->
+    <div class="form-actions">
+      <span class="form-actions-left">
+        <i class="fas fa-circle-info" style="color:var(--accent)"></i>
+        Alterações guardadas para {{ sector.nome }} — {{ data|date:"d/m/Y" }}
+      </span>
+      <a href="{% url 'listar_registros' %}" class="btn-voltar">
+        <i class="fas fa-xmark"></i> Cancelar
+      </a>
+      <button type="submit" class="btn-guardar" id="btnGuardar">
+        <span class="sp"></span>
+        <i class="fas fa-floppy-disk"></i> Guardar Alterações
+      </button>
+    </div>
 
-        <!-- 🔹 Despesa Geral e Descrição (RelatorioSectorForm) -->
-        {% with relatorio=forms.0.registro.relatorio %}
-            {% if relatorio %}
-            <div class="card mb-4 border-0 shadow-sm">
-                <div class="card-header py-2 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 text-white">
-                        <i class="fas fa-wallet me-2"></i> Despesa Geral do Setor
-                    </h6>
-                    <span class="small text-white-50">
-                        <i class="fas fa-calendar me-1"></i>{{ data|date:"d/m/Y" }}
-                    </span>
-                </div>
-
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <!-- Despesa Geral -->
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Despesa Geral (Kz)</label>
-                            <div class="input-group-custom">
-                                {{ relatorio_form.despesa_geral }}
-                                <span class="currency-symbol">Kz</span>
-                            </div>
-                            {% if relatorio_form.despesa_geral.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ relatorio_form.despesa_geral.errors.as_text }}
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <!-- Comprovativos -->
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">
-                                <i class="fas fa-file-alt me-1 text-primary"></i>Comprovativos
-                            </label>
-                            <input type="file" name="novos_comprovativos" multiple class="form-control form-control-sm">
-                            {% if relatorio.comprovativos.exists %}
-                                <div class="mt-2 small">
-                                    {% for comp in relatorio.comprovativos.all %}
-                                        <div class="d-flex align-items-center justify-content-between border-bottom py-1">
-                                            <a href="{{ comp.arquivo.url }}" target="_blank" class="text-decoration-none text-primary">
-                                                <i class="fas fa-paperclip me-1"></i>
-                                                {{ comp.arquivo.name|slice:"-30:" }}
-                                            </a>
-                                            <!-- remover: atualize a URL/ação conforme sua view -->
-                                            <a href="#" class="text-danger small" title="Remover"
-                                               onclick="return confirm('Remover este comprovativo?');">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </a>
-                                        </div>
-                                    {% empty %}
-                                        <span class="text-muted">Nenhum comprovativo anexado.</span>
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                <small class="text-muted">Nenhum comprovativo anexado.</small>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- Descrição do relatório (se quiser exibir) -->
-                    <div class="row mt-2">
-                        <div class="col-12">
-                            <label class="form-label small fw-bold">Observações do Relatório</label>
-                            {{ relatorio_form.descricao }}
-                            {% if relatorio_form.descricao.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ relatorio_form.descricao.errors.as_text }}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- manter sector/data no form, mas escondidos (para envio) -->
-                    <div class="d-none">
-                        {{ relatorio_form.sector }}
-                        {{ relatorio_form.data }}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-        {% endwith %}
-
-        <!-- 🔹 Mensagens -->
-        {% if messages %}
-        <div class="mb-3">
-            {% for message in messages %}
-            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- 🔹 Registros de Autocarros (cada RegistoDiarioForm com prefix registro_ID) -->
-        <div class="row">
-            {% for item in forms %}
-            <div class="col-lg-6 mb-4">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center py-2">
-                        <h6 class="mb-0">
-                            <i class="fas fa-bus me-2"></i>
-                            {{ item.registro.autocarro.numero }} - {{ item.registro.autocarro.modelo }}
-                        </h6>
-                        <div>
-                            {% if item.registro.validado %}
-                                <span class="badge bg-success">Validado</span>
-                            {% elif item.registro.concluido %}
-                                <span class="badge bg-warning">Concluído</span>
-                            {% else %}
-                                <span class="badge bg-secondary">Pendente</span>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="card-body">
-                        <div class="resumo-card">
-                            <div class="row text-center small">
-                                <div class="col-4">
-                                    <div class="text-success resumo-valor" id="entradas_total_{{ item.registro.id }}">0.00</div>
-                                    <small>Entradas</small>
-                                </div>
-                                <div class="col-4">
-                                    <div class="text-danger resumo-valor" id="saidas_total_{{ item.registro.id }}">0.00</div>
-                                    <small>Saídas</small>
-                                </div>
-                                <div class="col-4">
-                                    <div class="resumo-valor" id="saldo_liquido_{{ item.registro.id }}">0.00</div>
-                                    <small>Saldo</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-6">
-                                <div class="form-check">
-                                    {{ item.form.concluido }}
-                                    <label class="form-check-label small">Concluído</label>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="form-check">
-                                    {{ item.form.validado }}
-                                    <label class="form-check-label small">Validado</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-12 mb-2">
-                                <label class="form-label small fw-bold">Motorista</label>
-                                {{ item.form.motorista }}
-                            </div>
-                            <div class="col-6 mb-2">
-                                <label class="form-label small fw-bold">Cobrador Principal</label>
-                                {{ item.form.cobrador_principal }}
-                            </div>
-                            <div class="col-6 mb-2">
-                                <label class="form-label small fw-bold">Cobrador Auxiliar</label>
-                                {{ item.form.cobrador_auxiliar }}
-                            </div>
-                        </div>
-
-                        <!-- Entradas -->
-                        <div class="entradas-card mb-3 p-2">
-                            <h6 class="text-success mb-2 small">
-                                <i class="fas fa-arrow-down me-1"></i>Entradas (Kz)
-                            </h6>
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <label class="form-label small">{{ item.form.normal.label }}</label>
-                                    <div class="input-group-custom">
-                                        {{ item.form.normal }}
-                                        <span class="currency-symbol">Kz</span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small">{{ item.form.alunos.label }}</label>
-                                    <div class="input-group-custom">
-                                        {{ item.form.alunos }}
-                                        <span class="currency-symbol">Kz</span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small">{{ item.form.luvu.label }}</label>
-                                    <div class="input-group-custom">
-                                        {{ item.form.luvu }}
-                                        <span class="currency-symbol">Kz</span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small">{{ item.form.frete.label }}</label>
-                                    <div class="input-group-custom">
-                                        {{ item.form.frete }}
-                                        <span class="currency-symbol">Kz</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Saídas -->
-                        <div class="saidas-card mb-3 p-2">
-                            <h6 class="text-danger mb-2 small">
-                                <i class="fas fa-arrow-up me-1"></i>Saídas (Kz)
-                            </h6>
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <label class="form-label small">{{ item.form.alimentacao.label }}</label>
-                                    <div class="input-group-custom">
-                                        {{ item.form.alimentacao }}
-                                        <span class="currency-symbol">Kz</span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small">{{ item.form.parqueamento.label }}</label>
-                                    <div class="input-group-custom">
-                                        {{ item.form.parqueamento }}
-                                        <span class="currency-symbol">Kz</span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small">{{ item.form.taxa.label }}</label>
-                                    <div class="input-group-custom">
-                                        {{ item.form.taxa }}
-                                        <span class="currency-symbol">Kz</span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small">{{ item.form.outros.label }}</label>
-                                    <div class="input-group-custom">
-                                        {{ item.form.outros }}
-                                        <span class="currency-symbol">Kz</span>
-                                    </div>
-                                </div>
-
-                                <div class="col-6">
-                                    <label class="form-label small">{{ item.form.taxi.label }}</label>
-                                    <div class="input-group-custom">
-                                        {{ item.form.taxi }}
-                                        <span class="currency-symbol">Kz</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <h6 class="text-secondary mb-2 small">
-                                <i class="fas fa-chart-bar me-1"></i>Dados Operacionais
-                            </h6>
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <label class="form-label small">Nº de Viagens</label>
-                                    {{ item.form.numero_viagens }}
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small">Km Percorridos</label>
-                                    {{ item.form.km_percorridos }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- campo id escondido para o registro (se existir) -->
-                        {{ item.form.id }}
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-
-        <div class="text-center mt-4">
-            <button type="submit" class="btn btn-success btn-lg me-2">
-                <i class="fas fa-save me-2"></i>Salvar Alterações
-            </button>
-            <a href="{% url 'listar_registros' %}" class="btn btn-secondary btn-lg">
-                <i class="fas fa-times me-2"></i>Cancelar
-            </a>
-        </div>
-    </form>
-
+  </form>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    function getValue(id) {
-        const el = document.getElementById(id);
-        const v = parseFloat(el?.value || 0);
-        return isNaN(v) ? 0 : v;
-    }
-    function formatNumber(value) { return value.toFixed(2); }
+document.addEventListener('DOMContentLoaded', function () {
 
-    function updateSummary(registroId) {
-        const entradas = getValue(`id_registro_${registroId}-normal`) +
-                         getValue(`id_registro_${registroId}-alunos`) +
-                         getValue(`id_registro_${registroId}-luvu`) +
-                         getValue(`id_registro_${registroId}-frete`);
-        const saidas = getValue(`id_registro_${registroId}-alimentacao`) +
-                       getValue(`id_registro_${registroId}-parqueamento`) +
-                       getValue(`id_registro_${registroId}-taxa`) +
-                       getValue(`id_registro_${registroId}-outros`);
-        const saldo = entradas - saidas;
+  /* ── CÁLCULO RESUMO ───────────────────────────── */
+  function val(id) {
+    const el = document.getElementById(id);
+    const v = parseFloat(el?.value || 0);
+    return isNaN(v) ? 0 : v;
+  }
 
-        document.getElementById(`entradas_total_${registroId}`).textContent = formatNumber(entradas);
-        document.getElementById(`saidas_total_${registroId}`).textContent = formatNumber(saidas);
-        const saldoEl = document.getElementById(`saldo_liquido_${registroId}`);
-        saldoEl.textContent = formatNumber(saldo);
-        saldoEl.className = saldo < 0 ? 'text-danger resumo-valor' :
-                            saldo > 0 ? 'text-success resumo-valor' : 'resumo-valor';
-    }
+  function fmt(n) { return n.toFixed(2); }
 
-    {% for item in forms %}
-    (() => {
-        const id = {{ item.registro.id }};
-        const campos = ['normal','alunos','luvu','frete','alimentacao','parqueamento','taxa','outros'];
-        campos.forEach(c => {
-            const el = document.getElementById(`id_registro_${id}-${c}`);
-            if (el) {
-                el.addEventListener('input', () => updateSummary(id));
-                el.classList.add('numeric-input');
-            }
-        });
-        updateSummary(id);
-    })();
-    {% endfor %}
+  function setVal(id, text, cls) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text;
+    el.className = 'resumo-val ' + cls;
+  }
+
+  function updateSummary(rid) {
+    const entradas = val(`id_registro_${rid}-normal`)
+                   + val(`id_registro_${rid}-alunos`)
+                   + val(`id_registro_${rid}-luvu`)
+                   + val(`id_registro_${rid}-frete`);
+
+    const saidas   = val(`id_registro_${rid}-alimentacao`)
+                   + val(`id_registro_${rid}-parqueamento`)
+                   + val(`id_registro_${rid}-taxa`)
+                   + val(`id_registro_${rid}-outros`)
+                   + val(`id_registro_${rid}-taxi`);
+
+    const saldo = entradas - saidas;
+
+    setVal(`entradas_total_${rid}`, fmt(entradas), 'resumo-val positive');
+    setVal(`saidas_total_${rid}`,   fmt(saidas),   'resumo-val negative');
+    setVal(`saldo_liquido_${rid}`,  fmt(saldo),
+      saldo > 0 ? 'resumo-val positive' : saldo < 0 ? 'resumo-val negative' : 'resumo-val neutral');
+  }
+
+  {% for item in forms %}
+  (function () {
+    const rid = {{ item.registro.id }};
+    const campos = ['normal','alunos','luvu','frete','alimentacao','parqueamento','taxa','outros','taxi'];
+    campos.forEach(function (c) {
+      const el = document.getElementById(`id_registro_${rid}-${c}`);
+      if (el) el.addEventListener('input', function () { updateSummary(rid); });
+    });
+    updateSummary(rid);
+  })();
+  {% endfor %}
+
+  /* ── LOADING NO SUBMIT ───────────────────────── */
+  const form = document.getElementById('relatorioForm');
+  const btn  = document.getElementById('btnGuardar');
+  if (form && btn) {
+    form.addEventListener('submit', function () {
+      btn.classList.add('loading');
+      btn.disabled = true;
+      setTimeout(function () { btn.classList.remove('loading'); btn.disabled = false; }, 10000);
+    });
+  }
+
 });
 </script>
 {% endblock %}
