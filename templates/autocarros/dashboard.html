@@ -2,476 +2,669 @@
 {% load l10n %}
 {% load humanize %}
 
-{% block title %}Dashboard - Sistema de Autocarros{% endblock %}
+{% block title %}Dashboard — ALCA & ATY Transportes{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
 
 {% block content %}
-    <style>
-        /* 🔹 Botão moderno em gradiente */
-        .btn-gradient {
-            background: linear-gradient(135deg, #2b7a2b, #3cc13c);
-            color: #fff !important;
-            font-weight: 600;
-            border: none;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
+<style>
+/* ════════════════════════════════════════════════════
+   DASHBOARD
+════════════════════════════════════════════════════ */
 
-        .btn-gradient:hover {
-            background: linear-gradient(135deg, #3cc13c, #2b7a2b);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 14px rgba(0, 128, 0, 0.3);
-        }
+.dash-wrapper {
+  animation: dashIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes dashIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
 
-        /* Ícone animado */
-        .btn-gradient i {
-            transition: transform 0.3s ease;
-        }
+/* ── HEADER ──────────────────────────────────────── */
+.dash-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 14px; margin-bottom: 28px;
+}
+.dash-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem; letter-spacing: 2.5px; line-height: 1;
+}
+.dash-title span { color: var(--accent); }
+.dash-subtitle { font-size: .8rem; color: var(--grey); margin-top: 4px; }
 
-        .btn-gradient:hover i {
-            transform: rotate(-10deg) scale(1.1);
-        }
-    </style>
+/* ── FILTRO ──────────────────────────────────────── */
+.dash-filter {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(14px);
+  padding: 14px 18px;
+  display: flex; align-items: flex-end; gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+.f-label {
+  font-size: .7rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1px;
+  color:rgba(255,255,255,.42); display:block; margin-bottom:5px;
+}
+.dash-wrapper input[type="month"] {
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 9px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .9rem !important;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  min-width: 180px;
+}
+.dash-wrapper input[type="month"]:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+  background: rgba(4,30,66,.85) !important;
+}
+.dash-wrapper input[type="month"]::-webkit-calendar-picker-indicator { filter: invert(.7); }
 
-    <!-- 🔎 Filtro de Ano e Mês -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <form method="get" class="row g-2 align-items-end">
-                <div class="col-md-8">
-                    <label for="mes" class="form-label text-white">Selecionar Mês/Ano</label>
-                    <input type="month" name="mes" id="mes" value="{{ mes }}" class="form-control">
-                </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
+/* ── BOTÕES ──────────────────────────────────────── */
+.btn-dash {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 22px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .88rem;
+  letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+}
+.btn-dash:hover  { transform: translateY(-2px); }
+.btn-dash:active { transform: scale(.97); }
+.btn-primary-d { background: var(--grad-btn); color:var(--white); box-shadow:var(--shadow-sm); }
+.btn-primary-d:hover { box-shadow:0 6px 20px rgba(36,99,163,.4); color:var(--white); }
+.btn-success-d { background: var(--success); color:var(--white); }
+.btn-success-d:hover { background:#219150; box-shadow:0 6px 18px rgba(39,174,96,.3); color:var(--white); }
+.btn-word-d {
+  background: linear-gradient(135deg, #1565c0, #0d47a1);
+  color: var(--white);
+  box-shadow: 0 4px 16px rgba(21,101,192,.3);
+  padding: 13px 32px; font-size: 1rem;
+}
+.btn-word-d:hover { box-shadow: 0 8px 28px rgba(21,101,192,.45); color:var(--white); }
+.btn-word-d i { transition: transform .3s ease; }
+.btn-word-d:hover i { transform: rotate(-8deg) scale(1.1); }
+.btn-outline-d {
+  background: transparent;
+  border: 1px solid var(--glass-border) !important;
+  color: rgba(255,255,255,.6);
+}
+.btn-outline-d:hover { background: rgba(255,255,255,.07); color:var(--white); }
+
+/* ── STATS GRID ──────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px; margin-bottom: 24px;
+}
+.stat-card-d {
+  background: rgba(13,43,94,.45);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(12px);
+  padding: 20px 22px;
+  display: flex; align-items: center; gap: 16px;
+  transition: transform var(--ease-spring), border-color var(--ease-fast), box-shadow var(--ease-base);
+  position: relative; overflow: hidden;
+}
+.stat-card-d::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  transition: opacity var(--ease-fast);
+  opacity: .6;
+}
+.stat-card-d.entrada::before  { background: linear-gradient(90deg, transparent, #69f0ae, transparent); }
+.stat-card-d.saida::before    { background: linear-gradient(90deg, transparent, #ff8a80, transparent); }
+.stat-card-d.saldo::before    { background: linear-gradient(90deg, transparent, #ffd54f, transparent); }
+.stat-card-d.despesa::before  { background: linear-gradient(90deg, transparent, #ff8a80, transparent); }
+.stat-card-d.lucro::before    { background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+
+.stat-card-d:hover { transform: translateY(-4px); border-color: rgba(79,195,247,.3); box-shadow: var(--shadow-md); }
+
+.scd-icon {
+  width: 48px; height: 48px; flex-shrink: 0;
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+}
+.scd-icon.entrada { background: rgba(39,174,96,.15);  color: #69f0ae; }
+.scd-icon.saida   { background: rgba(231,76,60,.15);  color: #ff8a80; }
+.scd-icon.saldo   { background: rgba(243,156,18,.15); color: #ffd54f; }
+.scd-icon.despesa { background: rgba(231,76,60,.12);  color: #ff8a80; }
+.scd-icon.lucro   { background: rgba(79,195,247,.12); color: var(--accent); }
+
+.scd-info { flex: 1; min-width: 0; }
+.scd-label {
+  font-size: .7rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1.2px;
+  color: var(--grey); margin-bottom: 5px;
+}
+.scd-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.45rem; letter-spacing: 1px; line-height: 1;
+  color: var(--white);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.scd-val.entrada { color: #69f0ae; }
+.scd-val.saida   { color: #ff8a80; }
+.scd-val.saldo   { color: #ffd54f; }
+.scd-val.lucro   { color: var(--accent); }
+.scd-unit { font-size: .7rem; color: var(--grey); }
+
+/* ── CHART CARD ──────────────────────────────────── */
+.chart-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.chart-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 13px 22px;
+  background: linear-gradient(90deg, rgba(36,99,163,.3), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+}
+.chart-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 1rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--white); display: flex; align-items: center; gap: 9px;
+}
+.chart-title i { color: var(--accent); }
+.chart-body { padding: 20px; }
+
+/* ── AUTOCARROS GRID ─────────────────────────────── */
+.autocarros-grid-d {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px; margin-bottom: 28px;
+}
+.ac-card-d {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: transform var(--ease-spring), border-color var(--ease-fast), box-shadow var(--ease-base);
+}
+.ac-card-d:hover { transform: translateY(-4px); border-color: rgba(79,195,247,.3); box-shadow: var(--shadow-md); }
+
+.acd-chart-wrap {
+  padding: 16px 16px 8px;
+  height: 180px;
+  position: relative;
+}
+.acd-body { padding: 0 16px 14px; flex: 1; }
+.acd-bus-icon {
+  width: 44px; height: 44px;
+  border-radius: var(--radius-md);
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; color: var(--accent);
+  margin: 0 auto 10px;
+}
+.acd-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem; letter-spacing: 2px;
+  text-align: center; color: var(--white); margin-bottom: 2px;
+}
+.acd-modelo {
+  font-size: .72rem; color: var(--grey);
+  text-align: center; margin-bottom: 14px;
+}
+.acd-stats { display: flex; flex-direction: column; gap: 7px; }
+.acd-stat-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: .78rem;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(79,195,247,.05);
+}
+.acd-stat-row:last-child { border-bottom: none; }
+.acd-stat-row .lbl { color: rgba(255,255,255,.5); display: flex; align-items: center; gap: 5px; }
+.acd-stat-row .lbl i { font-size: .65rem; }
+.acd-stat-row .val { font-weight: 700; }
+.val-green { color: #69f0ae; }
+.val-red   { color: #ff8a80; }
+.val-blue  { color: var(--accent); }
+.val-gold  { color: #ffd54f; }
+
+.acd-footer {
+  padding: 11px 16px;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(4,30,66,.3);
+  text-align: center;
+}
+
+/* ── ACTIONS FOOTER ──────────────────────────────── */
+.dash-actions {
+  display: flex; justify-content: center; gap: 16px;
+  flex-wrap: wrap; margin-top: 8px;
+}
+
+/* ── SECTION DIVIDER ─────────────────────────────── */
+.section-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 28px 0 20px;
+}
+.section-divider-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+}
+.section-divider-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .8rem;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--grey);
+  display: flex; align-items: center; gap: 7px;
+  white-space: nowrap;
+}
+.section-divider-label i { color: var(--accent); }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 1024px) {
+  .autocarros-grid-d { grid-template-columns: repeat(2,1fr); }
+}
+@media (max-width: 768px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .autocarros-grid-d { grid-template-columns: repeat(2,1fr); }
+}
+@media (max-width: 560px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .autocarros-grid-d { grid-template-columns: 1fr; }
+  .dash-header { flex-direction: column; align-items: flex-start; }
+  .dash-filter { flex-direction: column; }
+}
+</style>
+
+<!-- Dados para JS -->
+<div id="resumo_values"
+     data-entradas="{{ total_entradas }}"
+     data-saidas="{{ total_saidas }}"
+     data-despesas="{{ total_despesa2_1 }}"
+     data-lucro="{{ total_lucro }}"
+     data-saldo="{{ total_resto }}"
+     style="display:none">
+</div>
+
+<div class="dash-wrapper">
+
+  <!-- HEADER -->
+  <div class="dash-header">
+    <div>
+      <div class="dash-title">Dashboard <span>Gestão</span></div>
+      <div class="dash-subtitle">Resumo de produção e lucro por período</div>
     </div>
+    <a href="{% url 'adicionar_relatorio_sector' %}" class="btn-dash btn-success-d">
+      <i class="fas fa-plus"></i> Novo Registo
+    </a>
+  </div>
 
-    <!-- Resumo Geral (com toggle para despesas variáveis) -->
-    <div class="row mb-4">
-        <div class="col-12 mb-3">
-            <!-- container de valores brutos para o JS -->
-            <div id="resumo_values"
-                 data-entradas="{{ total_entradas }}"
-                 data-saidas="{{ total_saidas }}"
-                 data-despesas="{{ total_despesa2_1 }}"
-                 data-lucro="{{ total_lucro }}"
-                 data-saldo="{{ total_resto }}"
-            ></div>
-        </div>
+  <!-- FILTRO -->
+  <div class="dash-filter">
+    <form method="get" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;width:100%">
+      <div>
+        <label class="f-label">Mês / Ano</label>
+        <input type="month" name="mes" id="mes" value="{{ mes }}">
+      </div>
+      <button type="submit" class="btn-dash btn-primary-d">
+        <i class="fas fa-search"></i> Filtrar
+      </button>
+    </form>
+  </div>
 
-        <div class="col-md-4">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-coins icon-stat text-success"></i>
-                    <div class="stats-number">
-                        {% localize on %}<strong id="display_entradas">{{ total_entradas|floatformat:2 }}{% endlocalize %} Kz</strong>
-                    </div>
-                    <h5 class="card-title">Entradas</h5>
-                </div>
-            </div>
-        </div>
+  <!-- ══ SECÇÃO: PRODUÇÃO ══ -->
+  <div class="section-divider">
+    <div class="section-divider-line"></div>
+    <div class="section-divider-label"><i class="fas fa-chart-line"></i> Produção</div>
+    <div class="section-divider-line"></div>
+  </div>
 
-        <div class="col-md-4">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-money-bill-wave icon-stat text-danger"></i>
-                    <div class="stats-number text-danger">
-                        {% localize on %}<strong id="display_saidas">{{ total_saidas|floatformat:2 }}{% endlocalize %} Kz</strong>
-                    </div>
-                    <h5 class="card-title">Saídas</h5>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-piggy-bank icon-stat text-warning"></i>
-                    <div class="stats-number text-warning">
-                        {% localize on %}<strong id="display_saldo">{{ total_resto|floatformat:2 }}{% endlocalize %} Kz</strong>
-                    </div>
-                    <h5 class="card-title">Saldo</h5>
-                </div>
-            </div>
-        </div>
+  <!-- Stats produção -->
+  <div class="stats-grid">
+    <div class="stat-card-d entrada">
+      <div class="scd-icon entrada"><i class="fas fa-arrow-down"></i></div>
+      <div class="scd-info">
+        <div class="scd-label">Total Entradas</div>
+        <div class="scd-val entrada">{% localize on %}{{ total_entradas|floatformat:2 }}{% endlocalize %}</div>
+        <div class="scd-unit">Kz</div>
+      </div>
     </div>
-
-    <div class="card shadow mb-4 bg-azul-forte">
-        <div class="card-body">
-            <h5 class="text-white text-center mb-3">Gráfico de Resumo Da Produção</h5>
-            <canvas id="graficoResumo" height="90"></canvas>
-        </div>
+    <div class="stat-card-d saida">
+      <div class="scd-icon saida"><i class="fas fa-arrow-up"></i></div>
+      <div class="scd-info">
+        <div class="scd-label">Total Saídas</div>
+        <div class="scd-val saida">{% localize on %}{{ total_saidas|floatformat:2 }}{% endlocalize %}</div>
+        <div class="scd-unit">Kz</div>
+      </div>
     </div>
-
-    <!-- Resumo Geral de lucro -->
-    <div class="row mb-4">
-        <div class="col-12 mb-3">
-            <!-- container de valores brutos para o JS -->
-            <div id="resumo_values"
-                 data-entradas="{{ total_entradas }}"
-                 data-saidas="{{ total_saidas }}"
-                 data-despesas="{{ total_despesa2_1 }}"
-                 data-lucro="{{ total_lucro }}"
-                 data-saldo="{{ total_resto }}"
-            ></div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-arrow-down icon-stat text-success"></i>
-                    <div class="stats-number">
-                        {% localize on %}<strong id="display_saldo">{{ total_resto|floatformat:2 }}{% endlocalize %} Kz</strong>
-                    </div>
-                    <h5 class="card-title">Saldo</h5>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-arrow-up icon-stat text-danger"></i>
-                    <div class="stats-number text-danger">
-                        {% localize on %}<strong id="display_despesas2_1">{{ total_despesa2_1|floatformat:2 }}{% endlocalize %} Kz</strong>
-                    </div>
-                    <h5 class="card-title">Despesas Variáveis&Fixas</h5>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card stats-card text-center bg-azul-forte">
-                <div class="card-body">
-                    <i class="fas fa-piggy-bank icon-stat text-warning"></i>
-                    <div class="stats-number text-warning">
-                        {% localize on %}<strong id="display_lucro">{{ total_lucro|floatformat:2 }}{% endlocalize %} Kz</strong>
-                    </div>
-                    <h5 class="card-title">Lucro</h5>
-                </div>
-            </div>
-        </div>
+    <div class="stat-card-d saldo">
+      <div class="scd-icon saldo"><i class="fas fa-wallet"></i></div>
+      <div class="scd-info">
+        <div class="scd-label">Saldo</div>
+        <div class="scd-val saldo">{% localize on %}{{ total_resto|floatformat:2 }}{% endlocalize %}</div>
+        <div class="scd-unit">Kz</div>
+      </div>
     </div>
+  </div>
 
-    <div class="card shadow mb-4 bg-azul-forte">
-        <div class="card-body">
-            <h5 class="text-white text-center mb-3">Gráfico de Resumo De Lucro</h5>
-            <canvas id="graficoLucro" height="90"></canvas>
+  <!-- Gráfico produção -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div class="chart-title"><i class="fas fa-chart-bar"></i> Gráfico de Produção</div>
+    </div>
+    <div class="chart-body">
+      <canvas id="graficoResumo" height="90"></canvas>
+    </div>
+  </div>
+
+  <!-- ══ SECÇÃO: LUCRO ══ -->
+  <div class="section-divider">
+    <div class="section-divider-line"></div>
+    <div class="section-divider-label"><i class="fas fa-piggy-bank"></i> Lucro</div>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <!-- Stats lucro -->
+  <div class="stats-grid">
+    <div class="stat-card-d saldo">
+      <div class="scd-icon saldo"><i class="fas fa-coins"></i></div>
+      <div class="scd-info">
+        <div class="scd-label">Saldo</div>
+        <div class="scd-val saldo">{% localize on %}{{ total_resto|floatformat:2 }}{% endlocalize %}</div>
+        <div class="scd-unit">Kz</div>
+      </div>
+    </div>
+    <div class="stat-card-d despesa">
+      <div class="scd-icon despesa"><i class="fas fa-file-invoice-dollar"></i></div>
+      <div class="scd-info">
+        <div class="scd-label">Despesas Variáveis &amp; Fixas</div>
+        <div class="scd-val saida">{% localize on %}{{ total_despesa2_1|floatformat:2 }}{% endlocalize %}</div>
+        <div class="scd-unit">Kz</div>
+      </div>
+    </div>
+    <div class="stat-card-d lucro">
+      <div class="scd-icon lucro"><i class="fas fa-chart-line"></i></div>
+      <div class="scd-info">
+        <div class="scd-label">Lucro</div>
+        <div class="scd-val lucro">{% localize on %}{{ total_lucro|floatformat:2 }}{% endlocalize %}</div>
+        <div class="scd-unit">Kz</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráfico lucro -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div class="chart-title"><i class="fas fa-chart-pie"></i> Gráfico de Lucro</div>
+    </div>
+    <div class="chart-body">
+      <canvas id="graficoLucro" height="90"></canvas>
+    </div>
+  </div>
+
+  <!-- ══ AUTOCARROS ══ -->
+  <div class="section-divider">
+    <div class="section-divider-line"></div>
+    <div class="section-divider-label"><i class="fas fa-bus"></i> Desempenho por Autocarro</div>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <div class="autocarros-grid-d">
+    {% for stats in autocarros_stats %}
+    <div class="ac-card-d reveal">
+      <div class="acd-chart-wrap">
+        <canvas id="chart-{{ stats.autocarro.id }}"></canvas>
+      </div>
+      <div class="acd-body">
+        <div class="acd-bus-icon"><i class="fas fa-bus"></i></div>
+        <div class="acd-num">{{ stats.autocarro.numero }}</div>
+        <div class="acd-modelo">{{ stats.autocarro.modelo }}</div>
+        <div class="acd-stats">
+          <div class="acd-stat-row">
+            <span class="lbl"><i class="fas fa-arrow-down" style="color:#69f0ae"></i> Entradas</span>
+            <span class="val val-green">{% localize on %}{{ stats.total_entradas|floatformat:2 }}{% endlocalize %} Kz</span>
+          </div>
+          <div class="acd-stat-row">
+            <span class="lbl"><i class="fas fa-receipt" style="color:#ff8a80"></i> Outras Desp.</span>
+            <span class="val val-red">{% localize on %}{{ stats.total_saidas|floatformat:2 }}{% endlocalize %} Kz</span>
+          </div>
+          {% if stats.total_combustivel %}
+          <div class="acd-stat-row">
+            <span class="lbl"><i class="fas fa-gas-pump" style="color:#ff8a80"></i> Combustível</span>
+            <span class="val val-red">{% localize on %}{{ stats.total_combustivel|floatformat:2 }}{% endlocalize %} Kz</span>
+          </div>
+          {% endif %}
+          <div class="acd-stat-row">
+            <span class="lbl"><i class="fas fa-wallet" style="color:var(--accent)"></i> Saldo</span>
+            <span class="val {% if stats.resto >= 0 %}val-green{% else %}val-red{% endif %}">
+              {% localize on %}{{ stats.resto|floatformat:2 }}{% endlocalize %} Kz
+            </span>
+          </div>
+          <div class="acd-stat-row">
+            <span class="lbl"><i class="fas fa-road" style="color:var(--grey)"></i> KMs</span>
+            <span class="val val-blue">{% localize on %}{{ stats.total_km|floatformat:0 }}{% endlocalize %} km</span>
+          </div>
+          <div class="acd-stat-row">
+            <span class="lbl"><i class="fas fa-users" style="color:var(--grey)"></i> Passageiros</span>
+            <span class="val" style="color:rgba(255,255,255,.75)">{{ stats.total_passageiros|intcomma }}</span>
+          </div>
+          <div class="acd-stat-row">
+            <span class="lbl"><i class="fas fa-route" style="color:var(--grey)"></i> Viagens</span>
+            <span class="val" style="color:rgba(255,255,255,.75)">{{ stats.total_viagens|intcomma }}</span>
+          </div>
         </div>
-    </div>
-    
-    <!-- Cards Estatísticas por Autocarro -->
-    <div class="row mb-4">
-        {% for stats in autocarros_stats %}
-            <div class="col-md-4 col-sm-6 mb-3">
-                <div class="card h-100 shadow-sm bg-azul-forte">
-                    <div class="card-body text-center">
-                        <!-- Gráfico individual por autocarro -->
-                        <div style="height:180px;">
-                            <canvas id="chart-{{ stats.autocarro.id }}"></canvas>
-                        </div>
-
-                        <i class="fas fa-bus fa-2x mb-2 text-primary"></i>
-                        <h5 class="card-title">{{ stats.autocarro.numero }}</h5>
-                        <p class="text-muted">{{ stats.autocarro.modelo }}</p>
-                        
-                        <p><strong>KMs:</strong> {% localize on %}{{ stats.total_km|floatformat:2 }}{% endlocalize %} km</p>
-                        <p class="text-success">
-                            <strong>Entradas:</strong> {% localize on %}{{ stats.total_entradas|floatformat:2 }}{% endlocalize %} Kz
-                        </p>
-                        <p class="text-danger">
-                            <strong>Outras Despesas:</strong> {% localize on %}{{ stats.total_saidas|floatformat:2 }}{% endlocalize %} Kz
-                        </p>
-                        {% if stats.total_combustivel %}
-                        <p class="text-danger">
-                            <strong>Combustível:</strong> {% localize on %}{{ stats.total_combustivel|floatformat:2 }}{% endlocalize %} Kz
-                        </p>
-                        {% endif %}
-                        <p class="{% if stats.resto >= 0 %}text-success{% else %}text-danger{% endif %}">
-                            <strong>Saldo:</strong> {% localize on %}{{ stats.resto|floatformat:2 }}{% endlocalize %} Kz
-                        </p>
-                        <p><strong>Passageiros:</strong> {{ stats.total_passageiros|intcomma }}</p>
-                        <p><strong>Viagens:</strong> {{ stats.total_viagens|intcomma }}</p>
-                    </div>
-                    <div class="card-footer text-center">
-                        <a href="{% url 'detalhe_autocarro' stats.autocarro.id %}" class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-eye"></i> Detalhes
-                        </a>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-
-    <div class="text-center mt-4">
-        <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-primary">
-            <i class="fas fa-plus me-1"></i>Adicionar Relatório por Sector
+      </div>
+      <div class="acd-footer">
+        <a href="{% url 'detalhe_autocarro' stats.autocarro.id %}" class="btn-dash btn-outline-d" style="padding:7px 18px;font-size:.8rem">
+          <i class="fas fa-eye"></i> Ver Detalhes
         </a>
+      </div>
     </div>
+    {% endfor %}
+  </div>
 
-    <!-- Botão para gerar relatório detalhado em PDF -->
-    <div class="text-center mt-4">
-        <a id="btn_export_relatorio" href="{% url 'exportar_relatorio_dashboard' %}?mes={{ mes }}" 
-            class="btn btn-gradient shadow-lg px-5 py-3 d-inline-flex align-items-center gap-2">
-            <i class="fas fa-file-word fa-lg"></i>
-            <span>Gerar Relatório (Word)</span>
-        </a>
-    </div>
+  <!-- ACÇÕES FINAIS -->
+  <div class="dash-actions">
+    <a href="{% url 'adicionar_relatorio_sector' %}" class="btn-dash btn-success-d">
+      <i class="fas fa-plus"></i> Adicionar Relatório por Sector
+    </a>
+    <a href="{% url 'exportar_relatorio_dashboard' %}?mes={{ mes }}" class="btn-dash btn-word-d">
+      <i class="fas fa-file-word"></i> Gerar Relatório Word
+    </a>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Script para o gráfico de PRODUÇÃO (cores diferentes) -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function(){
-            // 🔹 1. PEGAR O CANVAS
-            const canvas = document.getElementById('graficoResumo');
-            if (!canvas) {
-                console.error('Canvas graficoResumo não encontrado!');
-                return;
-            }
+</div><!-- dash-wrapper -->
 
-            // 🔹 2. PEGAR O CONTAINER COM OS DADOS
-            const container = document.getElementById('resumo_values');
-            if (!container) {
-                console.error('Container resumo_values não encontrado!');
-                return;
-            }
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function () {
 
-            // 🔹 3. FUNÇÃO PARA CONVERTER VALORES
-            function toNumberRaw(v){
-                if (v === undefined || v === null) return 0;
-                const s = String(v).trim();
-                if (s === '') return 0;
-                // Remove pontos de milhar e troca vírgula por ponto
-                const normalized = s.replace(/\./g, '').replace(',', '.');
-                const n = Number(normalized);
-                return isNaN(n) ? 0 : n;
-            }
+  /* ── UTILITÁRIO DE PARSE ────────────────────────── */
+  function toNum(v) {
+    if (v == null) return 0;
+    const s = String(v).trim();
+    if (!s) return 0;
+    const n = Number(s.replace(/\./g, '').replace(',', '.'));
+    return isNaN(n) ? 0 : n;
+  }
 
-            // 🔹 4. EXTRAIR OS VALORES
-            const entradas = toNumberRaw(container.dataset.entradas);
-            const saidas   = toNumberRaw(container.dataset.saidas);
-            const saldo    = toNumberRaw(container.dataset.saldo);
+  const fmt = function (v) { return v.toLocaleString('pt-PT', {minimumFractionDigits:2}) + ' Kz'; };
 
-            console.log('Valores do gráfico de Produção:', { entradas, saidas, saldo });
+  /* ── DEFAULTS DE ESTILO ────────────────────────── */
+  Chart.defaults.color = 'rgba(255,255,255,.65)';
+  Chart.defaults.font.family = "'Barlow', sans-serif";
 
-            // 🔹 5. CRIAR O GRÁFICO COM CORES DIFERENTES
-            new Chart(canvas, {
-                type: 'bar',
-                data: {
-                    labels: ['Entradas', 'Saídas', 'Saldo'],
-                    datasets: [{
-                        data: [entradas, saidas, saldo],
-                        backgroundColor: [
-                            'rgba(40, 167, 69, 0.7)',    // verde para Entradas
-                            'rgba(220, 53, 69, 0.7)',    // vermelho para Saídas
-                            'rgba(184, 181, 23, 0.7)'    // azul ciano para Saldo
-                        ],
-                        borderColor: [
-                            'rgba(40, 167, 69, 1)',
-                            'rgba(220, 53, 69, 1)',
-                            'rgba(224, 221, 4, 1)'
-                        ],
-                        borderWidth: 2,
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { 
-                            display: false 
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.parsed.y.toLocaleString('pt-PT') + ' Kz';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: '#fff',
-                                callback: function(value){
-                                    return value.toLocaleString('pt-PT') + ' Kz';
-                                }
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                color: '#fff'
-                            },
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
+  const gridColor = 'rgba(79,195,247,.08)';
+
+  function barOptions(yCallback) {
+    return {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(4,30,66,.95)',
+          borderColor: 'rgba(79,195,247,.3)',
+          borderWidth: 1,
+          padding: 10,
+          callbacks: {
+            label: function (ctx) { return '  ' + fmt(ctx.parsed.y); }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { color: 'rgba(255,255,255,.55)', callback: function(v){ return v.toLocaleString('pt-PT') + ' Kz'; } },
+          grid: { color: gridColor }
+        },
+        x: {
+          ticks: { color: 'rgba(255,255,255,.65)', font: { weight:'700', size:12 } },
+          grid: { display: false }
+        }
+      }
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var c = document.getElementById('resumo_values');
+    if (!c) return;
+
+    var entradas = toNum(c.dataset.entradas);
+    var saidas   = toNum(c.dataset.saidas);
+    var saldo    = toNum(c.dataset.saldo);
+    var despesas = toNum(c.dataset.despesas);
+    var lucro    = toNum(c.dataset.lucro);
+
+    /* ── GRÁFICO DE PRODUÇÃO ─────────────────────── */
+    var cvProd = document.getElementById('graficoResumo');
+    if (cvProd) {
+      new Chart(cvProd, {
+        type: 'bar',
+        data: {
+          labels: ['Entradas', 'Saídas', 'Saldo'],
+          datasets: [{
+            data: [entradas, saidas, saldo],
+            backgroundColor: [
+              'rgba(105,240,174,.75)',
+              'rgba(255,138,128,.75)',
+              'rgba(255,213,79,.75)'
+            ],
+            borderColor: [
+              'rgba(105,240,174,1)',
+              'rgba(255,138,128,1)',
+              'rgba(255,213,79,1)'
+            ],
+            borderWidth: 2,
+            borderRadius: 8,
+            borderSkipped: false
+          }]
+        },
+        options: barOptions()
+      });
+    }
+
+    /* ── GRÁFICO DE LUCRO ────────────────────────── */
+    var cvLuc = document.getElementById('graficoLucro');
+    if (cvLuc) {
+      var lucroColor = lucro >= 0 ? 'rgba(105,240,174,.75)' : 'rgba(255,138,128,.75)';
+      var lucroBorder = lucro >= 0 ? 'rgba(105,240,174,1)' : 'rgba(255,138,128,1)';
+      new Chart(cvLuc, {
+        type: 'bar',
+        data: {
+          labels: ['Saldo', 'Despesas', 'Lucro'],
+          datasets: [{
+            data: [saldo, despesas, lucro],
+            backgroundColor: [
+              'rgba(255,213,79,.75)',
+              'rgba(255,138,128,.75)',
+              lucroColor
+            ],
+            borderColor: [
+              'rgba(255,213,79,1)',
+              'rgba(255,138,128,1)',
+              lucroBorder
+            ],
+            borderWidth: 2,
+            borderRadius: 8,
+            borderSkipped: false
+          }]
+        },
+        options: barOptions()
+      });
+    }
+
+    /* ── GRÁFICOS INDIVIDUAIS ────────────────────── */
+    {% for stats in autocarros_stats %}
+    {% localize off %}
+    (function () {
+      var el = document.getElementById('chart-{{ stats.autocarro.id }}');
+      if (!el) return;
+      var ent  = toNum('{{ stats.total_entradas|default:0 }}');
+      var desp = toNum('{{ stats.total_saidas|default:0 }}');
+      var sal  = toNum('{{ stats.resto|default:0 }}');
+      var salColor = sal >= 0 ? '#ffd54f' : '#ff8a80';
+      new Chart(el, {
+        type: 'doughnut',
+        data: {
+          labels: ['Entradas', 'Despesas', 'Saldo'],
+          datasets: [{
+            data: [Math.abs(ent), Math.abs(desp), Math.abs(sal)],
+            backgroundColor: ['rgba(105,240,174,.8)', 'rgba(255,138,128,.8)', salColor + 'cc'],
+            borderColor:     ['#69f0ae', '#ff8a80', salColor],
+            borderWidth: 2,
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '62%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: 'rgba(255,255,255,.6)',
+                padding: 8,
+                font: { size: 10, weight: '700' },
+                boxWidth: 10
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(4,30,66,.95)',
+              borderColor: 'rgba(79,195,247,.3)',
+              borderWidth: 1,
+              callbacks: {
+                label: function (ctx) {
+                  return '  ' + ctx.label + ': ' + ctx.parsed.toLocaleString('pt-PT') + ' Kz';
                 }
-            });
-        });
-    </script>
-
-    <!-- GRÁFICO DE LUCRO (cores diferentes) -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function(){
-            // 🔹 1. PEGAR O CANVAS
-            const canvas = document.getElementById('graficoLucro');
-            if (!canvas) {
-                console.error('Canvas graficoLucro não encontrado!');
-                return;
+              }
             }
+          }
+        }
+      });
+    })();
+    {% endlocalize %}
+    {% endfor %}
 
-            // 🔹 2. PEGAR O CONTAINER COM OS DADOS
-            const container = document.getElementById('resumo_values');
-            if (!container) {
-                console.error('Container resumo_values não encontrado!');
-                return;
-            }
+  }); /* DOMContentLoaded */
 
-            // 🔹 3. FUNÇÃO PARA CONVERTER VALORES
-            function toNumberRaw(v){
-                if (v === undefined || v === null) return 0;
-                const s = String(v).trim();
-                if (s === '') return 0;
-                // Remove pontos de milhar e troca vírgula por ponto
-                const normalized = s.replace(/\./g, '').replace(',', '.');
-                const n = Number(normalized);
-                return isNaN(n) ? 0 : n;
-            }
-
-            // 🔹 4. EXTRAIR OS VALORES
-            const saldo = toNumberRaw(container.dataset.saldo);
-            const despesas  = toNumberRaw(container.dataset.despesas);
-            const lucro    = toNumberRaw(container.dataset.lucro);
-
-            console.log('Valores do gráfico de Lucro:', { saldo, despesas, lucro });
-
-            // 🔹 5. CRIAR O GRÁFICO COM CORES DIFERENTES
-            new Chart(canvas, {
-                type: 'bar',
-                data: {
-                    labels: ['Saldo', 'Despesas', 'Lucro'],
-                    datasets: [{
-                        data: [saldo, despesas, lucro],
-                        backgroundColor: [
-                            'rgba(255, 193, 7, 0.7)',    // amarelo/dourado para Saldo
-                            'rgba(253, 126, 20, 0.7)',   // laranja para Despesas
-                            lucro >= 0 ? 'rgba(81, 193, 66, 0.7)' : 'rgba(255, 69, 69, 0.7)'    // verde para Lucro positivo, vermelho para negativo
-                        ],
-                        borderColor: [
-                            'rgba(255, 193, 7, 1)',
-                            'rgba(231, 37, 37, 1)',
-                            lucro >= 0 ? 'rgba(81, 193, 66, 1)' : 'rgba(255, 69, 69, 1)'
-                        ],
-                        borderWidth: 2,
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { 
-                            display: false 
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.parsed.y.toLocaleString('pt-PT') + ' Kz';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: '#fff',
-                                callback: function(value){
-                                    return value.toLocaleString('pt-PT') + ' Kz';
-                                }
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                color: '#fff'
-                            },
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
-        });
-    </script>
-
-    <!-- Gráficos individuais por autocarro (CORRIGIDO com localize off) -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            {% for stats in autocarros_stats %}
-            {% localize off %}
-            new Chart(document.getElementById("chart-{{ stats.autocarro.id }}"), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Entradas', 'Despesas', 'Saldo'],
-                    datasets: [{
-                        data: [
-                            {{ stats.total_entradas|default:0 }},
-                            {{ stats.total_saidas|default:0 }},
-                            {{ stats.resto|default:0 }}
-                        ],
-                        backgroundColor: [
-                            '#28a745',  // Verde para Entradas
-                            '#dc3545',  // Vermelho para Despesas
-                            '#ffbb00ff'   // Azul ciano para Saldo
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#1a1a2e'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '60%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: '#fff',
-                                padding: 10,
-                                font: {
-                                    size: 11
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.label + ': ' + context.parsed.toLocaleString('pt-PT') + ' Kz';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-            {% endlocalize %}
-            {% endfor %}
-        });
-    </script>
-
-
+})();
+</script>
 {% endblock %}
-

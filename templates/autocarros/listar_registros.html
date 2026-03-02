@@ -1,580 +1,1005 @@
 {% extends 'base.html' %}
-
 {% load custom_filters %}
 {% load l10n humanize %}
 
+{% block title %}Registos Diários{% endblock %}
+{% block breadcrumb %}Registos › Registos Diários{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <!-- 🔹 Cabeçalho com Estatísticas -->
-    <div class="card shadow-lg mb-4">
-        <div class="card-header bg-primary text-white">
-            <div class="d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">
-                    <i class="fas fa-chart-line me-2"></i> Registos Diários
-                </h4>
-                <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-light btn-sm">
-                    <i class="fas fa-plus me-1"></i> Novo Registo
-                </a>
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-3 text-center">
-                    <div class="border-end">
-                        <h3 class="text-success mb-1">{{ registros_agrupados|length|intcomma }}</h3>
-                        <small class="text-muted">Grupos de Registo</small>
-                    </div>
-                </div>
-                <div class="col-md-3 text-center">
-                    <div class="border-end">
-                        <h3 class="text-info mb-1">{{ totais.total_autocarros|intcomma }}</h3>
-                        <small class="text-muted">Registos</small>
-                    </div>
-                </div>
-                <div class="col-md-3 text-center">
-                    <div class="border-end">
-                        <h3 class="text-success mb-1">{% localize on %}{{ totais.total_entradas|floatformat:2 }}{% endlocalize %} Kz</h3>
-                        <small class="text-muted">Total Entradas</small>
-                    </div>
-                </div>
-                <div class="col-md-3 text-center">
-                    <h3 class="text-warning mb-1">{% localize on %}{{ totais.total_saldo|floatformat:2 }}{% endlocalize %} Kz</h3>
-                    <small class="text-muted">Saldo Geral</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 🔹 Filtro Melhorado -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">
-                <i class="fas fa-filter me-2"></i> Filtros
-            </h5>
-        </div>
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-3">
-                    <label for="sector" class="form-label">Sector</label>
-                    <select name="sector" id="sector" class="form-select">
-                        <option value="">-- Todos os Sectores --</option>
-                        {% for s in sectores %}
-                        <option value="{{ s.id }}" {% if sector_id == s.id|stringformat:"s" %}selected{% endif %}>
-                            {{ s.nome }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="data_inicio" class="form-label">Data Início</label>
-                    <input type="date" id="data_inicio" name="data_inicio" class="form-control"
-                        value="{{ data_inicio }}">
-                </div>
-                <div class="col-md-3">
-                    <label for="data_fim" class="form-label">Data Fim</label>
-                    <input type="date" id="data_fim" name="data_fim" class="form-control"
-                        value="{{ data_fim }}">
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100 me-2">
-                        <i class="fas fa-search me-1"></i> Aplicar Filtros
-                    </button>
-                    <a href="{% url 'listar_registros' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-sync"></i>
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    {% if registros_agrupados %}
-        {% for grupo in registros_agrupados %}
-        <div class="card shadow-lg border-0 rounded-3 mb-4">
-            <!-- 🔹 Cabeçalho do Grupo -->
-            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="mb-0">
-                        <i class="fas fa-map-marker-alt me-2"></i> {{ grupo.sector.nome }}
-                    </h5>
-                    <small class="opacity-75">{{ grupo.data|date:"d/m/Y" }}</small>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="badge bg-success me-2">
-                        <i class="fas fa-file-invoice me-1"></i> {{ grupo.registos|length|intcomma }} Registos
-                    </span>
-                    
-                    <div class="btn-group">
-                        <form method="get" action="{% url 'deletar_registros_sector_data' grupo.sector.id grupo.data|date:'Y-m-d' %}" onsubmit="return confirm('Tem certeza que deseja eliminar todos os registros deste grupo?');">
-                            <button type="submit" class="btn btn-outline-danger btn-sm">
-                                <i class="fas fa-trash"></i> Eliminar Grupo
-                            </button>
-                        </form>
-                        <a href="{% url 'editar_relatorio_sector' grupo.registos.0.id %}" class="btn btn-sm btn-light">
-                            <i class="fas fa-edit me-1"></i> Gerir
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card-body">
-                <!-- 🔹 RESUMO CONSOLIDADO DO GRUPO -->
-                <div class="alert border-0 shadow-sm mb-4 resumo-grupo">
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
-                            <h5 class="mb-2" style="color: #1565c0;">
-                                <i class="fas fa-chart-pie me-2"></i> 
-                                Resumo Consolidado - {{ grupo.sector.nome }}
-                            </h5>
-                            <div class="row small">
-                                <div class="col-4">
-                                    <i class="fas fa-bus text-primary"></i> <strong>{{ grupo.registos|length|intcomma }}</strong> Autocarros
-                                </div>
-                                <div class="col-4">
-                                    <i class="fas fa-users text-info"></i> <strong>{{ grupo.registos|soma_campo:'numero_passageiros'|intcomma }}</strong> Passageiros
-                                </div>
-                                <div class="col-4">
-                                    <i class="fas fa-route text-warning"></i> <strong>{{ grupo.registos|soma_campo:'numero_viagens'|intcomma }}</strong> Viagens
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="row text-center">
-                                <div class="col-4">
-                                    <div class="p-3 bg-white rounded shadow-sm">
-                                        <small class="d-block mb-1" style="color: #2e7d32; font-weight: 600;">Entradas</small>
-                                        <h5 class="mb-0" style="color: #1b5e20; font-weight: 700;">{% localize on %}{{ grupo.total_entradas|floatformat:2 }}{% endlocalize %}</h5>
-                                        <small style="color: #2e7d32;">Kz</small>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="p-3 bg-white rounded shadow-sm">
-                                        <small class="d-block mb-1" style="color: #c62828; font-weight: 600;">Saídas (incl. Comb.& Variáveis)</small>
-                                        <h5 class="mb-0" style="color: #b71c1c; font-weight: 700;">{% localize on %}{{ grupo.total_saidas|floatformat:2 }}{% endlocalize %}</h5>
-                                        <small style="color: #c62828;">Kz</small>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="p-3 bg-white rounded shadow-sm">
-                                        <small class="d-block mb-1" style="color: #1565c0; font-weight: 600;">Saldo</small>
-                                        <h5 class="mb-0" style="color: #0d47a1; font-weight: 700;">{% localize on %}{{ grupo.total_saldo|floatformat:2 }}{% endlocalize %}</h5>
-                                        <small style="color: #1565c0;">Kz</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 🔹 Registos de Autocarros -->
-                <div class="row">
-                    {% for reg in grupo.registos %}
-                        <div class="col-md-6 mb-3">
-                            <div class="card border-0 shadow-sm h-100">
-                                <!-- Cabeçalho do Autocarro -->
-                                <div class="card-header bg-dark text-white">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-bus me-2"></i> {{ reg.autocarro.numero }}
-                                        </h6>
-                                        <small>{{ reg.autocarro.modelo }}</small>
-                                    </div>
-                                    <form method="post" action="{% url 'deletar_registro' reg.id %}" class="mt-2">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-outline-danger btn-sm w-100" onclick="return confirm('Tem certeza que deseja eliminar este registro?');">
-                                            <i class="fas fa-trash"></i> Eliminar
-                                        </button>
-                                    </form>
-                                </div>
-
-                                <div class="card-body">
-                                    <!-- 🔹 Status e Data -->
-                                    <div class="d-flex justify-content-between mb-3">
-                                        {% if reg.validado %}
-                                        <span class="badge bg-success">✅ Validado</span>
-                                        {% elif reg.concluido %}
-                                        <span class="badge bg-warning">📋 Concluído</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary">⏳ Pendente</span>
-                                        {% endif %}
-                                        
-                                        <span class="badge bg-info">{{ reg.data|date:"d/m/Y" }}</span>
-                                    </div>
-
-                                    <!-- 🔹 RESUMO FINANCEIRO DESTACADO -->
-                                    <div class="mb-3 p-3 bg-light rounded">
-                                        <h6 class="text-center mb-3">
-                                            <i class="fas fa-calculator me-2"></i>Resumo Financeiro
-                                        </h6>
-                                        <div class="row text-center">
-                                            <div class="col-4">
-                                                <div class="border-end">
-                                                    <small class="text-muted d-block">Entrada</small>
-                                                    <strong class="text-success d-block">{% localize on %}{{ reg.entradas_total|floatformat:2 }}{% endlocalize %}</strong>
-                                                    <small class="text-muted">Kz</small>
-                                                </div>
-                                            </div>
-                                            <div class="col-4">
-                                                <div class="border-end">
-                                                    <small class="text-muted d-block">Saída (incl. Combustível)</small>
-                                                    <strong class="text-danger d-block">{% localize on %}{{ reg.saidas_total_incl_combustivel|floatformat:2 }}{% endlocalize %}</strong>
-                                                    <small class="text-muted">Kz</small>
-                                                </div>
-                                            </div>
-                                            <div class="col-4">
-                                                <small class="text-muted d-block">Saldo (incl. Combustível)</small>
-                                                <strong class="text-primary d-block">{% localize on %}{{ reg.saldo_liquido_incl_combustivel|floatformat:2 }}{% endlocalize %}</strong>
-                                                <small class="text-muted">Kz</small>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- 🔹 Equipa -->
-                                    <div class="row small mb-3">
-                                        <div class="col-4">
-                                            <strong>Motorista:</strong><br>
-                                            <span class="text-muted">{{ reg.motorista|default:"N/A" }}</span>
-                                        </div>
-                                        <div class="col-4">
-                                            <strong>Cob. Principal:</strong><br>
-                                            <span class="text-muted">{{ reg.cobrador_principal|default:"N/A" }}</span>
-                                        </div>
-                                        <div class="col-4">
-                                            <strong>Cob. Auxiliar:</strong><br>
-                                            <span class="text-muted">{{ reg.cobrador_auxiliar|default:"N/A" }}</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- 🔹 Detalhamento de Entradas -->
-                                    <div class="border-start border-3 border-success ps-3 mb-3">
-                                        <h6 class="text-success mb-2">
-                                            <i class="fas fa-arrow-down me-1"></i> Detalhamento de Entradas
-                                        </h6>
-                                        <div class="row small">
-                                            <div class="col-6">
-                                                {% if grupo.sector.nome == "Luanda" %}
-                                                    <i class="fas fa-sun text-success"></i> Manhã: <strong>{% localize on %}{{ reg.normal|floatformat:2 }}{% endlocalize %} Kz</strong>
-                                                {% else %}
-                                                    <i class="fas fa-ticket-alt text-success"></i> Normal: <strong>{% localize on %}{{ reg.normal|floatformat:2 }}{% endlocalize %} Kz</strong>
-                                                {% endif %}
-                                            </div>
-                                            <div class="col-6">
-                                                {% if grupo.sector.nome == "Luanda" %}
-                                                    <i class="fas fa-moon text-success"></i> Tarde: <strong>{% localize on %}{{ reg.alunos|floatformat:2 }}{% endlocalize %} Kz</strong>
-                                                {% else %}
-                                                    <i class="fas fa-graduation-cap text-success"></i> Alunos: <strong>{% localize on %}{{ reg.alunos|floatformat:2 }}{% endlocalize %} Kz</strong>
-                                                {% endif %}
-                                            </div>
-                                            <div class="col-6">
-                                                <i class="fas fa-coins text-success"></i> Luvu: <strong>{% localize on %}{{ reg.luvu|floatformat:2 }}{% endlocalize %} Kz</strong>
-                                            </div>
-                                            <div class="col-6">
-                                                <i class="fas fa-box text-success"></i> Frete: <strong>{% localize on %}{{ reg.frete|floatformat:2 }}{% endlocalize %} Kz</strong>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- 🔹 Detalhamento de Saídas -->
-                                    <div class="border-start border-3 border-danger ps-3 mb-3">
-                                        <h6 class="text-danger mb-2">
-                                            <i class="fas fa-arrow-up me-1"></i> Detalhamento de Saídas
-                                        </h6>
-                                        <div class="row small">
-                                            <div class="col-6">
-                                                <i class="fas fa-utensils text-danger"></i> Alimentação: <strong>{% localize on %}{{ reg.alimentacao|floatformat:2 }}{% endlocalize %} Kz</strong>
-                                            </div>
-                                            <div class="col-6">
-                                                <i class="fas fa-parking text-danger"></i> Parqueamento: <strong>{% localize on %}{{ reg.parqueamento|floatformat:2 }}{% endlocalize %} Kz</strong>
-                                            </div>
-                                            <div class="col-6">
-                                                <i class="fas fa-file-invoice-dollar text-danger"></i> Taxa: <strong>{% localize on %}{{ reg.taxa|floatformat:2 }}{% endlocalize %} Kz</strong>
-                                            </div>
-                                            <div class="col-6">
-                                                <i class="fas fa-ellipsis-h text-danger"></i> Outros: <strong>{% localize on %}{{ reg.outros|floatformat:2 }}{% endlocalize %} Kz</strong>
-                                            </div>
-                                            <div class="col-6">
-                                                <i class="fas fa-ellipsis-h text-danger"></i> Taxi: <strong>{% localize on %}{{ reg.taxi|floatformat:2 }}{% endlocalize %} Kz</strong>
-                                            </div>
-                                            <div class="col-6">
-                                                <i class="fas fa-gas-pump text-danger"></i> Combustível: <strong>{% localize on %}{{ reg.combustivel_total|floatformat:2 }}{% endlocalize %} Kz</strong>
-                                            </div>
-                                            <div class="col-6">
-                                                <i class="fas fa-filter text-danger"></i> Sopragem Filtros: <strong>{% localize on %}{{ reg.combustivel_sobragem|floatformat:2 }}{% endlocalize %} Kz</strong>
-                                            </div>
-                                            <div class="col-6">
-                                                <i class="fas fa-bucket text-danger"></i> Lavagem: <strong>{% localize on %}{{ reg.combustivel_lavagem|floatformat:2 }}{% endlocalize %} Kz</strong>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- 🔹 Dados Operacionais -->
-                                    <div class="border-start border-3 border-secondary ps-3 mb-3">
-                                        <h6 class="text-secondary mb-2">
-                                            <i class="fas fa-chart-bar me-1"></i> Dados Operacionais
-                                        </h6>
-                                        <div class="row small">
-                                            <div class="col-4">🚀 Viagens: <strong>{{ reg.numero_viagens|intcomma }}</strong></div>
-                                            <div class="col-4">👥 Passageiros: <strong>{{ reg.numero_passageiros|intcomma }}</strong></div>
-                                            <div class="col-4">🛣️ Kms: <strong>{{ reg.km_percorridos|intcomma }}</strong></div>
-                                        </div>
-                                    </div>
-
-                                    <!-- 🔹 Saldo Final Destacado -->
-                                    <div class="text-center p-3 rounded saldo-box">
-                                        <small class="d-block text-dark mb-1" style="font-weight: 500;">💰 SALDO LÍQUIDO</small>
-                                        <h4 class="mb-0" style="color: #1a237e; font-weight: 700;">
-                                            {% comment %}Mostrar saldo já com despesas variáveis, se disponível{% endcomment %}
-                                            {% if reg.saldo_apos_variaveis is not None %}
-                                                {% localize on %}{{ reg.saldo_apos_variaveis|floatformat:2 }}{% endlocalize %} Kz
-                                            {% else %}
-                                                {% localize on %}{{ reg.saldo_liquido_incl_combustivel|floatformat:2 }}{% endlocalize %} Kz
-                                            {% endif %}
-                                        </h4>
-                                    </div>
-
-                                    {# Combustível exibido dentro do Detalhamento de Saídas acima #}
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- 🔹 Rodapé com Botões de Ação -->
-            <div class="card-footer bg-light">
-                <div class="d-flex justify-content-between align-items-center flex-wrap">
-
-                    <!-- 🔸 Valor da Despesa Geral -->
-                    <div class="mb-2 mb-md-0">
-                        {% if grupo.despesa_geral %}
-                            <small class="text-muted me-2">
-                                <i class="fas fa-coins text-primary me-1"></i>
-                                <strong>Despesa Geral:</strong> {{ grupo.despesa_geral|floatformat:2 }} Kz
-                            </small>
-                        {% endif %}
-                        {% if grupo.alimentacao_estaleiro %}
-                            <small class="text-muted">
-                                <i class="fas fa-coins text-primary me-1"></i>
-                                <strong>Alimentação Estaleiro:</strong> {{ grupo.alimentacao_estaleiro|floatformat:2 }} Kz
-                            </small>
-                        {% endif %}
-                    </div>
-
-                    <!-- 🔸 Botões de Ação -->
-                    <div class="d-flex gap-2">
-                        <a href="{% url 'adicionar_relatorio_sector' %}?sector={{ grupo.sector.id }}&data={{ grupo.data|date:'Y-m-d' }}" 
-                        class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-plus me-1"></i> Adicionar Registo
-                        </a>
-
-                        {% if grupo.whatsapp_link %}
-                            <a href="{{ grupo.whatsapp_link }}" target="_blank" class="btn btn-success btn-sm">
-                                <i class="fab fa-whatsapp me-1"></i> Enviar
-                            </a>
-                        {% else %}
-                            <button type="button" class="btn btn-secondary btn-sm" disabled>
-                                <i class="fab fa-whatsapp me-1"></i> Enviar
-                            </button>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-        <!-- MODAIS -->
-        {% with primeiro_registro=grupo.registos.0 %}
-        <div class="modal fade" id="concluirModal{{ primeiro_registro.id }}" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Concluir Registos</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Tem certeza que deseja concluir os registos de <strong>{{ grupo.sector.nome }}</strong> do dia <strong>{{ grupo.data|date:"d/m/Y" }}</strong>?</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <form method="post" action="{% url 'concluir_relatorio' primeiro_registro.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-check me-1"></i> Sim, Concluir
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="validarModal{{ primeiro_registro.id }}" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Validar Registos</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Deseja validar os registos de <strong>{{ grupo.sector.nome }}</strong> do dia <strong>{{ grupo.data|date:"d/m/Y" }}</strong>?</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <form method="post" action="{% url 'validar_relatorio' primeiro_registro.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-warning">
-                                <i class="fas fa-shield-alt me-1"></i> Validar
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endwith %}
-        {% endfor %}
-
-        <!-- 🔹 TOTAIS GERAIS -->
-        <div class="card shadow-lg mt-4">
-            <div class="card-header" style="background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);">
-                <h5 class="mb-0 text-white">
-                    <i class="fas fa-chart-bar me-2"></i> Resumo Geral
-                </h5>
-            </div>
-            <div class="card-body bg-light">
-                <div class="row text-center g-3">
-                    <div class="col-md-3">
-                        <div class="p-3 bg-white rounded shadow-sm h-100">
-                            <small class="d-block mb-2" style="color: #2e7d32; font-weight: 600;">💰 Total Entradas</small>
-                            <h3 class="mb-0" style="color: #1b5e20; font-weight: 700;">{% localize on %}{{ totais.total_entradas|floatformat:2 }}{% endlocalize %}</h3>
-                            <small style="color: #2e7d32;">Kz</small>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="p-3 bg-white rounded shadow-sm h-100">
-                            <small class="d-block mb-2" style="color: #c62828; font-weight: 600;">📤 Total Saídas</small>
-                            <h3 class="mb-0" style="color: #b71c1c; font-weight: 700;">{% localize on %}{{ totais.total_saidas|floatformat:2 }}{% endlocalize %}</h3>
-                            <small style="color: #c62828;">Kz</small>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="p-3 bg-white rounded shadow-sm h-100">
-                            <small class="d-block mb-2" style="color: #f57c00; font-weight: 600;">📊 Total Registos</small>
-                            <h3 class="mb-0" style="color: #e65100; font-weight: 700;">{{ totais.total_autocarros|intcomma }}</h3>
-                            <small style="color: #f57c00;">Autocarros</small>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="p-3 bg-white rounded shadow-sm h-100">
-                            <small class="d-block mb-2" style="color: #1565c0; font-weight: 600;">💵 Saldo Líquido</small>
-                            <h3 class="mb-0" style="color: #0d47a1; font-weight: 700;">{% localize on %}{{ totais.total_saldo|floatformat:2 }}{% endlocalize %}</h3>
-                            <small style="color: #1565c0;">Kz</small>
-                        </div>
-                    </div>
-                </div>
-           </div>
-        </div>
-    {% else %}
-        <div class="card shadow-lg">
-            <div class="card-body text-center py-5">
-                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                <h4 class="text-muted">Nenhum registo encontrado</h4>
-                <p class="text-muted">Tente ajustar os filtros ou criar um novo registo.</p>
-                <a href="{% url 'adicionar_relatorio_sector' %}" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i> Criar Primeiro Registo
-                </a>
-            </div>
-        </div>
-    {% endif %}
-</div>
-
 <style>
-.btn-success {
-    background: linear-gradient(45deg, #25D366, #128C7E);
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
+/* ════════════════════════════════════════════════════
+   LISTAR REGISTOS DIÁRIOS
+════════════════════════════════════════════════════ */
+
+.lr-wrapper {
+  animation: lrIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes lrIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
 }
 
-.btn-success:hover {
-    background: linear-gradient(45deg, #128C7E, #075E54);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(18, 140, 126, 0.3);
+/* ── PAGE HEADER ─────────────────────────────────── */
+.lr-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 14px; margin-bottom: 24px;
+}
+.lr-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.9rem; letter-spacing: 2px; line-height: 1;
+}
+.lr-title span { color: var(--accent); }
+.lr-subtitle { font-size: .8rem; color: var(--grey); margin-top: 4px; }
+
+/* ── STAT STRIP ──────────────────────────────────── */
+.stat-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px; margin-bottom: 24px;
+}
+.sstat {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  display: flex; align-items: center; gap: 14px;
+  transition: transform var(--ease-spring), border-color var(--ease-fast);
+  backdrop-filter: blur(8px);
+}
+.sstat:hover { transform: translateY(-3px); border-color: rgba(79,195,247,.3); }
+.sstat-icon {
+  width: 40px; height: 40px; flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .95rem;
+}
+.sstat-icon.grupos  { background:rgba(79,195,247,.12); color:var(--accent); }
+.sstat-icon.registos{ background:rgba(30,136,229,.12); color:#64b5f6; }
+.sstat-icon.entrada { background:rgba(39,174,96,.12);  color:#69f0ae; }
+.sstat-icon.saldo   { background:rgba(243,156,18,.12); color:#ffd54f; }
+.sstat-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem; letter-spacing: 1px; line-height: 1;
+  color: var(--white);
+}
+.sstat-lbl {
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: var(--grey); margin-top: 3px;
 }
 
-.card {
-    border: none;
-    border-radius: 15px;
+/* ── FILTER CARD ─────────────────────────────────── */
+.filter-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 18px 22px;
+  margin-bottom: 24px;
+}
+.filter-card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .88rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: rgba(255,255,255,.5);
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.filter-card-title i { color: var(--accent); }
+.filter-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
+.f-group { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
+.f-label {
+  font-size: .7rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.42); margin-bottom: 5px;
 }
 
-.card-header {
-    border-radius: 15px 15px 0 0 !important;
+/* fields override */
+.lr-wrapper select,
+.lr-wrapper input[type="date"] {
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 9px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .88rem !important;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+  outline: none !important;
+  width: 100%; -webkit-appearance: none;
+}
+.lr-wrapper select:focus,
+.lr-wrapper input[type="date"]:focus {
+  border-color: var(--accent) !important;
+  background: rgba(4,30,66,.85) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+}
+.lr-wrapper select option { background: var(--navy); color: var(--white); }
+.lr-wrapper input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7); }
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn-lr {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 20px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .88rem;
+  letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; white-space: nowrap; text-decoration: none;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+}
+.btn-lr:hover  { transform: translateY(-2px); }
+.btn-lr:active { transform: scale(.97); }
+
+.btn-primary-lr { background: var(--grad-btn); color: var(--white); box-shadow: var(--shadow-sm); }
+.btn-primary-lr:hover { box-shadow: 0 6px 20px rgba(36,99,163,.4); color: var(--white); }
+
+.btn-outline-lr {
+  background: transparent;
+  border: 1px solid var(--glass-border) !important;
+  color: rgba(255,255,255,.6);
+}
+.btn-outline-lr:hover { background: rgba(255,255,255,.07); color: var(--white); }
+
+.btn-success-lr { background: var(--success); color: var(--white); }
+.btn-success-lr:hover { background:#219150; box-shadow:0 6px 18px rgba(39,174,96,.3); color:var(--white); }
+
+.btn-danger-lr {
+  background: rgba(231,76,60,.15);
+  border: 1px solid rgba(231,76,60,.3) !important;
+  color: #ff8a80;
+}
+.btn-danger-lr:hover { background: rgba(231,76,60,.28); }
+
+.btn-wa {
+  background: linear-gradient(135deg, #25d366, #128c7e);
+  color: var(--white); box-shadow: 0 4px 14px rgba(37,211,102,.25);
+}
+.btn-wa:hover { box-shadow: 0 8px 22px rgba(37,211,102,.38); color: var(--white); }
+.btn-wa:disabled,
+.btn-wa-dis {
+  background: rgba(255,255,255,.07);
+  border: 1px solid var(--glass-border) !important;
+  color: rgba(255,255,255,.3);
+  cursor: not-allowed; transform: none !important;
 }
 
-.border-3 {
-    border-width: 3px !important;
+/* small icon btn */
+.btn-icon-sm {
+  width: 30px; height: 30px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--grey);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .8rem; cursor: pointer; text-decoration: none;
+  transition: background var(--ease-fast), color var(--ease-fast), border-color var(--ease-fast);
+}
+.btn-icon-sm:hover { background: rgba(79,195,247,.12); color: var(--accent); border-color: rgba(79,195,247,.3); }
+.btn-icon-sm.danger:hover { background: rgba(231,76,60,.15); color: #ff8a80; border-color: rgba(231,76,60,.3); }
+
+/* ── GRUPO CARD ──────────────────────────────────── */
+.grupo-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 8px 28px rgba(4,30,66,.28);
+  overflow: hidden;
+  margin-bottom: 20px;
+  transition: border-color var(--ease-fast);
+}
+.grupo-card:hover { border-color: rgba(79,195,247,.25); }
+
+/* Header do grupo */
+.grupo-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: linear-gradient(90deg, rgba(36,99,163,.4), rgba(4,30,66,.25));
+  border-bottom: 1px solid var(--glass-border);
+  flex-wrap: wrap; gap: 10px;
+}
+.grupo-header-left { display: flex; flex-direction: column; gap: 3px; }
+.grupo-sector {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem; letter-spacing: 2px; line-height: 1;
+  color: var(--white);
+}
+.grupo-meta {
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
+}
+.grupo-date {
+  font-size: .75rem; color: var(--grey);
+  display: flex; align-items: center; gap: 5px;
+}
+.grupo-date i { color: var(--accent); font-size: .65rem; }
+.grupo-count {
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.2);
+  border-radius: 30px;
+  padding: 2px 10px;
+  font-size: .7rem; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--accent);
+}
+.grupo-header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* ── RESUMO CONSOLIDADO ──────────────────────────── */
+.resumo-consolidado {
+  background: rgba(21,101,192,.12);
+  border-left: 3px solid var(--blue-mid);
+  margin: 0;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--glass-border);
+}
+.resumo-top {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap; gap: 14px;
+  margin-bottom: 14px;
+}
+.resumo-sector-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .95rem;
+  letter-spacing: 1px; color: var(--white);
+  display: flex; align-items: center; gap: 8px;
+}
+.resumo-sector-label i { color: var(--accent); }
+.resumo-meta-chips {
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.meta-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(79,195,247,.07);
+  border: 1px solid rgba(79,195,247,.15);
+  border-radius: 30px; padding: 3px 12px;
+  font-size: .72rem; font-weight: 700; letter-spacing: .8px;
+  color: rgba(255,255,255,.6);
+}
+.meta-chip i { color: var(--accent); font-size: .65rem; }
+
+/* Resumo financeiro 3 colunas */
+.resumo-fin {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 1px; background: var(--glass-border);
+  border-radius: var(--radius-md); overflow: hidden;
+}
+.rfin-col {
+  background: rgba(4,30,66,.5);
+  padding: 12px 10px; text-align: center;
+  transition: background var(--ease-fast);
+}
+.rfin-col:hover { background: rgba(36,99,163,.22); }
+.rfin-lbl {
+  font-size: .65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: var(--grey); margin-bottom: 5px;
+}
+.rfin-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem; letter-spacing: .5px; line-height: 1;
+}
+.rfin-val.entrada { color: #69f0ae; }
+.rfin-val.saida   { color: #ff8a80; }
+.rfin-val.saldo   { color: var(--accent); }
+.rfin-unit { font-size: .65rem; color: var(--grey); margin-top: 2px; }
+
+/* ── AUTOCARROS GRID ─────────────────────────────── */
+.grupo-body { padding: 16px; }
+.autocarros-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
 }
 
-.shadow-lg {
-    box-shadow: 0 1rem 3rem rgba(0,0,0,.175) !important;
+/* Autocarro card */
+.ac-card {
+  background: rgba(4,30,66,.45);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-base);
+}
+.ac-card:hover { border-color: rgba(79,195,247,.28); box-shadow: 0 6px 20px rgba(4,30,66,.3); }
+
+.ac-head {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(36,99,163,.2);
+  border-bottom: 1px solid var(--glass-border);
+  gap: 8px;
+}
+.ac-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .95rem; letter-spacing: 1px;
+  color: var(--white); display: flex; align-items: center; gap: 7px;
+}
+.ac-num i { color: var(--accent); font-size: .82rem; }
+.ac-modelo { font-size: .72rem; color: var(--grey); }
+
+.status-badge {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .65rem; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 30px;
+}
+.s-validado  { background:rgba(39,174,96,.18);  border:1px solid rgba(39,174,96,.4);  color:#69f0ae; }
+.s-concluido { background:rgba(243,156,18,.15);  border:1px solid rgba(243,156,18,.35);color:#ffd54f; }
+.s-pendente  { background:rgba(141,163,196,.1);  border:1px solid rgba(141,163,196,.22);color:var(--grey); }
+
+.ac-body { padding: 13px; }
+
+/* Mini resumo financeiro */
+.ac-resumo {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 1px; background: var(--glass-border);
+  border-radius: var(--radius-sm); overflow: hidden;
+  margin-bottom: 12px;
+}
+.ac-resumo-col {
+  background: rgba(4,30,66,.5);
+  padding: 8px 6px; text-align: center;
+}
+.ac-resumo-lbl { font-size: .6rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--grey); }
+.ac-resumo-val { font-family:'Bebas Neue',sans-serif; font-size:.95rem; margin-top:2px; }
+.ac-resumo-val.e { color:#69f0ae; }
+.ac-resumo-val.s { color:#ff8a80; }
+.ac-resumo-val.b { color:var(--accent); }
+
+/* Equipa */
+.ac-equipa {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 6px; margin-bottom: 12px;
+}
+.eq-item { display: flex; flex-direction: column; gap: 2px; }
+.eq-lbl {
+  font-size: .62rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:.8px;
+  color: rgba(255,255,255,.35);
+}
+.eq-val { font-size: .78rem; color: rgba(255,255,255,.75); font-weight:600; }
+
+/* Detail sections */
+.detail-section { margin-bottom: 10px; }
+.detail-header {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .75rem;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  margin-bottom: 7px; padding-left: 8px;
+}
+.detail-header.verde  { border-left: 2px solid #69f0ae; color: #69f0ae; }
+.detail-header.vermelho { border-left: 2px solid #ff8a80; color: #ff8a80; }
+.detail-header.cinza  { border-left: 2px solid var(--grey); color: var(--grey); }
+
+.detail-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 4px 10px;
+}
+.detail-item {
+  display: flex; justify-content: space-between;
+  font-size: .75rem;
+  color: rgba(255,255,255,.55);
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(79,195,247,.05);
+}
+.detail-item:last-child { border-bottom: none; }
+.detail-item strong { color: rgba(255,255,255,.8); }
+
+/* Saldo final */
+.ac-saldo-final {
+  background: rgba(21,101,192,.15);
+  border: 1px solid rgba(79,195,247,.2);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  text-align: center;
+  margin-top: 10px;
+}
+.sf-lbl {
+  font-size: .65rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1.2px;
+  color: var(--grey); margin-bottom: 4px;
+}
+.sf-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem; letter-spacing: 1px;
+  color: var(--accent);
 }
 
-.shadow-sm {
-    box-shadow: 0 .125rem .25rem rgba(0,0,0,.075) !important;
+/* ── GRUPO FOOTER ────────────────────────────────── */
+.grupo-footer {
+  display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 12px;
+  padding: 13px 20px;
+  background: rgba(4,30,66,.3);
+  border-top: 1px solid var(--glass-border);
 }
-
-.btn-group .btn {
-    border-radius: 8px;
-    margin: 0 2px;
+.gf-despesas { display: flex; flex-direction: column; gap: 3px; }
+.gf-despesa-item {
+  font-size: .76rem; color: rgba(255,255,255,.5);
+  display: flex; align-items: center; gap: 6px;
 }
+.gf-despesa-item i { color: var(--accent); font-size: .65rem; }
+.gf-despesa-item strong { color: rgba(255,255,255,.75); }
+.gf-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-.badge {
-    border-radius: 10px;
-    padding: 6px 12px;
+/* ── RESUMO GERAL (final da página) ──────────────── */
+.resumo-geral {
+  background: rgba(13,43,94,.45);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+  margin-top: 28px;
 }
-
-.resumo-grupo {
-    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-    border-left: 4px solid #1565c0 !important;
+.rg-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 22px;
+  background: var(--grad-header);
+  border-bottom: 1px solid var(--glass-border);
 }
-
-.saldo-box {
-    background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
-    border: 2px solid #3f51b5;
+.rg-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 1rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--white);
 }
-
-/* ======= Ajustes Mobile ======= */
-@media (max-width: 767px) {
-    .card-body { padding: 0.75rem !important; }
-    .card-header .d-flex.justify-content-between { flex-direction: column; align-items: flex-start; gap: .5rem; }
-    .card-header h5, .card-header h4 { font-size: 1rem; }
-    .resumo-grupo .row.small { display: block; }
-    .resumo-grupo .row.small .col-4 { width: 100%; display: block; margin-bottom: .5rem; }
-    .resumo-grupo h5 { font-size: 1rem; }
-    .card .card-header { padding: .6rem .9rem; }
-    .card .card-body { padding: .7rem .9rem; }
-    .btn-group .btn { padding: .35rem .45rem; font-size: .85rem; }
-    .btn-light.btn-sm, .btn-outline-secondary { font-size: .82rem; padding: .35rem .5rem; }
-    .card .card-header small { display: none; }
-    .card .card-header .badge { margin-top: .25rem; }
-    /* Make footer buttons full width stacked */
-    .card-footer .btn-group a.btn, .card-footer .btn-group form .btn { display: block; width: 100%; margin-bottom: .5rem; }
-    /* Compact financeiro boxes */
-    .card .p-3.bg-white { padding: .6rem; }
-    .card .p-3.bg-white h5 { font-size: 1.05rem; }
-    /* Truncate long model names */
-    .card-header small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; display: inline-block; }
+.rg-title i { color: var(--accent); margin-right: 8px; }
+.rg-body {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 1px; background: var(--glass-border);
 }
+.rg-col {
+  background: rgba(4,30,66,.5);
+  padding: 22px 18px; text-align: center;
+  transition: background var(--ease-fast);
+}
+.rg-col:hover { background: rgba(36,99,163,.22); }
+.rg-lbl {
+  font-size: .68rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1.2px;
+  color: var(--grey); margin-bottom: 8px;
+  display: flex; align-items:center; justify-content:center; gap:5px;
+}
+.rg-lbl i { font-size: .65rem; }
+.rg-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.7rem; letter-spacing: 1px; line-height: 1;
+}
+.rg-val.entrada { color: #69f0ae; }
+.rg-val.saida   { color: #ff8a80; }
+.rg-val.reg     { color: #ffd54f; }
+.rg-val.saldo   { color: var(--accent); }
+.rg-unit { font-size: .7rem; color: var(--grey); margin-top: 4px; }
 
-@media (max-width: 420px) {
-    /* Further reduce spacings on very small devices */
-    .resumo-grupo h5 { font-size: .95rem; }
-    .saldo-box h4 { font-size: 1.25rem; }
-    .badge { padding: 4px 8px; }
+/* ── EMPTY STATE ─────────────────────────────────── */
+.empty-state {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 64px 24px;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+}
+.empty-state i { font-size: 2.8rem; color: rgba(255,255,255,.18); }
+.empty-state h4 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem; letter-spacing: 2px;
+  color: rgba(255,255,255,.45);
+}
+.empty-state p { font-size: .88rem; color: rgba(255,255,255,.28); }
+
+/* ── MODAL ───────────────────────────────────────── */
+.modal-content {
+  background: rgba(4,30,66,.97);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(16px);
+  color: var(--white);
+}
+.modal-header {
+  background: var(--grad-header);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border-bottom: 1px solid var(--glass-border);
+  padding: 13px 20px;
+}
+.modal-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 1rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+}
+.modal-footer { border-top: 1px solid var(--glass-border); padding: 11px 20px; gap: 8px; }
+.modal-backdrop { background: rgba(4,30,66,.75); backdrop-filter: blur(4px); }
+.modal-body { padding: 20px; font-size: .92rem; color: rgba(255,255,255,.75); }
+.modal-body strong { color: var(--white); }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 900px) {
+  .stat-strip { grid-template-columns: repeat(2,1fr); }
+  .rg-body    { grid-template-columns: repeat(2,1fr); }
+}
+@media (max-width: 640px) {
+  .autocarros-grid { grid-template-columns: 1fr; }
+  .lr-header { flex-direction: column; align-items: flex-start; }
+  .grupo-header { flex-direction: column; align-items: flex-start; }
+  .grupo-header-right { width: 100%; }
+  .resumo-fin { grid-template-columns: repeat(3,1fr); }
+  .ac-equipa  { grid-template-columns: 1fr 1fr; }
+  .detail-grid { grid-template-columns: 1fr; }
+  .grupo-footer { flex-direction: column; align-items: flex-start; }
+  .gf-actions { width: 100%; }
+  .gf-actions .btn-lr { flex:1; justify-content:center; }
+}
+@media (max-width: 480px) {
+  .stat-strip { grid-template-columns: 1fr 1fr; }
+  .rg-body    { grid-template-columns: 1fr 1fr; }
+  .resumo-meta-chips { flex-direction: column; gap: 5px; }
+  .filter-row { flex-direction: column; }
+  .f-group    { min-width: unset; width: 100%; }
 }
 </style>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
-});
-</script>
+<div class="lr-wrapper">
+
+  <!-- HEADER -->
+  <div class="lr-header">
+    <div>
+      <div class="lr-title">Registos <span>Diários</span></div>
+      <div class="lr-subtitle">Gestão e acompanhamento dos registos por sector</div>
+    </div>
+    <a href="{% url 'adicionar_relatorio_sector' %}" class="btn-lr btn-success-lr">
+      <i class="fas fa-plus"></i> Novo Registo
+    </a>
+  </div>
+
+  <!-- STATS -->
+  <div class="stat-strip">
+    <div class="sstat">
+      <div class="sstat-icon grupos"><i class="fas fa-layer-group"></i></div>
+      <div>
+        <div class="sstat-val">{{ registros_agrupados|length|intcomma }}</div>
+        <div class="sstat-lbl">Grupos</div>
+      </div>
+    </div>
+    <div class="sstat">
+      <div class="sstat-icon registos"><i class="fas fa-bus"></i></div>
+      <div>
+        <div class="sstat-val">{{ totais.total_autocarros|intcomma }}</div>
+        <div class="sstat-lbl">Registos</div>
+      </div>
+    </div>
+    <div class="sstat">
+      <div class="sstat-icon entrada"><i class="fas fa-arrow-down"></i></div>
+      <div>
+        <div class="sstat-val">{% localize on %}{{ totais.total_entradas|floatformat:0 }}{% endlocalize %}</div>
+        <div class="sstat-lbl">Entradas Kz</div>
+      </div>
+    </div>
+    <div class="sstat">
+      <div class="sstat-icon saldo"><i class="fas fa-wallet"></i></div>
+      <div>
+        <div class="sstat-val">{% localize on %}{{ totais.total_saldo|floatformat:0 }}{% endlocalize %}</div>
+        <div class="sstat-lbl">Saldo Kz</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filter-card">
+    <div class="filter-card-title"><i class="fas fa-filter"></i> Filtros</div>
+    <form method="get">
+      <div class="filter-row">
+        <div class="f-group">
+          <label class="f-label">Sector</label>
+          <select name="sector">
+            <option value="">Todos os sectores</option>
+            {% for s in sectores %}
+              <option value="{{ s.id }}" {% if sector_id == s.id|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="f-group">
+          <label class="f-label">Data Início</label>
+          <input type="date" name="data_inicio" value="{{ data_inicio }}">
+        </div>
+        <div class="f-group">
+          <label class="f-label">Data Fim</label>
+          <input type="date" name="data_fim" value="{{ data_fim }}">
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-end;flex-shrink:0">
+          <button type="submit" class="btn-lr btn-primary-lr">
+            <i class="fas fa-search"></i> Filtrar
+          </button>
+          <a href="{% url 'listar_registros' %}" class="btn-lr btn-outline-lr" title="Limpar filtros">
+            <i class="fas fa-rotate"></i>
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- ══ GRUPOS ══ -->
+  {% if registros_agrupados %}
+
+    {% for grupo in registros_agrupados %}
+    <div class="grupo-card">
+
+      <!-- HEADER DO GRUPO -->
+      <div class="grupo-header">
+        <div class="grupo-header-left">
+          <div class="grupo-sector">{{ grupo.sector.nome }}</div>
+          <div class="grupo-meta">
+            <span class="grupo-date"><i class="fas fa-calendar-day"></i>{{ grupo.data|date:"d/m/Y" }}</span>
+            <span class="grupo-count">{{ grupo.registos|length }} autocarro(s)</span>
+          </div>
+        </div>
+        <div class="grupo-header-right">
+          <a href="{% url 'editar_relatorio_sector' grupo.registos.0.id %}" class="btn-lr btn-outline-lr" style="padding:7px 14px">
+            <i class="fas fa-pen"></i> Gerir
+          </a>
+          <form method="get" action="{% url 'deletar_registros_sector_data' grupo.sector.id grupo.data|date:'Y-m-d' %}"
+                onsubmit="return confirm('Eliminar todos os registros deste grupo?');" style="margin:0">
+            <button type="submit" class="btn-lr btn-danger-lr" style="padding:7px 14px">
+              <i class="fas fa-trash-can"></i> Eliminar Grupo
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- RESUMO CONSOLIDADO -->
+      <div class="resumo-consolidado">
+        <div class="resumo-top">
+          <div class="resumo-sector-label">
+            <i class="fas fa-chart-pie"></i>
+            Resumo — {{ grupo.sector.nome }}
+          </div>
+          <div class="resumo-meta-chips">
+            <span class="meta-chip"><i class="fas fa-bus"></i>{{ grupo.registos|length }} Autocarros</span>
+            <span class="meta-chip"><i class="fas fa-users"></i>{{ grupo.registos|soma_campo:'numero_passageiros'|intcomma }} Passageiros</span>
+            <span class="meta-chip"><i class="fas fa-route"></i>{{ grupo.registos|soma_campo:'numero_viagens'|intcomma }} Viagens</span>
+          </div>
+        </div>
+        <div class="resumo-fin">
+          <div class="rfin-col">
+            <div class="rfin-lbl">Entradas</div>
+            <div class="rfin-val entrada">{% localize on %}{{ grupo.total_entradas|floatformat:2 }}{% endlocalize %}</div>
+            <div class="rfin-unit">Kz</div>
+          </div>
+          <div class="rfin-col">
+            <div class="rfin-lbl">Saídas (incl. Comb.)</div>
+            <div class="rfin-val saida">{% localize on %}{{ grupo.total_saidas|floatformat:2 }}{% endlocalize %}</div>
+            <div class="rfin-unit">Kz</div>
+          </div>
+          <div class="rfin-col">
+            <div class="rfin-lbl">Saldo</div>
+            <div class="rfin-val saldo">{% localize on %}{{ grupo.total_saldo|floatformat:2 }}{% endlocalize %}</div>
+            <div class="rfin-unit">Kz</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUTOCARROS -->
+      <div class="grupo-body">
+        <div class="autocarros-grid">
+          {% for reg in grupo.registos %}
+          <div class="ac-card">
+
+            <!-- Head -->
+            <div class="ac-head">
+              <div class="ac-num">
+                <i class="fas fa-bus"></i>
+                {{ reg.autocarro.numero }}
+                <span class="ac-modelo">— {{ reg.autocarro.modelo }}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px">
+                {% if reg.validado %}
+                  <span class="status-badge s-validado">Validado</span>
+                {% elif reg.concluido %}
+                  <span class="status-badge s-concluido">Concluído</span>
+                {% else %}
+                  <span class="status-badge s-pendente">Pendente</span>
+                {% endif %}
+                <form method="post" action="{% url 'deletar_registro' reg.id %}" style="margin:0"
+                      onsubmit="return confirm('Eliminar este registo?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-icon-sm danger" title="Eliminar">
+                    <i class="fas fa-trash-can"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <div class="ac-body">
+
+              <!-- Mini resumo financeiro -->
+              <div class="ac-resumo">
+                <div class="ac-resumo-col">
+                  <div class="ac-resumo-lbl">Entrada</div>
+                  <div class="ac-resumo-val e">{% localize on %}{{ reg.entradas_total|floatformat:2 }}{% endlocalize %}</div>
+                </div>
+                <div class="ac-resumo-col">
+                  <div class="ac-resumo-lbl">Saída</div>
+                  <div class="ac-resumo-val s">{% localize on %}{{ reg.saidas_total_incl_combustivel|floatformat:2 }}{% endlocalize %}</div>
+                </div>
+                <div class="ac-resumo-col">
+                  <div class="ac-resumo-lbl">Saldo</div>
+                  <div class="ac-resumo-val b">{% localize on %}{{ reg.saldo_liquido_incl_combustivel|floatformat:2 }}{% endlocalize %}</div>
+                </div>
+              </div>
+
+              <!-- Equipa -->
+              <div class="ac-equipa">
+                <div class="eq-item">
+                  <span class="eq-lbl">Motorista</span>
+                  <span class="eq-val">{{ reg.motorista|default:"N/A" }}</span>
+                </div>
+                <div class="eq-item">
+                  <span class="eq-lbl">Cob. Principal</span>
+                  <span class="eq-val">{{ reg.cobrador_principal|default:"N/A" }}</span>
+                </div>
+                <div class="eq-item">
+                  <span class="eq-lbl">Cob. Auxiliar</span>
+                  <span class="eq-val">{{ reg.cobrador_auxiliar|default:"N/A" }}</span>
+                </div>
+              </div>
+
+              <!-- Entradas -->
+              <div class="detail-section">
+                <div class="detail-header verde"><i class="fas fa-arrow-down"></i> Entradas</div>
+                <div class="detail-grid">
+                  <div class="detail-item">
+                    {% if grupo.sector.nome == "Luanda" %}
+                      <span><i class="fas fa-sun" style="color:#ffd54f;margin-right:4px"></i>Manhã</span>
+                    {% else %}
+                      <span><i class="fas fa-ticket" style="color:#69f0ae;margin-right:4px"></i>Normal</span>
+                    {% endif %}
+                    <strong>{% localize on %}{{ reg.normal|floatformat:2 }}{% endlocalize %} Kz</strong>
+                  </div>
+                  <div class="detail-item">
+                    {% if grupo.sector.nome == "Luanda" %}
+                      <span><i class="fas fa-moon" style="color:#9c88ff;margin-right:4px"></i>Tarde</span>
+                    {% else %}
+                      <span><i class="fas fa-graduation-cap" style="color:#69f0ae;margin-right:4px"></i>Alunos</span>
+                    {% endif %}
+                    <strong>{% localize on %}{{ reg.alunos|floatformat:2 }}{% endlocalize %} Kz</strong>
+                  </div>
+                  <div class="detail-item">
+                    <span><i class="fas fa-coins" style="color:#ffd54f;margin-right:4px"></i>Luvu</span>
+                    <strong>{% localize on %}{{ reg.luvu|floatformat:2 }}{% endlocalize %} Kz</strong>
+                  </div>
+                  <div class="detail-item">
+                    <span><i class="fas fa-box" style="color:#64b5f6;margin-right:4px"></i>Frete</span>
+                    <strong>{% localize on %}{{ reg.frete|floatformat:2 }}{% endlocalize %} Kz</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Saídas -->
+              <div class="detail-section">
+                <div class="detail-header vermelho"><i class="fas fa-arrow-up"></i> Saídas</div>
+                <div class="detail-grid">
+                  <div class="detail-item">
+                    <span><i class="fas fa-utensils" style="color:#ff8a80;margin-right:4px"></i>Alimentação</span>
+                    <strong>{% localize on %}{{ reg.alimentacao|floatformat:2 }}{% endlocalize %} Kz</strong>
+                  </div>
+                  <div class="detail-item">
+                    <span><i class="fas fa-square-parking" style="color:#ff8a80;margin-right:4px"></i>Parqueamento</span>
+                    <strong>{% localize on %}{{ reg.parqueamento|floatformat:2 }}{% endlocalize %} Kz</strong>
+                  </div>
+                  <div class="detail-item">
+                    <span><i class="fas fa-file-invoice-dollar" style="color:#ff8a80;margin-right:4px"></i>Taxa</span>
+                    <strong>{% localize on %}{{ reg.taxa|floatformat:2 }}{% endlocalize %} Kz</strong>
+                  </div>
+                  <div class="detail-item">
+                    <span><i class="fas fa-ellipsis" style="color:#ff8a80;margin-right:4px"></i>Outros</span>
+                    <strong>{% localize on %}{{ reg.outros|floatformat:2 }}{% endlocalize %} Kz</strong>
+                  </div>
+                  <div class="detail-item">
+                    <span><i class="fas fa-taxi" style="color:#ff8a80;margin-right:4px"></i>Taxi</span>
+                    <strong>{% localize on %}{{ reg.taxi|floatformat:2 }}{% endlocalize %} Kz</strong>
+                  </div>
+                  <div class="detail-item">
+                    <span><i class="fas fa-gas-pump" style="color:#ff8a80;margin-right:4px"></i>Combustível</span>
+                    <strong>{% localize on %}{{ reg.combustivel_total|floatformat:2 }}{% endlocalize %} Kz</strong>
+                  </div>
+                  <div class="detail-item">
+                    <span><i class="fas fa-filter" style="color:#ff8a80;margin-right:4px"></i>Sopragem</span>
+                    <strong>{% localize on %}{{ reg.combustivel_sobragem|floatformat:2 }}{% endlocalize %} Kz</strong>
+                  </div>
+                  <div class="detail-item">
+                    <span><i class="fas fa-bucket" style="color:#ff8a80;margin-right:4px"></i>Lavagem</span>
+                    <strong>{% localize on %}{{ reg.combustivel_lavagem|floatformat:2 }}{% endlocalize %} Kz</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Operacional -->
+              <div class="detail-section">
+                <div class="detail-header cinza"><i class="fas fa-chart-bar"></i> Operacional</div>
+                <div class="detail-grid">
+                  <div class="detail-item">
+                    <span><i class="fas fa-route" style="color:var(--grey);margin-right:4px"></i>Viagens</span>
+                    <strong>{{ reg.numero_viagens|intcomma }}</strong>
+                  </div>
+                  <div class="detail-item">
+                    <span><i class="fas fa-users" style="color:var(--grey);margin-right:4px"></i>Passageiros</span>
+                    <strong>{{ reg.numero_passageiros|intcomma }}</strong>
+                  </div>
+                  <div class="detail-item">
+                    <span><i class="fas fa-road" style="color:var(--grey);margin-right:4px"></i>Km</span>
+                    <strong>{{ reg.km_percorridos|intcomma }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Saldo final -->
+              <div class="ac-saldo-final">
+                <div class="sf-lbl">Saldo Líquido</div>
+                <div class="sf-val">
+                  {% if reg.saldo_apos_variaveis is not None %}
+                    {% localize on %}{{ reg.saldo_apos_variaveis|floatformat:2 }}{% endlocalize %} Kz
+                  {% else %}
+                    {% localize on %}{{ reg.saldo_liquido_incl_combustivel|floatformat:2 }}{% endlocalize %} Kz
+                  {% endif %}
+                </div>
+              </div>
+
+            </div><!-- ac-body -->
+          </div><!-- ac-card -->
+          {% endfor %}
+        </div><!-- autocarros-grid -->
+      </div><!-- grupo-body -->
+
+      <!-- FOOTER DO GRUPO -->
+      <div class="grupo-footer">
+        <div class="gf-despesas">
+          {% if grupo.despesa_geral %}
+            <span class="gf-despesa-item">
+              <i class="fas fa-coins"></i>
+              Despesa Geral: <strong>{{ grupo.despesa_geral|floatformat:2 }} Kz</strong>
+            </span>
+          {% endif %}
+          {% if grupo.alimentacao_estaleiro %}
+            <span class="gf-despesa-item">
+              <i class="fas fa-utensils"></i>
+              Alimentação Estaleiro: <strong>{{ grupo.alimentacao_estaleiro|floatformat:2 }} Kz</strong>
+            </span>
+          {% endif %}
+        </div>
+        <div class="gf-actions">
+          <a href="{% url 'adicionar_relatorio_sector' %}?sector={{ grupo.sector.id }}&data={{ grupo.data|date:'Y-m-d' }}"
+             class="btn-lr btn-outline-lr" style="padding:8px 16px">
+            <i class="fas fa-plus"></i> Adicionar
+          </a>
+          {% if grupo.whatsapp_link %}
+            <a href="{{ grupo.whatsapp_link }}" target="_blank" class="btn-lr btn-wa">
+              <i class="fab fa-whatsapp"></i> Enviar
+            </a>
+          {% else %}
+            <span class="btn-lr btn-wa-dis">
+              <i class="fab fa-whatsapp"></i> Enviar
+            </span>
+          {% endif %}
+          <!-- Concluir -->
+          {% with pr=grupo.registos.0 %}
+          <button class="btn-lr btn-outline-lr" style="padding:8px 16px"
+                  data-bs-toggle="modal" data-bs-target="#concluirModal{{ pr.id }}">
+            <i class="fas fa-check-circle"></i> Concluir
+          </button>
+          <button class="btn-lr btn-outline-lr" style="padding:8px 16px"
+                  data-bs-toggle="modal" data-bs-target="#validarModal{{ pr.id }}">
+            <i class="fas fa-shield-halved"></i> Validar
+          </button>
+          {% endwith %}
+        </div>
+      </div>
+
+      <!-- MODAIS -->
+      {% with pr=grupo.registos.0 %}
+      <!-- Concluir -->
+      <div class="modal fade" id="concluirModal{{ pr.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title"><i class="fas fa-check-circle" style="color:var(--accent);margin-right:8px"></i>Concluir Registos</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              Confirma a conclusão dos registos de <strong>{{ grupo.sector.nome }}</strong>
+              do dia <strong>{{ grupo.data|date:"d/m/Y" }}</strong>?
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-lr btn-outline-lr" data-bs-dismiss="modal">
+                <i class="fas fa-xmark"></i> Cancelar
+              </button>
+              <form method="post" action="{% url 'concluir_relatorio' pr.id %}" style="margin:0">
+                {% csrf_token %}
+                <button type="submit" class="btn-lr btn-success-lr">
+                  <i class="fas fa-check"></i> Confirmar
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Validar -->
+      <div class="modal fade" id="validarModal{{ pr.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title"><i class="fas fa-shield-halved" style="color:var(--accent);margin-right:8px"></i>Validar Registos</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              Deseja validar os registos de <strong>{{ grupo.sector.nome }}</strong>
+              do dia <strong>{{ grupo.data|date:"d/m/Y" }}</strong>?
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-lr btn-outline-lr" data-bs-dismiss="modal">
+                <i class="fas fa-xmark"></i> Cancelar
+              </button>
+              <form method="post" action="{% url 'validar_relatorio' pr.id %}" style="margin:0">
+                {% csrf_token %}
+                <button type="submit" class="btn-lr" style="background:var(--warning);color:var(--navy)">
+                  <i class="fas fa-shield-halved"></i> Validar
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endwith %}
+
+    </div><!-- grupo-card -->
+    {% endfor %}
+
+    <!-- RESUMO GERAL -->
+    <div class="resumo-geral">
+      <div class="rg-header">
+        <div class="rg-title"><i class="fas fa-chart-bar"></i> Resumo Geral do Período</div>
+      </div>
+      <div class="rg-body">
+        <div class="rg-col">
+          <div class="rg-lbl"><i class="fas fa-arrow-down" style="color:#69f0ae"></i> Total Entradas</div>
+          <div class="rg-val entrada">{% localize on %}{{ totais.total_entradas|floatformat:2 }}{% endlocalize %}</div>
+          <div class="rg-unit">Kz</div>
+        </div>
+        <div class="rg-col">
+          <div class="rg-lbl"><i class="fas fa-arrow-up" style="color:#ff8a80"></i> Total Saídas</div>
+          <div class="rg-val saida">{% localize on %}{{ totais.total_saidas|floatformat:2 }}{% endlocalize %}</div>
+          <div class="rg-unit">Kz</div>
+        </div>
+        <div class="rg-col">
+          <div class="rg-lbl"><i class="fas fa-bus" style="color:#ffd54f"></i> Total Registos</div>
+          <div class="rg-val reg">{{ totais.total_autocarros|intcomma }}</div>
+          <div class="rg-unit">Autocarros</div>
+        </div>
+        <div class="rg-col">
+          <div class="rg-lbl"><i class="fas fa-wallet" style="color:var(--accent)"></i> Saldo Líquido</div>
+          <div class="rg-val saldo">{% localize on %}{{ totais.total_saldo|floatformat:2 }}{% endlocalize %}</div>
+          <div class="rg-unit">Kz</div>
+        </div>
+      </div>
+    </div>
+
+  {% else %}
+    <div class="empty-state">
+      <i class="fas fa-inbox"></i>
+      <h4>Nenhum registo encontrado</h4>
+      <p>Tente ajustar os filtros ou crie um novo registo.</p>
+      <a href="{% url 'adicionar_relatorio_sector' %}" class="btn-lr btn-success-lr">
+        <i class="fas fa-plus"></i> Criar Primeiro Registo
+      </a>
+    </div>
+  {% endif %}
+
+</div>
 {% endblock %}
