@@ -1,112 +1,571 @@
 {% extends "base.html" %}
 {% load humanize %}
 
+{% block title %}Comparação Registo vs Depósito{% endblock %}
+{% block breadcrumb %}Relatórios › Comparação Registo vs Depósito{% endblock %}
+
 {% block content %}
+<style>
+/* ════════════════════════════════════════════════════
+   COMPARAÇÃO REGISTO VS DEPÓSITO
+════════════════════════════════════════════════════ */
 
-	<h3 class="mb-4">📊 Comparação Registo vs Depósito</h3>
+.comp-wrapper {
+  animation: compIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes compIn {
+  from { opacity:0; transform:translateY(18px); }
+  to   { opacity:1; transform:translateY(0); }
+}
 
-	<form method="get" class="row mb-4">
+/* ── PAGE HEADER ─────────────────────────────────── */
+.comp-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 14px; margin-bottom: 24px;
+}
+.comp-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.9rem; letter-spacing: 2px; line-height: 1;
+}
+.comp-title span { color: var(--accent); }
+.comp-subtitle { font-size: .8rem; color: var(--grey); margin-top: 4px; }
 
-		<div class="col-md-3">
-			<label>Sector</label>
-			<select name="sector" class="form-control">
-				<option value="">Todos</option>
-				{% for s in sectores %}
-					<option value="{{ s.id }}" {% if sector_id == s.id|stringformat:"s" %}selected{% endif %}>
-						{{ s.nome }}
-					</option>
-				{% endfor %}
-			</select>
-		</div>
+/* ── FILTER CARD ─────────────────────────────────── */
+.filter-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 20px 22px;
+  margin-bottom: 24px;
+  display: flex; flex-wrap: wrap;
+  gap: 16px; align-items: flex-end;
+}
 
-		<div class="col-md-2">
-			<label>Ano</label>
-			<select name="year" class="form-control">
-				<option value="2025" {% if year == 2025 %}selected{% endif %}>2025</option>
-				<option value="2026" {% if year == 2026 %}selected{% endif %}>2026</option>
-				<option value="2027" {% if year == 2027 %}selected{% endif %}>2027</option>
-				<option value="2028" {% if year == 2028 %}selected{% endif %}>2028</option>
-				<option value="2029" {% if year == 2029 %}selected{% endif %}>2029</option>
-			</select>
-		</div>
+/* form fields override */
+.comp-wrapper select,
+.comp-wrapper input[type="text"],
+.comp-wrapper input[type="number"] {
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 9px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .9rem !important;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+  outline: none !important;
+  width: 100%;
+  -webkit-appearance: none;
+}
+.comp-wrapper select:focus,
+.comp-wrapper input:focus {
+  border-color: var(--accent) !important;
+  background: rgba(4,30,66,.85) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+}
+.comp-wrapper select option { background: var(--navy); color: var(--white); }
 
-		<div class="col-md-2">
-			<label>Mês</label>
-			<select name="month" class="form-control">
-				<option value="1" {% if month == 1 %}selected{% endif %}>Janeiro</option>
-				<option value="2" {% if month == 2 %}selected{% endif %}>Fevereiro</option>
-				<option value="3" {% if month == 3 %}selected{% endif %}>Março</option>
-				<option value="4" {% if month == 4 %}selected{% endif %}>Abril</option>
-				<option value="5" {% if month == 5 %}selected{% endif %}>Maio</option>
-				<option value="6" {% if month == 6 %}selected{% endif %}>Junho</option>
-				<option value="7" {% if month == 7 %}selected{% endif %}>Julho</option>
-				<option value="8" {% if month == 8 %}selected{% endif %}>Agosto</option>
-				<option value="9" {% if month == 9 %}selected{% endif %}>Setembro</option>
-				<option value="10" {% if month == 10 %}selected{% endif %}>Outubro</option>
-				<option value="11" {% if month == 11 %}selected{% endif %}>Novembro</option>
-				<option value="12" {% if month == 12 %}selected{% endif %}>Dezembro</option>
-			</select>
-		</div>
+.f-label {
+  display: block;
+  font-size: .7rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.45);
+  margin-bottom: 6px;
+}
+.f-group { display: flex; flex-direction: column; min-width: 130px; flex: 1; }
 
-		<div class="col-md-2 align-self-end">
-			<button class="btn btn-primary w-100">Filtrar</button>
-		</div>
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn-comp {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 22px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .88rem;
+  letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; white-space: nowrap;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+  text-decoration: none;
+}
+.btn-comp:hover { transform: translateY(-2px); }
+.btn-comp:active { transform: scale(.97); }
+.btn-filtrar { background: var(--grad-btn); color: var(--white); box-shadow: var(--shadow-sm); }
+.btn-filtrar:hover { box-shadow: 0 6px 20px rgba(36,99,163,.4); color: var(--white); }
+.btn-print {
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.3) !important;
+  color: var(--accent);
+}
+.btn-print:hover { background: rgba(79,195,247,.2); }
 
-	</form>
+/* ── SUMMARY CARDS ───────────────────────────────── */
+.summary-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.summary-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  text-align: center;
+  transition: transform var(--ease-spring), border-color var(--ease-fast);
+}
+.summary-card:hover { transform: translateY(-3px); border-color: rgba(79,195,247,.3); }
+.sc-label {
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.2px;
+  color: var(--grey); margin-bottom: 6px;
+}
+.sc-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.35rem; letter-spacing: 1px;
+  line-height: 1;
+}
+.sc-value.entrada   { color: #69f0ae; }
+.sc-value.saida     { color: #ff8a80; }
+.sc-value.resto     { color: var(--accent); }
+.sc-value.deposit   { color: #ffd54f; }
+.sc-value.diferenca-ok  { color: #69f0ae; }
+.sc-value.diferenca-err { color: #ff8a80; }
 
+/* ── TABLE CARD ──────────────────────────────────── */
+.table-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(4,30,66,.28);
+}
 
-	<div class="table-responsive">
-		<table class="table table-bordered table-striped">
-		<thead class="table-dark text-center">
-			<tr>
-			<th>Data</th>
-			<th>Sector</th>
-			<th>Entrada</th>
-			<th>Saída</th>
-			<th>Resto</th>
-			<th>Depositado</th>
-			<th>Diferença</th>
-			</tr>
-		</thead>
-		<tbody class="text-center">
-			{% for item in dados %}
-			<tr>
-			<td>{{ item.data|date:"d/m/Y" }}</td>
-			<td>{{ item.sector.nome }}</td>
-			<td>{{ item.entrada|intcomma }} kz</td>
-			<td>{{ item.saida|intcomma }} kz</td>
-			<td class="fw-bold">{{ item.resto|intcomma }} kz</td>
-			<td>{{ item.depositado|intcomma }} kz</td>
+.table-card-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 13px 20px;
+  background: linear-gradient(90deg, rgba(36,99,163,.35), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+  flex-wrap: wrap; gap: 10px;
+}
+.table-card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 1rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--white); display: flex; align-items: center; gap: 9px;
+}
+.table-card-title i { color: var(--accent); }
+.table-count {
+  font-size: .75rem; color: var(--grey);
+}
 
-			<td class="
-				{% if item.diferenca > 500 or item.diferenca < -500 %}
-				text-danger fw-bold
-				{% else %}
-				text-success
-				{% endif %}
-			">
-				{{ item.diferenca|intcomma }} kz
-			</td>
-			</tr>
-			{% empty %}
-			<tr>
-			<td colspan="7">Sem dados no período selecionado.</td>
-			</tr>
-			{% endfor %}
-		</tbody>
+/* ── TABLE ───────────────────────────────────────── */
+.comp-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
-		<tfoot class="table-secondary text-center fw-bold">
-			<tr>
-			<td colspan="2">TOTAL</td>
-			<td>{{ total_entrada|intcomma }} kz</td>
-			<td>{{ total_saida|intcomma }} kz</td>
-			<td>{{ total_resto|intcomma }} kz</td>
-			<td>{{ total_depositado|intcomma }} kz</td>
-			<td>{{ total_diferenca|intcomma }} kz</td>
-			</tr>
-		</tfoot>
+.comp-table {
+  width: 100%; border-collapse: collapse;
+  font-size: .85rem;
+}
 
-		</table>
-	</div>
+.comp-table thead th {
+  background: rgba(4,30,66,.7);
+  color: var(--accent);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .75rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 12px 14px;
+  text-align: center;
+  border-bottom: 1px solid var(--glass-border);
+  white-space: nowrap;
+}
+.comp-table thead th:first-child { text-align: left; }
 
+.comp-table tbody tr {
+  border-bottom: 1px solid rgba(79,195,247,.06);
+  transition: background var(--ease-fast);
+}
+.comp-table tbody tr:hover { background: rgba(36,99,163,.18); }
+
+.comp-table tbody td {
+  padding: 11px 14px;
+  text-align: center;
+  color: rgba(255,255,255,.8);
+  white-space: nowrap;
+}
+.comp-table tbody td:first-child,
+.comp-table tbody td:nth-child(2) { text-align: left; }
+
+.comp-table tfoot tr {
+  background: rgba(36,99,163,.25);
+  border-top: 2px solid rgba(79,195,247,.3);
+}
+.comp-table tfoot td {
+  padding: 13px 14px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .9rem;
+  letter-spacing: .8px; text-transform: uppercase;
+  color: var(--white); text-align: center;
+  white-space: nowrap;
+}
+.comp-table tfoot td:first-child { text-align: left; color: var(--accent); }
+
+/* valor tags */
+.val-entrada { color: #69f0ae; font-weight: 700; }
+.val-saida   { color: #ff8a80; font-weight: 700; }
+.val-resto   { color: var(--accent); font-weight: 700; }
+.val-deposit { color: #ffd54f; font-weight: 700; }
+.val-dif-ok  { color: #69f0ae; }
+.val-dif-err { color: #ff8a80; font-weight: 700; }
+
+/* sector chip */
+.sector-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(79,195,247,.08);
+  border: 1px solid rgba(79,195,247,.15);
+  border-radius: 30px;
+  padding: 2px 10px;
+  font-size: .78rem; font-weight: 600;
+  color: rgba(255,255,255,.75);
+}
+
+/* date */
+.date-cell {
+  font-size: .78rem; color: var(--grey);
+  display: flex; align-items: center; gap: 5px;
+}
+.date-cell i { color: var(--accent); font-size: .65rem; }
+
+/* empty */
+.table-empty {
+  padding: 48px 20px;
+  text-align: center;
+  color: rgba(255,255,255,.28);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.table-empty i { font-size: 2.4rem; opacity: .4; }
+
+/* ── PRINT ───────────────────────────────────────── */
+@media print {
+  body * { visibility: hidden !important; }
+  #print-area, #print-area * { visibility: visible !important; }
+  #print-area {
+    position: fixed !important; inset: 0 !important;
+    width: 100% !important;
+    background: white !important; color: #000 !important;
+    font-family: Arial, sans-serif !important;
+    padding: 20px !important; z-index: 99999 !important;
+  }
+  @page { margin: 12mm; size: landscape; }
+}
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 900px) {
+  .summary-row { grid-template-columns: repeat(3,1fr); }
+}
+@media (max-width: 600px) {
+  .summary-row { grid-template-columns: 1fr 1fr; }
+  .filter-card { flex-direction: column; }
+  .f-group { min-width: unset; width: 100%; }
+  .comp-header { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 400px) {
+  .summary-row { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="comp-wrapper">
+
+  <!-- HEADER -->
+  <div class="comp-header">
+    <div>
+      <div class="comp-title">Registo <span>vs</span> Depósito</div>
+      <div class="comp-subtitle">Comparação entre valores registados e depositados por sector</div>
+    </div>
+    <button class="btn-comp btn-print" id="btn_print">
+      <i class="fas fa-print"></i> Imprimir Relatório
+    </button>
+  </div>
+
+  <!-- FILTROS -->
+  <form method="get" class="filter-card">
+    <div class="f-group">
+      <label class="f-label">Sector</label>
+      <select name="sector">
+        <option value="">Todos os sectores</option>
+        {% for s in sectores %}
+          <option value="{{ s.id }}" {% if sector_id == s.id|stringformat:"s" %}selected{% endif %}>
+            {{ s.nome }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="f-group">
+      <label class="f-label">Ano</label>
+      <select name="year">
+        {% for y in "2025 2026 2027 2028 2029"|split:" " %}
+          <option value="{{ y }}" {% if year == y|add:0 %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="f-group">
+      <label class="f-label">Mês</label>
+      <select name="month">
+        <option value="1"  {% if month == 1  %}selected{% endif %}>Janeiro</option>
+        <option value="2"  {% if month == 2  %}selected{% endif %}>Fevereiro</option>
+        <option value="3"  {% if month == 3  %}selected{% endif %}>Março</option>
+        <option value="4"  {% if month == 4  %}selected{% endif %}>Abril</option>
+        <option value="5"  {% if month == 5  %}selected{% endif %}>Maio</option>
+        <option value="6"  {% if month == 6  %}selected{% endif %}>Junho</option>
+        <option value="7"  {% if month == 7  %}selected{% endif %}>Julho</option>
+        <option value="8"  {% if month == 8  %}selected{% endif %}>Agosto</option>
+        <option value="9"  {% if month == 9  %}selected{% endif %}>Setembro</option>
+        <option value="10" {% if month == 10 %}selected{% endif %}>Outubro</option>
+        <option value="11" {% if month == 11 %}selected{% endif %}>Novembro</option>
+        <option value="12" {% if month == 12 %}selected{% endif %}>Dezembro</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn-comp btn-filtrar" style="flex-shrink:0">
+      <i class="fas fa-filter"></i> Filtrar
+    </button>
+  </form>
+
+  {% if dados %}
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-row">
+    <div class="summary-card">
+      <div class="sc-label"><i class="fas fa-arrow-down" style="margin-right:4px"></i>Total Entradas</div>
+      <div class="sc-value entrada">{{ total_entrada|intcomma }} <small style="font-size:.6em">Kz</small></div>
+    </div>
+    <div class="summary-card">
+      <div class="sc-label"><i class="fas fa-arrow-up" style="margin-right:4px"></i>Total Saídas</div>
+      <div class="sc-value saida">{{ total_saida|intcomma }} <small style="font-size:.6em">Kz</small></div>
+    </div>
+    <div class="summary-card">
+      <div class="sc-label"><i class="fas fa-wallet" style="margin-right:4px"></i>Total Resto</div>
+      <div class="sc-value resto">{{ total_resto|intcomma }} <small style="font-size:.6em">Kz</small></div>
+    </div>
+    <div class="summary-card">
+      <div class="sc-label"><i class="fas fa-piggy-bank" style="margin-right:4px"></i>Total Depositado</div>
+      <div class="sc-value deposit">{{ total_depositado|intcomma }} <small style="font-size:.6em">Kz</small></div>
+    </div>
+    <div class="summary-card">
+      <div class="sc-label"><i class="fas fa-scale-balanced" style="margin-right:4px"></i>Diferença Total</div>
+      <div class="sc-value {% if total_diferenca > 500 or total_diferenca < -500 %}diferenca-err{% else %}diferenca-ok{% endif %}">
+        {{ total_diferenca|intcomma }} <small style="font-size:.6em">Kz</small>
+      </div>
+    </div>
+  </div>
+
+  {% endif %}
+
+  <!-- TABLE CARD -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="table-card-title">
+        <i class="fas fa-table"></i> Detalhes por Dia
+      </div>
+      {% if dados %}
+        <span class="table-count">{{ dados|length }} registo(s)</span>
+      {% endif %}
+    </div>
+
+    <div class="comp-table-wrap">
+      {% if dados %}
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Sector</th>
+            <th>Entrada</th>
+            <th>Saída</th>
+            <th>Resto</th>
+            <th>Depositado</th>
+            <th>Diferença</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in dados %}
+          <tr>
+            <td>
+              <div class="date-cell">
+                <i class="fas fa-calendar-day"></i>
+                {{ item.data|date:"d/m/Y" }}
+              </div>
+            </td>
+            <td><span class="sector-chip">{{ item.sector.nome }}</span></td>
+            <td><span class="val-entrada">{{ item.entrada|intcomma }} Kz</span></td>
+            <td><span class="val-saida">{{ item.saida|intcomma }} Kz</span></td>
+            <td><span class="val-resto">{{ item.resto|intcomma }} Kz</span></td>
+            <td><span class="val-deposit">{{ item.depositado|intcomma }} Kz</span></td>
+            <td>
+              <span class="{% if item.diferenca > 500 or item.diferenca < -500 %}val-dif-err{% else %}val-dif-ok{% endif %}">
+                {% if item.diferenca > 0 %}+{% endif %}{{ item.diferenca|intcomma }} Kz
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2"><i class="fas fa-sigma" style="margin-right:6px;color:var(--accent)"></i>TOTAL GERAL</td>
+            <td><span class="val-entrada">{{ total_entrada|intcomma }} Kz</span></td>
+            <td><span class="val-saida">{{ total_saida|intcomma }} Kz</span></td>
+            <td><span class="val-resto">{{ total_resto|intcomma }} Kz</span></td>
+            <td><span class="val-deposit">{{ total_depositado|intcomma }} Kz</span></td>
+            <td>
+              <span class="{% if total_diferenca > 500 or total_diferenca < -500 %}val-dif-err{% else %}val-dif-ok{% endif %}">
+                {% if total_diferenca > 0 %}+{% endif %}{{ total_diferenca|intcomma }} Kz
+              </span>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+      {% else %}
+      <div class="table-empty">
+        <i class="fas fa-chart-bar"></i>
+        <span>Sem dados para o período seleccionado.</span>
+        <small style="color:rgba(255,255,255,.2)">Tente ajustar os filtros acima.</small>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<!-- ÁREA DE IMPRESSÃO -->
+<div id="print-area" style="display:none"></div>
+
+<script>
+(function () {
+  var btn = document.getElementById('btn_print');
+  if (!btn) return;
+
+  btn.addEventListener('click', function () {
+    var rows = document.querySelectorAll('.comp-table tbody tr');
+    if (!rows.length) { alert('Sem dados para imprimir.'); return; }
+
+    var meses = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+    /* recolher filtros activos */
+    var secSel   = document.querySelector('select[name="sector"]');
+    var yearSel  = document.querySelector('select[name="year"]');
+    var monthSel = document.querySelector('select[name="month"]');
+    var secText  = secSel?.options[secSel.selectedIndex]?.text || 'Todos';
+    var yearVal  = yearSel?.value || '';
+    var monthVal = monthSel?.value || '';
+    var periodo  = yearVal && monthVal ? meses[parseInt(monthVal)] + ' ' + yearVal
+                 : yearVal ? 'Ano ' + yearVal
+                 : monthVal ? meses[parseInt(monthVal)]
+                 : 'Todo o período';
+
+    /* recolher dados da tabela do DOM */
+    var bodyRows = '';
+    rows.forEach(function (tr, i) {
+      var tds = tr.querySelectorAll('td');
+      var rowColor = i % 2 === 0 ? '#ffffff' : '#f5f8ff';
+
+      /* diferença: cor baseada no texto */
+      var difText = tds[6]?.innerText?.trim() || '—';
+      var difEl   = tds[6]?.querySelector('span');
+      var difColor = difEl && difEl.classList.contains('val-dif-err') ? '#c62828' : '#1b5e20';
+
+      bodyRows +=
+        '<tr style="background:' + rowColor + '">' +
+          '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;text-align:center">' + (tds[0]?.innerText?.trim() || '') + '</td>' +
+          '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;font-weight:600">'    + (tds[1]?.innerText?.trim() || '') + '</td>' +
+          '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;text-align:right;color:#1b5e20;font-weight:600">' + (tds[2]?.innerText?.trim() || '') + '</td>' +
+          '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;text-align:right;color:#c62828;font-weight:600">' + (tds[3]?.innerText?.trim() || '') + '</td>' +
+          '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;text-align:right;color:#1565c0;font-weight:600">' + (tds[4]?.innerText?.trim() || '') + '</td>' +
+          '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;text-align:right;color:#e65100;font-weight:600">' + (tds[5]?.innerText?.trim() || '') + '</td>' +
+          '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;text-align:right;color:' + difColor + ';font-weight:700">' + difText + '</td>' +
+        '</tr>';
+    });
+
+    /* totais do tfoot */
+    var footCells = document.querySelectorAll('.comp-table tfoot td');
+    var footHtml = '';
+    if (footCells.length) {
+      var ftexts = Array.from(footCells).map(function (td) { return td.innerText.trim(); });
+      footHtml =
+        '<tr style="background:#1565c0;color:white;font-weight:700">' +
+          '<td colspan="2" style="padding:9px 10px;border:1px solid #0d47a1;font-size:12px;letter-spacing:1px">' + ftexts[0] + '</td>' +
+          '<td style="padding:9px 10px;border:1px solid #0d47a1;font-size:12px;text-align:right">' + (ftexts[1]||'') + '</td>' +
+          '<td style="padding:9px 10px;border:1px solid #0d47a1;font-size:12px;text-align:right">' + (ftexts[2]||'') + '</td>' +
+          '<td style="padding:9px 10px;border:1px solid #0d47a1;font-size:12px;text-align:right">' + (ftexts[3]||'') + '</td>' +
+          '<td style="padding:9px 10px;border:1px solid #0d47a1;font-size:12px;text-align:right">' + (ftexts[4]||'') + '</td>' +
+          '<td style="padding:9px 10px;border:1px solid #0d47a1;font-size:12px;text-align:right">' + (ftexts[5]||'') + '</td>' +
+        '</tr>';
+    }
+
+    var now = new Date();
+    var dataImp = now.toLocaleDateString('pt-PT') + ' ' + now.toLocaleTimeString('pt-PT', {hour:'2-digit',minute:'2-digit'});
+    var count = rows.length;
+
+    var html =
+      '<div style="font-family:Arial,sans-serif;color:#111;padding:10px">' +
+
+      /* HEADER */
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1565c0;padding-bottom:14px;margin-bottom:18px">' +
+        '<div>' +
+          '<div style="font-size:22px;font-weight:900;letter-spacing:2px;color:#1565c0">ALCA &amp; ATY TRANSPORTES</div>' +
+          '<div style="font-size:13px;color:#555;margin-top:2px">Comparação Registo vs Depósito</div>' +
+        '</div>' +
+        '<div style="text-align:right;font-size:11px;color:#777;line-height:1.7">' +
+          '<div>Impresso: <strong>' + dataImp + '</strong></div>' +
+          '<div>Sector: <strong>' + secText + '</strong></div>' +
+          '<div>Período: <strong>' + periodo + '</strong></div>' +
+          '<div>Registos: <strong>' + count + '</strong></div>' +
+        '</div>' +
+      '</div>' +
+
+      /* TABELA */
+      '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
+        '<thead>' +
+          '<tr style="background:#1565c0;color:white">' +
+            '<th style="padding:9px 10px;border:1px solid #0d47a1;letter-spacing:.8px;text-align:center">DATA</th>' +
+            '<th style="padding:9px 10px;border:1px solid #0d47a1;letter-spacing:.8px">SECTOR</th>' +
+            '<th style="padding:9px 10px;border:1px solid #0d47a1;letter-spacing:.8px;text-align:right">ENTRADA</th>' +
+            '<th style="padding:9px 10px;border:1px solid #0d47a1;letter-spacing:.8px;text-align:right">SAÍDA</th>' +
+            '<th style="padding:9px 10px;border:1px solid #0d47a1;letter-spacing:.8px;text-align:right">RESTO</th>' +
+            '<th style="padding:9px 10px;border:1px solid #0d47a1;letter-spacing:.8px;text-align:right">DEPOSITADO</th>' +
+            '<th style="padding:9px 10px;border:1px solid #0d47a1;letter-spacing:.8px;text-align:right">DIFERENÇA</th>' +
+          '</tr>' +
+        '</thead>' +
+        '<tbody>' + bodyRows + '</tbody>' +
+        '<tfoot>' + footHtml + '</tfoot>' +
+      '</table>' +
+
+      /* LEGENDA */
+      '<div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:14px;font-size:10px;color:#666">' +
+        '<span><span style="color:#1b5e20;font-weight:700">■</span> Entrada</span>' +
+        '<span><span style="color:#c62828;font-weight:700">■</span> Saída</span>' +
+        '<span><span style="color:#1565c0;font-weight:700">■</span> Resto</span>' +
+        '<span><span style="color:#e65100;font-weight:700">■</span> Depositado</span>' +
+        '<span><span style="color:#c62828;font-weight:700">■</span> Diferença alta (>500 Kz)</span>' +
+      '</div>' +
+
+      /* RODAPÉ */
+      '<div style="margin-top:30px;padding-top:10px;border-top:1px solid #ddd;display:flex;justify-content:space-between;font-size:10px;color:#aaa">' +
+        '<span>ALCA &amp; ATY Transportes — Sistema de Gestão de Autocarros</span>' +
+        '<span>© ' + now.getFullYear() + ' @Kiangebeni Kaleba Matias</span>' +
+      '</div>' +
+
+      '</div>';
+
+    var area = document.getElementById('print-area');
+    area.innerHTML = html;
+    area.style.display = 'block';
+    window.print();
+    area.style.display = 'none';
+  });
+})();
+</script>
 {% endblock %}
