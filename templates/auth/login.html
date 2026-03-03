@@ -1,410 +1,519 @@
-{% extends 'base.html' %}
-{% block title %}Login — ALCA & ATY Transportes{% endblock %}
-{% block breadcrumb %}Autenticação{% endblock %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — ALCA &amp; ATY Transportes</title>
 
-{% block content %}
-<style>
-/* ── LOGIN PAGE ─────────────────────────────────── */
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-/* Centra verticalmente ocupando o espaço disponível */
-.login-wrapper {
-  min-height: calc(100vh - var(--topbar-h) - 80px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 16px;
-}
+  <style>
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
 
-/* Card principal */
-.login-card {
-  width: 100%;
-  max-width: 420px;
-  background: rgba(13, 43, 94, 0.55);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 24px 64px rgba(4,30,66,.5),
-              0 0 0 1px rgba(79,195,247,.08);
-  padding: 44px 40px 36px;
-  animation: loginIn .6s cubic-bezier(.34,1.56,.64,1) both;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Brilho decorativo no topo */
-.login-card::before {
-  content: '';
-  position: absolute;
-  top: -60px; left: 50%;
-  transform: translateX(-50%);
-  width: 220px; height: 120px;
-  background: radial-gradient(ellipse, rgba(79,195,247,.18), transparent 70%);
-  pointer-events: none;
-}
-
-/* Linha de accent no topo */
-.login-card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 10%; right: 10%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  border-radius: 2px;
-}
-
-@keyframes loginIn {
-  from { opacity: 0; transform: translateY(32px) scale(.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* Avatar */
-.login-avatar {
-  width: 76px; height: 76px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--blue-mid), var(--navy));
-  border: 2px solid var(--glass-border);
-  box-shadow: 0 0 0 6px rgba(79,195,247,.08),
-              0 8px 24px rgba(4,30,66,.4);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 2rem; color: var(--accent);
-  margin: 0 auto 20px;
-  animation: avatarPulse 2.8s ease-in-out infinite;
-}
-
-@keyframes avatarPulse {
-  0%, 100% { box-shadow: 0 0 0 6px rgba(79,195,247,.08), 0 8px 24px rgba(4,30,66,.4); }
-  50%       { box-shadow: 0 0 0 12px rgba(79,195,247,.04), 0 8px 24px rgba(4,30,66,.4); }
-}
-
-/* Título */
-.login-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.9rem;
-  letter-spacing: 3px;
-  color: var(--white);
-  text-align: center;
-  margin-bottom: 4px;
-}
-.login-subtitle {
-  text-align: center;
-  font-size: .82rem;
-  color: var(--grey);
-  letter-spacing: .5px;
-  margin-bottom: 32px;
-}
-
-/* Divider */
-.login-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
-  margin: 24px 0;
-}
-
-/* Input group com ícone */
-.input-group-icon {
-  position: relative;
-  margin-bottom: 16px;
-}
-.input-group-icon .field-icon {
-  position: absolute;
-  left: 14px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--grey);
-  font-size: .9rem;
-  pointer-events: none;
-  transition: color var(--ease-fast);
-  z-index: 2;
-}
-.input-group-icon:focus-within .field-icon {
-  color: var(--accent);
-}
-
-.input-group-icon input {
-  width: 100%;
-  background: rgba(4,30,66,.55);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  color: var(--white);
-  padding: 12px 42px 12px 40px;
-  font-size: .95rem;
-  font-family: 'Barlow', sans-serif;
-  transition: border-color var(--ease-fast),
-              box-shadow var(--ease-fast),
-              background var(--ease-fast);
-  outline: none;
-  -webkit-appearance: none;
-}
-.input-group-icon input:focus {
-  border-color: var(--accent);
-  background: rgba(4,30,66,.8);
-  box-shadow: 0 0 0 3px rgba(79,195,247,.18);
-}
-.input-group-icon input::placeholder {
-  color: rgba(255,255,255,.3);
-  font-size: .88rem;
-}
-
-/* Toggle mostrar senha */
-.toggle-pw {
-  position: absolute;
-  right: 13px; top: 50%;
-  transform: translateY(-50%);
-  background: none; border: none;
-  color: var(--grey); font-size: .88rem;
-  cursor: pointer; padding: 4px;
-  transition: color var(--ease-fast);
-  z-index: 2;
-}
-.toggle-pw:hover { color: var(--accent); }
-
-/* Erro de campo */
-.field-error {
-  font-size: .76rem;
-  color: #ff8a80;
-  margin-top: 5px;
-  display: flex; align-items: center; gap: 5px;
-  padding-left: 4px;
-}
-
-/* Alerta de erro geral */
-.login-alert {
-  background: rgba(231,76,60,.15);
-  border: 1px solid rgba(231,76,60,.4);
-  border-left: 3px solid var(--danger);
-  border-radius: var(--radius-md);
-  padding: 11px 14px;
-  font-size: .88rem;
-  color: #ffcdd2;
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 20px;
-  animation: alertIn .3s ease;
-}
-@keyframes alertIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
-
-/* Botão submit */
-.btn-login {
-  width: 100%;
-  padding: 13px;
-  margin-top: 8px;
-  background: linear-gradient(90deg, var(--blue-mid) 0%, var(--blue) 100%);
-  border: none;
-  border-radius: var(--radius-md);
-  color: var(--white);
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.15rem;
-  letter-spacing: 3px;
-  cursor: pointer;
-  position: relative; overflow: hidden;
-  transition: transform var(--ease-spring),
-              box-shadow var(--ease-base);
-  box-shadow: 0 4px 20px rgba(36,99,163,.35);
-}
-.btn-login::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.08) 50%, transparent 100%);
-  transform: translateX(-100%);
-  transition: transform .5s ease;
-}
-.btn-login:hover::before { transform: translateX(100%); }
-.btn-login:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(36,99,163,.5);
-}
-.btn-login:active { transform: scale(.98); }
-.btn-login:disabled {
-  opacity: .6; cursor: not-allowed;
-  transform: none; box-shadow: none;
-}
-
-/* Spinner no botão */
-.btn-login .spinner {
-  display: none;
-  width: 16px; height: 16px;
-  border: 2px solid rgba(255,255,255,.35);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin .7s linear infinite;
-  margin-right: 8px;
-}
-.btn-login.loading .spinner { display: inline-block; }
-.btn-login.loading .btn-text { opacity: .7; }
-
-/* Footer do card */
-.login-footer {
-  text-align: center;
-  margin-top: 24px;
-  font-size: .84rem;
-  color: var(--grey);
-}
-.login-footer a {
-  color: var(--accent);
-  text-decoration: none;
-  font-weight: 600;
-  transition: color var(--ease-fast), text-decoration var(--ease-fast);
-}
-.login-footer a:hover { color: var(--white); text-decoration: underline; }
-
-/* Brand no topo do card */
-.login-brand {
-  text-align: center;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1rem;
-  letter-spacing: 3px;
-  color: rgba(255,255,255,.3);
-  margin-bottom: 28px;
-}
-.login-brand span { color: var(--accent); }
-
-/* ── RESPONSIVE ─────────────────────────────────── */
-@media (max-width: 480px) {
-  .login-card {
-    padding: 32px 22px 28px;
-    border-radius: var(--radius-md);
+  :root {
+    --navy:       #041e42;
+    --blue-dark:  #0d2b5e;
+    --blue:       #1565c0;
+    --blue-mid:   #2463a3;
+    --accent:     #4fc3f7;
+    --white:      #ffffff;
+    --grey:       #8da3c4;
+    --success:    #27ae60;
+    --danger:     #e74c3c;
+    --glass-border: rgba(79,195,247,.18);
+    --radius-md:  12px;
+    --radius-lg:  18px;
+    --ease-fast:  0.18s cubic-bezier(.4,0,.2,1);
+    --ease-spring:0.35s cubic-bezier(.34,1.56,.64,1);
+    --ease-base:  0.28s cubic-bezier(.4,0,.2,1);
   }
-  .login-avatar { width: 64px; height: 64px; font-size: 1.7rem; }
-  .login-title  { font-size: 1.6rem; }
-}
-</style>
 
-<div class="login-wrapper">
-  <div class="login-card">
+  body {
+    min-height: 100vh;
+    font-family: 'Barlow', 'Segoe UI', sans-serif;
+    color: var(--white);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
 
-    <!-- Mini brand -->
-    <div class="login-brand"><span>ALCA</span> &amp; ATY</div>
+  /* ── BACKGROUND ──────────────────────────────── */
+  .login-bg {
+    position: fixed; inset: 0; z-index: 0;
+    background: linear-gradient(160deg, #0d2b5e 0%, #041e42 50%, #071a36 100%);
+  }
+  .login-bg::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(79,195,247,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,195,247,.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridMove 20s linear infinite;
+  }
+  @keyframes gridMove { from { transform:translateY(0); } to { transform:translateY(60px); } }
+  .login-bg::after {
+    content: '';
+    position: absolute; top:30%; left:50%;
+    transform: translate(-50%,-50%);
+    width:600px; height:400px;
+    background: radial-gradient(ellipse, rgba(79,195,247,.08), transparent 70%);
+    pointer-events: none;
+  }
 
-    <!-- Avatar -->
-    <div class="login-avatar">
-      <i class="fas fa-bus"></i>
-    </div>
+  /* ── LOADER ──────────────────────────────────── */
+  #login-loader {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--navy);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 18px;
+    transition: opacity .4s ease, visibility .4s ease;
+  }
+  #login-loader.hide { opacity:0; visibility:hidden; }
+  .loader-ring {
+    width: 48px; height: 48px;
+    border: 3px solid rgba(79,195,247,.15);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .75s linear infinite;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .loader-brand {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem; letter-spacing: 4px;
+    color: rgba(255,255,255,.4);
+  }
+  .loader-brand span { color: var(--accent); }
 
-    <!-- Título -->
-    <div class="login-title">Iniciar Sessão</div>
-    <div class="login-subtitle">Sistema de Gestão de Autocarros</div>
+  /* ── LAYOUT ──────────────────────────────────── */
+  .login-page {
+    position: relative; z-index: 1;
+    width: 100%; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px 16px;
+  }
 
-    <div class="login-divider"></div>
+  .login-split {
+    display: flex;
+    width: 100%; max-width: 900px;
+    min-height: 560px;
+    border-radius: 24px; overflow: hidden;
+    box-shadow: 0 40px 80px rgba(4,30,66,.7),
+                0 0 0 1px rgba(79,195,247,.1);
+    animation: splitIn .7s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes splitIn {
+    from { opacity:0; transform:translateY(36px) scale(.96); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+  }
 
-    <!-- Alerta de erro Django -->
-    {% if form.non_field_errors %}
-      <div class="login-alert">
-        <i class="fas fa-circle-exclamation"></i>
-        {{ form.non_field_errors|striptags }}
-      </div>
-    {% endif %}
+  /* ── PAINEL ESQUERDO ─────────────────────────── */
+  .login-brand-panel {
+    flex: 1;
+    background: linear-gradient(160deg, #1565c0 0%, #0d2b5e 60%, #041e42 100%);
+    padding: 48px 40px;
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    position: relative; overflow: hidden;
+  }
+  .login-brand-panel::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(79,195,247,.1) 1.5px, transparent 1.5px);
+    background-size: 28px 28px;
+    pointer-events: none;
+  }
+  .login-brand-panel::after {
+    content: '';
+    position: absolute; top:-80px; right:-80px;
+    width:280px; height:280px;
+    background: radial-gradient(circle, rgba(79,195,247,.15), transparent 65%);
+    pointer-events: none;
+  }
 
-    {% if error %}
-      <div class="login-alert">
-        <i class="fas fa-circle-exclamation"></i>
-        {{ error }}
-      </div>
-    {% endif %}
+  .brand-logo { position: relative; z-index: 1; }
+  .brand-bus-icon {
+    width:64px; height:64px;
+    background: rgba(79,195,247,.12);
+    border: 1px solid rgba(79,195,247,.25);
+    border-radius: 16px;
+    display: flex; align-items:center; justify-content:center;
+    font-size: 1.8rem; color: var(--accent);
+    margin-bottom: 20px;
+    box-shadow: 0 8px 24px rgba(4,30,66,.4);
+  }
+  .brand-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem; letter-spacing: 4px; line-height: 1;
+    color: var(--white);
+  }
+  .brand-name span { color: var(--accent); }
+  .brand-tagline {
+    font-size: .78rem; color: rgba(255,255,255,.45);
+    letter-spacing: 1.5px; margin-top: 6px; text-transform: uppercase;
+  }
 
-    <!-- Mensagens Django -->
-    {% for message in messages %}
-      <div class="login-alert" style="{% if 'success' in message.tags %}background:rgba(39,174,96,.15);border-color:rgba(39,174,96,.4);border-left-color:var(--success);color:#c8e6c9{% endif %}">
-        <i class="fas fa-{% if 'success' in message.tags %}check-circle{% else %}circle-exclamation{% endif %}"></i>
-        {{ message }}
-      </div>
-    {% endfor %}
+  .brand-features {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .brand-feat {
+    display: flex; align-items: center; gap: 12px;
+    font-size: .85rem; color: rgba(255,255,255,.6);
+  }
+  .brand-feat-icon {
+    width:32px; height:32px; flex-shrink:0;
+    background: rgba(79,195,247,.1);
+    border: 1px solid rgba(79,195,247,.18);
+    border-radius: 8px;
+    display: flex; align-items:center; justify-content:center;
+    font-size: .8rem; color: var(--accent);
+  }
 
-    <!-- Formulário -->
-    <form method="POST" id="loginForm" novalidate>
-      {% csrf_token %}
+  .brand-bottom {
+    position: relative; z-index: 1;
+    font-size: .72rem; color: rgba(255,255,255,.2);
+    letter-spacing: .5px;
+  }
 
-      <!-- Utilizador -->
-      <div class="input-group-icon">
-        <i class="fas fa-user field-icon"></i>
-        <input
-          type="text"
-          name="username"
-          id="id_username"
-          placeholder="Nome de utilizador"
-          autocomplete="username"
-          autocapitalize="none"
-          required
-          value="{{ form.username.value|default:'' }}"
-        >
-      </div>
-      {% if form.username.errors %}
-        <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.username.errors|striptags }}</div>
-      {% endif %}
+  /* ── PAINEL DIREITO ──────────────────────────── */
+  .login-form-panel {
+    width: 380px; flex-shrink: 0;
+    background: rgba(7,26,54,.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(79,195,247,.12);
+    padding: 44px 36px;
+    display: flex; flex-direction: column;
+    justify-content: center;
+    position: relative;
+  }
+  /* linha accent no topo */
+  .login-form-panel::before {
+    content: '';
+    position: absolute; top:0; left:0; right:0; height:2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    pointer-events: none;
+  }
 
-      <!-- Senha -->
-      <div class="input-group-icon">
-        <i class="fas fa-lock field-icon"></i>
-        <input
-          type="password"
-          name="password"
-          id="id_password"
-          placeholder="Palavra-passe"
-          autocomplete="current-password"
-          required
-        >
-        <button type="button" class="toggle-pw" id="togglePw" title="Mostrar/Ocultar senha">
-          <i class="fas fa-eye" id="togglePwIcon"></i>
-        </button>
-      </div>
-      {% if form.password.errors %}
-        <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.password.errors|striptags }}</div>
-      {% endif %}
+  .form-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem; letter-spacing: 3px; line-height: 1;
+    color: var(--white); margin-bottom: 4px;
+  }
+  .form-subtitle {
+    font-size: .78rem; color: var(--grey);
+    letter-spacing: .5px; margin-bottom: 28px;
+  }
 
-      <!-- Submit -->
-      <button type="submit" class="btn-login" id="btnLogin">
-        <span class="spinner"></span>
-        <span class="btn-text">
-          <i class="fas fa-right-to-bracket" style="margin-right:8px"></i>ENTRAR
-        </span>
-      </button>
-    </form>
+  .f-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+    margin: 20px 0;
+  }
 
-    <!-- Footer -->
-    <div class="login-footer">
-      Não tem conta? <a href="{% url 'register' %}">Criar conta</a>
-    </div>
+  /* ── ALERTAS ─────────────────────────────────── */
+  .login-alert {
+    background: rgba(231,76,60,.15);
+    border: 1px solid rgba(231,76,60,.4);
+    border-left: 3px solid var(--danger);
+    border-radius: var(--radius-md);
+    padding: 10px 13px;
+    font-size: .83rem; color: #ffcdd2;
+    display: flex; align-items: center; gap: 9px;
+    margin-bottom: 16px;
+    animation: alertIn .3s ease;
+  }
+  .login-alert.success {
+    background: rgba(39,174,96,.15);
+    border-color: rgba(39,174,96,.4);
+    border-left-color: var(--success);
+    color: #c8e6c9;
+  }
+  @keyframes alertIn { from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);} }
 
-  </div>
+  /* ── INPUTS ──────────────────────────────────── */
+  .input-wrap { position: relative; margin-bottom: 14px; }
+  .input-wrap .i-icon {
+    position: absolute; left: 13px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--grey); font-size: .85rem;
+    pointer-events: none; z-index: 2;
+    transition: color var(--ease-fast);
+  }
+  .input-wrap:focus-within .i-icon { color: var(--accent); }
+
+  .input-wrap input {
+    width: 100%;
+    background: rgba(4,30,66,.6);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: var(--white);
+    padding: 11px 40px 11px 38px;
+    font-family: 'Barlow', sans-serif;
+    font-size: .9rem; outline: none;
+    transition: border-color var(--ease-fast), box-shadow var(--ease-fast), background var(--ease-fast);
+    -webkit-appearance: none;
+  }
+  .input-wrap input:focus {
+    border-color: var(--accent);
+    background: rgba(4,30,66,.85);
+    box-shadow: 0 0 0 3px rgba(79,195,247,.18);
+  }
+  .input-wrap input::placeholder { color: rgba(255,255,255,.28); font-size: .85rem; }
+
+  .toggle-pw {
+    position: absolute; right: 12px; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none;
+    color: var(--grey); font-size: .85rem;
+    cursor: pointer; padding: 4px; z-index: 2;
+    transition: color var(--ease-fast);
+  }
+  .toggle-pw:hover { color: var(--accent); }
+
+  .f-error {
+    font-size: .73rem; color: #ff8a80;
+    margin: -10px 0 10px 4px;
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  /* ── BOTÃO ENTRAR ────────────────────────────── */
+  .btn-login {
+    width: 100%; margin-top: 6px; padding: 13px;
+    background: linear-gradient(90deg, var(--blue-mid), var(--blue));
+    border: none; border-radius: var(--radius-md);
+    color: var(--white);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem; letter-spacing: 3px; cursor: pointer;
+    position: relative; overflow: hidden;
+    box-shadow: 0 4px 20px rgba(36,99,163,.35);
+    transition: transform var(--ease-spring), box-shadow var(--ease-base);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-login::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+    transform: translateX(-100%); transition: transform .5s ease;
+  }
+  .btn-login:hover::before { transform: translateX(100%); }
+  .btn-login:hover  { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(36,99,163,.5); }
+  .btn-login:active { transform: scale(.98); }
+  .btn-login:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+
+  .btn-login .sp {
+    display:none; width:15px; height:15px;
+    border:2px solid rgba(255,255,255,.3); border-top-color:white;
+    border-radius:50%; animation:spin .7s linear infinite;
+  }
+  .btn-login.loading .sp  { display:inline-block; }
+  .btn-login.loading .btn-txt { opacity:.7; }
+
+  /* ── FOOTER ──────────────────────────────────── */
+  .form-footer {
+    text-align: center; margin-top: 20px;
+    font-size: .8rem; color: var(--grey);
+  }
+  .form-footer a {
+    color: var(--accent); font-weight:700; text-decoration:none;
+    transition: color var(--ease-fast);
+  }
+  .form-footer a:hover { color: var(--white); text-decoration: underline; }
+
+  .back-site {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 12px; font-size: .74rem;
+    color: rgba(255,255,255,.28); text-decoration: none;
+    transition: color var(--ease-fast);
+  }
+  .back-site:hover { color: var(--accent); }
+
+  /* ── MOBILE ──────────────────────────────────── */
+  @media (max-width: 720px) {
+    .login-split { flex-direction: column; border-radius: var(--radius-lg); min-height: auto; }
+    .login-brand-panel { display: none; }
+    .login-form-panel {
+      width: 100%; max-width: 420px;
+      border-left: none; border-radius: var(--radius-lg);
+    }
+    .login-form-panel::before { border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+    body { overflow: auto; }
+  }
+  @media (max-width: 480px) {
+    .login-form-panel { padding: 32px 22px; }
+    .form-title { font-size: 1.6rem; }
+  }
+  </style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="login-loader">
+  <div class="loader-ring"></div>
+  <div class="loader-brand"><span>ALCA</span> &amp; ATY</div>
 </div>
+
+<!-- BG -->
+<div class="login-bg"></div>
+
+<!-- PÁGINA -->
+<div class="login-page">
+  <div class="login-split">
+
+    <!-- ESQUERDA: BRANDING -->
+    <div class="login-brand-panel">
+      <div class="brand-logo">
+        <div class="brand-bus-icon"><i class="fas fa-bus"></i></div>
+        <div class="brand-name"><span>ALCA</span> &amp; ATY</div>
+        <div class="brand-tagline">Transportes · Sistema de Gestão</div>
+      </div>
+
+      <div class="brand-features">
+        <div class="brand-feat">
+          <div class="brand-feat-icon"><i class="fas fa-chart-line"></i></div>
+          <span>Registos diários de produção por Zona</span>
+        </div>
+        <div class="brand-feat">
+          <div class="brand-feat-icon"><i class="fas fa-piggy-bank"></i></div>
+          <span>Controlo de depósitos,finanças e análise de dados</span>
+        </div>
+        <div class="brand-feat">
+          <div class="brand-feat-icon"><i class="fas fa-bus"></i></div>
+          <span>Gestão de frota e manutenção gerais</span>
+        </div>
+        <div class="brand-feat">
+          <div class="brand-feat-icon"><i class="fas fa-file-word"></i></div>
+          <span>Relatórios e exportação Word, PDF, EXCEL</span>
+        </div>
+      </div>
+
+      <div class="brand-bottom">
+        © {% now "Y" %} ALCA &amp; ATY Transportes · Angola
+      </div>
+    </div>
+
+    <!-- DIREITA: FORMULÁRIO -->
+    <div class="login-form-panel">
+
+      <div class="form-title">Iniciar Sessão</div>
+      <div class="form-subtitle">Introduza as suas credenciais para continuar</div>
+
+      {% if form.non_field_errors %}
+        <div class="login-alert">
+          <i class="fas fa-circle-exclamation"></i>
+          {{ form.non_field_errors|striptags }}
+        </div>
+      {% endif %}
+
+      {% if error %}
+        <div class="login-alert">
+          <i class="fas fa-circle-exclamation"></i>
+          {{ error }}
+        </div>
+      {% endif %}
+
+      {% for message in messages %}
+        <div class="login-alert {% if 'success' in message.tags %}success{% endif %}">
+          <i class="fas fa-{% if 'success' in message.tags %}check-circle{% else %}circle-exclamation{% endif %}"></i>
+          {{ message }}
+        </div>
+      {% endfor %}
+
+      <form method="POST" id="loginForm" novalidate>
+        {% csrf_token %}
+
+        <div class="input-wrap">
+          <i class="fas fa-user i-icon"></i>
+          <input
+            type="text" name="username" id="id_username"
+            placeholder="Nome de utilizador"
+            autocomplete="username" autocapitalize="none" required
+            value="{{ form.username.value|default:'' }}"
+          >
+        </div>
+        {% if form.username.errors %}
+          <div class="f-error"><i class="fas fa-triangle-exclamation"></i>{{ form.username.errors|striptags }}</div>
+        {% endif %}
+
+        <div class="input-wrap">
+          <i class="fas fa-lock i-icon"></i>
+          <input
+            type="password" name="password" id="id_password"
+            placeholder="Palavra-passe"
+            autocomplete="current-password" required
+          >
+          <button type="button" class="toggle-pw" id="togglePw">
+            <i class="fas fa-eye" id="toggleIcon"></i>
+          </button>
+        </div>
+        {% if form.password.errors %}
+          <div class="f-error"><i class="fas fa-triangle-exclamation"></i>{{ form.password.errors|striptags }}</div>
+        {% endif %}
+
+        <button type="submit" class="btn-login" id="btnLogin">
+          <span class="sp"></span>
+          <span class="btn-txt"><i class="fas fa-right-to-bracket"></i> ENTRAR</span>
+        </button>
+      </form>
+
+      <div class="f-divider"></div>
+
+      <div class="form-footer">
+        Não tem conta? <a href="{% url 'register' %}">Criar conta</a>
+      </div>
+
+      <div style="text-align:center">
+        <a href="{% url 'site_oficial' %}" class="back-site">
+          <i class="fas fa-arrow-left"></i> Voltar ao site público
+        </a>
+      </div>
+
+    </div><!-- form-panel -->
+  </div><!-- split -->
+</div><!-- page -->
 
 <script>
 (function () {
-  // ── Toggle mostrar senha ──────────────────────────
-  const pwInput   = document.getElementById('id_password');
-  const toggleBtn = document.getElementById('togglePw');
-  const toggleIcon= document.getElementById('togglePwIcon');
+  /* Loader */
+  var loader = document.getElementById('login-loader');
+  function hideLoader() { if (loader) loader.classList.add('hide'); }
+  if (document.readyState === 'complete') { setTimeout(hideLoader, 300); }
+  else {
+    window.addEventListener('load', function () { setTimeout(hideLoader, 300); });
+    setTimeout(hideLoader, 3000);
+  }
 
-  if (toggleBtn && pwInput) {
-    toggleBtn.addEventListener('click', function () {
-      const isText = pwInput.type === 'text';
-      pwInput.type = isText ? 'password' : 'text';
-      toggleIcon.className = isText ? 'fas fa-eye' : 'fas fa-eye-slash';
+  /* Toggle password */
+  var pw = document.getElementById('id_password');
+  var tb = document.getElementById('togglePw');
+  var ti = document.getElementById('toggleIcon');
+  if (tb && pw) {
+    tb.addEventListener('click', function () {
+      var isText = pw.type === 'text';
+      pw.type = isText ? 'password' : 'text';
+      ti.className = isText ? 'fas fa-eye' : 'fas fa-eye-slash';
     });
   }
 
-  // ── Loading no submit ─────────────────────────────
-  const form    = document.getElementById('loginForm');
-  const btnLogin= document.getElementById('btnLogin');
-
-  if (form && btnLogin) {
+  /* Loading */
+  var form = document.getElementById('loginForm');
+  var btn  = document.getElementById('btnLogin');
+  if (form && btn) {
     form.addEventListener('submit', function () {
-      // Validação nativa do browser já passou, mostrar loading
-      btnLogin.classList.add('loading');
-      btnLogin.disabled = true;
-
-      // Safety: se demorar mais de 8s volta ao normal
-      setTimeout(function () {
-        btnLogin.classList.remove('loading');
-        btnLogin.disabled = false;
-      }, 8000);
+      btn.classList.add('loading'); btn.disabled = true;
+      setTimeout(function () { btn.classList.remove('loading'); btn.disabled = false; }, 8000);
     });
   }
 
-  // ── Focus automático no primeiro campo ───────────
-  const usernameField = document.getElementById('id_username');
-  if (usernameField && !usernameField.value) {
-    // Pequeno delay para não conflituar com animação do card
-    setTimeout(function () { usernameField.focus(); }, 650);
-  }
+  /* Focus */
+  var uf = document.getElementById('id_username');
+  if (uf && !uf.value) { setTimeout(function () { uf.focus(); }, 700); }
 })();
 </script>
-{% endblock %}
+</body>
+</html>
