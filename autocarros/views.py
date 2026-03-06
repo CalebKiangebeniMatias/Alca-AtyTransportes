@@ -919,9 +919,17 @@ def exportar_relatorio_dashboard(request):
 
 
 # === ESTATÍSTICAS POR AUTOCARRO === #
+from django.shortcuts import render, get_object_or_404, redirect
+from django.db.models import Sum, F, DecimalField
+from django.utils.dateparse import parse_date
+from decimal import Decimal
+from datetime import datetime
+from urllib.parse import quote_plus
+
 @login_required
 @acesso_restrito(['admin', 'gestor'])
 def resumo_sector(request, slug):
+
     sector_obj = get_object_or_404(Sector, slug=slug)
     nivel = request.user.nivel_acesso.lower()
 
@@ -935,7 +943,7 @@ def resumo_sector(request, slug):
     data_inicio = request.GET.get("data_inicio")
     data_fim = request.GET.get("data_fim")
 
-    # 🔹 Registos do setor
+    # 🔹 Registos
     registos = RegistoDiario.objects.filter(
         autocarro__sector=sector_obj
     ).select_related("autocarro")
@@ -945,55 +953,77 @@ def resumo_sector(request, slug):
     if data_fim:
         registos = registos.filter(data__lte=parse_date(data_fim))
 
-    # 🔹 Entradas e saídas
+    # 🔹 Entradas
     total_entradas = registos.aggregate(
         total=Sum(F("normal") + F("alunos") + F("luvu") + F("frete"), output_field=DecimalField())
-    )["total"] or Decimal('0')
+    )["total"] or Decimal("0")
 
-    total_saidas = registos.aggregate(
-        total=Sum(F("alimentacao") + F("parqueamento") + F("outros"), output_field=DecimalField())
-    )["total"] or Decimal('0')
+    # 🔹 Saídas separadas
+    saidas = registos.aggregate(
+        total_alimentacao=Sum("alimentacao", output_field=DecimalField()),
+        total_parqueamento=Sum("parqueamento", output_field=DecimalField()),
+        total_outros=Sum("outros", output_field=DecimalField()),
+        total_taxas=Sum("taxa", output_field=DecimalField()),
+        total_taxis=Sum("taxi", output_field=DecimalField()),
+    )
 
-    total_taxas = registos.aggregate(
-        total=Sum("taxa", output_field=DecimalField())
-    )["total"] or Decimal('0')
+    total_alimentacao = saidas["total_alimentacao"] or Decimal("0")
+    total_parqueamento = saidas["total_parqueamento"] or Decimal("0")
+    total_outros = saidas["total_outros"] or Decimal("0")
+    total_taxas = saidas["total_taxas"] or Decimal("0")
+    total_taxis = saidas["total_taxis"] or Decimal("0")
 
-    total_taxis = registos.aggregate(
-        total=Sum("taxi", output_field=DecimalField())
-    )["total"] or Decimal('0')
+    total_saidas_registos = (
+        total_alimentacao +
+        total_parqueamento +
+        total_outros +
+        total_taxas +
+        total_taxis
+    )
 
+    # 🔹 Estatísticas gerais
     total_km = registos.aggregate(Sum("km_percorridos"))["km_percorridos__sum"] or 0
     total_passageiros = registos.aggregate(Sum("numero_passageiros"))["numero_passageiros__sum"] or 0
     total_viagens = registos.aggregate(Sum("numero_viagens"))["numero_viagens__sum"] or 0
 
     # 🔹 Combustível
     combustivel_qs = DespesaCombustivel.objects.filter(autocarro__sector=sector_obj)
+
     if data_inicio:
         combustivel_qs = combustivel_qs.filter(data__gte=parse_date(data_inicio))
     if data_fim:
         combustivel_qs = combustivel_qs.filter(data__lte=parse_date(data_fim))
 
     comb_totais = combustivel_qs.aggregate(
-        total_valor=Sum('valor', output_field=DecimalField()),
-        total_litros=Sum('valor_litros', output_field=DecimalField()),
-        total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
-        total_lavagem=Sum('lavagem', output_field=DecimalField()),
+        total_valor=Sum("valor", output_field=DecimalField()),
+        total_litros=Sum("valor_litros", output_field=DecimalField()),
+        total_sobragem=Sum("sobragem_filtros", output_field=DecimalField()),
+        total_lavagem=Sum("lavagem", output_field=DecimalField()),
     )
 
-    total_combustivel_valor = comb_totais.get('total_valor') or Decimal('0')
-    total_combustivel_sobragem = comb_totais.get('total_sobragem') or Decimal('0')
-    total_combustivel_lavagem = comb_totais.get('total_lavagem') or Decimal('0')
-    total_combustivel_geral = total_combustivel_valor + total_combustivel_sobragem + total_combustivel_lavagem
+    total_combustivel_valor = comb_totais["total_valor"] or Decimal("0")
+    total_combustivel_sobragem = comb_totais["total_sobragem"] or Decimal("0")
+    total_combustivel_lavagem = comb_totais["total_lavagem"] or Decimal("0")
 
-    # 🔹 Despesas variáveis
+    total_combustivel_geral = (
+        total_combustivel_valor +
+        total_combustivel_sobragem +
+        total_combustivel_lavagem
+    )
+
+    # 🔹 Despesas variáveis do sector
     despesas_qs = Despesa.objects.filter(sector=sector_obj)
+
     if data_inicio:
         despesas_qs = despesas_qs.filter(data__gte=parse_date(data_inicio))
     if data_fim:
         despesas_qs = despesas_qs.filter(data__lte=parse_date(data_fim))
-    total_despesas_sector = despesas_qs.aggregate(total=Sum('valor', output_field=DecimalField())).get('total') or Decimal('0')
 
-    # 🔹 Despesas fixas (também sujeitas a intervalo de datas)
+    total_despesas_sector = despesas_qs.aggregate(
+        total=Sum("valor", output_field=DecimalField())
+    )["total"] or Decimal("0")
+
+    # 🔹 Despesas fixas
     despesas_fixas = DespesaFixa.objects.filter(sector=sector_obj, ativo=True)
 
     if data_inicio:
@@ -1002,54 +1032,66 @@ def resumo_sector(request, slug):
         despesas_fixas = despesas_fixas.filter(data_inicio__lte=parse_date(data_fim))
 
     total_despesas_fixas = despesas_fixas.aggregate(
-        total=Sum('valor', output_field=DecimalField())
-    ).get('total') or Decimal('0')
+        total=Sum("valor", output_field=DecimalField())
+    )["total"] or Decimal("0")
 
-    # 🔹 Despesa geral (RelatorioSector) com filtro
+    # 🔹 Relatórios de sector
     relatorios_qs = RelatorioSector.objects.filter(sector=sector_obj)
+
     if data_inicio:
         relatorios_qs = relatorios_qs.filter(data__gte=parse_date(data_inicio))
     if data_fim:
         relatorios_qs = relatorios_qs.filter(data__lte=parse_date(data_fim))
-    despesa_geral_total = relatorios_qs.aggregate(total=Sum('despesa_geral', output_field=DecimalField())).get('total') or Decimal('0')
 
-    # 🔹 Soma total de saídas
+    relatorios = relatorios_qs.aggregate(
+        total_despesa_geral=Sum("despesa_geral", output_field=DecimalField()),
+        total_alimentacao_estaleiro=Sum("alimentacao_estaleiro", output_field=DecimalField())
+    )
+
+    despesa_geral_total = relatorios["total_despesa_geral"] or Decimal("0")
+    alimentacao_estaleiro_total = relatorios["total_alimentacao_estaleiro"] or Decimal("0")
+
+    # 🔹 Total final de saídas
     total_saidas_final = (
-        total_saidas
-        + total_combustivel_geral
-        + total_despesas_sector
-        + total_despesas_fixas
-        + despesa_geral_total
-        + total_taxas
-        + total_taxis
+        total_saidas_registos +
+        total_combustivel_geral +
+        total_despesas_sector +
+        total_despesas_fixas +
+        despesa_geral_total +
+        alimentacao_estaleiro_total
     )
 
     resto = total_entradas - total_saidas_final
 
     # 🔹 Estatísticas por autocarro
     autocarros_stats = []
+
     for autocarro in Autocarro.objects.filter(sector=sector_obj):
+
         registos_auto = registos.filter(autocarro=autocarro)
+
         entradas_auto = registos_auto.aggregate(
             total=Sum(F("normal") + F("alunos") + F("luvu") + F("frete"), output_field=DecimalField())
-        )["total"] or Decimal('0')
+        )["total"] or Decimal("0")
+
         saidas_auto = registos_auto.aggregate(
             total=Sum(F("alimentacao") + F("parqueamento") + F("taxi") + F("taxa") + F("outros"), output_field=DecimalField())
-        )["total"] or Decimal('0')
+        )["total"] or Decimal("0")
 
         comb_auto = combustivel_qs.filter(autocarro=autocarro).aggregate(
-            total_valor=Sum('valor', output_field=DecimalField()),
-            total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
-            total_lavagem=Sum('lavagem', output_field=DecimalField()),
+            total_valor=Sum("valor", output_field=DecimalField()),
+            total_sobragem=Sum("sobragem_filtros", output_field=DecimalField()),
+            total_lavagem=Sum("lavagem", output_field=DecimalField()),
         )
 
         total_comb_auto = (
-            (comb_auto.get('total_valor') or Decimal('0')) +
-            (comb_auto.get('total_sobragem') or Decimal('0')) +
-            (comb_auto.get('total_lavagem') or Decimal('0'))
+            (comb_auto["total_valor"] or Decimal("0")) +
+            (comb_auto["total_sobragem"] or Decimal("0")) +
+            (comb_auto["total_lavagem"] or Decimal("0"))
         )
 
         saidas_auto += total_comb_auto
+
         resto_auto = entradas_auto - saidas_auto
 
         autocarros_stats.append({
@@ -1059,66 +1101,65 @@ def resumo_sector(request, slug):
             "resto": resto_auto,
         })
 
-    # 🔹 Formatação
+    # 🔹 Função formatação
     def fmt(valor):
         return f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-    # 🔹 Mensagem WhatsApp formatada
-    try:
-        periodo = f"{data_inicio or '—'} até {data_fim or '—'}"
-        msg_lines = [
-            f"📊 *Resumo do Sector:* {sector_obj.nome}",
-            f"📅 *Período:* {periodo}",
-            "",
-            f"💵 *Totais Gerais:*",
-            f"• Entradas: {fmt(total_entradas)} Kz",
-            f"• Saídas (registos): {fmt(total_saidas)} Kz",
-            f"• Combustível: {fmt(total_combustivel_geral)} Kz",
-            f"• Despesas Variáveis: {fmt(total_despesas_sector)} Kz",
-            f"• Despesas Fixas: {fmt(total_despesas_fixas)} Kz",
-            f"• Despesa Geral (Relatórios): {fmt(despesa_geral_total)} Kz",
-            "",
-            f"💰 *Total de Saídas:* {fmt(total_saidas_final)} Kz",
-            f"💸 *Resto:* {fmt(resto)} Kz",
-            "",
-            "🚌 *Resumo por Autocarro:*",
-        ]
-        for s in autocarros_stats:
-            msg_lines.append(
-                f"• {s['autocarro'].numero}: Entradas {fmt(s['total_entradas'])} | "
-                f"Saídas {fmt(s['total_saidas'])} | Resto {fmt(s['resto'])}"
-            )
-        msg_lines.append("")
-        msg_lines.append(f"📅 *Gerado em:* {datetime.now().strftime('%d/%m/%Y %H:%M')}")
-        whatsapp_text = "\n".join(msg_lines)
-        whatsapp_link = "https://api.whatsapp.com/send?text=" + quote_plus(whatsapp_text)
-    except Exception:
-        whatsapp_text = "Resumo do sector não disponível."
-        whatsapp_link = "https://api.whatsapp.com/send?text=" + quote_plus(whatsapp_text)
+    # 🔹 WhatsApp
+    periodo = f"{data_inicio or '—'} até {data_fim or '—'}"
 
-    # 🔹 Contexto
+    msg_lines = [
+        f"📊 *Resumo do Sector:* {sector_obj.nome}",
+        f"📅 *Período:* {periodo}",
+        "",
+        f"💵 Entradas: {fmt(total_entradas)} Kz",
+        "",
+        "💸 Saídas:",
+        f"• Alimentação: {fmt(total_alimentacao)} Kz",
+        f"• Parqueamento: {fmt(total_parqueamento)} Kz",
+        f"• Taxi: {fmt(total_taxis)} Kz",
+        f"• Taxas: {fmt(total_taxas)} Kz",
+        f"• Outros: {fmt(total_outros)} Kz",
+        f"• Combustível: {fmt(total_combustivel_geral)} Kz",
+        "",
+        f"💰 Total Saídas: {fmt(total_saidas_final)} Kz",
+        f"💵 Resto: {fmt(resto)} Kz",
+    ]
+
+    whatsapp_text = "\n".join(msg_lines)
+    whatsapp_link = "https://api.whatsapp.com/send?text=" + quote_plus(whatsapp_text)
+
     context = {
         "sector": sector_obj,
         "autocarros_stats": autocarros_stats,
         "total_entradas": total_entradas,
         "total_saidas": total_saidas_final,
-        "total_km": total_km,
-        "total_passageiros": total_passageiros,
-        "total_viagens": total_viagens,
         "resto": resto,
+
+        "total_alimentacao": total_alimentacao,
+        "total_parqueamento": total_parqueamento,
+        "total_outros": total_outros,
+        "total_taxas": total_taxas,
+        "total_taxis": total_taxis,
+
         "total_combustivel_valor": total_combustivel_valor,
         "total_combustivel_sobragem": total_combustivel_sobragem,
         "total_combustivel_lavagem": total_combustivel_lavagem,
+
         "total_despesas_sector": total_despesas_sector,
         "total_despesas_fixas": total_despesas_fixas,
         "despesa_geral_total": despesa_geral_total,
-        "total_taxas": total_taxas,
-        "total_taxis": total_taxis,
+        "alimentacao_estaleiro_total": alimentacao_estaleiro_total,
+
+        "total_km": total_km,
+        "total_passageiros": total_passageiros,
+        "total_viagens": total_viagens,
+
         "whatsapp_message": whatsapp_text,
         "whatsapp_link": whatsapp_link,
     }
-    return render(request, "autocarros/resumo_sector.html", context)
 
+    return render(request, "autocarros/resumo_sector.html", context)
 
 # === DETALHE POR AUTOCARRO === #
 @login_required

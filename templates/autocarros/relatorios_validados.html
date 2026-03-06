@@ -1,169 +1,525 @@
 {% extends 'base.html' %}
-
 {% load custom_filters l10n humanize %}
 
+{% block title %}Registos Validados{% endblock %}
+{% block breadcrumb %}Relatórios › Validados{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <!-- 🔹 Cabeçalho com Estatísticas -->
-    <div class="card shadow-lg mb-4">
-        <div class="card-header bg-success text-white">
-            <div class="d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">
-                    <i class="fas fa-check-circle me-2"></i> Registos Diários Validados
-                </h4>
-                <div>
-                    <span class="badge bg-light text-success me-2">
-                        {{ registos_agrupados|length|intcomma }} Grupos
-                    </span>
-                    <a href="{% url 'listar_registros' %}" class="btn btn-light btn-sm">
-                        <i class="fas fa-arrow-left me-1"></i> Voltar
-                    </a>
-                </div>
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-3 text-center">
-                    <div class="border-end">
-                        <h3 class="text-success mb-1">{{ totais.total_autocarros|intcomma }}</h3>
-                        <small class="text-muted">Registos Validados</small>
-                    </div>
-                </div>
-                <div class="col-md-3 text-center">
-                    <div class="border-end">
-                        <h3 class="text-warning mb-1">{% localize on %}{{ totais.total_entradas|default_if_none:0|floatformat:2 }}{% endlocalize %} Kz</h3>
-                        <small class="text-muted">Total Entradas</small>
-                    </div>
-                </div>
-                    <div class="col-md-3 text-center">
-                    <div class="border-end">
-                        <h3 class="text-danger mb-1">{% localize on %}{{ totais.total_saidas|default:0|floatformat:2 }}{% endlocalize %} Kz</h3>
-                        <small class="text-muted">Total Saídas</small>
-                    </div>
-                </div>
-                <div class="col-md-3 text-center">
-                    <h3 class="text-primary mb-1">{% localize on %}{{ totais.total_saldo|default:0|floatformat:2 }}{% endlocalize %} Kz</h3>
-                    <small class="text-muted">Saldo Líquido</small>
-                </div>
-            </div>
-        </div>
-    </div>
+<style>
+/* ════════════════════════════════════════════════════
+   REGISTOS VALIDADOS
+════════════════════════════════════════════════════ */
 
-    <!-- 🔹 Filtro -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">
-                <i class="fas fa-filter me-2"></i> Filtros
-            </h5>
-        </div>
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-3">
-                    <label for="sector" class="form-label">Sector</label>
-                    <select name="sector" id="sector" class="form-select">
-                        <option value="">-- Todos os Sectores --</option>
-                        {% for s in sectores %}
-                        <option value="{{ s.id }}" {% if sector_id == s.id|stringformat:"s" %}selected{% endif %}>
-                            {{ s.nome }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="data_inicio" class="form-label">Data Início</label>
-                    <input type="date" id="data_inicio" name="data_inicio" class="form-control"
-                        value="{{ data_inicio }}">
-                </div>
-                <div class="col-md-3">
-                    <label for="data_fim" class="form-label">Data Fim</label>
-                    <input type="date" id="data_fim" name="data_fim" class="form-control"
-                        value="{{ data_fim }}">
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-success w-100 me-2">
-                        <i class="fas fa-search me-1"></i> Filtrar
-                    </button>
-                    <a href="{% url 'relatorios_validados' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-sync"></i>
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
+.val-wrapper {
+  animation: valIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes valIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
 
-    {% if registos_agrupados %}
-        {% for grupo in registos_agrupados %}
-        <div class="card shadow-lg border-0 rounded-3 mb-4">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-map-marker-alt me-2"></i> {{ grupo.sector.nome }}
-                    <small class="opacity-75"> - {{ grupo.data|date:"d/m/Y" }}</small>
-                </h5>
+/* ── HEADER ──────────────────────────────────────── */
+.val-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 24px;
+}
+.val-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem; letter-spacing: 2px; line-height: 1;
+}
+.val-title span { color: #69f0ae; }
+.val-subtitle { font-size: .78rem; color: var(--grey); margin-top: 4px; }
+
+.btn-val {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 20px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .88rem;
+  letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+}
+.btn-val:hover  { transform: translateY(-2px); }
+.btn-val:active { transform: scale(.97); }
+.btn-back-val {
+  background: transparent;
+  border: 1px solid var(--glass-border) !important;
+  color: rgba(255,255,255,.6);
+}
+.btn-back-val:hover { background: rgba(255,255,255,.07); color: var(--white); }
+.btn-reset-val {
+  width: 36px; height: 36px; padding: 0;
+  background: rgba(79,195,247,.08);
+  border: 1px solid rgba(79,195,247,.2) !important;
+  color: var(--accent); border-radius: var(--radius-md);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.btn-reset-val:hover { background: rgba(79,195,247,.18); color: var(--accent); }
+.btn-filter-val {
+  background: rgba(39,174,96,.15);
+  border: 1px solid rgba(39,174,96,.3) !important;
+  color: #69f0ae;
+}
+.btn-filter-val:hover { background: rgba(39,174,96,.25); color: #69f0ae; }
+
+/* ── STATS STRIP ─────────────────────────────────── */
+.val-stats {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 14px; margin-bottom: 22px;
+}
+.vstat-card {
+  background: rgba(13,43,94,.45);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(12px);
+  padding: 16px 18px;
+  display: flex; align-items: center; gap: 12px;
+  position: relative; overflow: hidden;
+  transition: transform var(--ease-spring), border-color var(--ease-fast);
+}
+.vstat-card::before {
+  content: ''; position: absolute; top:0; left:0; right:0; height:2px;
+}
+.vstat-card.grupos::before   { background: linear-gradient(90deg,transparent,#69f0ae,transparent); }
+.vstat-card.entrada::before  { background: linear-gradient(90deg,transparent,#ffd54f,transparent); }
+.vstat-card.saida::before    { background: linear-gradient(90deg,transparent,#ff8a80,transparent); }
+.vstat-card.saldo::before    { background: linear-gradient(90deg,transparent,var(--accent),transparent); }
+.vstat-card:hover { transform: translateY(-3px); border-color: rgba(79,195,247,.25); }
+
+.vstat-icon {
+  width: 42px; height: 42px; flex-shrink: 0;
+  border-radius: var(--radius-md);
+  display: flex; align-items:center; justify-content:center;
+  font-size: .95rem;
+}
+.vstat-icon.grupos  { background:rgba(39,174,96,.15);  color:#69f0ae; }
+.vstat-icon.entrada { background:rgba(243,156,18,.15); color:#ffd54f; }
+.vstat-icon.saida   { background:rgba(231,76,60,.15);  color:#ff8a80; }
+.vstat-icon.saldo   { background:rgba(79,195,247,.12); color:var(--accent); }
+
+.vstat-info { flex:1; min-width:0; }
+.vstat-label {
+  font-size:.66rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1.2px;
+  color:var(--grey); margin-bottom:4px;
+}
+.vstat-val {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.25rem; letter-spacing:1px; line-height:1;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.vstat-val.grupos  { color:#69f0ae; }
+.vstat-val.entrada { color:#ffd54f; }
+.vstat-val.saida   { color:#ff8a80; }
+.vstat-val.saldo   { color:var(--accent); }
+.vstat-unit { font-size:.6rem; color:var(--grey); }
+
+/* ── FILTER BAR ──────────────────────────────────── */
+.filter-bar {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  padding: 16px 20px;
+  display: flex; flex-wrap: wrap; gap: 12px;
+  align-items: flex-end; margin-bottom: 24px;
+}
+.f-group { display:flex; flex-direction:column; gap:5px; flex:1; min-width:130px; }
+.f-label {
+  font-size:.68rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1px;
+  color:rgba(255,255,255,.4);
+}
+.val-wrapper select,
+.val-wrapper input[type="date"] {
+  width:100%;
+  background:rgba(4,30,66,.55) !important;
+  border:1px solid var(--glass-border) !important;
+  border-radius:var(--radius-md) !important;
+  color:var(--white) !important;
+  padding:9px 13px !important;
+  font-family:'Barlow',sans-serif !important;
+  font-size:.88rem !important;
+  outline:none !important;
+  -webkit-appearance:none;
+  transition:border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+}
+.val-wrapper select:focus,
+.val-wrapper input[type="date"]:focus {
+  border-color:var(--accent) !important;
+  box-shadow:0 0 0 3px rgba(79,195,247,.15) !important;
+  background:rgba(4,30,66,.85) !important;
+}
+.val-wrapper select option { background:var(--navy); color:var(--white); }
+.val-wrapper input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(.7); }
+
+/* ── GRUPO CARD ──────────────────────────────────── */
+.grupo-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+  margin-bottom: 20px;
+  position: relative;
+}
+.grupo-card::before {
+  content: '';
+  position: absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg,transparent,#69f0ae,transparent);
+  pointer-events: none;
+}
+
+.grupo-header {
+  display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 10px; padding: 14px 20px;
+  background: linear-gradient(90deg,rgba(39,174,96,.18),rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+}
+.grupo-header-left { display:flex; align-items:center; gap:12px; }
+.grupo-sector-icon {
+  width:38px; height:38px; flex-shrink:0;
+  background:rgba(105,240,174,.1);
+  border:1px solid rgba(105,240,174,.2);
+  border-radius:var(--radius-sm);
+  display:flex; align-items:center; justify-content:center;
+  font-size:.9rem; color:#69f0ae;
+}
+.grupo-sector-name {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.2rem; letter-spacing:2px; color:var(--white); line-height:1;
+}
+.grupo-date {
+  font-size:.72rem; color:var(--grey); margin-top:2px;
+  display:flex; align-items:center; gap:4px;
+}
+.grupo-date i { color:var(--accent); font-size:.6rem; }
+
+.validated-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  background:rgba(39,174,96,.12);
+  border:1px solid rgba(39,174,96,.28);
+  border-radius:30px; padding:4px 11px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700; font-size:.72rem; letter-spacing:1px;
+  color:#69f0ae;
+}
+
+/* resumo do grupo */
+.grupo-resumo {
+  display: flex; align-items:center; gap:0;
+  padding: 12px 20px;
+  background: rgba(4,30,66,.3);
+  border-bottom: 1px solid var(--glass-border);
+  flex-wrap: wrap;
+}
+.gr-item {
+  flex:1; min-width:120px;
+  padding: 6px 14px;
+  border-right: 1px solid rgba(79,195,247,.08);
+}
+.gr-item:last-child { border-right:none; }
+.gr-item-label {
+  font-size:.62rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1px;
+  color:var(--grey); margin-bottom:3px;
+}
+.gr-item-val {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.1rem; letter-spacing:.5px;
+}
+.gr-item-val.entrada { color:#ffd54f; }
+.gr-item-val.saida   { color:#ff8a80; }
+.gr-item-val.saldo   { color:var(--accent); }
+
+/* ── AUTOCARROS GRID ─────────────────────────────── */
+.ac-grid {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 14px; padding: 16px 20px;
+}
+.ac-card-v {
+  background: rgba(4,30,66,.45);
+  border: 1px solid rgba(105,240,174,.15);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-base);
+}
+.ac-card-v:hover { border-color: rgba(105,240,174,.3); box-shadow: 0 4px 16px rgba(4,30,66,.3); }
+
+.ac-card-v-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 14px;
+  background: linear-gradient(90deg,rgba(39,174,96,.15),rgba(4,30,66,.1));
+  border-bottom:1px solid rgba(105,240,174,.1);
+}
+.ac-num-v {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.1rem; letter-spacing:2px; color:var(--white);
+  display:flex; align-items:center; gap:7px;
+}
+.ac-num-v i { color:#69f0ae; font-size:.85rem; }
+.ac-validated {
+  display:inline-flex; align-items:center; gap:4px;
+  background:rgba(39,174,96,.12);
+  border:1px solid rgba(39,174,96,.25);
+  border-radius:30px; padding:2px 9px;
+  font-size:.68rem; font-weight:700; letter-spacing:.8px;
+  color:#69f0ae;
+}
+
+.ac-card-v-body { padding:12px 14px; }
+.ac-stats-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:8px;
+  margin-bottom:10px;
+}
+.ac-stat-row {
+  display:flex; flex-direction:column; gap:2px;
+  padding:7px 10px;
+  background:rgba(4,30,66,.35);
+  border:1px solid rgba(79,195,247,.07);
+  border-radius:var(--radius-sm);
+}
+.ac-stat-lbl {
+  font-size:.6rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1px; color:var(--grey);
+}
+.ac-stat-val {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.95rem; letter-spacing:.5px;
+}
+.ac-stat-val.green { color:#69f0ae; }
+.ac-stat-val.red   { color:#ff8a80; }
+.ac-stat-val.blue  { color:var(--accent); }
+.ac-stat-val.gold  { color:#ffd54f; }
+
+.ac-equipa {
+  display:flex; align-items:center; gap:6px;
+  padding:7px 10px;
+  background:rgba(4,30,66,.25);
+  border-radius:var(--radius-sm);
+  font-size:.75rem; color:rgba(255,255,255,.55);
+}
+.ac-equipa i { color:var(--grey); font-size:.7rem; }
+
+/* ── EMPTY STATE ─────────────────────────────────── */
+.empty-state {
+  background:rgba(13,43,94,.42);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius-lg);
+  padding:52px 24px; text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+}
+.empty-state i { font-size:2.6rem; color:rgba(255,255,255,.15); }
+.empty-state p { font-size:.9rem; color:rgba(255,255,255,.35); }
+.empty-state small { font-size:.78rem; color:rgba(255,255,255,.22); }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width:900px) { .val-stats { grid-template-columns:repeat(2,1fr); } }
+@media (max-width:640px) {
+  .val-stats { grid-template-columns:1fr 1fr; }
+  .ac-grid { grid-template-columns:1fr; }
+  .filter-bar { flex-direction:column; }
+  .f-group { min-width:unset; width:100%; }
+  .val-header { flex-direction:column; align-items:flex-start; }
+  .grupo-resumo { flex-direction:column; }
+  .gr-item { border-right:none; border-bottom:1px solid rgba(79,195,247,.06); }
+}
+</style>
+
+<div class="val-wrapper">
+
+  <!-- HEADER -->
+  <div class="val-header">
+    <div>
+      <div class="val-title">Registos <span>Validados</span></div>
+      <div class="val-subtitle">Consulte os relatórios diários com estado validado</div>
+    </div>
+    <a href="{% url 'listar_registros' %}" class="btn-val btn-back-val">
+      <i class="fas fa-arrow-left"></i> Voltar
+    </a>
+  </div>
+
+  <!-- STATS -->
+  <div class="val-stats">
+    <div class="vstat-card grupos">
+      <div class="vstat-icon grupos"><i class="fas fa-check-circle"></i></div>
+      <div class="vstat-info">
+        <div class="vstat-label">Grupos Validados</div>
+        <div class="vstat-val grupos">{{ registos_agrupados|length|intcomma }}</div>
+      </div>
+    </div>
+    <div class="vstat-card entrada">
+      <div class="vstat-icon entrada"><i class="fas fa-arrow-down"></i></div>
+      <div class="vstat-info">
+        <div class="vstat-label">Total Entradas</div>
+        <div class="vstat-val entrada">{% localize on %}{{ totais.total_entradas|default_if_none:0|floatformat:2 }}{% endlocalize %}</div>
+        <div class="vstat-unit">Kz</div>
+      </div>
+    </div>
+    <div class="vstat-card saida">
+      <div class="vstat-icon saida"><i class="fas fa-arrow-up"></i></div>
+      <div class="vstat-info">
+        <div class="vstat-label">Total Saídas</div>
+        <div class="vstat-val saida">{% localize on %}{{ totais.total_saidas|default:0|floatformat:2 }}{% endlocalize %}</div>
+        <div class="vstat-unit">Kz</div>
+      </div>
+    </div>
+    <div class="vstat-card saldo">
+      <div class="vstat-icon saldo"><i class="fas fa-wallet"></i></div>
+      <div class="vstat-info">
+        <div class="vstat-label">Saldo Líquido</div>
+        <div class="vstat-val saldo">{% localize on %}{{ totais.total_saldo|default:0|floatformat:2 }}{% endlocalize %}</div>
+        <div class="vstat-unit">Kz</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <form method="get">
+    <div class="filter-bar">
+      <div class="f-group">
+        <label class="f-label">Sector</label>
+        <select name="sector" id="sector">
+          <option value="">Todos os sectores</option>
+          {% for s in sectores %}
+          <option value="{{ s.id }}" {% if sector_id == s.id|stringformat:"s" %}selected{% endif %}>
+            {{ s.nome }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="f-group">
+        <label class="f-label">Data Início</label>
+        <input type="date" name="data_inicio" value="{{ data_inicio }}">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Data Fim</label>
+        <input type="date" name="data_fim" value="{{ data_fim }}">
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:8px;flex-shrink:0">
+        <button type="submit" class="btn-val btn-filter-val">
+          <i class="fas fa-search"></i> Filtrar
+        </button>
+        <a href="{% url 'relatorios_validados' %}" class="btn-val btn-reset-val" title="Limpar filtros">
+          <i class="fas fa-rotate"></i>
+        </a>
+      </div>
+    </div>
+  </form>
+
+  <!-- GRUPOS -->
+  {% if registos_agrupados %}
+    {% for grupo in registos_agrupados %}
+    <div class="grupo-card">
+
+      <!-- Header do grupo -->
+      <div class="grupo-header">
+        <div class="grupo-header-left">
+          <div class="grupo-sector-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div>
+            <div class="grupo-sector-name">{{ grupo.sector.nome }}</div>
+            <div class="grupo-date">
+              <i class="fas fa-calendar-day"></i>
+              {{ grupo.data|date:"d/m/Y" }}
             </div>
-            
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-12 mb-3">
-                        <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
-                            <div>
-                                <small class="text-muted">Entradas:</small>
-                                {% if grupo.total_entradas is not None %}
-                                    <strong class="ms-2 text-success">{% localize on %}{{ grupo.total_entradas|floatformat:2 }}{% endlocalize %} Kz</strong>
-                                {% else %}
-                                    <strong class="ms-2">{% localize on %}0.00{% endlocalize %} Kz</strong>
-                                {% endif %}
-                            </div>
-                            <div>
-                                <small class="text-muted">Saídas (incl. combustível):</small>
-                                <strong class="ms-2 text-danger">{% localize on %}{{ grupo.total_saidas|default:0|floatformat:2 }}{% endlocalize %} Kz</strong>
-                            </div>
-                            <div>
-                                <small class="text-muted">Saldo:</small>
-                                <strong class="ms-2 text-primary">{% localize on %}{{ grupo.total_saldo|default:0|floatformat:2 }}{% endlocalize %} Kz</strong>
-                            </div>
-                            {# Combustível agregado não exibido aqui por solicitação #}
-                        </div>
-                    </div>
-                    {% for reg in grupo.registos %}
-                    <div class="col-md-6 mb-3">
-                        <div class="card border-success border-2">
-                            <div class="card-header bg-success text-white py-2">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <strong>🚌 {{ reg.autocarro.numero }}</strong>
-                                    <span class="badge bg-light text-success">
-                                        <i class="fas fa-check me-1"></i>Validado
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="row small">
-                                    <div class="col-6"><strong>Entradas:</strong> {% localize on %}{{ reg.entradas_total|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
-                                    <div class="col-6"><strong>Saídas (incl. combustível):</strong> {% localize on %}{{ reg.saidas_total_incl_combustivel|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
-                                    <div class="col-6"><strong>Saldo (incl. combustível):</strong> {% localize on %}{{ reg.saldo_liquido_incl_combustivel|default:0|floatformat:2 }}{% endlocalize %} Kz</div>
-                                    <div class="col-6"><strong>Viagens:</strong> {{ reg.numero_viagens|intcomma }}</div>
-                                    <div class="col-12 mt-2">
-                                        <small class="text-muted">
-                                            👤 {{ reg.motorista|default:"N/A" }} | 
-                                            👥 {{ reg.numero_passageiros|intcomma }} passageiros
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
+          </div>
+        </div>
+        <span class="validated-badge">
+          <i class="fas fa-check-circle"></i> Validado
+        </span>
+      </div>
+
+      <!-- Resumo financeiro do grupo -->
+      <div class="grupo-resumo">
+        <div class="gr-item">
+          <div class="gr-item-label">Entradas</div>
+          <div class="gr-item-val entrada">
+            {% localize on %}{{ grupo.total_entradas|default:0|floatformat:2 }}{% endlocalize %}
+            <small style="font-size:.55em;color:var(--grey)"> Kz</small>
+          </div>
+        </div>
+        <div class="gr-item">
+          <div class="gr-item-label">Saídas incl. Comb.</div>
+          <div class="gr-item-val saida">
+            {% localize on %}{{ grupo.total_saidas|default:0|floatformat:2 }}{% endlocalize %}
+            <small style="font-size:.55em;color:var(--grey)"> Kz</small>
+          </div>
+        </div>
+        <div class="gr-item">
+          <div class="gr-item-label">Saldo</div>
+          <div class="gr-item-val saldo">
+            {% localize on %}{{ grupo.total_saldo|default:0|floatformat:2 }}{% endlocalize %}
+            <small style="font-size:.55em;color:var(--grey)"> Kz</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Autocarros -->
+      <div class="ac-grid">
+        {% for reg in grupo.registos %}
+        <div class="ac-card-v">
+          <div class="ac-card-v-header">
+            <span class="ac-num-v">
+              <i class="fas fa-bus"></i> {{ reg.autocarro.numero }}
+            </span>
+            <span class="ac-validated">
+              <i class="fas fa-check"></i> Validado
+            </span>
+          </div>
+          <div class="ac-card-v-body">
+            <div class="ac-stats-grid">
+              <div class="ac-stat-row">
+                <span class="ac-stat-lbl">Entradas</span>
+                <span class="ac-stat-val green">{% localize on %}{{ reg.entradas_total|default:0|floatformat:2 }}{% endlocalize %} <small style="font-size:.55em;color:var(--grey)">Kz</small></span>
+              </div>
+              <div class="ac-stat-row">
+                <span class="ac-stat-lbl">Saídas incl. Comb.</span>
+                <span class="ac-stat-val red">{% localize on %}{{ reg.saidas_total_incl_combustivel|default:0|floatformat:2 }}{% endlocalize %} <small style="font-size:.55em;color:var(--grey)">Kz</small></span>
+              </div>
+              <div class="ac-stat-row">
+                <span class="ac-stat-lbl">Saldo Líquido</span>
+                <span class="ac-stat-val blue">{% localize on %}{{ reg.saldo_liquido_incl_combustivel|default:0|floatformat:2 }}{% endlocalize %} <small style="font-size:.55em;color:var(--grey)">Kz</small></span>
+              </div>
+              <div class="ac-stat-row">
+                <span class="ac-stat-lbl">Viagens</span>
+                <span class="ac-stat-val gold">{{ reg.numero_viagens|intcomma }}</span>
+              </div>
             </div>
+            <div class="ac-equipa">
+              <i class="fas fa-user"></i>
+              {{ reg.motorista|default:"N/A" }}
+              <span style="margin:0 4px;color:rgba(255,255,255,.15)">|</span>
+              <i class="fas fa-users"></i>
+              {{ reg.numero_passageiros|intcomma }} passageiros
+            </div>
+          </div>
         </div>
         {% endfor %}
-    {% else %}
-        <div class="card shadow-lg">
-            <div class="card-body text-center py-5">
-                <i class="fas fa-check-circle fa-3x text-muted mb-3"></i>
-                <h4 class="text-muted">Nenhum registo validado encontrado</h4>
-                <p class="text-muted">Tente ajustar os filtros de data ou sector.</p>
-            </div>
-        </div>
-    {% endif %}
+      </div>
+
+    </div><!-- grupo-card -->
+    {% endfor %}
+
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-check-circle"></i>
+    <p>Nenhum registo validado encontrado.</p>
+    <small>Tente ajustar os filtros de data ou sector.</small>
+  </div>
+  {% endif %}
+
 </div>
+
+<script>
+(function () {
+  document.querySelectorAll('.val-wrapper select, .val-wrapper input').forEach(function (el) {
+    el.classList.remove('form-select', 'form-control');
+  });
+})();
+</script>
 {% endblock %}
