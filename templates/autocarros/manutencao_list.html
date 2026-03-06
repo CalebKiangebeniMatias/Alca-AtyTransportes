@@ -1,127 +1,427 @@
 {% extends 'base.html' %}
+{% block title %}Manutenções{% endblock %}
+{% block breadcrumb %}Frota › Manutenções{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between mb-4 align-items-center">
-  <h4 class="m-0 fw-semibold text-primary">
-    <i class="bi bi-tools me-2"></i>Manutenções
-  </h4>
-  <a href="{% url 'manutencao_create' %}" class="btn btn-primary shadow-sm px-3">
-    <i class="bi bi-plus-circle me-1"></i> Agendar
-  </a>
-</div>
-
-<form class="row g-3 mb-4" method="get">
-  <div class="col-md-3">
-    <select name="sector" class="form-select shadow-sm">
-      <option value="">Todos setores</option>
-      {% for s in sectores %}
-        <option value="{{ s.id }}" {% if request.GET.sector == s.id|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="col-md-3">
-    <input name="autocarro" class="form-control shadow-sm" placeholder="Número do autocarro" value="{{ request.GET.autocarro }}">
-  </div>
-  <div class="col-md-3">
-    <select name="status" class="form-select shadow-sm">
-      <option value="">Todos status</option>
-      <option value="agendada" {% if request.GET.status == 'agendada' %}selected{% endif %}>Agendada</option>
-      <option value="em_progresso" {% if request.GET.status == 'em_progresso' %}selected{% endif %}>Em Progresso</option>
-      <option value="concluida" {% if request.GET.status == 'concluida' %}selected{% endif %}>Concluída</option>
-      <option value="cancelada" {% if request.GET.status == 'cancelada' %}selected{% endif %}>Cancelada</option>
-    </select>
-  </div>
-  <div class="col-md-3">
-    <button class="btn btn-outline-primary w-100 shadow-sm">
-      <i class="bi bi-funnel me-1"></i> Filtrar
-    </button>
-  </div>
-</form>
-
-<div class="table-responsive shadow-sm rounded">
-  <table class="table table-hover align-middle text-center border rounded overflow-hidden">
-    <thead class="table-light">
-      <tr class="align-middle">
-        <th class="text-nowrap">Data Últ.</th>
-        <th class="text-nowrap text-end">Km Últ.</th>
-        <th class="text-nowrap text-end">Óleo Motor</th>
-        <th class="text-nowrap text-end">Óleo Difer.</th>
-        <th class="text-nowrap text-end">Óleo Câmbio</th>
-        <th class="text-nowrap text-end">Filtro Comb.</th>
-        <th class="text-nowrap text-end">Filtro Óleo</th>
-        <th class="text-nowrap text-end">Filtro Ar</th>
-        <th class="text-nowrap">Autocarro</th>
-        <th class="text-nowrap">Sector</th>
-        <th>Status</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for m in manutencoes %}
-      <tr>
-        <td>{{ m.data_ultima|date:"d/m/Y" }}</td>
-        <td class="text-end fw-semibold">{{ m.km_ultima }}</td>
-        <td class="text-end">{{ m.km_prox_oleo_motor|default:"—" }}</td>
-        <td class="text-end">{{ m.km_prox_oleo_diferencial|default:"—" }}</td>
-        <td class="text-end">{{ m.km_prox_oleo_cambio|default:"—" }}</td>
-        <td class="text-end">{{ m.km_prox_filtro_combustivel|default:"—" }}</td>
-        <td class="text-end">{{ m.km_prox_filtro_oleo|default:"—" }}</td>
-        <td class="text-end">{{ m.km_prox_filtro_ar|default:"—" }}</td>
-        <td>{{ m.autocarro.numero }}</td>
-        <td>{{ m.sector.nome }}</td>
-        <td>
-          {% if m.status == 'agendada' %}
-            <span class="badge bg-warning text-dark px-2 py-1">{{ m.get_status_display }}</span>
-          {% elif m.status == 'em_progresso' %}
-            <span class="badge bg-primary px-2 py-1">{{ m.get_status_display }}</span>
-          {% elif m.status == 'concluida' %}
-            <span class="badge bg-success px-2 py-1">{{ m.get_status_display }}</span>
-          {% else %}
-            <span class="badge bg-danger px-2 py-1">{{ m.get_status_display }}</span>
-          {% endif %}
-        </td>
-        <td>
-          <div class="d-flex justify-content-center gap-2">
-            <a class="btn btn-sm btn-outline-primary" href="{% url 'manutencao_edit' m.pk %}" title="Editar">
-              <i class="bi bi-pencil"></i>
-            </a>
-            <form action="{% url 'manutencao_delete' m.pk %}" method="post" style="display:inline;" onsubmit="return confirm('Confirma eliminar esta manutenção?');">
-              {% csrf_token %}
-              <button class="btn btn-sm btn-outline-danger" type="submit" title="Eliminar">
-                <i class="bi bi-trash"></i>
-              </button>
-            </form>
-          </div>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="12" class="text-center py-4 text-muted">
-          <i class="bi bi-info-circle me-2"></i>Nenhuma manutenção encontrada.
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-
 <style>
-  table th, table td {
-    vertical-align: middle !important;
-  }
-  table th {
-    font-size: 0.9rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-  }
-  table td {
-    font-size: 0.9rem;
-  }
-  .table-hover tbody tr:hover {
-    background-color: #f8f9fa;
-  }
-  .badge {
-    font-size: 0.8rem;
-  }
+/* ════════════════════════════════════════════════════
+   MANUTENÇÕES
+════════════════════════════════════════════════════ */
+
+.man-wrapper {
+  animation: manIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes manIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── HEADER ──────────────────────────────────────── */
+.man-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 24px;
+}
+.man-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem; letter-spacing: 2px; line-height: 1;
+}
+.man-title span { color: var(--accent); }
+.man-subtitle { font-size: .78rem; color: var(--grey); margin-top: 4px; }
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn-man {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 20px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .88rem;
+  letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+  position: relative; overflow: hidden;
+}
+.btn-man::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-man:hover::before { transform: translateX(100%); }
+.btn-man:hover  { transform: translateY(-2px); }
+.btn-man:active { transform: scale(.97); }
+
+.btn-new-man {
+  background: var(--success); color: var(--white);
+  box-shadow: 0 4px 16px rgba(39,174,96,.3);
+}
+.btn-new-man:hover { background: #219150; box-shadow: 0 8px 24px rgba(39,174,96,.4); color: var(--white); }
+
+.btn-filter-man {
+  background: var(--grad-btn); color: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+.btn-filter-man:hover { box-shadow: 0 6px 20px rgba(36,99,163,.4); color: var(--white); }
+
+/* small action buttons */
+.btn-act {
+  width: 30px; height: 30px;
+  border-radius: var(--radius-sm); border: 1px solid;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .72rem; cursor: pointer;
+  background: transparent; text-decoration: none;
+  transition: background var(--ease-fast), transform var(--ease-spring);
+}
+.btn-act:hover { transform: scale(1.12); }
+.btn-act-edit { border-color: rgba(255,213,79,.35); color: #ffd54f; }
+.btn-act-edit:hover { background: rgba(255,213,79,.15); }
+.btn-act-del  { border-color: rgba(231,76,60,.35); color: #ff8a80; background: transparent; }
+.btn-act-del:hover  { background: rgba(231,76,60,.15); }
+
+/* ── FILTER BAR ──────────────────────────────────── */
+.filter-bar {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  padding: 14px 18px;
+  display: flex; flex-wrap: wrap; gap: 12px;
+  align-items: flex-end; margin-bottom: 22px;
+}
+.f-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px; }
+.f-label {
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.4);
+}
+.man-wrapper select,
+.man-wrapper input[type="text"] {
+  width: 100%;
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 9px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .88rem !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+}
+.man-wrapper select:focus,
+.man-wrapper input[type="text"]:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+  background: rgba(4,30,66,.85) !important;
+}
+.man-wrapper select option { background: var(--navy); color: var(--white); }
+.man-wrapper input::placeholder { color: rgba(255,255,255,.25) !important; }
+
+/* ── TABLE CARD ──────────────────────────────────── */
+.table-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(4,30,66,.28);
+}
+.table-card-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 13px 20px;
+  background: linear-gradient(90deg, rgba(36,99,163,.3), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+  flex-wrap: wrap; gap: 8px;
+}
+.table-card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 1rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--white); display: flex; align-items: center; gap: 8px;
+}
+.table-card-title i { color: var(--accent); }
+.table-count { font-size: .75rem; color: var(--grey); }
+
+/* ── TABLE ───────────────────────────────────────── */
+.man-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.man-table {
+  width: 100%; border-collapse: collapse; font-size: .82rem;
+}
+.man-table thead th {
+  background: rgba(4,30,66,.7);
+  color: var(--accent);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .68rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--glass-border);
+  white-space: nowrap; text-align: center;
+}
+.man-table thead th:first-child,
+.man-table thead th:nth-child(9),
+.man-table thead th:nth-child(10) { text-align: left; }
+
+.man-table tbody tr {
+  border-bottom: 1px solid rgba(79,195,247,.06);
+  transition: background var(--ease-fast);
+}
+.man-table tbody tr:hover { background: rgba(36,99,163,.18); }
+.man-table tbody td {
+  padding: 10px 12px;
+  color: rgba(255,255,255,.72);
+  white-space: nowrap;
+  vertical-align: middle;
+  text-align: center;
+}
+.man-table tbody td:first-child,
+.man-table tbody td:nth-child(9),
+.man-table tbody td:nth-child(10) { text-align: left; }
+
+/* cell styles */
+.date-cell {
+  font-size: .75rem; color: var(--grey);
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.date-cell i { color: var(--accent); font-size: .6rem; }
+
+.km-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: .95rem; letter-spacing: .5px; color: var(--white);
+}
+.km-next {
+  font-size: .78rem; font-weight: 700; color: rgba(255,255,255,.6);
+}
+.km-dash { color: rgba(255,255,255,.2); font-size: .8rem; }
+
+.ac-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(79,195,247,.07);
+  border: 1px solid rgba(79,195,247,.14);
+  border-radius: 30px; padding: 2px 10px;
+  font-size: .75rem; font-weight: 600;
+  color: rgba(255,255,255,.7);
+}
+.ac-chip i { color: var(--accent); font-size: .6rem; }
+
+.sec-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,213,79,.06);
+  border: 1px solid rgba(255,213,79,.14);
+  border-radius: 30px; padding: 2px 10px;
+  font-size: .72rem; font-weight: 600;
+  color: rgba(255,213,79,.75);
+}
+
+/* status badges */
+.s-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  border-radius: 30px; padding: 3px 10px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .7rem;
+  letter-spacing: .8px; text-transform: uppercase;
+  white-space: nowrap;
+}
+.s-agendada    { background:rgba(243,156,18,.12); border:1px solid rgba(243,156,18,.3); color:#ffd54f; }
+.s-em_progresso{ background:rgba(79,195,247,.1);  border:1px solid rgba(79,195,247,.25); color:var(--accent); }
+.s-concluida   { background:rgba(39,174,96,.12);  border:1px solid rgba(39,174,96,.3);  color:#69f0ae; }
+.s-cancelada   { background:rgba(231,76,60,.12);  border:1px solid rgba(231,76,60,.28); color:#ff8a80; }
+
+/* empty */
+.table-empty {
+  padding: 52px 20px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  color: rgba(255,255,255,.25);
+}
+.table-empty i { font-size: 2.4rem; opacity: .35; }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 768px) {
+  .man-header { flex-direction: column; align-items: flex-start; }
+  .filter-bar { flex-direction: column; }
+  .f-group { min-width: unset; width: 100%; }
+  .btn-filter-man { width: 100%; justify-content: center; }
+}
 </style>
+
+<div class="man-wrapper">
+
+  <!-- HEADER -->
+  <div class="man-header">
+    <div>
+      <div class="man-title">Gestão de <span>Manutenções</span></div>
+      <div class="man-subtitle">Acompanhe e agende as manutenções da frota</div>
+    </div>
+    <a href="{% url 'manutencao_create' %}" class="btn-man btn-new-man">
+      <i class="fas fa-plus"></i> Agendar Manutenção
+    </a>
+  </div>
+
+  <!-- FILTROS -->
+  <form method="get">
+    <div class="filter-bar">
+      <div class="f-group">
+        <label class="f-label">Sector</label>
+        <select name="sector">
+          <option value="">Todos os sectores</option>
+          {% for s in sectores %}
+            <option value="{{ s.id }}" {% if request.GET.sector == s.id|stringformat:"s" %}selected{% endif %}>
+              {{ s.nome }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="f-group">
+        <label class="f-label">Autocarro</label>
+        <input type="text" name="autocarro"
+               placeholder="Número do autocarro"
+               value="{{ request.GET.autocarro }}">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Estado</label>
+        <select name="status">
+          <option value="">Todos os estados</option>
+          <option value="agendada"      {% if request.GET.status == 'agendada'      %}selected{% endif %}>Agendada</option>
+          <option value="em_progresso"  {% if request.GET.status == 'em_progresso'  %}selected{% endif %}>Em Progresso</option>
+          <option value="concluida"     {% if request.GET.status == 'concluida'     %}selected{% endif %}>Concluída</option>
+          <option value="cancelada"     {% if request.GET.status == 'cancelada'     %}selected{% endif %}>Cancelada</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:flex-end;flex-shrink:0">
+        <button type="submit" class="btn-man btn-filter-man">
+          <i class="fas fa-filter"></i> Filtrar
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- TABLE CARD -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="table-card-title">
+        <i class="fas fa-wrench"></i> Manutenções
+      </div>
+      {% if manutencoes %}
+        <span class="table-count">{{ manutencoes|length }} registo(s)</span>
+      {% endif %}
+    </div>
+
+    <div class="man-table-wrap">
+      {% if manutencoes %}
+      <table class="man-table">
+        <thead>
+          <tr>
+            <th>Data Últ.</th>
+            <th>Km Últ.</th>
+            <th>Óleo Motor</th>
+            <th>Óleo Difer.</th>
+            <th>Óleo Câmbio</th>
+            <th>Filtro Comb.</th>
+            <th>Filtro Óleo</th>
+            <th>Filtro Ar</th>
+            <th>Autocarro</th>
+            <th>Sector</th>
+            <th>Estado</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in manutencoes %}
+          <tr>
+            <td>
+              <span class="date-cell">
+                <i class="fas fa-calendar-day"></i>
+                {{ m.data_ultima|date:"d/m/Y" }}
+              </span>
+            </td>
+            <td><span class="km-val">{{ m.km_ultima }}</span></td>
+            <td>
+              {% if m.km_prox_oleo_motor %}
+                <span class="km-next">{{ m.km_prox_oleo_motor }}</span>
+              {% else %}<span class="km-dash">—</span>{% endif %}
+            </td>
+            <td>
+              {% if m.km_prox_oleo_diferencial %}
+                <span class="km-next">{{ m.km_prox_oleo_diferencial }}</span>
+              {% else %}<span class="km-dash">—</span>{% endif %}
+            </td>
+            <td>
+              {% if m.km_prox_oleo_cambio %}
+                <span class="km-next">{{ m.km_prox_oleo_cambio }}</span>
+              {% else %}<span class="km-dash">—</span>{% endif %}
+            </td>
+            <td>
+              {% if m.km_prox_filtro_combustivel %}
+                <span class="km-next">{{ m.km_prox_filtro_combustivel }}</span>
+              {% else %}<span class="km-dash">—</span>{% endif %}
+            </td>
+            <td>
+              {% if m.km_prox_filtro_oleo %}
+                <span class="km-next">{{ m.km_prox_filtro_oleo }}</span>
+              {% else %}<span class="km-dash">—</span>{% endif %}
+            </td>
+            <td>
+              {% if m.km_prox_filtro_ar %}
+                <span class="km-next">{{ m.km_prox_filtro_ar }}</span>
+              {% else %}<span class="km-dash">—</span>{% endif %}
+            </td>
+            <td>
+              <span class="ac-chip">
+                <i class="fas fa-bus"></i> {{ m.autocarro.numero }}
+              </span>
+            </td>
+            <td>
+              <span class="sec-chip">{{ m.sector.nome }}</span>
+            </td>
+            <td>
+              {% if m.status == 'agendada' %}
+                <span class="s-badge s-agendada"><i class="fas fa-clock" style="font-size:.55rem"></i> {{ m.get_status_display }}</span>
+              {% elif m.status == 'em_progresso' %}
+                <span class="s-badge s-em_progresso"><i class="fas fa-spinner" style="font-size:.55rem"></i> {{ m.get_status_display }}</span>
+              {% elif m.status == 'concluida' %}
+                <span class="s-badge s-concluida"><i class="fas fa-check" style="font-size:.55rem"></i> {{ m.get_status_display }}</span>
+              {% else %}
+                <span class="s-badge s-cancelada"><i class="fas fa-xmark" style="font-size:.55rem"></i> {{ m.get_status_display }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <div style="display:flex;gap:6px;justify-content:center">
+                <a href="{% url 'manutencao_edit' m.pk %}"
+                   class="btn-act btn-act-edit" title="Editar">
+                  <i class="fas fa-pen"></i>
+                </a>
+                <form action="{% url 'manutencao_delete' m.pk %}" method="post"
+                      style="display:inline"
+                      onsubmit="return confirm('Confirma eliminar esta manutenção?')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-act btn-act-del" title="Eliminar">
+                    <i class="fas fa-trash-can"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% else %}
+      <div class="table-empty">
+        <i class="fas fa-wrench"></i>
+        <span>Nenhuma manutenção encontrada.</span>
+        <small>Tente ajustar os filtros ou agende uma nova manutenção.</small>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  document.querySelectorAll('.man-wrapper select, .man-wrapper input').forEach(function (el) {
+    el.classList.remove('form-select', 'form-control', 'shadow-sm');
+  });
+})();
+</script>
 {% endblock %}
