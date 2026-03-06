@@ -1,422 +1,710 @@
 {% extends "base.html" %}
 {% load l10n humanize %}
 
-{% block title %}Resumo - {{ sector|title }}{% endblock %}
+{% block title %}Resumo — {{ sector|title }}{% endblock %}
+{% block breadcrumb %}Sectores › {{ sector|title }}{% endblock %}
 
 {% block content %}
-
-<div class="container">
-
-<h2 class="mb-4">
-<i class="fas fa-map-marker-alt"></i>
-Resumo do Sector: {{ sector|title }}
-</h2>
-
-
-<!-- FILTRO -->
-<form method="get" class="row g-3 mb-4">
-
-<div class="col-md-4">
-<label class="form-label">Data Início</label>
-<input type="date" name="data_inicio" value="{{ data_inicio }}" class="form-control">
-</div>
-
-<div class="col-md-4">
-<label class="form-label">Data Fim</label>
-<input type="date" name="data_fim" value="{{ data_fim }}" class="form-control">
-</div>
-
-<div class="col-md-4 d-flex align-items-end">
-<button class="btn btn-primary w-100">
-<i class="fas fa-filter"></i>
-Filtrar
-</button>
-</div>
-
-</form>
-
-
-<!-- DASHBOARD FINANCEIRO -->
-<div class="row text-center mb-4">
-
-<div class="col-md-3">
-<div class="card shadow-sm border-success bg-azul-forte">
-<div class="card-body">
-<h6><i class="fas fa-arrow-down"></i> Entradas</h6>
-<p class="fs-4 fw-bold text-success">
-{% localize on %}{{ total_entradas|default:0|floatformat:2 }}{% endlocalize %} Kz
-</p>
-</div>
-</div>
-</div>
-
-<div class="col-md-3">
-<div class="card shadow-sm border-danger bg-azul-forte">
-<div class="card-body">
-<h6><i class="fas fa-arrow-up"></i> Saídas</h6>
-<p class="fs-4 fw-bold text-danger">
-{% localize on %}{{ total_saidas|default:0|floatformat:2 }}{% endlocalize %} Kz
-</p>
-</div>
-</div>
-</div>
-
-<div class="col-md-3">
-<div class="card shadow-sm border-warning bg-azul-forte">
-<div class="card-body">
-<h6><i class="fas fa-wallet"></i> Saldo</h6>
-<p class="fs-4 fw-bold text-warning">
-{% localize on %}{{ resto|default:0|floatformat:2 }}{% endlocalize %} Kz
-</p>
-</div>
-</div>
-</div>
-
-<div class="col-md-3">
-<div class="card shadow-sm border-info bg-azul-forte">
-<div class="card-body">
-<h6><i class="fas fa-road"></i> KM</h6>
-<p class="fs-4 fw-bold">
-{{ total_km|default:0|intcomma }} km
-</p>
-</div>
-</div>
-</div>
-
-</div>
-
-
-<!-- ESTATÍSTICAS OPERACIONAIS -->
-
-<h4 class="mt-4">Estatísticas Operacionais</h4>
-
-<div class="row text-center mb-4">
-
-<div class="col-md-4">
-<div class="card shadow-sm bg-azul-forte">
-<div class="card-body">
-<h6><i class="fas fa-users"></i> Passageiros</h6>
-<p class="fs-4 fw-bold">
-{{ total_passageiros|default:0|intcomma }}
-</p>
-</div>
-</div>
-</div>
-
-<div class="col-md-4">
-<div class="card shadow-sm bg-azul-forte">
-<div class="card-body">
-<h6><i class="fas fa-route"></i> Viagens</h6>
-<p class="fs-4 fw-bold">
-{{ total_viagens|default:0|intcomma }}
-</p>
-</div>
-</div>
-</div>
-
-</div>
-
-
-
-<!-- DESPESAS DETALHADAS -->
-
-<h4 class="mt-4">Despesas Detalhadas</h4>
-
-<div class="row text-center mb-4">
-
-<div class="col-md-3">
-<div class="card shadow-sm border-warning bg-azul-forte">
-<div class="card-body">
-<h6><i class="fas fa-utensils"></i> Alimentação</h6>
-<p class="fw-bold text-warning">
-{{ total_alimentacao|default:0|floatformat:2 }} Kz
-</p>
-</div>
-</div>
-</div>
-
-
-<div class="col-md-3">
-<div class="card shadow-sm border-info bg-azul-forte">
-<div class="card-body">
-<h6><i class="fas fa-parking"></i> Parqueamento</h6>
-<p class="fw-bold text-info">
-{{ total_parqueamento|default:0|floatformat:2 }} Kz
-</p>
-</div>
-</div>
-</div>
-
-
-<div class="col-md-3">
-<div class="card shadow-sm border-secondary bg-azul-forte">
-<div class="card-body">
-<h6><i class="fas fa-ellipsis-h"></i> Outros</h6>
-<p class="fw-bold">
-{{ total_outros|default:0|floatformat:2 }} Kz
-</p>
-</div>
-</div>
-</div>
-
-
-<div class="col-md-3">
-<div class="card shadow-sm border-primary bg-azul-forte">
-<div class="card-body">
-<h6><i class="fas fa-taxi"></i> Táxis</h6>
-<p class="fw-bold text-primary">
-{{ total_taxis|default:0|floatformat:2 }} Kz
-</p>
-</div>
-</div>
-</div>
-
-</div>
-
-
-<!-- COMBUSTÍVEL -->
-
-<h4 class="mt-4">Custos de Combustível</h4>
-
-<div class="row text-center mb-4">
-
-<div class="col-md-4">
-<div class="card shadow-sm border-danger bg-azul-forte">
-<div class="card-body">
-<h6><i class="fas fa-gas-pump"></i> Combustível</h6>
-<p class="fw-bold text-danger">
-{{ total_combustivel_valor|default:0|floatformat:2 }} Kz
-</p>
-</div>
-</div>
-</div>
-
-
-<div class="col-md-4">
-<div class="card shadow-sm border-warning bg-azul-forte">
-<div class="card-body">
-<h6><i class="fas fa-filter"></i> Sopragem</h6>
-<p class="fw-bold text-warning">
-{{ total_combustivel_sobragem|default:0|floatformat:2 }} Kz
-</p>
-</div>
-</div>
-</div>
-
-
-<div class="col-md-4">
-<div class="card shadow-sm border-info bg-azul-forte">
-<div class="card-body">
-<h6><i class="fas fa-bucket"></i> Lavagem</h6>
-<p class="fw-bold text-info">
-{{ total_combustivel_lavagem|default:0|floatformat:2 }} Kz
-</p>
-</div>
-</div>
-</div>
-
-</div>
-
-
-
-<!-- DESPESAS GERAIS -->
-
-<h4 class="mt-4">Despesas Gerais</h4>
-
-<div class="row text-center mb-4">
-
-<div class="col-md-4">
-<div class="card shadow-sm border-warning bg-azul-forte">
-<div class="card-body">
-<h6>Total Despesas Sector</h6>
-<p class="fw-bold text-warning">
-{{ total_despesas_sector|default:0|floatformat:2 }} Kz
-</p>
-</div>
-</div>
-</div>
-
-<div class="col-md-4">
-<div class="card shadow-sm border-info bg-azul-forte">
-<div class="card-body">
-<h6>Despesas Fixas</h6>
-<p class="fw-bold text-info">
-{{ total_despesas_fixas|default:0|floatformat:2 }} Kz
-</p>
-</div>
-</div>
-</div>
-
-<div class="col-md-4">
-<div class="card shadow-sm border-danger bg-azul-forte">
-<div class="card-body">
-<h6>Despesa Geral Total</h6>
-<p class="fw-bold text-danger">
-{{ despesa_geral_total|default:0|floatformat:2 }} Kz
-</p>
-</div>
-</div>
-</div>
-
-</div>
-
-
-
-<!-- ESTALEIRO -->
-
-<h4 class="mt-4">Custos do Estaleiro</h4>
-
-<div class="row text-center mb-4">
-
-<div class="col-md-4">
-<div class="card shadow-sm bg-azul-forte">
-<div class="card-body">
-<h6>Alimentação Estaleiro</h6>
-<p class="fw-bold">
-{{ alimentacao_estaleiro_total|default:0|floatformat:2 }} Kz
-</p>
-</div>
-</div>
-</div>
-
-</div>
-
-
-
-<!-- WHATSAPP -->
-
-<div class="card shadow-sm mt-5 bg-azul-forte">
-
-<div class="card-body">
-
-<h5>
-<i class="fab fa-whatsapp text-success"></i>
-Enviar resumo por WhatsApp
-</h5>
-
-<textarea id="wa_message" class="form-control mb-3" rows="6">
-{{ whatsapp_message }}
-</textarea>
-
-<a id="wa_send"
-href="{{ whatsapp_link }}"
-target="_blank"
-class="btn btn-success">
-
-<i class="fab fa-whatsapp"></i>
-Abrir WhatsApp
-
-</a>
-
-<button id="wa_copy"
-class="btn btn-outline-secondary">
-
-Copiar mensagem
-
-</button>
-
-</div>
-
-</div>
-
-
-
-<!-- AUTOCARROS -->
-
-<h4 class="mt-5">Resumo por Autocarro</h4>
-
-<div class="row mt-3">
-
-{% for stats in autocarros_stats %}
-
-<div class="col-md-4 mb-3">
-
-<div class="card shadow-sm bg-azul-forte">
-
-<div class="card-body text-center">
-
-<i class="fas fa-bus fa-2x text-primary mb-2"></i>
-
-<h5>{{ stats.autocarro.numero }}</h5>
-
-<p class="text-muted">{{ stats.autocarro.modelo }}</p>
-
-<p>
-Entradas:
-<strong>
-{{ stats.total_entradas|floatformat:2 }}
-</strong>
-</p>
-
-<p class="text-danger">
-Saídas:
-<strong>
-{{ stats.total_saidas|floatformat:2 }}
-</strong>
-</p>
-
-<p class="fw-bold">
-Saldo:
-{{ stats.resto|floatformat:2 }}
-</p>
-
-<p>
-KM: {{ stats.total_km|intcomma }}
-</p>
-
-<p>
-Passageiros: {{ stats.total_passageiros|intcomma }}
-</p>
-
-<p>
-Viagens: {{ stats.total_viagens|intcomma }}
-</p>
-
-</div>
-
-</div>
-
-</div>
-
-{% empty %}
-
-<div class="col-12 text-center">
-
-<p class="text-muted">
-Nenhum registo encontrado
-</p>
-
-</div>
-
-{% endfor %}
-
-</div>
-
-</div>
-
+<style>
+/* ════════════════════════════════════════════════════
+   RESUMO DO SECTOR
+════════════════════════════════════════════════════ */
+
+.rs-wrapper {
+  animation: rsIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes rsIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── HEADER ──────────────────────────────────────── */
+.rs-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 24px;
+}
+.rs-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem; letter-spacing: 2px; line-height: 1;
+}
+.rs-title span { color: var(--accent); }
+.rs-subtitle { font-size: .78rem; color: var(--grey); margin-top: 4px; }
+
+.sector-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.22);
+  border-radius: 30px; padding: 6px 16px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .9rem; letter-spacing: 1.5px;
+  color: var(--accent);
+}
+
+/* ── FILTER BAR ──────────────────────────────────── */
+.filter-bar {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  padding: 14px 18px;
+  display: flex; flex-wrap: wrap; gap: 12px;
+  align-items: flex-end; margin-bottom: 26px;
+}
+.f-group { display:flex; flex-direction:column; gap:5px; flex:1; min-width:150px; }
+.f-label {
+  font-size:.68rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1px;
+  color:rgba(255,255,255,.4);
+}
+.rs-wrapper input[type="date"],
+.rs-wrapper select,
+.rs-wrapper textarea {
+  background:rgba(4,30,66,.55) !important;
+  border:1px solid var(--glass-border) !important;
+  border-radius:var(--radius-md) !important;
+  color:var(--white) !important;
+  padding:9px 13px !important;
+  font-family:'Barlow',sans-serif !important;
+  font-size:.88rem !important;
+  outline:none !important;
+  -webkit-appearance:none; width:100%;
+  transition:border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+}
+.rs-wrapper input[type="date"]:focus,
+.rs-wrapper textarea:focus {
+  border-color:var(--accent) !important;
+  box-shadow:0 0 0 3px rgba(79,195,247,.15) !important;
+  background:rgba(4,30,66,.85) !important;
+}
+.rs-wrapper input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(.7); }
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn-rs {
+  display:inline-flex; align-items:center; gap:7px;
+  padding:9px 20px;
+  border:none; border-radius:var(--radius-md);
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700; font-size:.88rem;
+  letter-spacing:1px; text-transform:uppercase;
+  cursor:pointer; text-decoration:none; white-space:nowrap;
+  transition:transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+}
+.btn-rs:hover  { transform:translateY(-2px); }
+.btn-rs:active { transform:scale(.97); }
+.btn-primary-rs { background:var(--grad-btn); color:var(--white); box-shadow:var(--shadow-sm); }
+.btn-primary-rs:hover { box-shadow:0 6px 20px rgba(36,99,163,.4); color:var(--white); }
+
+/* ── SECTION DIVIDER ─────────────────────────────── */
+.sec-divider {
+  display:flex; align-items:center; gap:12px;
+  margin: 26px 0 16px;
+}
+.sec-divider-line {
+  flex:1; height:1px;
+  background:linear-gradient(90deg,transparent,var(--glass-border),transparent);
+}
+.sec-divider-label {
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700; font-size:.75rem;
+  letter-spacing:2px; text-transform:uppercase;
+  color:var(--grey);
+  display:flex; align-items:center; gap:7px; white-space:nowrap;
+}
+.sec-divider-label i { color:var(--accent); }
+
+/* ── STATS GRIDS ─────────────────────────────────── */
+.stats-grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.stats-grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.stats-grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+.stats-grid-1 { display:grid; grid-template-columns:1fr; gap:12px; }
+
+.scard {
+  background:rgba(13,43,94,.42);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius-lg);
+  backdrop-filter:blur(12px);
+  padding:16px 18px;
+  display:flex; align-items:center; gap:13px;
+  position:relative; overflow:hidden;
+  transition:transform var(--ease-spring), border-color var(--ease-fast), box-shadow var(--ease-base);
+}
+.scard::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px; opacity:.7;
+}
+.scard:hover { transform:translateY(-3px); border-color:rgba(79,195,247,.25); box-shadow:var(--shadow-md); }
+
+/* accent colors */
+.scard.green::before  { background:linear-gradient(90deg,transparent,#69f0ae,transparent); }
+.scard.red::before    { background:linear-gradient(90deg,transparent,#ff8a80,transparent); }
+.scard.yellow::before { background:linear-gradient(90deg,transparent,#ffd54f,transparent); }
+.scard.blue::before   { background:linear-gradient(90deg,transparent,var(--accent),transparent); }
+.scard.orange::before { background:linear-gradient(90deg,transparent,#ffab40,transparent); }
+.scard.purple::before { background:linear-gradient(90deg,transparent,#ce93d8,transparent); }
+.scard.teal::before   { background:linear-gradient(90deg,transparent,#80cbc4,transparent); }
+.scard.grey::before   { background:linear-gradient(90deg,transparent,var(--grey),transparent); }
+
+.sc-icon {
+  width:42px; height:42px; flex-shrink:0;
+  border-radius:var(--radius-md);
+  display:flex; align-items:center; justify-content:center; font-size:.95rem;
+}
+.sc-icon.green  { background:rgba(39,174,96,.15);  color:#69f0ae; }
+.sc-icon.red    { background:rgba(231,76,60,.15);  color:#ff8a80; }
+.sc-icon.yellow { background:rgba(243,156,18,.15); color:#ffd54f; }
+.sc-icon.blue   { background:rgba(79,195,247,.12); color:var(--accent); }
+.sc-icon.orange { background:rgba(255,171,64,.15); color:#ffab40; }
+.sc-icon.purple { background:rgba(206,147,216,.12);color:#ce93d8; }
+.sc-icon.teal   { background:rgba(128,203,196,.12);color:#80cbc4; }
+.sc-icon.grey   { background:rgba(141,163,196,.12);color:var(--grey); }
+
+.sc-info { flex:1; min-width:0; }
+.sc-label {
+  font-size:.66rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1.2px;
+  color:var(--grey); margin-bottom:4px;
+}
+.sc-val {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.2rem; letter-spacing:1px; line-height:1;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.sc-val.green  { color:#69f0ae; }
+.sc-val.red    { color:#ff8a80; }
+.sc-val.yellow { color:#ffd54f; }
+.sc-val.blue   { color:var(--accent); }
+.sc-val.orange { color:#ffab40; }
+.sc-val.purple { color:#ce93d8; }
+.sc-val.teal   { color:#80cbc4; }
+.sc-val.white  { color:var(--white); }
+.sc-unit { font-size:.6rem; color:var(--grey); }
+
+/* ── WHATSAPP CARD ───────────────────────────────── */
+.wa-card {
+  background:rgba(13,43,94,.42);
+  border:1px solid rgba(37,211,102,.18);
+  border-radius:var(--radius-lg);
+  backdrop-filter:blur(14px);
+  overflow:hidden;
+  position:relative;
+}
+.wa-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,transparent,#25d366,transparent);
+}
+.wa-header {
+  display:flex; align-items:center; gap:12px;
+  padding:14px 20px;
+  background:linear-gradient(90deg,rgba(37,211,102,.12),rgba(4,30,66,.1));
+  border-bottom:1px solid rgba(37,211,102,.12);
+}
+.wa-icon {
+  width:38px; height:38px; flex-shrink:0;
+  background:rgba(37,211,102,.1);
+  border:1px solid rgba(37,211,102,.2);
+  border-radius:var(--radius-sm);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.1rem; color:#25d366;
+}
+.wa-title {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.15rem; letter-spacing:2px; color:var(--white);
+}
+.wa-sub { font-size:.7rem; color:var(--grey); margin-top:2px; }
+
+.wa-body { padding:16px 20px; }
+.wa-textarea {
+  width:100% !important;
+  min-height:130px !important;
+  resize:vertical !important;
+  background:rgba(4,30,66,.55) !important;
+  border:1px solid rgba(37,211,102,.2) !important;
+  border-radius:var(--radius-md) !important;
+  color:var(--white) !important;
+  padding:12px 14px !important;
+  font-family:'Barlow',sans-serif !important;
+  font-size:.85rem !important;
+  line-height:1.6 !important;
+  outline:none !important;
+  margin-bottom:12px;
+  transition:border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+}
+.wa-textarea:focus {
+  border-color:#25d366 !important;
+  box-shadow:0 0 0 3px rgba(37,211,102,.12) !important;
+}
+
+.wa-footer {
+  display:flex; gap:10px; flex-wrap:wrap;
+}
+.btn-wa-send {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:11px 24px;
+  background:linear-gradient(135deg,#25d366,#128c7e);
+  border:none; border-radius:var(--radius-md);
+  color:var(--white);
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1rem; letter-spacing:2px; cursor:pointer;
+  text-decoration:none;
+  box-shadow:0 4px 16px rgba(37,211,102,.25);
+  transition:transform var(--ease-spring), box-shadow var(--ease-base);
+  position:relative; overflow:hidden;
+}
+.btn-wa-send::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);
+  transform:translateX(-100%); transition:transform .5s ease;
+}
+.btn-wa-send:hover::before { transform:translateX(100%); }
+.btn-wa-send:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(37,211,102,.35); color:var(--white); }
+.btn-wa-send:active { transform:scale(.97); }
+
+.btn-wa-copy {
+  display:inline-flex; align-items:center; gap:7px;
+  padding:11px 20px;
+  background:transparent;
+  border:1px solid rgba(37,211,102,.25) !important;
+  border-radius:var(--radius-md);
+  color:rgba(37,211,102,.7);
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700; font-size:.85rem;
+  letter-spacing:1px; text-transform:uppercase; cursor:pointer;
+  transition:background var(--ease-fast), color var(--ease-fast), border-color var(--ease-fast);
+}
+.btn-wa-copy:hover { background:rgba(37,211,102,.1); color:#25d366; border-color:rgba(37,211,102,.4) !important; }
+.btn-wa-copy.copied { color:#25d366; border-color:rgba(37,211,102,.5) !important; }
+
+/* ── AUTOCARROS GRID ─────────────────────────────── */
+.autocarros-grid-rs {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:14px; margin-bottom:8px;
+}
+.ac-card-rs {
+  background:rgba(13,43,94,.42);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius-lg);
+  backdrop-filter:blur(12px);
+  overflow:hidden;
+  transition:transform var(--ease-spring), border-color var(--ease-fast);
+}
+.ac-card-rs:hover { transform:translateY(-3px); border-color:rgba(79,195,247,.25); }
+
+.ac-rs-header {
+  display:flex; align-items:center; gap:10px;
+  padding:12px 15px;
+  background:linear-gradient(90deg,rgba(36,99,163,.25),rgba(4,30,66,.1));
+  border-bottom:1px solid var(--glass-border);
+}
+.ac-rs-icon {
+  width:34px; height:34px; flex-shrink:0;
+  background:rgba(79,195,247,.1);
+  border:1px solid rgba(79,195,247,.15);
+  border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.85rem; color:var(--accent);
+}
+.ac-rs-num {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.1rem; letter-spacing:2px; color:var(--white); line-height:1;
+}
+.ac-rs-modelo { font-size:.65rem; color:var(--grey); margin-top:1px; }
+
+.ac-rs-body { padding:12px 15px; }
+.ac-rs-rows { display:flex; flex-direction:column; gap:7px; }
+.ac-rs-row {
+  display:flex; justify-content:space-between; align-items:center;
+  font-size:.76rem;
+  padding:5px 0;
+  border-bottom:1px solid rgba(79,195,247,.04);
+}
+.ac-rs-row:last-child { border-bottom:none; }
+.ac-rs-row .lbl { color:rgba(255,255,255,.45); display:flex; align-items:center; gap:5px; }
+.ac-rs-row .lbl i { font-size:.6rem; }
+.val-g { color:#69f0ae; font-weight:700; }
+.val-r { color:#ff8a80; font-weight:700; }
+.val-b { color:var(--accent); font-weight:700; }
+.val-w { color:rgba(255,255,255,.75); font-weight:700; }
+
+/* empty */
+.empty-rs {
+  padding:40px 20px; text-align:center;
+  background:rgba(13,43,94,.3);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius-lg);
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  color:rgba(255,255,255,.25);
+}
+.empty-rs i { font-size:2rem; opacity:.3; }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width:1024px) {
+  .stats-grid-4 { grid-template-columns:repeat(2,1fr); }
+  .autocarros-grid-rs { grid-template-columns:repeat(2,1fr); }
+}
+@media (max-width:768px) {
+  .stats-grid-3 { grid-template-columns:repeat(2,1fr); }
+  .stats-grid-4 { grid-template-columns:repeat(2,1fr); }
+  .filter-bar { flex-direction:column; }
+  .f-group { min-width:unset; width:100%; }
+  .rs-header { flex-direction:column; align-items:flex-start; }
+  .wa-footer { flex-direction:column; }
+  .btn-wa-send,.btn-wa-copy { width:100%; justify-content:center; }
+}
+@media (max-width:560px) {
+  .stats-grid-2,.stats-grid-3,.stats-grid-4 { grid-template-columns:1fr; }
+  .autocarros-grid-rs { grid-template-columns:1fr; }
+}
+</style>
+
+<div class="rs-wrapper">
+
+  <!-- HEADER -->
+  <div class="rs-header">
+    <div>
+      <div class="rs-title">Resumo do <span>Sector</span></div>
+      <div class="rs-subtitle">Análise detalhada de produção, despesas e operações</div>
+    </div>
+    <span class="sector-pill">
+      <i class="fas fa-map-marker-alt"></i> {{ sector|title }}
+    </span>
+  </div>
+
+  <!-- FILTRO -->
+  <form method="get">
+    <div class="filter-bar">
+      <div class="f-group">
+        <label class="f-label">Data Início</label>
+        <input type="date" name="data_inicio" value="{{ data_inicio }}">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Data Fim</label>
+        <input type="date" name="data_fim" value="{{ data_fim }}">
+      </div>
+      <div style="display:flex;align-items:flex-end;flex-shrink:0">
+        <button type="submit" class="btn-rs btn-primary-rs">
+          <i class="fas fa-filter"></i> Filtrar
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- ── FINANCEIRO ── -->
+  <div class="sec-divider">
+    <div class="sec-divider-line"></div>
+    <div class="sec-divider-label"><i class="fas fa-chart-line"></i> Dashboard Financeiro</div>
+    <div class="sec-divider-line"></div>
+  </div>
+
+  <div class="stats-grid-4">
+    <div class="scard green">
+      <div class="sc-icon green"><i class="fas fa-arrow-down"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Entradas</div>
+        <div class="sc-val green">{% localize on %}{{ total_entradas|default:0|floatformat:2 }}{% endlocalize %}</div>
+        <div class="sc-unit">Kz</div>
+      </div>
+    </div>
+    <div class="scard red">
+      <div class="sc-icon red"><i class="fas fa-arrow-up"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Saídas</div>
+        <div class="sc-val red">{% localize on %}{{ total_saidas|default:0|floatformat:2 }}{% endlocalize %}</div>
+        <div class="sc-unit">Kz</div>
+      </div>
+    </div>
+    <div class="scard yellow">
+      <div class="sc-icon yellow"><i class="fas fa-wallet"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Saldo</div>
+        <div class="sc-val yellow">{% localize on %}{{ resto|default:0|floatformat:2 }}{% endlocalize %}</div>
+        <div class="sc-unit">Kz</div>
+      </div>
+    </div>
+    <div class="scard blue">
+      <div class="sc-icon blue"><i class="fas fa-road"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Quilómetros</div>
+        <div class="sc-val blue">{{ total_km|default:0|intcomma }}</div>
+        <div class="sc-unit">km</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── OPERACIONAL ── -->
+  <div class="sec-divider">
+    <div class="sec-divider-line"></div>
+    <div class="sec-divider-label"><i class="fas fa-bus"></i> Estatísticas Operacionais</div>
+    <div class="sec-divider-line"></div>
+  </div>
+
+  <div class="stats-grid-2">
+    <div class="scard blue">
+      <div class="sc-icon blue"><i class="fas fa-users"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Total Passageiros</div>
+        <div class="sc-val blue">{{ total_passageiros|default:0|intcomma }}</div>
+      </div>
+    </div>
+    <div class="scard teal">
+      <div class="sc-icon teal"><i class="fas fa-route"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Total Viagens</div>
+        <div class="sc-val teal">{{ total_viagens|default:0|intcomma }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DESPESAS DETALHADAS ── -->
+  <div class="sec-divider">
+    <div class="sec-divider-line"></div>
+    <div class="sec-divider-label"><i class="fas fa-receipt"></i> Despesas Detalhadas</div>
+    <div class="sec-divider-line"></div>
+  </div>
+
+  <div class="stats-grid-4">
+    <div class="scard yellow">
+      <div class="sc-icon yellow"><i class="fas fa-utensils"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Alimentação</div>
+        <div class="sc-val yellow">{{ total_alimentacao|default:0|floatformat:2 }}</div>
+        <div class="sc-unit">Kz</div>
+      </div>
+    </div>
+    <div class="scard blue">
+      <div class="sc-icon blue"><i class="fas fa-parking"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Parqueamento</div>
+        <div class="sc-val blue">{{ total_parqueamento|default:0|floatformat:2 }}</div>
+        <div class="sc-unit">Kz</div>
+      </div>
+    </div>
+    <div class="scard grey">
+      <div class="sc-icon grey"><i class="fas fa-ellipsis-h"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Outros</div>
+        <div class="sc-val white">{{ total_outros|default:0|floatformat:2 }}</div>
+        <div class="sc-unit">Kz</div>
+      </div>
+    </div>
+    <div class="scard orange">
+      <div class="sc-icon orange"><i class="fas fa-taxi"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Táxis</div>
+        <div class="sc-val orange">{{ total_taxis|default:0|floatformat:2 }}</div>
+        <div class="sc-unit">Kz</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COMBUSTÍVEL ── -->
+  <div class="sec-divider">
+    <div class="sec-divider-line"></div>
+    <div class="sec-divider-label"><i class="fas fa-gas-pump"></i> Custos de Combustível</div>
+    <div class="sec-divider-line"></div>
+  </div>
+
+  <div class="stats-grid-3">
+    <div class="scard red">
+      <div class="sc-icon red"><i class="fas fa-gas-pump"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Combustível</div>
+        <div class="sc-val red">{{ total_combustivel_valor|default:0|floatformat:2 }}</div>
+        <div class="sc-unit">Kz</div>
+      </div>
+    </div>
+    <div class="scard yellow">
+      <div class="sc-icon yellow"><i class="fas fa-filter"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Sopragem</div>
+        <div class="sc-val yellow">{{ total_combustivel_sobragem|default:0|floatformat:2 }}</div>
+        <div class="sc-unit">Kz</div>
+      </div>
+    </div>
+    <div class="scard teal">
+      <div class="sc-icon teal"><i class="fas fa-bucket"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Lavagem</div>
+        <div class="sc-val teal">{{ total_combustivel_lavagem|default:0|floatformat:2 }}</div>
+        <div class="sc-unit">Kz</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DESPESAS GERAIS ── -->
+  <div class="sec-divider">
+    <div class="sec-divider-line"></div>
+    <div class="sec-divider-label"><i class="fas fa-file-invoice-dollar"></i> Despesas Gerais</div>
+    <div class="sec-divider-line"></div>
+  </div>
+
+  <div class="stats-grid-3">
+    <div class="scard yellow">
+      <div class="sc-icon yellow"><i class="fas fa-building"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Total Despesas Sector</div>
+        <div class="sc-val yellow">{{ total_despesas_sector|default:0|floatformat:2 }}</div>
+        <div class="sc-unit">Kz</div>
+      </div>
+    </div>
+    <div class="scard blue">
+      <div class="sc-icon blue"><i class="fas fa-layer-group"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Despesas Fixas</div>
+        <div class="sc-val blue">{{ total_despesas_fixas|default:0|floatformat:2 }}</div>
+        <div class="sc-unit">Kz</div>
+      </div>
+    </div>
+    <div class="scard red">
+      <div class="sc-icon red"><i class="fas fa-coins"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Despesa Geral Total</div>
+        <div class="sc-val red">{{ despesa_geral_total|default:0|floatformat:2 }}</div>
+        <div class="sc-unit">Kz</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ESTALEIRO ── -->
+  <div class="sec-divider">
+    <div class="sec-divider-line"></div>
+    <div class="sec-divider-label"><i class="fas fa-warehouse"></i> Estaleiro</div>
+    <div class="sec-divider-line"></div>
+  </div>
+
+  <div class="stats-grid-1" style="max-width:320px">
+    <div class="scard orange">
+      <div class="sc-icon orange"><i class="fas fa-utensils"></i></div>
+      <div class="sc-info">
+        <div class="sc-label">Alimentação Estaleiro</div>
+        <div class="sc-val orange">{{ alimentacao_estaleiro_total|default:0|floatformat:2 }}</div>
+        <div class="sc-unit">Kz</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── WHATSAPP ── -->
+  <div class="sec-divider">
+    <div class="sec-divider-line"></div>
+    <div class="sec-divider-label"><i class="fab fa-whatsapp"></i> Partilhar Resumo</div>
+    <div class="sec-divider-line"></div>
+  </div>
+
+  <div class="wa-card">
+    <div class="wa-header">
+      <div class="wa-icon"><i class="fab fa-whatsapp"></i></div>
+      <div>
+        <div class="wa-title">Enviar por WhatsApp</div>
+        <div class="wa-sub">Edite a mensagem e envie diretamente</div>
+      </div>
+    </div>
+    <div class="wa-body">
+      <textarea id="wa_message" class="wa-textarea">{{ whatsapp_message }}</textarea>
+      <div class="wa-footer">
+        <a id="wa_send" href="{{ whatsapp_link }}" target="_blank" class="btn-wa-send">
+          <i class="fab fa-whatsapp"></i> Abrir WhatsApp
+        </a>
+        <button id="wa_copy" type="button" class="btn-wa-copy">
+          <i class="fas fa-copy"></i> <span id="copyLabel">Copiar mensagem</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── AUTOCARROS ── -->
+  <div class="sec-divider">
+    <div class="sec-divider-line"></div>
+    <div class="sec-divider-label"><i class="fas fa-bus"></i> Resumo por Autocarro</div>
+    <div class="sec-divider-line"></div>
+  </div>
+
+  {% if autocarros_stats %}
+  <div class="autocarros-grid-rs">
+    {% for stats in autocarros_stats %}
+    <div class="ac-card-rs">
+      <div class="ac-rs-header">
+        <div class="ac-rs-icon"><i class="fas fa-bus"></i></div>
+        <div>
+          <div class="ac-rs-num">{{ stats.autocarro.numero }}</div>
+          <div class="ac-rs-modelo">{{ stats.autocarro.modelo }}</div>
+        </div>
+      </div>
+      <div class="ac-rs-body">
+        <div class="ac-rs-rows">
+          <div class="ac-rs-row">
+            <span class="lbl"><i class="fas fa-arrow-down" style="color:#69f0ae"></i> Entradas</span>
+            <span class="val-g">{{ stats.total_entradas|floatformat:2 }} Kz</span>
+          </div>
+          <div class="ac-rs-row">
+            <span class="lbl"><i class="fas fa-arrow-up" style="color:#ff8a80"></i> Saídas</span>
+            <span class="val-r">{{ stats.total_saidas|floatformat:2 }} Kz</span>
+          </div>
+          <div class="ac-rs-row">
+            <span class="lbl"><i class="fas fa-wallet" style="color:var(--accent)"></i> Saldo</span>
+            <span class="{% if stats.resto >= 0 %}val-g{% else %}val-r{% endif %}">{{ stats.resto|floatformat:2 }} Kz</span>
+          </div>
+          <div class="ac-rs-row">
+            <span class="lbl"><i class="fas fa-road" style="color:var(--grey)"></i> KM</span>
+            <span class="val-b">{{ stats.total_km|intcomma }} km</span>
+          </div>
+          <div class="ac-rs-row">
+            <span class="lbl"><i class="fas fa-users" style="color:var(--grey)"></i> Passageiros</span>
+            <span class="val-w">{{ stats.total_passageiros|intcomma }}</span>
+          </div>
+          <div class="ac-rs-row">
+            <span class="lbl"><i class="fas fa-route" style="color:var(--grey)"></i> Viagens</span>
+            <span class="val-w">{{ stats.total_viagens|intcomma }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-rs">
+    <i class="fas fa-bus-slash"></i>
+    <span>Nenhum registo encontrado para este sector.</span>
+  </div>
+  {% endif %}
+
+</div><!-- rs-wrapper -->
 
 <script>
+(function () {
+  /* WhatsApp — update link on textarea change */
+  var ta   = document.getElementById('wa_message');
+  var send = document.getElementById('wa_send');
+  var copy = document.getElementById('wa_copy');
+  var lbl  = document.getElementById('copyLabel');
 
-document.addEventListener("DOMContentLoaded",function(){
+  if (ta && send) {
+    ta.addEventListener('input', function () {
+      send.href = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(ta.value);
+    });
+  }
 
-const ta=document.getElementById("wa_message")
-const copy=document.getElementById("wa_copy")
-const send=document.getElementById("wa_send")
+  if (copy && ta) {
+    copy.addEventListener('click', function () {
+      navigator.clipboard.writeText(ta.value).then(function () {
+        lbl.textContent = 'Copiado!';
+        copy.classList.add('copied');
+        setTimeout(function () {
+          lbl.textContent = 'Copiar mensagem';
+          copy.classList.remove('copied');
+        }, 2000);
+      }).catch(function () {
+        /* fallback para browsers antigos */
+        ta.select();
+        document.execCommand('copy');
+        lbl.textContent = 'Copiado!';
+        setTimeout(function () { lbl.textContent = 'Copiar mensagem'; }, 2000);
+      });
+    });
+  }
 
-copy.addEventListener("click",function(){
-
-navigator.clipboard.writeText(ta.value)
-
-})
-
-ta.addEventListener("input",function(){
-
-send.href="https://api.whatsapp.com/send?text="+encodeURIComponent(ta.value)
-
-})
-
-})
-
+  /* Remove Bootstrap classes */
+  document.querySelectorAll('.rs-wrapper input, .rs-wrapper select').forEach(function (el) {
+    el.classList.remove('form-control', 'form-select');
+  });
+})();
 </script>
-
 {% endblock %}
