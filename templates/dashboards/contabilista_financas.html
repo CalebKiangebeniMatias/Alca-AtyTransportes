@@ -2,78 +2,473 @@
 {% load l10n humanize %}
 
 {% block title %}Contabilidade & Finanças{% endblock %}
+{% block breadcrumb %}Contabilidade & Finanças{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2 class="mb-4"><i class="fas fa-calculator me-2"></i> Contabilidade & Finanças</h2>
+<style>
+/* ════════════════════════════════════════════════════
+   CONTABILIDADE & FINANÇAS
+════════════════════════════════════════════════════ */
 
-    <div class="row">
-        <!-- Estatísticas principais -->
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-header"><i class="fas fa-wallet"></i> Entradas</div>
-                <div class="card-body">
-                    <h3 class="fw-bold">{% localize on %}{{ totais.total_entradas|default:0|floatformat:2 }}{% endlocalize %} Kz</h3>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-header"><i class="fas fa-receipt"></i> Saídas (incl. Combustível)</div>
-                <div class="card-body">
-                    <h3 class="fw-bold text-danger">{% localize on %}{{ totais.total_saidas|default:0|floatformat:2 }}{% endlocalize %} Kz</h3>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-header"><i class="fas fa-balance-scale"></i> Saldo</div>
-                <div class="card-body">
-                    <h3 class="fw-bold text-success">{% localize on %}{{ totais.total_saldo|default:0|floatformat:2 }}{% endlocalize %} Kz</h3>
-                </div>
-            </div>
-        </div>
-    </div>
+.cf-wrapper {
+  animation: cfIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes cfIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
 
-    <!-- Lista de despesas -->
-    <div class="card mt-4">
-        <div class="card-header">
-            <i class="fas fa-money-check me-2"></i> Últimas Despesas
-        </div>
-        <div class="card-body">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Descrição</th>
-                        <th>Valor</th>
-                        <th>Comprovativo</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for despesa in despesas %}
-                        <tr>
-                            <td>{{ despesa.data|date:"d/m/Y" }}</td>
-                            <td>{{ despesa.descricao }}</td>
-                            <td>{% localize on %}{{ despesa.valor|default:0|floatformat:2 }}{% endlocalize %} Kz</td>
-                            <td>
-                                {% if despesa.comprovativos.first %}
-                                    <a href="{{ despesa.comprovativos.first.arquivo.url }}" target="_blank" class="btn btn-sm btn-info">
-                                        <i class="fas fa-file-alt"></i> Ver
-                                    </a>
-                                {% else %}
-                                    <span class="text-muted">Nenhum</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr><td colspan="4" class="text-center text-muted">Nenhuma despesa encontrada</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+/* ── HEADER ──────────────────────────────────────── */
+.cf-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 28px;
+}
+.cf-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem; letter-spacing: 2.5px; line-height: 1;
+}
+.cf-title span { color: var(--accent); }
+.cf-subtitle { font-size: .78rem; color: var(--grey); margin-top: 4px; }
+
+/* ── ANO SELECT ──────────────────────────────────── */
+.ano-select-wrap {
+  position: relative; min-width: 130px;
+}
+.ano-select-wrap select {
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 9px 36px 9px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .88rem !important;
+  outline: none !important;
+  -webkit-appearance: none; width: 100%;
+  cursor: pointer;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+}
+.ano-select-wrap select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+  background: rgba(4,30,66,.85) !important;
+}
+.ano-select-wrap select option { background: var(--navy); color: var(--white); }
+.ano-chevron {
+  position: absolute; right: 11px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--grey); font-size: .75rem; pointer-events: none;
+}
+
+/* ── STATS GRID ──────────────────────────────────── */
+.stats-grid-cf {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px; margin-bottom: 20px;
+}
+.stat-card-cf {
+  background: rgba(13,43,94,.45);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(12px);
+  padding: 18px 20px;
+  display: flex; align-items: center; gap: 14px;
+  transition: transform var(--ease-spring), border-color var(--ease-fast), box-shadow var(--ease-base);
+  position: relative; overflow: hidden;
+}
+.stat-card-cf::before {
+  content: ''; position: absolute; top:0; left:0; right:0; height:2px;
+  opacity: .7;
+}
+.stat-card-cf.entrada::before  { background: linear-gradient(90deg,transparent,#69f0ae,transparent); }
+.stat-card-cf.saida::before    { background: linear-gradient(90deg,transparent,#ff8a80,transparent); }
+.stat-card-cf.fixa::before     { background: linear-gradient(90deg,transparent,#ffd54f,transparent); }
+.stat-card-cf.outras::before   { background: linear-gradient(90deg,transparent,var(--accent),transparent); }
+.stat-card-cf:hover { transform:translateY(-4px); border-color:rgba(79,195,247,.28); box-shadow:var(--shadow-md); }
+
+.scf-icon {
+  width: 46px; height: 46px; flex-shrink: 0;
+  border-radius: var(--radius-md);
+  display: flex; align-items:center; justify-content:center;
+  font-size: 1rem;
+}
+.scf-icon.entrada { background:rgba(39,174,96,.15);  color:#69f0ae; }
+.scf-icon.saida   { background:rgba(231,76,60,.15);  color:#ff8a80; }
+.scf-icon.fixa    { background:rgba(243,156,18,.15); color:#ffd54f; }
+.scf-icon.outras  { background:rgba(79,195,247,.12); color:var(--accent); }
+
+.scf-info { flex:1; min-width:0; }
+.scf-label {
+  font-size:.68rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1.2px;
+  color:var(--grey); margin-bottom:5px;
+}
+.scf-val {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.35rem; letter-spacing:1px; line-height:1;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.scf-val.entrada { color:#69f0ae; }
+.scf-val.saida   { color:#ff8a80; }
+.scf-val.fixa    { color:#ffd54f; }
+.scf-val.outras  { color:var(--accent); }
+.scf-unit { font-size:.65rem; color:var(--grey); }
+
+/* ── SALDO CARD ──────────────────────────────────── */
+.saldo-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  padding: 24px 28px;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 20px;
+  margin-bottom: 20px;
+  position: relative; overflow: hidden;
+}
+.saldo-card::before {
+  content: '';
+  position: absolute; top:0; left:0; right:0; height:2px;
+  transition: background .3s ease;
+}
+.saldo-card.positivo::before { background: linear-gradient(90deg,transparent,#69f0ae,transparent); }
+.saldo-card.negativo::before { background: linear-gradient(90deg,transparent,#ff8a80,transparent); }
+
+/* glow de fundo */
+.saldo-card::after {
+  content: '';
+  position: absolute; top:50%; left:50%;
+  transform: translate(-50%,-50%);
+  width:300px; height:120px;
+  border-radius: 50%;
+  pointer-events: none;
+  transition: background .3s ease;
+}
+.saldo-card.positivo::after { background: radial-gradient(ellipse,rgba(105,240,174,.06),transparent 70%); }
+.saldo-card.negativo::after { background: radial-gradient(ellipse,rgba(255,138,128,.06),transparent 70%); }
+
+.saldo-left { position:relative; z-index:1; }
+.saldo-label {
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700; font-size:.8rem;
+  letter-spacing:2px; text-transform:uppercase;
+  color:var(--grey); margin-bottom:6px;
+  display:flex; align-items:center; gap:8px;
+}
+.saldo-label i { color:var(--accent); }
+.saldo-val {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2.8rem; letter-spacing:2px; line-height:1;
+}
+.saldo-val.positivo { color:#69f0ae; }
+.saldo-val.negativo { color:#ff8a80; }
+.saldo-unit { font-size:1rem; margin-left:4px; }
+
+.saldo-right { position:relative; z-index:1; }
+.saldo-indicator {
+  display:inline-flex; align-items:center; gap:8px;
+  border-radius:30px; padding:7px 16px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700; font-size:.85rem; letter-spacing:1px;
+}
+.saldo-indicator.positivo {
+  background:rgba(105,240,174,.1);
+  border:1px solid rgba(105,240,174,.25);
+  color:#69f0ae;
+}
+.saldo-indicator.negativo {
+  background:rgba(255,138,128,.1);
+  border:1px solid rgba(255,138,128,.25);
+  color:#ff8a80;
+}
+
+/* ── TABLE CARD ──────────────────────────────────── */
+.table-card-cf {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(4,30,66,.28);
+}
+.table-card-header-cf {
+  display: flex; align-items:center; justify-content:space-between;
+  padding: 13px 20px;
+  background: linear-gradient(90deg,rgba(36,99,163,.3),rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+  flex-wrap: wrap; gap: 8px;
+}
+.table-card-title-cf {
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700; font-size:1rem;
+  letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--white); display:flex; align-items:center; gap:8px;
+}
+.table-card-title-cf i { color:var(--accent); }
+.table-count-cf { font-size:.75rem; color:var(--grey); }
+
+.cf-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.cf-table {
+  width:100%; border-collapse:collapse; font-size:.85rem;
+}
+.cf-table thead th {
+  background:rgba(4,30,66,.7);
+  color:var(--accent);
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700; font-size:.72rem;
+  letter-spacing:1.5px; text-transform:uppercase;
+  padding:12px 16px; border-bottom:1px solid var(--glass-border);
+  white-space:nowrap; text-align:left;
+}
+.cf-table thead th:nth-child(3),
+.cf-table thead th:nth-child(4) { text-align:center; }
+
+.cf-table tbody tr {
+  border-bottom:1px solid rgba(79,195,247,.06);
+  transition:background var(--ease-fast);
+}
+.cf-table tbody tr:hover { background:rgba(36,99,163,.18); }
+.cf-table tbody td {
+  padding:11px 16px; color:rgba(255,255,255,.75);
+  vertical-align:middle; white-space:nowrap;
+}
+.cf-table tbody td:nth-child(3),
+.cf-table tbody td:nth-child(4) { text-align:center; }
+
+/* cells */
+.date-cell {
+  font-size:.78rem; color:var(--grey);
+  display:inline-flex; align-items:center; gap:5px;
+}
+.date-cell i { color:var(--accent); font-size:.65rem; }
+
+.desc-cell {
+  max-width:260px; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap;
+  color:rgba(255,255,255,.75);
+}
+
+.val-red {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.05rem; letter-spacing:.5px; color:#ff8a80;
+}
+
+.btn-view {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:4px 12px;
+  background:rgba(79,195,247,.08);
+  border:1px solid rgba(79,195,247,.2);
+  border-radius:var(--radius-sm);
+  font-size:.75rem; font-weight:700;
+  letter-spacing:.8px; text-transform:uppercase;
+  color:var(--accent); text-decoration:none;
+  transition:background var(--ease-fast), border-color var(--ease-fast);
+}
+.btn-view:hover { background:rgba(79,195,247,.18); color:var(--accent); }
+
+/* empty */
+.table-empty {
+  padding:48px 20px; text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  color:rgba(255,255,255,.25);
+}
+.table-empty i { font-size:2.2rem; opacity:.3; }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 1000px) { .stats-grid-cf { grid-template-columns:repeat(2,1fr); } }
+@media (max-width: 560px)  {
+  .stats-grid-cf { grid-template-columns:1fr; }
+  .cf-header { flex-direction:column; align-items:flex-start; }
+  .saldo-card { flex-direction:column; align-items:flex-start; gap:12px; }
+}
+</style>
+
+<!-- hidden data for JS -->
+<div id="cf_data"
+     data-saldo="{{ totais.total_saldo|default:0 }}"
+     style="display:none">
 </div>
+
+<div class="cf-wrapper">
+
+  <!-- HEADER -->
+  <div class="cf-header">
+    <div>
+      <div class="cf-title">Contabilidade <span>&amp;</span> Finanças</div>
+      <div class="cf-subtitle">Visão geral das entradas, saídas e saldo financeiro</div>
+    </div>
+
+    <!-- Filtro Ano -->
+    <form method="get" id="formAno">
+      <div class="ano-select-wrap">
+        <select name="ano" onchange="this.form.submit()">
+          <option value="">Todos</option>
+            <option value="2030">2030</option><option value="2029">2029</option>
+            <option value="2028">2028</option><option value="2027">2027</option>
+            <option value="2026">2026</option><option value="2025">2025</option>
+        </select>
+        <i class="fas fa-chevron-down ano-chevron"></i>
+      </div>
+    </form>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid-cf">
+    <div class="stat-card-cf entrada">
+      <div class="scf-icon entrada"><i class="fas fa-arrow-down"></i></div>
+      <div class="scf-info">
+        <div class="scf-label">Entradas</div>
+        <div class="scf-val entrada">{% localize on %}{{ totais.total_entradas|default:0|floatformat:2 }}{% endlocalize %}</div>
+        <div class="scf-unit">Kz</div>
+      </div>
+    </div>
+
+    <div class="stat-card-cf saida">
+      <div class="scf-icon saida"><i class="fas fa-arrow-up"></i></div>
+      <div class="scf-info">
+        <div class="scf-label">Saídas Totais</div>
+        <div class="scf-val saida">{% localize on %}{{ totais.total_saidas|default:0|floatformat:2 }}{% endlocalize %}</div>
+        <div class="scf-unit">Kz</div>
+      </div>
+    </div>
+
+    <div class="stat-card-cf fixa">
+      <div class="scf-icon fixa"><i class="fas fa-file-invoice-dollar"></i></div>
+      <div class="scf-info">
+        <div class="scf-label">Despesas Fixas</div>
+        <div class="scf-val fixa">{% localize on %}{{ total_despesas_fixas|default:0|floatformat:2 }}{% endlocalize %}</div>
+        <div class="scf-unit">Kz</div>
+      </div>
+    </div>
+
+    <div class="stat-card-cf outras">
+      <div class="scf-icon outras"><i class="fas fa-receipt"></i></div>
+      <div class="scf-info">
+        <div class="scf-label">Outras Despesas</div>
+        <div class="scf-val outras">{% localize on %}{{ total_despesa2|default:0|floatformat:2 }}{% endlocalize %}</div>
+        <div class="scf-unit">Kz</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SALDO -->
+  <div class="saldo-card" id="saldoCard">
+    <div class="saldo-left">
+      <div class="saldo-label"><i class="fas fa-balance-scale"></i> Saldo Financeiro</div>
+      <div class="saldo-val" id="saldoVal">
+        {% localize on %}{{ totais.total_saldo|default:0|floatformat:2 }}{% endlocalize %}
+        <span class="saldo-unit">Kz</span>
+      </div>
+    </div>
+    <div class="saldo-right">
+      <div class="saldo-indicator" id="saldoIndicator">
+        <i class="fas fa-circle" style="font-size:.5rem"></i>
+        <span id="saldoLabel">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ÚLTIMAS DESPESAS -->
+  <div class="table-card-cf">
+    <div class="table-card-header-cf">
+      <div class="table-card-title-cf">
+        <i class="fas fa-money-check"></i> Últimas Despesas
+      </div>
+      {% if despesas %}
+        <span class="table-count-cf">{{ despesas|length }} registo(s)</span>
+      {% endif %}
+    </div>
+
+    <div class="cf-table-wrap">
+      {% if despesas %}
+      <table class="cf-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th>Valor</th>
+            <th>Comprovativo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for despesa in despesas %}
+          <tr>
+            <td>
+              <span class="date-cell">
+                <i class="fas fa-calendar-day"></i>
+                {{ despesa.data|date:"d/m/Y" }}
+              </span>
+            </td>
+            <td>
+              <span class="desc-cell" title="{{ despesa.descricao|default:'-' }}">
+                {{ despesa.descricao|default:"—" }}
+              </span>
+            </td>
+            <td>
+              <span class="val-red">{% localize on %}{{ despesa.valor|default:0|floatformat:2 }}{% endlocalize %}</span>
+              <span style="font-size:.65rem;color:var(--grey);margin-left:2px">Kz</span>
+            </td>
+            <td>
+              {% if despesa.comprovativos.first %}
+                <a href="{{ despesa.comprovativos.first.arquivo.url }}"
+                   target="_blank" rel="noopener noreferrer"
+                   class="btn-view">
+                  <i class="fas fa-file-alt"></i> Ver
+                </a>
+              {% else %}
+                <span style="color:rgba(255,255,255,.2);font-size:.8rem">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="table-empty">
+        <i class="fas fa-receipt"></i>
+        <span>Nenhuma despesa encontrada.</span>
+        <small>Tente selecionar outro ano no filtro acima.</small>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div><!-- cf-wrapper -->
+
+<script>
+(function () {
+  /* Saldo — aplicar classes dinamicamente */
+  var data    = document.getElementById('cf_data');
+  var card    = document.getElementById('saldoCard');
+  var valEl   = document.getElementById('saldoVal');
+  var indic   = document.getElementById('saldoIndicator');
+  var lbl     = document.getElementById('saldoLabel');
+
+  if (!data || !card) return;
+
+  function toNum(v) {
+    var s = String(v || '0').trim();
+    return parseFloat(s.replace(/\./g,'').replace(',','.')) || 0;
+  }
+
+  var saldo = toNum(data.dataset.saldo);
+
+  if (saldo >= 0) {
+    card.classList.add('positivo');
+    valEl.classList.add('positivo');
+    indic.classList.add('positivo');
+    lbl.textContent = 'Saldo Positivo';
+  } else {
+    card.classList.add('negativo');
+    valEl.classList.add('negativo');
+    indic.classList.add('negativo');
+    lbl.textContent = 'Saldo Negativo';
+  }
+
+  /* Remove Bootstrap classes */
+  document.querySelectorAll('.cf-wrapper select').forEach(function (el) {
+    el.classList.remove('form-select');
+  });
+})();
+</script>
 {% endblock %}

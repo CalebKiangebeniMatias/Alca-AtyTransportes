@@ -2673,10 +2673,29 @@ def decimal_default(obj):
     raise TypeError
 
 
+from decimal import Decimal
+from django.db.models import Sum, F, DecimalField, ExpressionWrapper
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.utils.timezone import now
+
 @login_required
 @acesso_restrito(['admin'])
 def contabilista_financas(request):
-    registos = RegistoDiario.objects.annotate(
+
+    # 🔹 Ano selecionado
+    ano = request.GET.get("ano")
+
+    if ano:
+        ano = int(ano)
+    else:
+        ano = now().year
+
+    # ===============================
+    # REGISTOS DIÁRIOS
+    # ===============================
+
+    registos = RegistoDiario.objects.filter(data__year=ano).annotate(
         saldo_liquido=ExpressionWrapper(
             (F("normal") + F("alunos") + F("luvu") + F("frete")) -
             (F("alimentacao") + F("parqueamento") + F("taxa") + F("outros")),
@@ -2685,47 +2704,122 @@ def contabilista_financas(request):
     )
 
     totais = registos.aggregate(
-        total_entradas=Sum(F("normal") + F("alunos") + F("luvu") + F("frete"),
-                           output_field=DecimalField()),
-        total_saidas=Sum(F("alimentacao") + F("parqueamento") + F("taxa") + F("outros"),
-                         output_field=DecimalField()),
+        total_entradas=Sum(
+            F("normal") + F("alunos") + F("luvu") + F("frete"),
+            output_field=DecimalField()
+        ),
+        total_saidas=Sum(
+            F("alimentacao") + F("parqueamento") + F("taxa") + F("outros"),
+            output_field=DecimalField()
+        ),
         total_saldo=Sum("saldo_liquido"),
     )
 
-    # Agregar despesas gerais (Despesas) no sistema
-    total_despesas_gerais = Despesa.objects.aggregate(total=Sum('valor', output_field=DecimalField()))['total'] or Decimal('0')
+    # Garantir valores válidos
+    total_entradas = Decimal(totais.get("total_entradas") or 0)
+    total_saidas_base = Decimal(totais.get("total_saidas") or 0)
 
-    # Agregar despesas de combustível no sistema (inclui sobragem e lavagem)
-    comb_glob = DespesaCombustivel.objects.aggregate(
+    # ===============================
+    # DESPESAS GERAIS
+    # ===============================
+
+    total_despesas_gerais = (
+        Despesa.objects.filter(data__year=ano)
+        .aggregate(total=Sum('valor', output_field=DecimalField()))
+        .get('total') or Decimal('0')
+    )
+
+    # ===============================
+    # COMBUSTÍVEL
+    # ===============================
+
+    comb = DespesaCombustivel.objects.filter(data__year=ano).aggregate(
         total_valor=Sum('valor', output_field=DecimalField()),
         total_sobragem=Sum('sobragem_filtros', output_field=DecimalField()),
         total_lavagem=Sum('lavagem', output_field=DecimalField()),
     )
-    total_combustivel_glob = comb_glob.get('total_valor') or Decimal('0')
-    total_combustivel_sobragem_glob = comb_glob.get('total_sobragem') or Decimal('0')
-    total_combustivel_lavagem_glob = comb_glob.get('total_lavagem') or Decimal('0')
 
-    # Ajustar total de saídas para incluir despesas gerais e combustível (valor + sobragem + lavagem)
-    try:
-        orig_saidas = Decimal(totais.get('total_saidas') or 0)
-    except Exception:
-        orig_saidas = Decimal('0')
-    totais['total_saidas'] = orig_saidas + total_despesas_gerais + total_combustivel_glob + total_combustivel_sobragem_glob + total_combustivel_lavagem_glob
+    total_combustivel = comb.get('total_valor') or Decimal('0')
+    total_sobragem = comb.get('total_sobragem') or Decimal('0')
+    total_lavagem = comb.get('total_lavagem') or Decimal('0')
 
-    # Recalcular saldo global (entradas - saídas ajustadas)
-    try:
-        totais['total_entradas'] = Decimal(totais.get('total_entradas') or 0)
-    except Exception:
-        totais['total_entradas'] = Decimal('0')
-    totais['total_saldo'] = totais['total_entradas'] - totais['total_saidas']
+    # ===============================
+    # DESPESAS FIXAS
+    # ===============================
 
-    despesas = Despesa.objects.all().order_by("-data")[:10]
+    total_despesas_fixas = (
+        DespesaFixa.objects.filter(ativo=True)
+        .aggregate(total=Sum('valor', output_field=DecimalField()))
+        .get('total') or Decimal('0')
+    )
 
-    return render(request, "dashboards/contabilista_financas.html", {
+    # ===============================
+    # DESPESA2
+    # ===============================
+
+    total_despesa2 = (
+        Despesa2.objects.filter(data__year=ano)
+        .aggregate(total=Sum('valor', output_field=DecimalField()))
+        .get('total') or Decimal('0')
+    )
+
+    # ===============================
+    # RELATÓRIOS DOS SECTORES
+    # ===============================
+
+    relatorio_sector = RelatorioSector.objects.filter(data__year=ano).aggregate(
+        total_despesa_geral=Sum('despesa_geral', output_field=DecimalField()),
+        total_alimentacao=Sum('alimentacao_estaleiro', output_field=DecimalField()),
+    )
+
+    total_despesa_sector = relatorio_sector.get('total_despesa_geral') or Decimal('0')
+    total_alimentacao_sector = relatorio_sector.get('total_alimentacao') or Decimal('0')
+
+    # ===============================
+    # TOTAL DE SAÍDAS
+    # ===============================
+
+    total_saidas = (
+        total_saidas_base
+        + total_despesas_gerais
+        + total_combustivel
+        + total_sobragem
+        + total_lavagem
+        + total_despesas_fixas
+        + total_despesa2
+        + total_despesa_sector
+        + total_alimentacao_sector
+    )
+
+    # ===============================
+    # SALDO FINAL
+    # ===============================
+
+    total_saldo = total_entradas - total_saidas
+
+    totais = {
+        "total_entradas": total_entradas,
+        "total_saidas": total_saidas,
+        "total_saldo": total_saldo,
+    }
+
+    # ===============================
+    # ÚLTIMAS DESPESAS
+    # ===============================
+
+    despesas = Despesa.objects.filter(data__year=ano).order_by("-data")[:10]
+
+    context = {
         "totais": totais,
         "despesas": despesas,
-    })
+        "ano": ano,
+        "total_despesas_fixas": total_despesas_fixas,
+        "total_despesa2": total_despesa2,
+        "total_despesa_sector": total_despesa_sector,
+        "total_alimentacao_sector": total_alimentacao_sector,
+    }
 
+    return render(request, "dashboards/contabilista_financas.html", context)
 
 # ...existing code...
 @login_required

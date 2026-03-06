@@ -1,22 +1,197 @@
 {% extends 'base.html' %}
-{% block title %}Selecionar Setor{% endblock %}
+{% block title %}Selecionar Sector{% endblock %}
+{% block breadcrumb %}Combustível › Selecionar Sector{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card shadow-lg">
-        <div class="card-header bg-success text-white">
-            <h4><i class="fas fa-gas-pump me-2"></i> Selecionar Setor</h4>
-        </div>
-        <div class="card-body">
-            <form method="post">
-                {% csrf_token %}
-                <div class="mb-3">
-                    {{ form.sector.label_tag }}
-                    {{ form.sector }}
-                </div>
-                <button type="submit" class="btn btn-primary">Avançar</button>
-            </form>
-        </div>
+<style>
+.sel-wrapper {
+  max-width: 480px;
+  margin: 0 auto;
+  animation: selIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes selIn {
+  from { opacity:0; transform:translateY(20px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+
+/* Card */
+.sel-card {
+  background: rgba(13,43,94,.45);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(4,30,66,.35);
+  position: relative;
+}
+
+/* Linha accent no topo */
+.sel-card::before {
+  content: '';
+  position: absolute; top:0; left:10%; right:10%; height:2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  border-radius: 2px;
+}
+
+/* Brilho decorativo */
+.sel-card::after {
+  content: '';
+  position: absolute; top:-50px; left:50%;
+  transform: translateX(-50%);
+  width:200px; height:100px;
+  background: radial-gradient(ellipse, rgba(79,195,247,.1), transparent 70%);
+  pointer-events: none;
+}
+
+/* Header */
+.sel-header {
+  padding: 22px 28px 18px;
+  background: linear-gradient(90deg, rgba(36,99,163,.35), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+  display: flex; align-items: center; gap: 14px;
+}
+.sel-header-icon {
+  width: 46px; height: 46px; flex-shrink: 0;
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.2);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; color: var(--accent);
+}
+.sel-header-text {}
+.sel-header-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem; letter-spacing: 2px; line-height: 1;
+  color: var(--white);
+}
+.sel-header-sub {
+  font-size: .75rem; color: var(--grey);
+  margin-top: 3px;
+}
+
+/* Body */
+.sel-body { padding: 28px; }
+
+/* Label */
+.sel-label {
+  display: block;
+  font-size: .72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.2px;
+  color: rgba(255,255,255,.45);
+  margin-bottom: 8px;
+}
+
+/* Select */
+.sel-select-wrap { position: relative; margin-bottom: 24px; }
+.sel-select-wrap .sel-icon {
+  position: absolute; left: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--grey); font-size: .9rem;
+  pointer-events: none; z-index: 2;
+  transition: color var(--ease-fast);
+}
+.sel-select-wrap:focus-within .sel-icon { color: var(--accent); }
+
+.sel-select-wrap select {
+  width: 100%;
+  background: rgba(4,30,66,.55);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--white);
+  padding: 12px 40px 12px 40px;
+  font-family: 'Barlow', sans-serif;
+  font-size: .95rem;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast), background var(--ease-fast);
+}
+.sel-select-wrap select:focus {
+  border-color: var(--accent);
+  background: rgba(4,30,66,.85);
+  box-shadow: 0 0 0 3px rgba(79,195,247,.18);
+}
+.sel-select-wrap select option { background: var(--navy); color: var(--white); }
+
+/* chevron direito */
+.sel-chevron {
+  position: absolute; right: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--grey); font-size: .8rem;
+  pointer-events: none;
+  transition: color var(--ease-fast);
+}
+.sel-select-wrap:focus-within .sel-chevron { color: var(--accent); }
+
+/* Botão */
+.btn-sel {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  padding: 13px;
+  background: var(--grad-btn);
+  border: none; border-radius: var(--radius-md);
+  color: var(--white);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem; letter-spacing: 2.5px;
+  cursor: pointer; position: relative; overflow: hidden;
+  box-shadow: 0 4px 20px rgba(36,99,163,.35);
+  transition: transform var(--ease-spring), box-shadow var(--ease-base);
+}
+.btn-sel::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-sel:hover::before  { transform: translateX(100%); }
+.btn-sel:hover  { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(36,99,163,.5); }
+.btn-sel:active { transform: scale(.98); }
+</style>
+
+<div class="sel-wrapper">
+  <div class="sel-card">
+
+    <!-- HEADER -->
+    <div class="sel-header">
+      <div class="sel-header-icon">
+        <i class="fas fa-gas-pump"></i>
+      </div>
+      <div class="sel-header-text">
+        <div class="sel-header-title">Selecionar Sector</div>
+        <div class="sel-header-sub">Escolha o sector para registar o combustível</div>
+      </div>
     </div>
+
+    <!-- BODY -->
+    <div class="sel-body">
+      <form method="post">
+        {% csrf_token %}
+
+        <label class="sel-label">{{ form.sector.label }}</label>
+        <div class="sel-select-wrap">
+          <i class="fas fa-layer-group sel-icon"></i>
+          {{ form.sector }}
+          <i class="fas fa-chevron-down sel-chevron"></i>
+        </div>
+
+        <button type="submit" class="btn-sel">
+          <i class="fas fa-arrow-right"></i> Avançar
+        </button>
+      </form>
+    </div>
+
+  </div>
 </div>
+
+<script>
+/* Garante que o select herda os estilos correctos do design system */
+(function () {
+  var sel = document.querySelector('.sel-select-wrap select');
+  if (sel) {
+    sel.classList.remove('form-select', 'form-control');
+  }
+})();
+</script>
 {% endblock %}

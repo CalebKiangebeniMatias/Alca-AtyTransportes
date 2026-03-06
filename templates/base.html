@@ -860,10 +860,6 @@
             <i class="fas fa-map-location-dot nav-icon text-danger"></i>
             <span class="nav-text">Gerência de Campo</span>
           </a>
-          <a class="sidebar-link" href="#">
-            <i class="fas fa-calendar-check nav-icon text-primary"></i>
-            <span class="nav-text">Controlo Diário</span>
-          </a>
           <a class="sidebar-link" href="{% url 'register' %}">
             <i class="fas fa-user-plus nav-icon text-success"></i>
             <span class="nav-text">Registrar Utilizador</span>
@@ -919,10 +915,6 @@
             <i class="fas fa-tools nav-icon text-danger"></i>
             <span class="nav-text">Atualizar Estado</span>
           </a>
-          <a class="sidebar-link" href="{% url 'motorista_list' %}">
-            <i class="fas fa-person nav-icon text-secondary"></i>
-            <span class="nav-text">Listar Motoristas</span>
-          </a>
         </div>
       </div>
 
@@ -936,14 +928,6 @@
           <i class="fas fa-chevron-right nav-chevron"></i>
         </button>
         <div class="collapse sidebar-submenu" id="sub-registos">
-          <a class="sidebar-link" href="{% url 'mapa_geral_financeiro' %}">
-            <i class="fas fa-map nav-icon text-secondary"></i>
-            <span class="nav-text">Mapas Mensais</span>
-          </a>
-          <a class="sidebar-link" href="{% url 'listar_registros' %}">
-            <i class="fas fa-map nav-icon text-secondary"></i>
-            <span class="nav-text">Mapas Anuais</span>
-          </a>
           <a class="sidebar-link" href="{% url 'listar_registros' %}">
             <i class="fas fa-list nav-icon text-secondary"></i>
             <span class="nav-text">Listar Relatórios</span>
@@ -990,14 +974,6 @@
           <a class="sidebar-link" href="{% url 'subcategoria_create' %}">
             <i class="fas fa-tag nav-icon text-primary"></i>
             <span class="nav-text">Add Subcategoria</span>
-          </a>
-          <a class="sidebar-link" href="{% url 'adicionar_despesa_fixa' %}">
-            <i class="fas fa-plus nav-icon text-warning"></i>
-            <span class="nav-text">Add Despesas Fixas</span>
-          </a>
-          <a class="sidebar-link" href="{% url 'listar_despesas_fixas' %}">
-            <i class="fas fa-list nav-icon text-secondary"></i>
-            <span class="nav-text">Listar Despesas Fixas</span>
           </a>
         </div>
       </div>
@@ -1098,13 +1074,16 @@
           <i class="fas fa-comments"></i>
           <span class="topbar-badge">10</span>
         </div>
-        <!-- Viagens Cobrador -->
-        <a href="{% url 'comparacao_registo_deposito' %}" class="topbar-btn" title="Viagens Cobrador">
+        <!-- Comparação -->
+        <a href="{% url 'mapa_geral_financeiro' %}" class="topbar-btn" title="Perfil">
+          <i class="fas fa-chart-line"></i>
+        </a>
+        <a href="{% url 'comparacao_registo_deposito' %}" class="topbar-btn" title="Comparação de Registos de Depósitos">
           <i class="fas fa-gavel"></i>
         </a>
         <!-- Perfil -->
-        <a href="{% url 'perfil' %}" class="topbar-btn" title="Perfil">
-          <i class="fas fa-user"></i>
+        <a href="{% url 'motorista_list' %}" class="topbar-btn" title="Perfil">
+          <i class="fas fa-users"></i>
         </a>
         <!-- Notificações placeholder -->
         <div class="topbar-btn" title="Notificações">

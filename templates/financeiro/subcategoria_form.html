@@ -1,79 +1,347 @@
 {% extends "base.html" %}
-{% block content %}
+{% block title %}Subcategorias de Despesa{% endblock %}
+{% block breadcrumb %}Despesas › Subcategorias{% endblock %}
 
+{% block content %}
 <style>
-.card-box {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    padding: 20px;
-    margin-bottom: 25px;
+/* ════════════════════════════════════════════════════
+   SUBCATEGORIAS DE DESPESA
+════════════════════════════════════════════════════ */
+
+.sub-wrapper {
+  max-width: 720px;
+  margin: 0 auto;
+  animation: subIn .5s cubic-bezier(.34,1.56,.64,1) both;
 }
-.btn { border-radius: 12px; }
+@keyframes subIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── SHARED CARD ─────────────────────────────────── */
+.sub-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(4,30,66,.25);
+  margin-bottom: 20px;
+  position: relative;
+}
+.sub-card::before {
+  content: '';
+  position: absolute; top:0; left:10%; right:10%; height:2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  pointer-events: none;
+}
+
+.sub-card-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 22px;
+  background: linear-gradient(90deg, rgba(36,99,163,.3), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+}
+.sub-card-icon {
+  width: 40px; height: 40px; flex-shrink: 0;
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.18);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .95rem; color: var(--accent);
+}
+.sub-card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem; letter-spacing: 2px; line-height: 1;
+  color: var(--white);
+}
+.sub-card-sub { font-size: .72rem; color: var(--grey); margin-top: 2px; }
+
+.sub-card-body { padding: 20px 22px; }
+
+/* ── FIELDS ──────────────────────────────────────── */
+.f-label {
+  display: block;
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.42); margin-bottom: 6px;
+}
+.f-group { margin-bottom: 16px; }
+.f-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.sub-wrapper input[type="text"],
+.sub-wrapper select {
+  width: 100%;
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 11px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .9rem !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast), background var(--ease-fast) !important;
+}
+.sub-wrapper input:focus,
+.sub-wrapper select:focus {
+  border-color: var(--accent) !important;
+  background: rgba(4,30,66,.85) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+}
+.sub-wrapper input::placeholder { color: rgba(255,255,255,.25) !important; }
+.sub-wrapper select option { background: var(--navy); color: var(--white); }
+
+/* ── FOOTER ──────────────────────────────────────── */
+.sub-card-footer {
+  padding: 14px 22px;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(4,30,66,.3);
+  display: flex; justify-content: flex-end;
+}
+.btn-sub {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 26px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem; letter-spacing: 2px;
+  cursor: pointer; white-space: nowrap; text-decoration: none;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base);
+  position: relative; overflow: hidden;
+}
+.btn-sub::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-sub:hover::before { transform: translateX(100%); }
+.btn-sub:hover  { transform: translateY(-2px); }
+.btn-sub:active { transform: scale(.97); }
+.btn-save-sub {
+  background: var(--grad-btn); color: var(--white);
+  box-shadow: 0 4px 18px rgba(36,99,163,.35);
+}
+.btn-save-sub:hover { box-shadow: 0 8px 26px rgba(36,99,163,.5); }
+.btn-save-sub .sp {
+  display:none; width:14px; height:14px;
+  border:2px solid rgba(255,255,255,.3); border-top-color:white;
+  border-radius:50%; animation:spin .7s linear infinite;
+}
+.btn-save-sub.loading .sp  { display:inline-block; }
+.btn-save-sub.loading .btn-txt { opacity:.7; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ── FILTRO INLINE ───────────────────────────────── */
+.filter-inline {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.filter-inline .filter-label {
+  font-size: .72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.4); white-space: nowrap;
+}
+.filter-inline select { flex: 1; min-width: 160px; }
+
+/* ── TABLE ───────────────────────────────────────── */
+.sub-table-wrap { overflow-x: auto; }
+.sub-table {
+  width: 100%; border-collapse: collapse; font-size: .85rem;
+}
+.sub-table thead th {
+  background: rgba(4,30,66,.7);
+  color: var(--accent);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .72rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--glass-border);
+  text-align: left;
+}
+.sub-table thead th:last-child { text-align: center; }
+
+.sub-table tbody tr {
+  border-bottom: 1px solid rgba(79,195,247,.06);
+  transition: background var(--ease-fast);
+}
+.sub-table tbody tr:hover { background: rgba(36,99,163,.18); }
+.sub-table tbody td {
+  padding: 11px 18px; color: rgba(255,255,255,.75); vertical-align: middle;
+}
+.sub-table tbody td:last-child { text-align: center; }
+
+/* chips */
+.cat-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(79,195,247,.07);
+  border: 1px solid rgba(79,195,247,.14);
+  border-radius: 30px; padding: 2px 10px;
+  font-size: .75rem; font-weight: 600;
+  color: rgba(255,255,255,.65);
+}
+.sub-name {
+  font-weight: 600; color: var(--white);
+  display: flex; align-items: center; gap: 7px;
+}
+.sub-name::before {
+  content: '';
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #ffd54f; flex-shrink: 0;
+}
+
+/* action buttons */
+.btn-act {
+  width: 28px; height: 28px;
+  border-radius: var(--radius-sm); border: 1px solid;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .72rem; cursor: pointer;
+  background: transparent; text-decoration: none;
+  transition: background var(--ease-fast), transform var(--ease-spring);
+}
+.btn-act:hover { transform: scale(1.12); }
+.btn-act-edit { border-color:rgba(255,213,79,.35); color:#ffd54f; }
+.btn-act-edit:hover { background:rgba(255,213,79,.15); }
+.btn-act-del  { border-color:rgba(231,76,60,.35);  color:#ff8a80; }
+.btn-act-del:hover  { background:rgba(231,76,60,.15); }
+
+/* empty */
+.table-empty {
+  padding: 36px 20px; text-align: center;
+  color: rgba(255,255,255,.25);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.table-empty i { font-size: 2rem; opacity:.3; }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 560px) {
+  .f-row-2 { grid-template-columns: 1fr; }
+  .sub-card-footer { flex-direction: column; }
+  .btn-sub { width:100%; justify-content:center; }
+}
 </style>
 
-<div class="container mt-4">
+<div class="sub-wrapper">
 
-<div class="card-box">
-    <h4>Cadastro de Subcategoria</h4>
+  <!-- ── FORMULÁRIO ── -->
+  <div class="sub-card">
+    <div class="sub-card-header">
+      <div class="sub-card-icon"><i class="fas fa-tag"></i></div>
+      <div>
+        <div class="sub-card-title">Nova Subcategoria</div>
+        <div class="sub-card-sub">Adicione uma subcategoria a uma categoria existente</div>
+      </div>
+    </div>
 
-    <form method="post">
+    <div class="sub-card-body">
+      <form method="post" id="formSub">
         {% csrf_token %}
-
-        <div class="mb-3">
-            <label>Categoria</label>
+        <div class="f-row-2">
+          <div class="f-group">
+            <label class="f-label">Categoria</label>
             {{ form.categoria }}
-        </div>
-
-        <div class="mb-3">
-            <label>Nome</label>
+          </div>
+          <div class="f-group">
+            <label class="f-label">Nome da Subcategoria</label>
             {{ form.nome }}
+          </div>
         </div>
+      </form>
+    </div>
 
-        <button class="btn btn-primary">Salvar</button>
-    </form>
-</div>
+    <div class="sub-card-footer">
+      <button type="submit" form="formSub" class="btn-sub btn-save-sub" id="btnSave">
+        <span class="sp"></span>
+        <span class="btn-txt"><i class="fas fa-floppy-disk"></i> Guardar</span>
+      </button>
+    </div>
+  </div>
 
-<div class="card-box">
-    <h5>Filtrar por Categoria</h5>
+  <!-- ── LISTAGEM ── -->
+  <div class="sub-card">
+    <div class="sub-card-header">
+      <div class="sub-card-icon"><i class="fas fa-list"></i></div>
+      <div>
+        <div class="sub-card-title">Subcategorias</div>
+        <div class="sub-card-sub">
+          {% if subcategorias %}{{ subcategorias|length }} subcategoria(s) encontrada(s){% else %}Nenhuma subcategoria ainda{% endif %}
+        </div>
+      </div>
+    </div>
 
-    <form method="get">
-        <select name="categoria" class="form-control" onchange="this.form.submit()">
-            <option value="">Todas</option>
+    <!-- Filtro inline -->
+    <div style="padding:12px 22px;border-bottom:1px solid var(--glass-border);background:rgba(4,30,66,.2)">
+      <form method="get">
+        <div class="filter-inline">
+          <span class="filter-label"><i class="fas fa-filter" style="color:var(--accent)"></i> Filtrar:</span>
+          <select name="categoria" onchange="this.form.submit()">
+            <option value="">Todas as categorias</option>
             {% for c in categorias %}
             <option value="{{ c.id }}" {% if categoria_selecionada == c.id|stringformat:"s" %}selected{% endif %}>
-                {{ c }}
+              {{ c }}
             </option>
             {% endfor %}
-        </select>
-    </form>
-</div>
+          </select>
+        </div>
+      </form>
+    </div>
 
-<div class="card-box">
-<table class="table">
-    <thead>
-        <tr>
+    <div class="sub-table-wrap">
+      {% if subcategorias %}
+      <table class="sub-table">
+        <thead>
+          <tr>
             <th>Categoria</th>
-            <th>Nome</th>
+            <th>Subcategoria</th>
             <th>Ações</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for s in subcategorias %}
-        <tr>
-            <td>{{ s.categoria }}</td>
-            <td>{{ s.nome }}</td>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in subcategorias %}
+          <tr>
+            <td><span class="cat-chip">{{ s.categoria }}</span></td>
+            <td><span class="sub-name">{{ s.nome }}</span></td>
             <td>
-                <a href="{% url 'subcategoria_update' s.id %}" class="btn btn-sm btn-warning">✏️</a>
-                <a href="{% url 'subcategoria_delete' s.id %}" class="btn btn-sm btn-danger"
-                   onclick="return confirm('Excluir subcategoria?')">🗑️</a>
+              <div style="display:flex;gap:6px;justify-content:center">
+                <a href="{% url 'subcategoria_update' s.id %}"
+                   class="btn-act btn-act-edit" title="Editar">
+                  <i class="fas fa-pen"></i>
+                </a>
+                <a href="{% url 'subcategoria_delete' s.id %}"
+                   class="btn-act btn-act-del" title="Eliminar"
+                   onclick="return confirm('Excluir esta subcategoria?')">
+                  <i class="fas fa-trash-can"></i>
+                </a>
+              </div>
             </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-</div>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="table-empty">
+        <i class="fas fa-tags"></i>
+        <span>Nenhuma subcategoria encontrada.</span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
 
 </div>
 
+<script>
+(function () {
+  var form = document.getElementById('formSub');
+  var btn  = document.getElementById('btnSave');
+  if (form && btn) {
+    form.addEventListener('submit', function () {
+      btn.classList.add('loading'); btn.disabled = true;
+      setTimeout(function () { btn.classList.remove('loading'); btn.disabled = false; }, 6000);
+    });
+  }
+  document.querySelectorAll('.sub-wrapper input, .sub-wrapper select').forEach(function (el) {
+    el.classList.remove('form-control', 'form-select');
+  });
+})();
+</script>
 {% endblock %}

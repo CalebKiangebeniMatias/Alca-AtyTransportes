@@ -1,139 +1,322 @@
+{% extends 'base.html' %}
+{% block title %}Lançar Despesa{% endblock %}
+{% block breadcrumb %}Despesas › Lançar Despesa{% endblock %}
 
-{% extends "base.html" %}
 {% block content %}
-
 <style>
+/* ════════════════════════════════════════════════════
+   LANÇAR DESPESA
+════════════════════════════════════════════════════ */
 
-label {
-    font-weight: 500;
-    text-transform: capitalize;
-    color: #333;
+.ld-wrapper {
+  max-width: 560px;
+  margin: 0 auto;
+  animation: ldIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes ldIn {
+  from { opacity:0; transform:translateY(20px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
 }
 
-.form-card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-    padding: 24px;
-    max-width: 600px;
-    margin: 30px auto;
+/* ── CARD ────────────────────────────────────────── */
+.ld-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(4,30,66,.32);
+  position: relative;
+}
+.ld-card::before {
+  content: '';
+  position: absolute; top:0; left:10%; right:10%; height:2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  pointer-events: none;
+}
+.ld-card::after {
+  content: '';
+  position: absolute; top:-50px; left:50%;
+  transform: translateX(-50%);
+  width: 220px; height: 110px;
+  background: radial-gradient(ellipse, rgba(79,195,247,.08), transparent 70%);
+  pointer-events: none;
 }
 
-.form-card h3 {
-    margin-bottom: 20px;
-    font-weight: 600;
+/* ── HEADER ──────────────────────────────────────── */
+.ld-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 24px;
+  background: linear-gradient(90deg, rgba(36,99,163,.3), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+}
+.ld-header-icon {
+  width: 44px; height: 44px; flex-shrink: 0;
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.2);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; color: var(--accent);
+}
+.ld-header-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem; letter-spacing: 2px; line-height: 1;
+  color: var(--white);
+}
+.ld-header-sub { font-size: .75rem; color: var(--grey); margin-top: 3px; }
+
+/* ── BODY ────────────────────────────────────────── */
+.ld-body { padding: 24px; }
+
+/* ── FIELDS ──────────────────────────────────────── */
+.f-label {
+  display: block;
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.42); margin-bottom: 6px;
+}
+.f-group { margin-bottom: 16px; }
+
+.ld-wrapper input[type="text"],
+.ld-wrapper input[type="number"],
+.ld-wrapper input[type="date"],
+.ld-wrapper select,
+.ld-wrapper textarea {
+  width: 100%;
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 11px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .9rem !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast), background var(--ease-fast) !important;
+}
+.ld-wrapper input:focus,
+.ld-wrapper select:focus,
+.ld-wrapper textarea:focus {
+  border-color: var(--accent) !important;
+  background: rgba(4,30,66,.85) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+}
+.ld-wrapper input::placeholder,
+.ld-wrapper textarea::placeholder { color: rgba(255,255,255,.25) !important; }
+.ld-wrapper select option { background: var(--navy); color: var(--white); }
+.ld-wrapper textarea { resize: vertical; min-height: 80px; }
+.ld-wrapper input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7); }
+
+/* Kz suffix */
+.kz-wrap { position: relative; }
+.kz-wrap input { padding-right: 36px !important; text-align: right; }
+.kz-sym {
+  position: absolute; right: 11px; top: 50%;
+  transform: translateY(-50%);
+  font-size: .7rem; font-weight: 700;
+  color: var(--accent); pointer-events: none;
 }
 
-.form-group {
-    margin-bottom: 16px;
+/* Select loading state */
+.select-loading {
+  opacity: .5; pointer-events: none;
+}
+.select-hint {
+  font-size: .72rem; color: var(--grey);
+  margin-top: 5px; display: flex; align-items: center; gap: 5px;
+}
+.select-hint i { color: var(--accent); font-size: .65rem; }
+.select-hint.loading { color: var(--accent); animation: hintPulse 1s ease-in-out infinite; }
+@keyframes hintPulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+/* 2-col */
+.f-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* ── FOOTER ──────────────────────────────────────── */
+.ld-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(4,30,66,.3);
+  display: flex; gap: 10px; justify-content: flex-end;
 }
 
-.form-group label {
-    display: block;
-    font-weight: 500;
-    margin-bottom: 6px;
+.btn-ld {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 26px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem; letter-spacing: 2px;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+  position: relative; overflow: hidden;
 }
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px solid #ccc;
-    outline: none;
+.btn-ld::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
 }
+.btn-ld:hover::before { transform: translateX(100%); }
+.btn-ld:hover  { transform: translateY(-2px); }
+.btn-ld:active { transform: scale(.97); }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 2px rgba(13,110,253,0.15);
+.btn-save-ld {
+  background: var(--grad-btn); color: var(--white);
+  box-shadow: 0 4px 18px rgba(36,99,163,.35);
 }
+.btn-save-ld:hover { box-shadow: 0 8px 26px rgba(36,99,163,.5); color: var(--white); }
 
-.btn-save {
-    background: #0d6efd;
-    color: #fff;
-    border: none;
-    padding: 12px;
-    border-radius: 12px;
-    width: 100%;
-    font-weight: 600;
-    cursor: pointer;
+.btn-save-ld .sp {
+  display: none; width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,.3); border-top-color: white;
+  border-radius: 50%; animation: spin .7s linear infinite;
 }
+.btn-save-ld.loading .sp  { display: inline-block; }
+.btn-save-ld.loading .btn-txt { opacity: .7; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-.btn-save:hover {
-    background: #0b5ed7;
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 480px) {
+  .f-row-2 { grid-template-columns: 1fr; }
+  .ld-footer { flex-direction: column; }
+  .btn-ld { width: 100%; justify-content: center; }
 }
 </style>
 
-<div class="form-card">
+<div class="ld-wrapper">
+  <div class="ld-card">
 
-    <h3>📌 Lançar Despesa</h3>
+    <!-- HEADER -->
+    <div class="ld-header">
+      <div class="ld-header-icon"><i class="fas fa-receipt"></i></div>
+      <div>
+        <div class="ld-header-title">Lançar Despesa</div>
+        <div class="ld-header-sub">Registe uma nova despesa no sistema</div>
+      </div>
+    </div>
 
-    <form method="post">
+    <div class="ld-body">
+      <form method="post" id="formDespesa">
         {% csrf_token %}
 
-        <div class="form-group">
-            {{ form.data.label_tag }}
+        <!-- Data + Valor -->
+        <div class="f-row-2">
+          <div class="f-group">
+            <label class="f-label">{{ form.data.label }}</label>
             {{ form.data }}
+          </div>
+          <div class="f-group">
+            <label class="f-label">{{ form.valor.label }}</label>
+            <div class="kz-wrap">
+              {{ form.valor }}
+              <span class="kz-sym">Kz</span>
+            </div>
+          </div>
         </div>
 
-        <div class="form-group">
-            {{ form.categoria.label_tag }}
-            {{ form.categoria }}
+        <!-- Categoria -->
+        <div class="f-group">
+          <label class="f-label">{{ form.categoria.label }}</label>
+          {{ form.categoria }}
         </div>
 
-        <div class="form-group">
-            {{ form.subcategoria.label_tag }}
-            {{ form.subcategoria }}
+        <!-- Subcategoria -->
+        <div class="f-group">
+          <label class="f-label">{{ form.subcategoria.label }}</label>
+          {{ form.subcategoria }}
+          <div class="select-hint" id="subHint">
+            <i class="fas fa-circle-info"></i>
+            <span id="subHintText">Selecione primeiro a categoria</span>
+          </div>
         </div>
 
-        <div class="form-group">
-            {{ form.valor.label_tag }}
-            {{ form.valor }}
+        <!-- Descrição -->
+        <div class="f-group">
+          <label class="f-label">{{ form.descricao.label }}</label>
+          {{ form.descricao }}
         </div>
 
-        <div class="form-group">
-            {{ form.descricao.label_tag }}
-            {{ form.descricao }}
-        </div>
+      </form>
+    </div>
 
-        <button type="submit" class="btn-save">
-            💾 Salvar Despesa
-        </button>
-    </form>
+    <!-- FOOTER -->
+    <div class="ld-footer">
+      <button type="submit" form="formDespesa" class="btn-ld btn-save-ld" id="btnSave">
+        <span class="sp"></span>
+        <span class="btn-txt"><i class="fas fa-floppy-disk"></i> Guardar Despesa</span>
+      </button>
+    </div>
 
+  </div>
 </div>
 
 <script>
-document.getElementById("id_categoria").addEventListener("change", function () {
-    const categoriaId = this.value;
-    const subSelect = document.getElementById("id_subcategoria");
+(function () {
+  /* ── Remove Bootstrap classes ────────────────── */
+  document.querySelectorAll('.ld-wrapper input, .ld-wrapper select, .ld-wrapper textarea').forEach(function (el) {
+    el.classList.remove('form-control', 'form-select');
+  });
 
-    subSelect.innerHTML = '<option value="">Carregando...</option>';
+  /* ── AJAX subcategorias ──────────────────────── */
+  var catSel  = document.getElementById('id_categoria');
+  var subSel  = document.getElementById('id_subcategoria');
+  var hint    = document.getElementById('subHint');
+  var hintTxt = document.getElementById('subHintText');
 
-    if (!categoriaId) {
-        subSelect.innerHTML = '<option value="">Selecione a categoria primeiro</option>';
+  function setHint(msg, loading) {
+    hintTxt.textContent = msg;
+    hint.classList.toggle('loading', !!loading);
+  }
+
+  function setSubLoading(on) {
+    subSel.classList.toggle('select-loading', on);
+  }
+
+  if (catSel && subSel) {
+    catSel.addEventListener('change', function () {
+      var categoriaId = this.value;
+
+      if (!categoriaId) {
+        subSel.innerHTML = '<option value="">Selecione a categoria primeiro</option>';
+        setHint('Selecione primeiro a categoria', false);
         return;
-    }
+      }
 
-    fetch("{% url 'ajax_subcategorias' %}?categoria_id=" + categoriaId)
-        .then(response => response.json())
-        .then(data => {
-            subSelect.innerHTML = '<option value="">Selecione a subcategoria</option>';
+      setSubLoading(true);
+      setHint('A carregar subcategorias...', true);
+      subSel.innerHTML = '<option value="">A carregar...</option>';
 
-            data.forEach(item => {
-                const option = document.createElement("option");
-                option.value = item.id;
-                option.textContent = item.label; // 🔹 usa label
-                subSelect.appendChild(option);
-            });
+      fetch("{% url 'ajax_subcategorias' %}?categoria_id=" + categoriaId)
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          subSel.innerHTML = '<option value="">Selecione a subcategoria</option>';
+          data.forEach(function (item) {
+            var opt = document.createElement('option');
+            opt.value = item.id;
+            opt.textContent = item.label;
+            subSel.appendChild(opt);
+          });
+          setSubLoading(false);
+          setHint(data.length + ' subcategoria(s) disponível(is)', false);
         })
-        .catch(() => {
-            subSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+        .catch(function () {
+          subSel.innerHTML = '<option value="">Erro ao carregar</option>';
+          setSubLoading(false);
+          setHint('Erro ao carregar subcategorias', false);
         });
-});
-</script>
+    });
+  }
 
+  /* ── Loading no submit ───────────────────────── */
+  var form = document.getElementById('formDespesa');
+  var btn  = document.getElementById('btnSave');
+  if (form && btn) {
+    form.addEventListener('submit', function () {
+      btn.classList.add('loading'); btn.disabled = true;
+      setTimeout(function () { btn.classList.remove('loading'); btn.disabled = false; }, 8000);
+    });
+  }
+})();
+</script>
 {% endblock %}

@@ -1,46 +1,439 @@
-{% extends "base.html" %}
-
+{% extends 'base.html' %}
 {% block title %}Editar Despesa de Combustível{% endblock %}
+{% block breadcrumb %}Combustível › Editar Despesa{% endblock %}
 
 {% block content %}
-<div class="card">
-  <div class="card-header bg-warning text-dark">
-    <h4 class="mb-0"><i class="fas fa-edit"></i> Editar Despesa de Combustível</h4>
-  </div>
-  <div class="card-body">
-    <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
+<style>
+/* ════════════════════════════════════════════════════
+   EDITAR DESPESA COMBUSTÍVEL
+════════════════════════════════════════════════════ */
 
-      <!-- Mostra os campos do form -->
-      {{ form.as_p }}
+.edit-wrapper {
+  max-width: 680px;
+  margin: 0 auto;
+  animation: editIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes editIn {
+  from { opacity:0; transform:translateY(18px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
 
-      <!-- Mostra imagem atual (se existir) -->
-      {% if despesa.comprovativo %}
-        <div class="mb-3">
-          <label class="form-label">Comprovativo Atual:</label><br>
-          <a href="{{ despesa.comprovativo.url }}" target="_blank">
-            <img src="{{ despesa.comprovativo.url }}" 
-                 alt="Comprovativo atual"
-                 class="img-thumbnail"
-                 style="max-width: 250px;">
-          </a>
-        </div>
-      {% endif %}
+/* ── CARD ────────────────────────────────────────── */
+.edit-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(4,30,66,.32);
+  position: relative;
+}
+.edit-card::before {
+  content: '';
+  position: absolute; top:0; left:10%; right:10%; height:2px;
+  background: linear-gradient(90deg, transparent, #ffd54f, transparent);
+  pointer-events: none;
+}
 
-      <!-- Input para substituir a imagem -->
-      <div class="mb-3">
-        <label class="form-label">Alterar Comprovativo:</label>
-        <input type="file" name="comprovativo" class="form-control">
-        <small class="text-muted">Deixe em branco se não quiser alterar.</small>
+/* ── HEADER ──────────────────────────────────────── */
+.edit-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 24px;
+  background: linear-gradient(90deg, rgba(243,156,18,.18), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+}
+.edit-header-icon {
+  width: 44px; height: 44px; flex-shrink: 0;
+  background: rgba(255,213,79,.1);
+  border: 1px solid rgba(255,213,79,.25);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; color: #ffd54f;
+}
+.edit-header-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem; letter-spacing: 2px; line-height: 1;
+  color: var(--white);
+}
+.edit-header-sub { font-size: .75rem; color: var(--grey); margin-top: 3px; }
+
+/* ── BODY ────────────────────────────────────────── */
+.edit-body { padding: 24px; }
+
+/* ── SECTIONS ────────────────────────────────────── */
+.edit-section {
+  margin-bottom: 22px; padding-bottom: 22px;
+  border-bottom: 1px solid rgba(79,195,247,.07);
+}
+.edit-section:last-child { margin-bottom:0; padding-bottom:0; border-bottom:none; }
+
+.edit-section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .73rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  margin-bottom: 14px; padding-left: 9px;
+  display: flex; align-items: center; gap: 7px;
+}
+.edit-section-title.cinza   { border-left:2px solid var(--grey);   color: var(--grey); }
+.edit-section-title.laranja { border-left:2px solid #ffd54f;       color: #ffd54f; }
+.edit-section-title.verde   { border-left:2px solid #69f0ae;       color: #69f0ae; }
+
+/* ── FIELDS ──────────────────────────────────────── */
+.f-label {
+  display: block;
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.42); margin-bottom: 5px;
+}
+.f-group { margin-bottom: 14px; }
+.f-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.edit-wrapper input[type="text"],
+.edit-wrapper input[type="number"],
+.edit-wrapper input[type="date"],
+.edit-wrapper select,
+.edit-wrapper textarea {
+  width: 100%;
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 11px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .9rem !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast), background var(--ease-fast) !important;
+}
+.edit-wrapper input:focus,
+.edit-wrapper select:focus,
+.edit-wrapper textarea:focus {
+  border-color: var(--accent) !important;
+  background: rgba(4,30,66,.85) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+}
+.edit-wrapper input::placeholder,
+.edit-wrapper textarea::placeholder { color: rgba(255,255,255,.25) !important; }
+.edit-wrapper select option { background: var(--navy); color: var(--white); }
+.edit-wrapper textarea { resize: vertical; min-height: 80px; }
+.edit-wrapper input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7); }
+
+/* Kz / L suffix */
+.kz-wrap, .lt-wrap { position: relative; }
+.kz-wrap input, .lt-wrap input { padding-right: 36px !important; text-align: right; }
+.kz-sym, .lt-sym {
+  position: absolute; right: 11px; top: 50%;
+  transform: translateY(-50%);
+  font-size: .7rem; font-weight: 700; pointer-events: none;
+}
+.kz-sym { color: var(--accent); }
+.lt-sym { color: rgba(79,195,247,.6); }
+
+/* Checkbox */
+.check-row {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(4,30,66,.35);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px; cursor: pointer;
+  transition: background var(--ease-fast), border-color var(--ease-fast);
+}
+.check-row:hover { background: rgba(36,99,163,.2); border-color: rgba(79,195,247,.25); }
+.check-row input[type="checkbox"] {
+  width: 16px !important; height: 16px !important;
+  padding: 0 !important; border-radius: 4px !important;
+  accent-color: var(--accent); cursor: pointer; flex-shrink: 0;
+}
+.check-label { font-size: .85rem; color: rgba(255,255,255,.7); font-weight: 600; cursor: pointer; }
+
+/* ── COMPROVATIVO ATUAL ───────────────────────────── */
+.comp-preview {
+  background: rgba(4,30,66,.4);
+  border: 1px solid rgba(255,213,79,.2);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 14px;
+  transition: border-color var(--ease-fast);
+}
+.comp-preview:hover { border-color: rgba(255,213,79,.4); }
+
+.comp-thumb {
+  width: 80px; height: 80px; flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: rgba(4,30,66,.6);
+  border: 1px solid var(--glass-border);
+  display: flex; align-items: center; justify-content: center;
+}
+.comp-thumb img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform .3s ease;
+}
+.comp-thumb:hover img { transform: scale(1.08); }
+.comp-thumb-icon { font-size: 1.8rem; color: rgba(255,255,255,.25); }
+
+.comp-info { flex: 1; }
+.comp-info-label {
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.35); margin-bottom: 4px;
+}
+.comp-info-name {
+  font-size: .85rem; color: rgba(255,255,255,.75); font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.comp-info-hint { font-size: .72rem; color: var(--grey); margin-top: 4px; }
+
+.btn-view-comp {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px;
+  background: rgba(255,213,79,.1);
+  border: 1px solid rgba(255,213,79,.25);
+  border-radius: var(--radius-sm);
+  font-size: .75rem; font-weight: 700;
+  letter-spacing: .8px; text-transform: uppercase;
+  color: #ffd54f; text-decoration: none;
+  transition: background var(--ease-fast), border-color var(--ease-fast);
+  flex-shrink: 0;
+}
+.btn-view-comp:hover { background: rgba(255,213,79,.2); color: #ffd54f; }
+
+/* ── FILE UPLOAD ─────────────────────────────────── */
+.file-wrap {
+  position: relative;
+  background: rgba(4,30,66,.35);
+  border: 1px dashed rgba(79,195,247,.25);
+  border-radius: var(--radius-md);
+  padding: 14px 16px; cursor: pointer;
+  transition: border-color var(--ease-fast), background var(--ease-fast);
+  display: flex; align-items: center; gap: 10px; overflow: hidden;
+}
+.file-wrap:hover { border-color: rgba(79,195,247,.45); background: rgba(36,99,163,.12); }
+.file-wrap input[type="file"] {
+  position: absolute; inset: 0;
+  width: 100% !important; height: 100% !important;
+  opacity: 0; cursor: pointer;
+  padding: 0 !important; border: none !important;
+  background: transparent !important; box-shadow: none !important;
+}
+.file-icon { font-size: .9rem; color: var(--accent); flex-shrink: 0; }
+.file-text { font-size: .78rem; color: rgba(255,255,255,.45); }
+.file-text strong { color: var(--accent); font-weight: 700; }
+.file-hint { font-size: .72rem; color: rgba(255,255,255,.28); margin-top: 5px; }
+
+/* ── ACTION BAR ──────────────────────────────────── */
+.edit-footer {
+  display: flex; align-items: center;
+  justify-content: flex-end; gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px 24px;
+  background: rgba(4,30,66,.3);
+  border-top: 1px solid var(--glass-border);
+}
+
+.btn-edit {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 24px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem; letter-spacing: 2px;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+  position: relative; overflow: hidden;
+}
+.btn-edit::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-edit:hover::before { transform: translateX(100%); }
+.btn-edit:hover  { transform: translateY(-2px); }
+.btn-edit:active { transform: scale(.97); }
+
+.btn-save-e {
+  background: var(--grad-btn); color: var(--white);
+  box-shadow: 0 4px 18px rgba(36,99,163,.35);
+}
+.btn-save-e:hover { box-shadow: 0 8px 26px rgba(36,99,163,.5); color: var(--white); }
+.btn-save-e .sp {
+  display:none; width:14px; height:14px;
+  border:2px solid rgba(255,255,255,.3); border-top-color:white;
+  border-radius:50%; animation:spin .7s linear infinite;
+}
+.btn-save-e.loading .sp  { display:inline-block; }
+.btn-save-e.loading .btn-txt { opacity:.7; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.btn-back-e {
+  background: transparent;
+  border: 1px solid var(--glass-border) !important;
+  color: rgba(255,255,255,.6);
+}
+.btn-back-e:hover { background: rgba(255,255,255,.07); color: var(--white); }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 560px) {
+  .f-row-2 { grid-template-columns: 1fr; }
+  .comp-preview { flex-direction: column; align-items: flex-start; }
+  .edit-footer { flex-direction: column; }
+  .btn-edit { width: 100%; justify-content: center; }
+}
+</style>
+
+<div class="edit-wrapper">
+  <div class="edit-card">
+
+    <!-- HEADER -->
+    <div class="edit-header">
+      <div class="edit-header-icon"><i class="fas fa-pen"></i></div>
+      <div>
+        <div class="edit-header-title">Editar Despesa de Combustível</div>
+        <div class="edit-header-sub">Atualize os dados da despesa registada</div>
       </div>
+    </div>
 
-      <button type="submit" class="btn btn-success">
-        <i class="fas fa-save"></i> Salvar Alterações
-      </button>
-      <a href="{% url 'listar_despesas' %}" class="btn btn-secondary">
+    <div class="edit-body">
+      <form method="post" enctype="multipart/form-data" id="formEdit">
+        {% csrf_token %}
+
+        <!-- ── Dados Gerais ── -->
+        <div class="edit-section">
+          <div class="edit-section-title cinza"><i class="fas fa-calendar-day"></i> Dados Gerais</div>
+
+          <div class="f-row-2">
+            <div class="f-group">
+              <label class="f-label">{{ form.data.label }}</label>
+              {{ form.data }}
+            </div>
+            <div class="f-group">
+              <label class="f-label">{{ form.valor.label }}</label>
+              <div class="kz-wrap">
+                {{ form.valor }}
+                <span class="kz-sym">Kz</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="f-group">
+            <label class="f-label">{{ form.valor_litros.label }}</label>
+            <div class="lt-wrap">
+              {{ form.valor_litros }}
+              <span class="lt-sym">L</span>
+            </div>
+          </div>
+
+          <div class="f-group">
+            <label class="f-label">{{ form.descricao.label }}</label>
+            {{ form.descricao }}
+          </div>
+        </div>
+
+        <!-- ── Comprovativo ── -->
+        <div class="edit-section">
+          <div class="edit-section-title laranja"><i class="fas fa-paperclip"></i> Comprovativo</div>
+
+          {% if despesa.comprovativo %}
+          <div class="comp-preview">
+            <a href="{{ despesa.comprovativo.url }}" target="_blank" class="comp-thumb" title="Ver comprovativo">
+              <img src="{{ despesa.comprovativo.url }}" alt="Comprovativo atual">
+            </a>
+            <div class="comp-info">
+              <div class="comp-info-label">Comprovativo Atual</div>
+              <div class="comp-info-name">{{ despesa.comprovativo.name|default:"comprovativo.jpg" }}</div>
+              <div class="comp-info-hint">Para substituir, selecione um novo ficheiro abaixo</div>
+            </div>
+            <a href="{{ despesa.comprovativo.url }}" target="_blank" class="btn-view-comp">
+              <i class="fas fa-eye"></i> Ver
+            </a>
+          </div>
+          {% endif %}
+
+          <div class="f-group">
+            <label class="f-label">{% if despesa.comprovativo %}Substituir Comprovativo{% else %}Adicionar Comprovativo{% endif %}</label>
+            <div class="file-wrap" id="fileWrap">
+              <i class="fas fa-cloud-arrow-up file-icon"></i>
+              <span class="file-text" id="fileText">
+                <strong>Clique para selecionar</strong> ou arraste o ficheiro
+              </span>
+              <input type="file" name="comprovativo" id="fileInput" accept="image/*,.pdf">
+            </div>
+            <div class="file-hint">{% if despesa.comprovativo %}Deixe em branco para manter o atual.{% else %}Formatos: JPG, PNG, PDF{% endif %}</div>
+          </div>
+        </div>
+
+        <!-- ── Extras ── -->
+        <div class="edit-section">
+          <div class="edit-section-title verde"><i class="fas fa-filter"></i> Extras</div>
+          <div style="display:flex; flex-direction:column; gap:10px">
+            <label class="check-row">
+              {{ form.sobragem_filtros }}
+              <span class="check-label">Filtros</span>
+            </label>
+            <label class="check-row">
+              {{ form.lavagem }}
+              <span class="check-label">{{ form.lavagem.label }}</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- outros campos hidden se existirem -->
+        <div style="display:none">
+          {% for field in form.hidden_fields %}
+            {{ field }}
+          {% endfor %}
+        </div>
+
+      </form>
+    </div><!-- edit-body -->
+
+    <!-- FOOTER -->
+    <div class="edit-footer">
+      <a href="{% url 'listar_despesas' %}" class="btn-edit btn-back-e">
         <i class="fas fa-arrow-left"></i> Voltar
       </a>
-    </form>
-  </div>
-</div>
+      <button type="submit" form="formEdit" class="btn-edit btn-save-e" id="btnSave">
+        <span class="sp"></span>
+        <span class="btn-txt"><i class="fas fa-floppy-disk"></i> Guardar Alterações</span>
+      </button>
+    </div>
+
+  </div><!-- edit-card -->
+</div><!-- edit-wrapper -->
+
+<script>
+(function () {
+  /* Loading */
+  var form = document.getElementById('formEdit');
+  var btn  = document.getElementById('btnSave');
+  if (form && btn) {
+    form.addEventListener('submit', function () {
+      btn.classList.add('loading'); btn.disabled = true;
+      setTimeout(function () { btn.classList.remove('loading'); btn.disabled = false; }, 8000);
+    });
+  }
+
+  /* File name preview */
+  var fileInput = document.getElementById('fileInput');
+  var fileText  = document.getElementById('fileText');
+  if (fileInput && fileText) {
+    fileInput.addEventListener('change', function () {
+      if (fileInput.files && fileInput.files.length > 0) {
+        var f = fileInput.files[0];
+        var size = (f.size / 1024).toFixed(1) + ' KB';
+        fileText.innerHTML = '<strong style="color:var(--accent)">' + f.name + '</strong> <span style="color:var(--grey);font-size:.72rem">(' + size + ')</span>';
+      } else {
+        fileText.innerHTML = '<strong>Clique para selecionar</strong> ou arraste o ficheiro';
+      }
+    });
+  }
+
+  /* Remove Bootstrap classes */
+  document.querySelectorAll('.edit-wrapper input, .edit-wrapper select, .edit-wrapper textarea').forEach(function (el) {
+    el.classList.remove('form-control', 'form-select');
+  });
+})();
+</script>
 {% endblock %}

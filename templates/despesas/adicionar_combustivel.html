@@ -1,95 +1,432 @@
 {% extends 'base.html' %}
-{% block title %}Adicionar Despesas - {{ sector.nome }}{% endblock %}
+{% block title %}Despesas de Combustível — {{ sector.nome }}{% endblock %}
+{% block breadcrumb %}Combustível › {{ sector.nome }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card shadow-lg mb-4">
-        <div class="card-header bg-primary text-white">
-            <h4><i class="fas fa-bus-alt me-2"></i> Despesas de Combustível - {{ sector.nome }}</h4>
+<style>
+/* ════════════════════════════════════════════════════
+   DESPESAS DE COMBUSTÍVEL
+════════════════════════════════════════════════════ */
+
+.comb-wrapper {
+  animation: combIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes combIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── HEADER ──────────────────────────────────────── */
+.comb-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 24px;
+}
+.comb-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem; letter-spacing: 2px; line-height: 1;
+}
+.comb-title span { color: var(--accent); }
+.comb-subtitle { font-size: .78rem; color: var(--grey); margin-top: 4px; }
+
+.sector-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.22);
+  border-radius: 30px; padding: 5px 14px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .85rem; letter-spacing: 1px;
+  color: var(--accent);
+}
+
+/* ── GRID ────────────────────────────────────────── */
+.autocarros-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px; margin-bottom: 28px;
+}
+
+/* ── CARD ────────────────────────────────────────── */
+.ac-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(4,30,66,.25);
+  transition: border-color var(--ease-fast), box-shadow var(--ease-base);
+  position: relative;
+}
+.ac-card::before {
+  content: '';
+  position: absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: .5; pointer-events: none;
+}
+.ac-card:hover { border-color: rgba(79,195,247,.28); box-shadow: 0 12px 32px rgba(4,30,66,.35); }
+
+.ac-card-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px;
+  background: linear-gradient(90deg, rgba(36,99,163,.3), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+}
+.ac-card-icon {
+  width: 40px; height: 40px; flex-shrink: 0;
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.18);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .95rem; color: var(--accent);
+}
+.ac-card-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem; letter-spacing: 2px; line-height: 1;
+  color: var(--white);
+}
+.ac-card-modelo { font-size: .72rem; color: var(--grey); margin-top: 2px; }
+
+.ac-card-body { padding: 18px; }
+
+/* ── SECTIONS ────────────────────────────────────── */
+.ac-section {
+  margin-bottom: 16px; padding-bottom: 16px;
+  border-bottom: 1px solid rgba(79,195,247,.07);
+}
+.ac-section:last-child { margin-bottom:0; padding-bottom:0; border-bottom:none; }
+.ac-section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .73rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--grey); margin-bottom: 10px;
+  padding-left: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.ac-section-title.verde   { border-left:2px solid #69f0ae; color:#69f0ae; }
+.ac-section-title.laranja { border-left:2px solid #ffd54f; color:#ffd54f; }
+.ac-section-title.cinza   { border-left:2px solid var(--grey); }
+
+/* ── FIELDS ──────────────────────────────────────── */
+.f-label {
+  display: block;
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.42); margin-bottom: 5px;
+}
+.f-group { margin-bottom: 12px; }
+.f-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.comb-wrapper input[type="text"],
+.comb-wrapper input[type="number"],
+.comb-wrapper input[type="date"],
+.comb-wrapper select,
+.comb-wrapper textarea {
+  width: 100%;
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 10px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .88rem !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast), background var(--ease-fast) !important;
+}
+.comb-wrapper input:focus,
+.comb-wrapper select:focus,
+.comb-wrapper textarea:focus {
+  border-color: var(--accent) !important;
+  background: rgba(4,30,66,.85) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+}
+.comb-wrapper input::placeholder,
+.comb-wrapper textarea::placeholder { color: rgba(255,255,255,.25) !important; }
+.comb-wrapper select option { background: var(--navy); color: var(--white); }
+.comb-wrapper textarea { resize: vertical; min-height: 68px; }
+.comb-wrapper input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7); }
+
+/* Kz / L suffix */
+.kz-wrap, .lt-wrap { position: relative; }
+.kz-wrap input, .lt-wrap input { padding-right: 36px !important; text-align: right; }
+.kz-sym, .lt-sym {
+  position: absolute; right: 11px; top: 50%;
+  transform: translateY(-50%);
+  font-size: .7rem; font-weight: 700; pointer-events: none;
+}
+.kz-sym { color: var(--accent); }
+.lt-sym { color: rgba(79,195,247,.6); }
+
+/* File upload */
+.file-wrap {
+  position: relative;
+  background: rgba(4,30,66,.35);
+  border: 1px dashed rgba(79,195,247,.25);
+  border-radius: var(--radius-md);
+  padding: 13px 16px;
+  cursor: pointer;
+  transition: border-color var(--ease-fast), background var(--ease-fast);
+  display: flex; align-items: center; gap: 10px; overflow: hidden;
+}
+.file-wrap:hover { border-color: rgba(79,195,247,.45); background: rgba(36,99,163,.12); }
+.file-wrap input[type="file"] {
+  position: absolute; inset: 0;
+  width: 100% !important; height: 100% !important;
+  opacity: 0; cursor: pointer;
+  padding: 0 !important; border: none !important;
+  background: transparent !important; box-shadow: none !important;
+}
+.file-icon { font-size: .9rem; color: var(--accent); flex-shrink: 0; }
+.file-text { font-size: .78rem; color: rgba(255,255,255,.45); }
+.file-text strong { color: var(--accent); font-weight: 700; }
+
+/* Checkbox */
+.check-row {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(4,30,66,.35);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px; cursor: pointer;
+  transition: background var(--ease-fast), border-color var(--ease-fast);
+}
+.check-row:hover { background: rgba(36,99,163,.2); border-color: rgba(79,195,247,.25); }
+.check-row input[type="checkbox"] {
+  width: 16px !important; height: 16px !important;
+  padding: 0 !important; border-radius: 4px !important;
+  accent-color: var(--accent); cursor: pointer; flex-shrink: 0;
+}
+.check-label { font-size: .85rem; color: rgba(255,255,255,.7); font-weight: 600; cursor: pointer; }
+
+/* ── EMPTY STATE ─────────────────────────────────── */
+.empty-state {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 52px 24px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  margin-bottom: 28px;
+}
+.empty-state i { font-size: 2.4rem; color: rgba(255,255,255,.18); }
+.empty-state p { font-size: .9rem; color: rgba(255,255,255,.35); }
+
+/* ── ACTION BAR ──────────────────────────────────── */
+.action-bar {
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: 12px; flex-wrap: wrap;
+  background: rgba(4,30,66,.35);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 22px;
+}
+
+.btn-comb {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 26px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem; letter-spacing: 2px;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+  position: relative; overflow: hidden;
+}
+.btn-comb::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-comb:hover::before { transform: translateX(100%); }
+.btn-comb:hover  { transform: translateY(-2px); }
+.btn-comb:active { transform: scale(.97); }
+
+.btn-save {
+  background: var(--grad-btn); color: var(--white);
+  box-shadow: 0 4px 18px rgba(36,99,163,.35);
+}
+.btn-save:hover { box-shadow: 0 8px 26px rgba(36,99,163,.5); color: var(--white); }
+.btn-save .sp {
+  display:none; width:14px; height:14px;
+  border:2px solid rgba(255,255,255,.3); border-top-color:white;
+  border-radius:50%; animation:spin .7s linear infinite;
+}
+.btn-save.loading .sp  { display:inline-block; }
+.btn-save.loading .btn-txt { opacity:.7; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.btn-back {
+  background: transparent;
+  border: 1px solid var(--glass-border) !important;
+  color: rgba(255,255,255,.6);
+}
+.btn-back:hover { background: rgba(255,255,255,.07); color: var(--white); }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 768px) {
+  .autocarros-grid { grid-template-columns: 1fr; }
+  .f-row-2 { grid-template-columns: 1fr; }
+  .comb-header { flex-direction: column; align-items: flex-start; }
+  .action-bar { flex-direction: column; }
+  .btn-comb { width: 100%; justify-content: center; }
+}
+</style>
+
+<div class="comb-wrapper">
+
+  <!-- HEADER -->
+  <div class="comb-header">
+    <div>
+      <div class="comb-title">Despesas de <span>Combustível</span></div>
+      <div class="comb-subtitle">Registe os gastos de combustível por autocarro</div>
+    </div>
+    <span class="sector-badge">
+      <i class="fas fa-map-marker-alt"></i> {{ sector.nome }}
+    </span>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" id="formCombustivel">
+    {% csrf_token %}
+    {{ formset.management_form }}
+
+    {% if formset_autocarros %}
+    <div class="autocarros-grid">
+      {% for form, autocarro in formset_autocarros %}
+      <div class="ac-card">
+
+        <div class="ac-card-header">
+          <div class="ac-card-icon"><i class="fas fa-bus"></i></div>
+          <div>
+            <div class="ac-card-num">{{ autocarro.numero }}</div>
+            <div class="ac-card-modelo">{{ autocarro.modelo }}</div>
+          </div>
         </div>
+
+        <div class="ac-card-body">
+
+          <!-- Dados Gerais -->
+          <div class="ac-section">
+            <div class="ac-section-title cinza"><i class="fas fa-calendar-day"></i> Dados Gerais</div>
+            <div class="f-row-2">
+              <div class="f-group">
+                <label class="f-label">{{ form.data.label }}</label>
+                {{ form.data }}
+              </div>
+              <div class="f-group">
+                <label class="f-label">{{ form.valor.label }}</label>
+                <div class="kz-wrap">
+                  {{ form.valor }}
+                  <span class="kz-sym">Kz</span>
+                </div>
+              </div>
+            </div>
+            <div class="f-group">
+              <label class="f-label">{{ form.valor_litros.label }}</label>
+              <div class="lt-wrap">
+                {{ form.valor_litros }}
+                <span class="lt-sym">L</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comprovativo -->
+          <div class="ac-section">
+            <div class="ac-section-title laranja"><i class="fas fa-paperclip"></i> Comprovativo</div>
+            <div class="f-group">
+              <label class="f-label">{{ form.comprovativo.label }}</label>
+              <div class="file-wrap">
+                <i class="fas fa-cloud-arrow-up file-icon"></i>
+                <span class="file-text"><strong>Clique para anexar</strong> ou arraste o ficheiro</span>
+                {{ form.comprovativo }}
+              </div>
+            </div>
+            <div class="f-group">
+              <label class="f-label">{{ form.descricao.label }}</label>
+              {{ form.descricao }}
+            </div>
+          </div>
+
+          <!-- Extras -->
+          <div class="ac-section">
+            <div class="ac-section-title verde"><i class="fas fa-filter"></i> Extras</div>
+            <div class="f-group">
+              <label class="check-row">
+                {{ form.sobragem_filtros }}
+                <span class="check-label">Filtros</span>
+              </label>
+            </div>
+            <div class="f-group">
+              <label class="check-row">
+                {{ form.lavagem }}
+                <span class="check-label">{{ form.lavagem.label }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Hidden -->
+          <div style="display:none">
+            {{ form.sector }}
+            {{ form.autocarro }}
+            {{ form.id }}
+          </div>
+
+        </div>
+      </div>
+      {% endfor %}
     </div>
 
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ formset.management_form }}
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-bus-slash"></i>
+      <p>Não foram encontrados autocarros para este sector.</p>
+    </div>
+    {% endif %}
 
-        <div class="row g-4">
-            {% if formset_autocarros %}
-                {% for form, autocarro in formset_autocarros %}
-                    <div class="col-md-6"> <!-- 🔹 2 colunas -->
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-header bg-success text-white">
-                                <h5>Autocarro {{ autocarro.numero }} - {{ autocarro.modelo }}</h5>
-                            </div>
-                            <div class="card-body">
+    <!-- ACTION BAR -->
+    <div class="action-bar">
+      <a href="{% url 'selc_sector_cumb' %}" class="btn-comb btn-back">
+        <i class="fas fa-arrow-left"></i> Voltar
+      </a>
+      {% if formset_autocarros %}
+      <button type="submit" class="btn-comb btn-save" id="btnSave">
+        <span class="sp"></span>
+        <span class="btn-txt"><i class="fas fa-floppy-disk"></i> Guardar</span>
+      </button>
+      {% endif %}
+    </div>
 
-                                <!-- 🔹 Data -->
-                                <div class="mb-3">
-                                    {{ form.data.label_tag }}
-                                    {{ form.data }}
-                                </div>
-
-                                <!-- 🔹 Valor -->
-                                <div class="mb-3">
-                                    {{ form.valor.label_tag }}
-                                    {{ form.valor }}
-                                </div>
-
-                                <!-- 🔹 Valor Litros -->
-                                <div class="mb-3">
-                                    {{ form.valor_litros.label_tag }}
-                                    {{ form.valor_litros }}
-                                </div>
-
-                                <!-- 🔹 Comprovativo -->
-                                <div class="mb-3">
-                                    {{ form.comprovativo.label_tag }}
-                                    {{ form.comprovativo }}
-                                </div>
-
-                                <!-- 🔹 Descrição -->
-                                <div class="mb-3">
-                                    {{ form.descricao.label_tag }}
-                                    {{ form.descricao }}
-                                </div>
-
-                                <!-- 🔹 Campos extras -->
-                                <div class="mb-3">
-                                    <label class="form-label small">
-                                        Sopragem De Filtros
-                                    </label>
-                                    {{ form.sobragem_filtros }}
-                                </div>
-                                <div class="mb-3">
-                                    {{ form.lavagem.label_tag }}
-                                    {{ form.lavagem }}
-                                </div>
-
-                                <!-- Hidden -->
-                                {{ form.sector }}
-                                {{ form.autocarro }}
-                                {{ form.id }}
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <div class="col-12">
-                    <div class="alert alert-info">
-                        Não foram encontrados autocarros para este setor.
-                    </div>
-                </div>
-            {% endif %}
-        </div>
-
-        <div class="text-center mt-4">
-            <button type="submit" class="btn btn-success btn-lg">
-                <i class="fas fa-save me-2"></i> Salvar
-            </button>
-            <a href="{% url 'selc_sector_cumb' %}" class="btn btn-secondary btn-lg">
-                <i class="fas fa-arrow-left me-2"></i> Voltar
-            </a>
-        </div>
-    </form>
+  </form>
 </div>
+
+<script>
+(function () {
+  /* Loading */
+  var form = document.getElementById('formCombustivel');
+  var btn  = document.getElementById('btnSave');
+  if (form && btn) {
+    form.addEventListener('submit', function () {
+      btn.classList.add('loading'); btn.disabled = true;
+      setTimeout(function () { btn.classList.remove('loading'); btn.disabled = false; }, 10000);
+    });
+  }
+
+  /* File name preview */
+  document.querySelectorAll('.file-wrap').forEach(function (wrap) {
+    var input = wrap.querySelector('input[type="file"]');
+    var text  = wrap.querySelector('.file-text');
+    if (!input || !text) return;
+    input.addEventListener('change', function () {
+      if (input.files && input.files.length > 0) {
+        text.innerHTML = '<strong style="color:var(--accent)">' + input.files[0].name + '</strong>';
+      } else {
+        text.innerHTML = '<strong>Clique para anexar</strong> ou arraste o ficheiro';
+      }
+    });
+  });
+
+  /* Remove Bootstrap classes */
+  document.querySelectorAll('.comb-wrapper input, .comb-wrapper select, .comb-wrapper textarea').forEach(function (el) {
+    el.classList.remove('form-control', 'form-select');
+  });
+})();
+</script>
 {% endblock %}

@@ -3,70 +3,417 @@
 {% load static %}
 
 {% block title %}Despesas de Combustível{% endblock %}
+{% block breadcrumb %}Combustível › Listagem{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="fw-bold"><i class="fas fa-gas-pump me-2"></i>Despesas de Combustível</h3>
-    <form method="get" class="d-flex gap-2 align-items-center">
-      <select name="autocarro" class="form-select form-select-sm">
-        <option value="">Todos os autocarros</option>
-        {% for a in autocarros %}
-          <option value="{{ a.id }}" {% if a.id|stringformat:"s" == autocarro_selected %}selected{% endif %}>{{ a.numero }} — {{ a.modelo }}</option>
-        {% endfor %}
-      </select>
-      <input type="date" name="data_inicio" value="{{ data_inicio }}" class="form-control form-control-sm">
-      <input type="date" name="data_fim" value="{{ data_fim }}" class="form-control form-control-sm">
-      <button class="btn btn-sm btn-primary" type="submit"><i class="fas fa-filter me-1"></i>Filtrar</button>
-    </form>
+<style>
+/* ════════════════════════════════════════════════════
+   LISTAR DESPESAS COMBUSTÍVEL
+════════════════════════════════════════════════════ */
+
+.dc-wrapper {
+  animation: dcIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes dcIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── HEADER ──────────────────────────────────────── */
+.dc-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 24px;
+}
+.dc-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem; letter-spacing: 2px; line-height: 1;
+}
+.dc-title span { color: var(--accent); }
+.dc-subtitle { font-size: .78rem; color: var(--grey); margin-top: 4px; }
+
+/* ── FILTER BAR ──────────────────────────────────── */
+.filter-bar {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  padding: 14px 18px;
+  display: flex; flex-wrap: wrap; gap: 12px;
+  align-items: flex-end; margin-bottom: 22px;
+}
+.f-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px; }
+.f-label {
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.4);
+}
+.dc-wrapper select,
+.dc-wrapper input[type="date"] {
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 9px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .88rem !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  width: 100%;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+}
+.dc-wrapper select:focus,
+.dc-wrapper input[type="date"]:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+  background: rgba(4,30,66,.85) !important;
+}
+.dc-wrapper select option { background: var(--navy); color: var(--white); }
+.dc-wrapper input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7); }
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn-dc {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 20px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .88rem;
+  letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+}
+.btn-dc:hover  { transform: translateY(-2px); }
+.btn-dc:active { transform: scale(.97); }
+.btn-primary-dc { background: var(--grad-btn); color: var(--white); box-shadow: var(--shadow-sm); }
+.btn-primary-dc:hover { box-shadow: 0 6px 20px rgba(36,99,163,.4); color: var(--white); }
+
+/* small action buttons */
+.btn-act {
+  width: 30px; height: 30px;
+  border-radius: var(--radius-sm);
+  border: 1px solid;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .75rem; cursor: pointer;
+  background: transparent; text-decoration: none;
+  transition: background var(--ease-fast), transform var(--ease-spring);
+}
+.btn-act:hover { transform: scale(1.12); }
+.btn-act-edit  { border-color: rgba(255,213,79,.35); color: #ffd54f; }
+.btn-act-edit:hover  { background: rgba(255,213,79,.15); }
+.btn-act-del   { border-color: rgba(231,76,60,.35); color: #ff8a80; }
+.btn-act-del:hover   { background: rgba(231,76,60,.15); }
+.btn-act-view  { border-color: rgba(79,195,247,.35); color: var(--accent); }
+.btn-act-view:hover  { background: rgba(79,195,247,.15); }
+
+/* ── TABLE CARD ──────────────────────────────────── */
+.table-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(4,30,66,.28);
+}
+.table-card-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 13px 20px;
+  background: linear-gradient(90deg, rgba(36,99,163,.3), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+  flex-wrap: wrap; gap: 8px;
+}
+.table-card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 1rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--white); display: flex; align-items: center; gap: 8px;
+}
+.table-card-title i { color: var(--accent); }
+.table-count { font-size: .75rem; color: var(--grey); }
+
+/* ── TABLE ───────────────────────────────────────── */
+.dc-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.dc-table {
+  width: 100%; border-collapse: collapse; font-size: .85rem;
+}
+.dc-table thead th {
+  background: rgba(4,30,66,.7);
+  color: var(--accent);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .72rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--glass-border);
+  white-space: nowrap; text-align: center;
+}
+.dc-table thead th:nth-child(2) { text-align: left; }
+
+.dc-table tbody tr {
+  border-bottom: 1px solid rgba(79,195,247,.06);
+  transition: background var(--ease-fast);
+}
+.dc-table tbody tr:hover { background: rgba(36,99,163,.18); }
+
+.dc-table tbody td {
+  padding: 11px 14px; text-align: center;
+  color: rgba(255,255,255,.75);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.dc-table tbody td:nth-child(2) { text-align: left; }
+
+/* cells */
+.date-cell {
+  font-size: .78rem; color: var(--grey);
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.date-cell i { color: var(--accent); font-size: .65rem; }
+
+.ac-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(79,195,247,.07);
+  border: 1px solid rgba(79,195,247,.14);
+  border-radius: 30px; padding: 2px 10px;
+  font-size: .78rem; font-weight: 600;
+  color: rgba(255,255,255,.7);
+}
+.ac-chip i { color: var(--accent); font-size: .65rem; }
+
+.val-kz {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.05rem; letter-spacing: .5px;
+  color: var(--accent);
+}
+
+.litros-val {
+  font-weight: 700; color: rgba(255,255,255,.75);
+}
+.litros-unit { font-size: .65rem; color: var(--grey); }
+
+.extra-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(105,240,174,.08);
+  border: 1px solid rgba(105,240,174,.18);
+  border-radius: 30px; padding: 2px 8px;
+  font-size: .7rem; font-weight: 700; color: #69f0ae;
+  margin: 1px;
+}
+
+/* Empty */
+.table-empty {
+  padding: 52px 20px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  color: rgba(255,255,255,.25);
+}
+.table-empty i { font-size: 2.4rem; opacity: .35; }
+
+/* ── TOTAL BAR ───────────────────────────────────── */
+.total-bar {
+  display: flex; align-items: center;
+  justify-content: flex-end; gap: 20px;
+  padding: 13px 20px;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(4,30,66,.3);
+  flex-wrap: wrap;
+}
+.total-item { display: flex; flex-direction: column; align-items: flex-end; }
+.total-lbl {
+  font-size: .65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: var(--grey);
+}
+.total-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem; letter-spacing: 1px; color: var(--accent);
+}
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 768px) {
+  .dc-header { flex-direction: column; align-items: flex-start; }
+  .filter-bar { flex-direction: column; }
+  .f-group { min-width: unset; width: 100%; }
+  .btn-primary-dc { width: 100%; justify-content: center; }
+}
+</style>
+
+<div class="dc-wrapper">
+
+  <!-- HEADER -->
+  <div class="dc-header">
+    <div>
+      <div class="dc-title">Despesas de <span>Combustível</span></div>
+      <div class="dc-subtitle">Consulte e gira todos os registos de combustível</div>
+    </div>
   </div>
 
-  <div class="table-responsive shadow-sm rounded">
-    <table class="table table-hover align-middle">
-      <thead class="table-dark text-center">
-        <tr>
-          <th>Data</th>
-          <th>Autocarro</th>
-          <th>Litros</th>
-          <th class="text-end">Valor (Kz)</th>
-          <th>Outros</th>
-          <th>Comprovativo</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody class="text-center">
-        {% for c in combustiveis %}
-        <tr>
-          <td>{{ c.data|date:"d/m/Y" }}</td>
-          <td class="text-start">Autocarro {{ c.autocarro.numero }} — {{ c.autocarro.modelo }}</td>
-          <td>{{ c.valor_litros|default:"—" }}</td>
-          <td class="text-end fw-semibold">{{ c.valor|floatformat:2 }} Kz</td>
-          <td>
-            {% if c.sobragem_filtros %}Sobragem: {{ c.sobragem_filtros }}{% endif %}
-            {% if c.lavagem %}{% if c.sobragem_filtros %}<br>{% endif %}Lavagem: {{ c.lavagem }}{% endif %}
-            {% if not c.sobragem_filtros and not c.lavagem %}—{% endif %}
-          </td>
-          <td>
-            {% if c.comprovativo %}
-              <a href="{{ c.comprovativo.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info" title="Ver comprovativo">
-                <i class="fas fa-file-alt"></i>
-              </a>
-            {% else %}
-              —
-            {% endif %}
-          </td>
-          <td>
-            <a href="{% url 'editar_combustivel' c.id %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
-            <a href="{% url 'deletar_combustivel' c.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Eliminar este registo de combustível?')"><i class="fas fa-trash-alt"></i></a>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="7" class="text-muted py-4">Nenhum registo de combustível encontrado.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <!-- FILTROS -->
+  <form method="get">
+    <div class="filter-bar">
+      <div class="f-group">
+        <label class="f-label">Autocarro</label>
+        <select name="autocarro">
+          <option value="">Todos os autocarros</option>
+          {% for a in autocarros %}
+            <option value="{{ a.id }}" {% if a.id|stringformat:"s" == autocarro_selected %}selected{% endif %}>
+              {{ a.numero }} — {{ a.modelo }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="f-group">
+        <label class="f-label">Data Início</label>
+        <input type="date" name="data_inicio" value="{{ data_inicio }}">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Data Fim</label>
+        <input type="date" name="data_fim" value="{{ data_fim }}">
+      </div>
+      <div style="display:flex;align-items:flex-end;flex-shrink:0">
+        <button type="submit" class="btn-dc btn-primary-dc">
+          <i class="fas fa-filter"></i> Filtrar
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- TABLE CARD -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="table-card-title">
+        <i class="fas fa-gas-pump"></i> Registos
+      </div>
+      {% if combustiveis %}
+        <span class="table-count">{{ combustiveis|length }} registo(s)</span>
+      {% endif %}
+    </div>
+
+    <div class="dc-table-wrap">
+      {% if combustiveis %}
+      <table class="dc-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Autocarro</th>
+            <th>Litros</th>
+            <th>Valor</th>
+            <th>Extras</th>
+            <th>Comprovativo</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in combustiveis %}
+          <tr>
+            <td>
+              <span class="date-cell">
+                <i class="fas fa-calendar-day"></i>
+                {{ c.data|date:"d/m/Y" }}
+              </span>
+            </td>
+            <td>
+              <span class="ac-chip">
+                <i class="fas fa-bus"></i>
+                {{ c.autocarro.numero }} — {{ c.autocarro.modelo }}
+              </span>
+            </td>
+            <td>
+              {% if c.valor_litros %}
+                <span class="litros-val">{{ c.valor_litros }}</span>
+                <span class="litros-unit">L</span>
+              {% else %}
+                <span style="color:rgba(255,255,255,.25)">—</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="val-kz">{% localize on %}{{ c.valor|floatformat:2 }}{% endlocalize %}</span>
+              <span style="font-size:.65rem;color:var(--grey);margin-left:2px">Kz</span>
+            </td>
+            <td>
+              {% if c.sobragem_filtros %}
+                <span class="extra-tag"><i class="fas fa-filter"></i> Sopragem</span>
+              {% endif %}
+              {% if c.lavagem %}
+                <span class="extra-tag"><i class="fas fa-bucket"></i> Lavagem</span>
+              {% endif %}
+              {% if not c.sobragem_filtros and not c.lavagem %}
+                <span style="color:rgba(255,255,255,.2)">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if c.comprovativo %}
+                <a href="{{ c.comprovativo.url }}" target="_blank" rel="noopener noreferrer"
+                   class="btn-act btn-act-view" title="Ver comprovativo">
+                  <i class="fas fa-file-alt"></i>
+                </a>
+              {% else %}
+                <span style="color:rgba(255,255,255,.2)">—</span>
+              {% endif %}
+            </td>
+            <td>
+              <div style="display:flex;gap:6px;justify-content:center">
+                <a href="{% url 'editar_combustivel' c.id %}"
+                   class="btn-act btn-act-edit" title="Editar">
+                  <i class="fas fa-pen"></i>
+                </a>
+                <a href="{% url 'deletar_combustivel' c.id %}"
+                   class="btn-act btn-act-del" title="Eliminar"
+                   onclick="return confirm('Eliminar este registo de combustível?')">
+                  <i class="fas fa-trash-can"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- TOTAL -->
+      <div class="total-bar">
+        {% with total=combustiveis|length %}
+        <div class="total-item">
+          <span class="total-lbl">Registos</span>
+          <span class="total-val">{{ total }}</span>
+        </div>
+        {% endwith %}
+        <div class="total-item">
+          <span class="total-lbl">Total Gasto</span>
+          <span class="total-val" id="totalVal">— Kz</span>
+        </div>
+      </div>
+
+      {% else %}
+      <div class="table-empty">
+        <i class="fas fa-gas-pump"></i>
+        <span>Nenhum registo de combustível encontrado.</span>
+        <small>Tente ajustar os filtros acima.</small>
+      </div>
+      {% endif %}
+    </div>
   </div>
+
 </div>
+
+<script>
+(function () {
+  /* Calcular total dos valores da tabela */
+  var rows = document.querySelectorAll('.dc-table tbody tr');
+  var total = 0;
+  rows.forEach(function (tr) {
+    var valEl = tr.querySelector('.val-kz');
+    if (valEl) {
+      var v = parseFloat(valEl.textContent.trim().replace(/\./g,'').replace(',','.'));
+      if (!isNaN(v)) total += v;
+    }
+  });
+  var totalEl = document.getElementById('totalVal');
+  if (totalEl && total > 0) {
+    totalEl.textContent = total.toLocaleString('pt-PT', {minimumFractionDigits:2}) + ' Kz';
+  }
+
+  /* Remove Bootstrap classes */
+  document.querySelectorAll('.dc-wrapper select, .dc-wrapper input').forEach(function (el) {
+    el.classList.remove('form-control','form-select','form-control-sm','form-select-sm');
+  });
+})();
+</script>
 {% endblock %}

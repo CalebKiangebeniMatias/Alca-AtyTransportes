@@ -1,80 +1,322 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}Categorias de Despesa{% endblock %}
+{% block breadcrumb %}Despesas › Categorias{% endblock %}
+
 {% block content %}
 <style>
-.card-box {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    padding: 20px;
-    margin-bottom: 25px;
+/* ════════════════════════════════════════════════════
+   CATEGORIAS DE DESPESA
+════════════════════════════════════════════════════ */
+
+.cat-wrapper {
+  max-width: 680px;
+  margin: 0 auto;
+  animation: catIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes catIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
 }
 
-.table-box {
-    border-radius: 12px;
-    overflow: hidden;
+/* ── SHARED CARD ─────────────────────────────────── */
+.cat-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(4,30,66,.25);
+  margin-bottom: 20px;
+  position: relative;
+}
+.cat-card::before {
+  content: '';
+  position: absolute; top:0; left:10%; right:10%; height:2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  pointer-events: none;
 }
 
-.btn-primary {
-    border-radius: 12px;
+.cat-card-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 22px;
+  background: linear-gradient(90deg, rgba(36,99,163,.3), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
 }
+.cat-card-icon {
+  width: 40px; height: 40px; flex-shrink: 0;
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.18);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .95rem; color: var(--accent);
+}
+.cat-card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem; letter-spacing: 2px; line-height: 1;
+  color: var(--white);
+}
+.cat-card-sub { font-size: .72rem; color: var(--grey); margin-top: 2px; }
+
+.cat-card-body { padding: 20px 22px; }
+
+/* ── FIELDS ──────────────────────────────────────── */
+.f-label {
+  display: block;
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.42); margin-bottom: 6px;
+}
+.f-group { margin-bottom: 16px; }
+
+.cat-wrapper input[type="text"],
+.cat-wrapper input[type="number"],
+.cat-wrapper select,
+.cat-wrapper textarea {
+  width: 100%;
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 11px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .9rem !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast), background var(--ease-fast) !important;
+}
+.cat-wrapper input:focus,
+.cat-wrapper select:focus {
+  border-color: var(--accent) !important;
+  background: rgba(4,30,66,.85) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+}
+.cat-wrapper input::placeholder { color: rgba(255,255,255,.25) !important; }
+.cat-wrapper select option { background: var(--navy); color: var(--white); }
+
+/* Checkbox toggle */
+.check-row {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(4,30,66,.35);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 11px 14px; cursor: pointer;
+  transition: background var(--ease-fast), border-color var(--ease-fast);
+  user-select: none;
+}
+.check-row:hover { background: rgba(36,99,163,.2); border-color: rgba(79,195,247,.25); }
+.check-row input[type="checkbox"] {
+  width: 17px !important; height: 17px !important;
+  padding: 0 !important; border-radius: 4px !important;
+  accent-color: var(--accent); cursor: pointer; flex-shrink: 0;
+}
+.check-label { font-size: .88rem; color: rgba(255,255,255,.7); font-weight: 600; cursor: pointer; }
+
+/* ── FOOTER ──────────────────────────────────────── */
+.cat-card-footer {
+  padding: 14px 22px;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(4,30,66,.3);
+  display: flex; justify-content: flex-end;
+}
+
+.btn-cat {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 26px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem; letter-spacing: 2px;
+  cursor: pointer; white-space: nowrap;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base);
+  position: relative; overflow: hidden;
+}
+.btn-cat::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-cat:hover::before { transform: translateX(100%); }
+.btn-cat:hover  { transform: translateY(-2px); }
+.btn-cat:active { transform: scale(.97); }
+.btn-save-cat {
+  background: var(--grad-btn); color: var(--white);
+  box-shadow: 0 4px 18px rgba(36,99,163,.35);
+}
+.btn-save-cat:hover { box-shadow: 0 8px 26px rgba(36,99,163,.5); }
+
+.btn-cat .sp {
+  display:none; width:14px; height:14px;
+  border:2px solid rgba(255,255,255,.3); border-top-color:white;
+  border-radius:50%; animation:spin .7s linear infinite;
+}
+.btn-cat.loading .sp  { display:inline-block; }
+.btn-cat.loading .btn-txt { opacity:.7; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ── TABELA CATEGORIAS ───────────────────────────── */
+.cat-table-wrap { overflow-x: auto; }
+.cat-table {
+  width: 100%; border-collapse: collapse; font-size: .85rem;
+}
+.cat-table thead th {
+  background: rgba(4,30,66,.7);
+  color: var(--accent);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .72rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--glass-border);
+  text-align: left;
+}
+.cat-table thead th:last-child { text-align: center; }
+
+.cat-table tbody tr {
+  border-bottom: 1px solid rgba(79,195,247,.06);
+  transition: background var(--ease-fast);
+}
+.cat-table tbody tr:hover { background: rgba(36,99,163,.18); }
+.cat-table tbody td {
+  padding: 12px 18px;
+  color: rgba(255,255,255,.75);
+  vertical-align: middle;
+}
+.cat-table tbody td:last-child { text-align: center; }
+
+/* status badge */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  border-radius: 30px; padding: 3px 11px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .72rem; letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.s-ativa    { background:rgba(39,174,96,.15);  border:1px solid rgba(39,174,96,.35);  color:#69f0ae; }
+.s-inativa  { background:rgba(231,76,60,.12);  border:1px solid rgba(231,76,60,.3);   color:#ff8a80; }
+
+/* name chip */
+.cat-name {
+  font-weight: 600; color: var(--white);
+  display: flex; align-items: center; gap: 8px;
+}
+.cat-name::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0;
+}
+
+/* empty */
+.table-empty {
+  padding: 36px 20px; text-align: center;
+  color: rgba(255,255,255,.25);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.table-empty i { font-size: 2rem; opacity:.3; }
 </style>
 
-<div class="container mt-4">
+<div class="cat-wrapper">
 
-    <div class="card-box">
-        <h4 class="mb-3">Cadastrar Categoria de Despesa</h4>
-
-        <form method="post">
-            {% csrf_token %}
-
-            <div class="mb-3">
-                <label class="form-label">Tipo de Despesa</label>
-                {{ form.nome }}
-            </div>
-
-            <div class="form-check mb-3">
-                {{ form.ativa }}
-                <label class="form-check-label">Ativa</label>
-            </div>
-
-            <button type="submit" class="btn btn-primary">
-                Salvar Categoria
-            </button>
-        </form>
+  <!-- ── FORMULÁRIO ── -->
+  <div class="cat-card">
+    <div class="cat-card-header">
+      <div class="cat-card-icon"><i class="fas fa-tag"></i></div>
+      <div>
+        <div class="cat-card-title">Nova Categoria</div>
+        <div class="cat-card-sub">Adicione um novo tipo de despesa</div>
+      </div>
     </div>
 
-    <div class="card-box table-box">
-        <h5 class="mb-3">Categorias Cadastradas</h5>
+    <div class="cat-card-body">
+      <form method="post" id="formCat">
+        {% csrf_token %}
 
-        <table class="table table-striped mb-0">
-            <thead>
-                <tr>
-                    <th>Nome</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for c in categorias %}
-                <tr>
-                    <td>{{ c.get_nome_display }}</td>
-                    <td>
-                        {% if c.ativa %}
-                            <span class="badge bg-success">Ativa</span>
-                        {% else %}
-                            <span class="badge bg-danger">Inativa</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="2">Nenhuma categoria cadastrada</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="f-group">
+          <label class="f-label">Tipo de Despesa</label>
+          {{ form.nome }}
+        </div>
+
+        <div class="f-group">
+          <label class="check-row">
+            {{ form.ativa }}
+            <span class="check-label">Categoria Ativa</span>
+          </label>
+        </div>
+
+      </form>
     </div>
+
+    <div class="cat-card-footer">
+      <button type="submit" form="formCat" class="btn-cat btn-save-cat" id="btnSave">
+        <span class="sp"></span>
+        <span class="btn-txt"><i class="fas fa-floppy-disk"></i> Guardar Categoria</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── TABELA ── -->
+  <div class="cat-card">
+    <div class="cat-card-header">
+      <div class="cat-card-icon"><i class="fas fa-list"></i></div>
+      <div>
+        <div class="cat-card-title">Categorias Registadas</div>
+        <div class="cat-card-sub">
+          {% if categorias %}{{ categorias|length }} categoria(s) no sistema{% else %}Nenhuma categoria ainda{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="cat-table-wrap">
+      {% if categorias %}
+      <table class="cat-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in categorias %}
+          <tr>
+            <td><span class="cat-name">{{ c.get_nome_display }}</span></td>
+            <td>
+              {% if c.ativa %}
+                <span class="status-badge s-ativa"><i class="fas fa-circle" style="font-size:.45rem"></i> Ativa</span>
+              {% else %}
+                <span class="status-badge s-inativa"><i class="fas fa-circle" style="font-size:.45rem"></i> Inativa</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="table-empty">
+        <i class="fas fa-tags"></i>
+        <span>Nenhuma categoria registada.</span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
 
 </div>
+
+<script>
+(function () {
+  /* Loading */
+  var form = document.getElementById('formCat');
+  var btn  = document.getElementById('btnSave');
+  if (form && btn) {
+    form.addEventListener('submit', function () {
+      btn.classList.add('loading'); btn.disabled = true;
+      setTimeout(function () { btn.classList.remove('loading'); btn.disabled = false; }, 6000);
+    });
+  }
+  /* Remove Bootstrap classes */
+  document.querySelectorAll('.cat-wrapper input, .cat-wrapper select').forEach(function (el) {
+    el.classList.remove('form-control', 'form-select', 'form-check-input');
+  });
+})();
+</script>
 {% endblock %}
