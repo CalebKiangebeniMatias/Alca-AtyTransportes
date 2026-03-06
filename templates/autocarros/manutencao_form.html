@@ -1,101 +1,369 @@
 {% extends 'base.html' %}
+{% block title %}{% if manut %}Editar Manutenção{% else %}Agendar Manutenção{% endif %}{% endblock %}
+{% block breadcrumb %}Frota › Manutenções › {% if manut %}Editar{% else %}Agendar{% endif %}{% endblock %}
+
 {% block content %}
-  <div class="container mt-4">
-    <div class="card p-4 shadow-sm border-0">
-      <h4 class="mb-3">
-        {% if manut %}
-          Editar Manutenção — {{ manut.autocarro.numero }}
-        {% else %}
-          Agendar Nova Manutenção
-        {% endif %}
-      </h4>
+<style>
+/* ════════════════════════════════════════════════════
+   FORM MANUTENÇÃO
+════════════════════════════════════════════════════ */
 
-      <form method="post" novalidate>
+.mf-wrapper {
+  max-width: 680px;
+  margin: 0 auto;
+  animation: mfIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes mfIn {
+  from { opacity:0; transform:translateY(18px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+
+/* ── CARD ────────────────────────────────────────── */
+.mf-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(4,30,66,.32);
+  position: relative;
+}
+.mf-card::before {
+  content: '';
+  position: absolute; top:0; left:10%; right:10%; height:2px;
+  background: linear-gradient(90deg, transparent,
+    {% if manut %}#ffd54f{% else %}var(--accent){% endif %}, transparent);
+  pointer-events: none;
+}
+
+/* ── HEADER ──────────────────────────────────────── */
+.mf-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 24px;
+  background: linear-gradient(90deg,
+    {% if manut %}rgba(243,156,18,.18){% else %}rgba(36,99,163,.3){% endif %},
+    rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+}
+.mf-header-icon {
+  width: 44px; height: 44px; flex-shrink: 0;
+  background: {% if manut %}rgba(255,213,79,.1){% else %}rgba(79,195,247,.1){% endif %};
+  border: 1px solid {% if manut %}rgba(255,213,79,.2){% else %}rgba(79,195,247,.2){% endif %};
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  color: {% if manut %}#ffd54f{% else %}var(--accent){% endif %};
+}
+.mf-header-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.45rem; letter-spacing: 2px; line-height: 1;
+  color: var(--white);
+}
+.mf-header-sub { font-size: .72rem; color: var(--grey); margin-top: 3px; }
+
+/* ── BODY ────────────────────────────────────────── */
+.mf-body { padding: 24px; }
+
+/* ── SECTION LABEL ───────────────────────────────── */
+.mf-section-lbl {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .72rem;
+  letter-spacing: 1.8px; text-transform: uppercase;
+  color: var(--grey); margin-bottom: 12px;
+  padding-left: 9px; border-left: 2px solid var(--accent);
+  display: flex; align-items: center; gap: 7px;
+}
+.mf-section-lbl i { color: var(--accent); }
+
+.mf-section { margin-bottom: 22px; }
+
+/* ── FIELDS ──────────────────────────────────────── */
+.f-label {
+  display: block;
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.42); margin-bottom: 6px;
+}
+.f-group { margin-bottom: 0; }
+.f-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.f-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.f-row-1 { margin-bottom: 14px; }
+
+.mf-wrapper input[type="text"],
+.mf-wrapper input[type="number"],
+.mf-wrapper input[type="date"],
+.mf-wrapper select,
+.mf-wrapper textarea {
+  width: 100%;
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 11px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .9rem !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast), background var(--ease-fast) !important;
+}
+.mf-wrapper input:focus,
+.mf-wrapper select:focus,
+.mf-wrapper textarea:focus {
+  border-color: var(--accent) !important;
+  background: rgba(4,30,66,.85) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+}
+.mf-wrapper input::placeholder,
+.mf-wrapper textarea::placeholder { color: rgba(255,255,255,.25) !important; }
+.mf-wrapper select option { background: var(--navy); color: var(--white); }
+.mf-wrapper textarea { resize: vertical; min-height: 90px; }
+.mf-wrapper input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7); }
+
+/* Kz suffix */
+.kz-wrap { position: relative; }
+.kz-wrap input { padding-right: 36px !important; text-align: right; }
+.kz-sym {
+  position: absolute; right: 11px; top: 50%;
+  transform: translateY(-50%);
+  font-size: .7rem; font-weight: 700;
+  color: var(--accent); pointer-events: none;
+}
+
+/* loading state on autocarro select */
+.select-loading { opacity: .5; pointer-events: none; }
+.select-hint {
+  font-size: .7rem; color: var(--grey);
+  margin-top: 5px; display: flex; align-items: center; gap: 5px;
+}
+.select-hint i { color: var(--accent); font-size: .6rem; }
+.select-hint.loading { color: var(--accent); animation: hintPulse 1s ease-in-out infinite; }
+@keyframes hintPulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+/* ── FOOTER ──────────────────────────────────────── */
+.mf-footer {
+  display: flex; align-items: center;
+  justify-content: flex-end; gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(4,30,66,.3);
+}
+
+.btn-mf {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 26px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem; letter-spacing: 2px;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+  position: relative; overflow: hidden;
+}
+.btn-mf::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-mf:hover::before { transform: translateX(100%); }
+.btn-mf:hover  { transform: translateY(-2px); }
+.btn-mf:active { transform: scale(.97); }
+
+.btn-save-mf {
+  background: var(--grad-btn); color: var(--white);
+  box-shadow: 0 4px 18px rgba(36,99,163,.35);
+}
+.btn-save-mf:hover { box-shadow: 0 8px 26px rgba(36,99,163,.5); color: var(--white); }
+.btn-save-mf .sp {
+  display:none; width:14px; height:14px;
+  border:2px solid rgba(255,255,255,.3); border-top-color:white;
+  border-radius:50%; animation:spin .7s linear infinite;
+}
+.btn-save-mf.loading .sp  { display:inline-block; }
+.btn-save-mf.loading .btn-txt { opacity:.7; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.btn-cancel-mf {
+  background: transparent;
+  border: 1px solid var(--glass-border) !important;
+  color: rgba(255,255,255,.55);
+}
+.btn-cancel-mf:hover { background: rgba(255,255,255,.07); color: var(--white); }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 560px) {
+  .f-row-2, .f-row-3 { grid-template-columns: 1fr; }
+  .mf-footer { flex-direction: column; }
+  .btn-mf { width: 100%; justify-content: center; }
+}
+</style>
+
+<div class="mf-wrapper">
+  <div class="mf-card">
+
+    <!-- HEADER -->
+    <div class="mf-header">
+      <div class="mf-header-icon">
+        <i class="fas fa-{% if manut %}pen{% else %}wrench{% endif %}"></i>
+      </div>
+      <div>
+        <div class="mf-header-title">
+          {% if manut %}Editar Manutenção — {{ manut.autocarro.numero }}{% else %}Agendar Nova Manutenção{% endif %}
+        </div>
+        <div class="mf-header-sub">
+          {% if manut %}Atualize os dados da manutenção registada{% else %}Registe uma nova manutenção para a frota{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="mf-body">
+      <form method="post" novalidate id="formManutencao">
         {% csrf_token %}
-        <div class="row g-3">
 
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Sector</label>
-            {{ form.sector }}
+        <!-- Sector + Autocarro -->
+        <div class="mf-section">
+          <div class="mf-section-lbl"><i class="fas fa-map-marker-alt"></i> Identificação</div>
+          <div class="f-row-2">
+            <div class="f-group">
+              <label class="f-label">{{ form.sector.label }}</label>
+              {{ form.sector }}
+            </div>
+            <div class="f-group">
+              <label class="f-label">{{ form.autocarro.label }}</label>
+              {{ form.autocarro }}
+              <div class="select-hint" id="autHint">
+                <i class="fas fa-circle-info"></i>
+                <span id="autHintText">
+                  {% if manut %}Autocarro actual: {{ manut.autocarro.numero }}{% else %}Selecione primeiro o sector{% endif %}
+                </span>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Autocarro</label>
-            {{ form.autocarro }}
+        <!-- Data + KM + Custo -->
+        <div class="mf-section">
+          <div class="mf-section-lbl"><i class="fas fa-road"></i> Dados da Manutenção</div>
+          <div class="f-row-3">
+            <div class="f-group">
+              <label class="f-label">{{ form.data_ultima.label }}</label>
+              {{ form.data_ultima }}
+            </div>
+            <div class="f-group">
+              <label class="f-label">{{ form.km_ultima.label }}</label>
+              {{ form.km_ultima }}
+            </div>
+            <div class="f-group">
+              <label class="f-label">{{ form.custo_total.label }}</label>
+              <div class="kz-wrap">
+                {{ form.custo_total }}
+                <span class="kz-sym">Kz</span>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Data Última</label>
-            {{ form.data_ultima }}
-          </div>
-
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Km Última</label>
-            {{ form.km_ultima }}
-          </div>
-
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Custo Total (Kz)</label>
-            {{ form.custo_total }}
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Estado da Manutenção</label>
+        <!-- Estado + Observação -->
+        <div class="mf-section" style="margin-bottom:0">
+          <div class="mf-section-lbl"><i class="fas fa-clipboard-list"></i> Estado & Observações</div>
+          <div class="f-row-1">
+            <label class="f-label">{{ form.status.label }}</label>
             {{ form.status }}
           </div>
-
-          <div class="col-12">
-            <label class="form-label fw-semibold">Observação</label>
+          <div class="f-row-1" style="margin-bottom:0">
+            <label class="f-label">{{ form.observacao.label }}</label>
             {{ form.observacao }}
           </div>
         </div>
 
-        <div class="mt-4 text-end">
-          <button type="submit" class="btn btn-primary px-4">
-            <i class="bi bi-save me-1"></i> Salvar
-          </button>
-          <a href="{% url 'manutencao_list' %}" class="btn btn-outline-secondary px-4">
-            Cancelar
-          </a>
-        </div>
       </form>
     </div>
+
+    <!-- FOOTER -->
+    <div class="mf-footer">
+      <a href="{% url 'manutencao_list' %}" class="btn-mf btn-cancel-mf">
+        <i class="fas fa-arrow-left"></i> Cancelar
+      </a>
+      <button type="submit" form="formManutencao" class="btn-mf btn-save-mf" id="btnSave">
+        <span class="sp"></span>
+        <span class="btn-txt"><i class="fas fa-floppy-disk"></i> Guardar</span>
+      </button>
+    </div>
+
   </div>
+</div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function(){
-      const sectorSelect = document.getElementById('id_sector');
-      const autSelect = document.getElementById('id_autocarro');
-      if (!sectorSelect || !autSelect) return;
+<script>
+(function () {
+  /* ── Remove Bootstrap classes ────────────────── */
+  document.querySelectorAll('.mf-wrapper input, .mf-wrapper select, .mf-wrapper textarea').forEach(function (el) {
+    el.classList.remove('form-control', 'form-select', 'fw-semibold');
+  });
 
-      async function carregarAutocarros(sectorId){
-        autSelect.innerHTML = '<option value="">Carregando...</option>';
-        try{
-          const url = "{% url 'api_autocarros_por_sector' %}" + '?sector_id=' + encodeURIComponent(sectorId);
-          const resp = await fetch(url, { credentials: 'same-origin' });
-          const data = await resp.json();
-          autSelect.innerHTML = '<option value="">-- Selecionar --</option>';
-          if (data.ok && Array.isArray(data.autocarros)){
-            data.autocarros.forEach(a => {
-              const opt = document.createElement('option');
-              opt.value = a.id;
-              opt.textContent = a.numero + (a.modelo ? ' — ' + a.modelo : '');
-              autSelect.appendChild(opt);
-            });
-          }
-        }catch(err){
-          autSelect.innerHTML = '<option value="">Erro ao carregar</option>';
-          console.error(err);
-        }
-      }
-
-      sectorSelect.addEventListener('change', function(){
-        const sid = this.value;
-        if (sid) carregarAutocarros(sid);
-        else autSelect.innerHTML = '<option value="">-- Selecionar --</option>';
-      });
-
-      if (sectorSelect.value) carregarAutocarros(sectorSelect.value);
+  /* ── Loading no submit ───────────────────────── */
+  var form = document.getElementById('formManutencao');
+  var btn  = document.getElementById('btnSave');
+  if (form && btn) {
+    form.addEventListener('submit', function () {
+      btn.classList.add('loading'); btn.disabled = true;
+      setTimeout(function () { btn.classList.remove('loading'); btn.disabled = false; }, 8000);
     });
-  </script>
+  }
+
+  /* ── AJAX — autocarros por sector ────────────── */
+  var sectorSel  = document.getElementById('id_sector');
+  var autSel     = document.getElementById('id_autocarro');
+  var hint       = document.getElementById('autHint');
+  var hintTxt    = document.getElementById('autHintText');
+
+  function setHint(msg, loading) {
+    if (!hintTxt || !hint) return;
+    hintTxt.textContent = msg;
+    hint.classList.toggle('loading', !!loading);
+  }
+
+  async function carregarAutocarros(sectorId) {
+    if (!autSel) return;
+    autSel.classList.add('select-loading');
+    setHint('A carregar autocarros...', true);
+    autSel.innerHTML = '<option value="">A carregar...</option>';
+    try {
+      var url = "{% url 'api_autocarros_por_sector' %}?sector_id=" + encodeURIComponent(sectorId);
+      var resp = await fetch(url, { credentials: 'same-origin' });
+      var data = await resp.json();
+      autSel.innerHTML = '<option value="">-- Selecionar --</option>';
+      if (data.ok && Array.isArray(data.autocarros)) {
+        data.autocarros.forEach(function (a) {
+          var opt = document.createElement('option');
+          opt.value = a.id;
+          opt.textContent = a.numero + (a.modelo ? ' — ' + a.modelo : '');
+          autSel.appendChild(opt);
+        });
+        setHint(data.autocarros.length + ' autocarro(s) disponível(is)', false);
+      } else {
+        setHint('Nenhum autocarro encontrado', false);
+      }
+    } catch (err) {
+      autSel.innerHTML = '<option value="">Erro ao carregar</option>';
+      setHint('Erro ao carregar autocarros', false);
+      console.error(err);
+    } finally {
+      autSel.classList.remove('select-loading');
+    }
+  }
+
+  if (sectorSel && autSel) {
+    sectorSel.addEventListener('change', function () {
+      var sid = this.value;
+      if (sid) {
+        carregarAutocarros(sid);
+      } else {
+        autSel.innerHTML = '<option value="">-- Selecionar --</option>';
+        setHint('Selecione primeiro o sector', false);
+      }
+    });
+    if (sectorSel.value) carregarAutocarros(sectorSel.value);
+  }
+})();
+</script>
 {% endblock %}
