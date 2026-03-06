@@ -1,31 +1,223 @@
 {% extends "base.html" %}
-
-{% block title %}Adicionar Setor{% endblock %}
+{% block title %}Novo Sector{% endblock %}
+{% block breadcrumb %}Sectores › Novo Sector{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-lg">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="fas fa-plus-circle"></i> Novo Setor</h4>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        {{ form.as_p }}
-                        <div class="text-center">
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-save"></i> Salvar
-                            </button>
-                            <a href="{% url 'lista_sectores' %}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Voltar
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+<style>
+/* ════════════════════════════════════════════════════
+   ADICIONAR SECTOR
+════════════════════════════════════════════════════ */
+
+.sec-wrapper {
+  max-width: 480px;
+  margin: 0 auto;
+  animation: secIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes secIn {
+  from { opacity:0; transform:translateY(20px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+
+/* ── CARD ────────────────────────────────────────── */
+.sec-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(4,30,66,.32);
+  position: relative;
+}
+.sec-card::before {
+  content: '';
+  position: absolute; top:0; left:10%; right:10%; height:2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  pointer-events: none;
+}
+.sec-card::after {
+  content: '';
+  position: absolute; top:-40px; left:50%;
+  transform: translateX(-50%);
+  width: 200px; height: 100px;
+  background: radial-gradient(ellipse, rgba(79,195,247,.07), transparent 70%);
+  pointer-events: none;
+}
+
+/* ── HEADER ──────────────────────────────────────── */
+.sec-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 24px;
+  background: linear-gradient(90deg, rgba(36,99,163,.3), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+}
+.sec-header-icon {
+  width: 44px; height: 44px; flex-shrink: 0;
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.2);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; color: var(--accent);
+}
+.sec-header-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.45rem; letter-spacing: 2px; line-height: 1;
+  color: var(--white);
+}
+.sec-header-sub { font-size: .72rem; color: var(--grey); margin-top: 3px; }
+
+/* ── BODY ────────────────────────────────────────── */
+.sec-body { padding: 24px; }
+
+.f-label {
+  display: block;
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.42); margin-bottom: 6px;
+}
+.f-group { margin-bottom: 16px; }
+
+.sec-wrapper input[type="text"],
+.sec-wrapper input[type="number"],
+.sec-wrapper select,
+.sec-wrapper textarea {
+  width: 100%;
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 11px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .9rem !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast), background var(--ease-fast) !important;
+}
+.sec-wrapper input:focus,
+.sec-wrapper select:focus,
+.sec-wrapper textarea:focus {
+  border-color: var(--accent) !important;
+  background: rgba(4,30,66,.85) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+}
+.sec-wrapper input::placeholder { color: rgba(255,255,255,.25) !important; }
+.sec-wrapper select option { background: var(--navy); color: var(--white); }
+
+/* form.as_p override */
+.sec-body p { margin-bottom: 14px; }
+.sec-body p label {
+  display: block;
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.42); margin-bottom: 6px;
+}
+
+/* ── FOOTER ──────────────────────────────────────── */
+.sec-footer {
+  display: flex; align-items: center;
+  justify-content: flex-end; gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(4,30,66,.3);
+}
+
+.btn-sec {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 24px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem; letter-spacing: 2px;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+  position: relative; overflow: hidden;
+}
+.btn-sec::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-sec:hover::before { transform: translateX(100%); }
+.btn-sec:hover  { transform: translateY(-2px); }
+.btn-sec:active { transform: scale(.97); }
+
+.btn-save-sec {
+  background: var(--grad-btn); color: var(--white);
+  box-shadow: 0 4px 18px rgba(36,99,163,.35);
+}
+.btn-save-sec:hover { box-shadow: 0 8px 26px rgba(36,99,163,.5); color: var(--white); }
+.btn-save-sec .sp {
+  display:none; width:14px; height:14px;
+  border:2px solid rgba(255,255,255,.3); border-top-color:white;
+  border-radius:50%; animation:spin .7s linear infinite;
+}
+.btn-save-sec.loading .sp  { display:inline-block; }
+.btn-save-sec.loading .lbl { opacity:.7; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.btn-back-sec {
+  background: transparent;
+  border: 1px solid var(--glass-border) !important;
+  color: rgba(255,255,255,.55);
+}
+.btn-back-sec:hover { background: rgba(255,255,255,.07); color: var(--white); }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 480px) {
+  .sec-footer { flex-direction: column; }
+  .btn-sec { width: 100%; justify-content: center; }
+}
+</style>
+
+<div class="sec-wrapper">
+  <div class="sec-card">
+
+    <!-- HEADER -->
+    <div class="sec-header">
+      <div class="sec-header-icon"><i class="fas fa-plus"></i></div>
+      <div>
+        <div class="sec-header-title">Novo Sector</div>
+        <div class="sec-header-sub">Adicione um novo sector ao sistema</div>
+      </div>
     </div>
+
+    <!-- BODY -->
+    <div class="sec-body">
+      <form method="post" id="formSector">
+        {% csrf_token %}
+        {{ form.as_p }}
+      </form>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="sec-footer">
+      <a href="{% url 'lista_sectores' %}" class="btn-sec btn-back-sec">
+        <i class="fas fa-arrow-left"></i> Voltar
+      </a>
+      <button type="submit" form="formSector" class="btn-sec btn-save-sec" id="btnSave">
+        <span class="sp"></span>
+        <span class="lbl"><i class="fas fa-floppy-disk"></i> Guardar</span>
+      </button>
+    </div>
+
+  </div>
 </div>
+
+<script>
+(function () {
+  /* Loading */
+  var form = document.getElementById('formSector');
+  var btn  = document.getElementById('btnSave');
+  if (form && btn) {
+    form.addEventListener('submit', function () {
+      btn.classList.add('loading'); btn.disabled = true;
+      setTimeout(function () { btn.classList.remove('loading'); btn.disabled = false; }, 6000);
+    });
+  }
+  /* Remove Bootstrap classes */
+  document.querySelectorAll('.sec-wrapper input, .sec-wrapper select, .sec-wrapper textarea').forEach(function (el) {
+    el.classList.remove('form-control', 'form-select');
+  });
+})();
+</script>
 {% endblock %}

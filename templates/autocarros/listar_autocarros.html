@@ -1,189 +1,500 @@
 {% extends 'base.html' %}
-
 {% block title %}Lista de Autocarros{% endblock %}
+{% block breadcrumb %}Frota › Autocarros{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12 d-flex justify-content-between align-items-center">
-        <h1 class="text-white mb-0">
-            <i class="fas fa-bus me-2"></i>
-            Lista de Autocarros
-        </h1>
-        <a href="{% url 'cadastrar_autocarro' %}" class="btn btn-success">
-            <i class="fas fa-plus me-2"></i>
-            Cadastrar Autocarro
-        </a>
+<style>
+/* ════════════════════════════════════════════════════
+   LISTA DE AUTOCARROS
+════════════════════════════════════════════════════ */
+
+.la-wrapper {
+  animation: laIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes laIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── HEADER ──────────────────────────────────────── */
+.la-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 28px;
+}
+.la-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem; letter-spacing: 2px; line-height: 1;
+}
+.la-title span { color: var(--accent); }
+.la-subtitle { font-size: .78rem; color: var(--grey); margin-top: 4px; }
+
+.btn-new-la {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 22px;
+  background: rgba(39,174,96,.85); color: var(--white);
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem; letter-spacing: 2px;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(39,174,96,.3);
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+  position: relative; overflow: hidden;
+}
+.btn-new-la::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-new-la:hover::before { transform: translateX(100%); }
+.btn-new-la:hover  { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(39,174,96,.4); color: var(--white); }
+.btn-new-la:active { transform: scale(.97); }
+
+/* ── AUTOCARROS GRID ─────────────────────────────── */
+.ac-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 18px;
+}
+
+/* ── AUTOCARRO CARD ──────────────────────────────── */
+.ac-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(4,30,66,.25);
+  display: flex; flex-direction: column;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-base), transform var(--ease-spring);
+  position: relative;
+}
+.ac-card::before {
+  content: '';
+  position: absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  pointer-events: none;
+}
+.ac-card:hover { border-color: rgba(79,195,247,.28); box-shadow: 0 14px 38px rgba(4,30,66,.38); transform: translateY(-3px); }
+
+/* Card header */
+.ac-head {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 13px 18px;
+  background: linear-gradient(90deg, rgba(36,99,163,.35), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+  gap: 10px;
+}
+.ac-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem; letter-spacing: 2px; color: var(--white);
+  display: flex; align-items: center; gap: 8px;
+}
+.ac-num i { color: var(--accent); font-size: 1rem; }
+.ac-modelo-badge {
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.2);
+  border-radius: 30px; padding: 2px 10px;
+  font-size: .72rem; font-weight: 700; letter-spacing: .8px;
+  color: var(--accent);
+}
+
+/* Card body */
+.ac-body { padding: 15px 18px; flex: 1; }
+
+/* Info rows */
+.ac-info-row {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(79,195,247,.05);
+  font-size: .78rem;
+}
+.ac-info-row:last-of-type { border-bottom: none; }
+.ac-info-lbl { color: rgba(255,255,255,.4); display: flex; align-items: center; gap: 5px; }
+.ac-info-lbl i { font-size: .62rem; color: var(--grey); }
+.ac-info-val { color: rgba(255,255,255,.8); font-weight: 600; }
+.placa-code {
+  font-family: 'Barlow Condensed', sans-serif;
+  background: rgba(4,30,66,.5);
+  border: 1px solid rgba(79,195,247,.15);
+  border-radius: 4px; padding: 1px 7px;
+  font-size: .78rem; letter-spacing: 1.5px;
+  color: var(--accent);
+}
+
+/* Status select */
+.status-form { margin-top: 12px; }
+.status-divider {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .7rem;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--grey);
+}
+.status-divider::before, .status-divider::after {
+  content: ''; flex: 1; height: 1px;
+  background: rgba(79,195,247,.08);
+}
+.status-wrap {
+  display: flex; gap: 8px; align-items: center;
+}
+.status-wrap select {
+  flex: 1;
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 7px 11px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .82rem !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+}
+.status-wrap select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(79,195,247,.15) !important;
+}
+.status-wrap select option { background: var(--navy); color: var(--white); }
+.btn-status-apply {
+  width: 34px; height: 34px; flex-shrink: 0;
+  background: rgba(39,174,96,.12);
+  border: 1px solid rgba(39,174,96,.28);
+  border-radius: var(--radius-sm);
+  color: #69f0ae; font-size: .8rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--ease-fast), transform var(--ease-spring);
+}
+.btn-status-apply:hover { background: rgba(39,174,96,.24); transform: scale(1.1); }
+
+/* Estado (checklist) */
+.estado-section { margin-top: 12px; }
+.estado-divider {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .7rem;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--grey);
+}
+.estado-divider::before, .estado-divider::after {
+  content: ''; flex: 1; height: 1px;
+  background: rgba(79,195,247,.08);
+}
+.estado-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+.estado-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 8px;
+  background: rgba(4,30,66,.35);
+  border-radius: var(--radius-sm);
+  font-size: .72rem;
+}
+.estado-lbl { color: rgba(255,255,255,.5); display: flex; align-items: center; gap: 5px; }
+.estado-lbl i { font-size: .6rem; }
+.e-bom     { color: #69f0ae; font-weight: 700; font-size: .68rem; }
+.e-avaria  { color: #ff8a80; font-weight: 700; font-size: .68rem; }
+
+.estado-obs {
+  margin-top: 6px; padding: 6px 8px;
+  background: rgba(4,30,66,.3);
+  border-radius: var(--radius-sm);
+  font-size: .72rem; color: rgba(255,255,255,.45);
+  display: flex; align-items: flex-start; gap: 5px;
+}
+.estado-obs i { color: var(--grey); flex-shrink: 0; margin-top: 1px; font-size: .65rem; }
+.estado-date {
+  font-size: .65rem; color: rgba(255,255,255,.28);
+  text-align: right; margin-top: 4px;
+  display: flex; align-items: center; justify-content: flex-end; gap: 4px;
+}
+
+/* Card footer */
+.ac-footer {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 11px 18px;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(4,30,66,.3); gap: 8px;
+}
+.ac-footer-left { display: flex; gap: 6px; }
+
+.btn-acf {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px;
+  border: 1px solid; border-radius: var(--radius-sm);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .72rem;
+  letter-spacing: .8px; text-transform: uppercase;
+  cursor: pointer; text-decoration: none; background: transparent;
+  white-space: nowrap;
+  transition: background var(--ease-fast), transform var(--ease-spring);
+}
+.btn-acf:hover { transform: translateY(-1px); }
+.btn-acf.edit  { border-color: rgba(255,213,79,.3);  color: #ffd54f; }
+.btn-acf.edit:hover  { background: rgba(255,213,79,.12); }
+.btn-acf.state { border-color: rgba(79,195,247,.25); color: var(--accent); }
+.btn-acf.state:hover { background: rgba(79,195,247,.12); }
+.btn-acf.del   { border-color: rgba(231,76,60,.3);   color: #ff8a80; }
+.btn-acf.del:hover   { background: rgba(231,76,60,.12); }
+
+/* ── MODAL ───────────────────────────────────────── */
+.modal-content {
+  background: rgba(4,30,66,.97);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  color: var(--white);
+}
+.modal-header {
+  background: linear-gradient(90deg, rgba(231,76,60,.25), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 14px 20px;
+}
+.modal-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 1rem;
+  letter-spacing: 1.5px; text-transform: uppercase; color: var(--white);
+}
+.modal-body {
+  padding: 20px; font-size: .9rem; color: rgba(255,255,255,.75); line-height: 1.6;
+}
+.modal-body strong { color: var(--white); }
+.modal-warning {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: rgba(243,156,18,.1);
+  border: 1px solid rgba(243,156,18,.25);
+  border-radius: var(--radius-md); padding: 12px 14px;
+  font-size: .82rem; color: #ffd54f; margin-top: 14px;
+}
+.modal-warning i { flex-shrink: 0; margin-top: 1px; }
+.modal-footer {
+  border-top: 1px solid var(--glass-border); padding: 12px 20px; gap: 8px;
+}
+.btn-modal {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 20px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Bebas Neue', sans-serif; font-size: .95rem; letter-spacing: 2px;
+  cursor: pointer; text-decoration: none;
+  transition: transform var(--ease-spring), background var(--ease-fast);
+}
+.btn-modal:hover { transform: translateY(-2px); }
+.btn-modal.cancel {
+  background: transparent;
+  border: 1px solid var(--glass-border) !important;
+  color: rgba(255,255,255,.55);
+}
+.btn-modal.cancel:hover { background: rgba(255,255,255,.07); }
+.btn-modal.confirm-del { background: rgba(231,76,60,.8); color: var(--white); }
+.btn-modal.confirm-del:hover { background: rgba(231,76,60,1); }
+
+/* ── EMPTY STATE ─────────────────────────────────── */
+.empty-la {
+  padding: 72px 24px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+}
+.empty-la i { font-size: 3rem; color: rgba(255,255,255,.15); }
+.empty-la h4 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem; letter-spacing: 2px; color: rgba(255,255,255,.4);
+}
+.empty-la p { font-size: .85rem; color: rgba(255,255,255,.28); }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 1100px) { .ac-grid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 640px)  {
+  .ac-grid { grid-template-columns: 1fr; }
+  .la-header { flex-direction: column; align-items: flex-start; }
+  .btn-new-la { width: 100%; justify-content: center; }
+}
+</style>
+
+<div class="la-wrapper">
+
+  <!-- HEADER -->
+  <div class="la-header">
+    <div>
+      <div class="la-title">Lista de <span>Autocarros</span></div>
+      <div class="la-subtitle">Gestão da frota — estados, status e registos</div>
     </div>
-</div>
+    <a href="{% url 'cadastrar_autocarro' %}" class="btn-new-la">
+      <i class="fas fa-plus"></i> Cadastrar Autocarro
+    </a>
+  </div>
 
-<div class="row">
-    {% if autocarros %}
-        {% for autocarro in autocarros %}
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm h-100 bg-azul-forte">
-                <div class="card-header bg-primary text-white d-flex justify-content-between">
-                    <span><i class="fas fa-bus me-2"></i> {{ autocarro.numero }}</span>
-                    <span class="badge bg-light text-dark">{{ autocarro.modelo }}</span>
-                </div>
-                <div class="card-body">
-                    <p><strong>Placa:</strong> <code>{{ autocarro.placa }}</code></p>
-                    <p><strong>Total Registos:</strong> {{ autocarro.registos.count }}</p>
-                    <p>
-                        <strong>Último Registo:</strong>
-                        {% with ultimo_registo=autocarro.registos.first %}
-                            {% if ultimo_registo %}
-                                {{ ultimo_registo.data|date:"d/m/Y" }}
-                            {% else %}
-                                <small class="text-muted">Nenhum</small>
-                            {% endif %}
-                        {% endwith %}
-                    </p>
-                    <hr>
-                    <h6 class="text-muted"><i class="fas fa-exchange-alt me-2"></i>Status do Autocarro</h6>
-                    <form method="post" action="{% url 'alterar_status_autocarro' autocarro.pk %}">
-                        {% csrf_token %}
-                        <div class="input-group input-group-sm">
-                            <select name="status" class="form-select">
-                                <option value="ativo" {% if autocarro.status == "ativo" %}selected{% endif %}>Ativo</option>
-                                <option value="manutencao" {% if autocarro.status == "manutencao" %}selected{% endif %}>Em Manutenção</option>
-                                <option value="inativo" {% if autocarro.status == "inativo" %}selected{% endif %}>Inativo</option>
-                            </select>
-                            <button class="btn btn-outline-success" type="submit">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        </div>
-                    </form>
+  {% if autocarros %}
+  <div class="ac-grid">
+    {% for autocarro in autocarros %}
 
-                    <!-- Último Estado -->
-                    {% with ultimo_estado=autocarro.estados.last %}
-                        {% if ultimo_estado %}
-                            <hr>
-                            <h6 class="text-muted"><i class="fas fa-tools me-2"></i>Último Estado</h6>
-                            <ul class="list-unstyled small">
-                                <li>
-                                    <i class="fas fa-lightbulb text-warning me-1"></i>
-                                    Luzes:
-                                    {% if ultimo_estado.luzes_funcionam %}
-                                        <span class="text-success fw-bold">Bom</span>
-                                    {% else %}
-                                        <span class="text-danger fw-bold">Avariado</span>
-                                    {% endif %}
-                                </li>
-                                <li>
-                                    <i class="fas fa-car-crash text-danger me-1"></i>
-                                    Travões:
-                                    {% if ultimo_estado.travoes_bons %}
-                                        <span class="text-success fw-bold">Bom</span>
-                                    {% else %}
-                                        <span class="text-danger fw-bold">Avariado</span>
-                                    {% endif %}
-                                </li>
-                                <li>
-                                    <i class="fas fa-tachometer-alt text-info me-1"></i>
-                                    Pneus:
-                                    {% if ultimo_estado.pneus_bons %}
-                                        <span class="text-success fw-bold">Bom</span>
-                                    {% else %}
-                                        <span class="text-danger fw-bold">Avariado</span>
-                                    {% endif %}
-                                </li>
-                                <li>
-                                    <i class="fas fa-cogs text-primary me-1"></i>
-                                    Motor:
-                                    {% if ultimo_estado.motor_funciona %}
-                                        <span class="text-success fw-bold">Bom</span>
-                                    {% else %}
-                                        <span class="text-danger fw-bold">Avariado</span>
-                                    {% endif %}
-                                </li>
+    <div class="ac-card">
 
-                                <li>
-                                    <i class="fas fa-wind text-info me-1"></i>
-                                    Para-brisas:
-                                    {% if ultimo_estado.parabrisas_ok %}
-                                        <span class="text-success fw-bold">Bom</span>
-                                    {% else %}
-                                        <span class="text-danger fw-bold">Avariado</span>
-                                    {% endif %}
-                                </li>
+      <!-- HEAD -->
+      <div class="ac-head">
+        <div class="ac-num"><i class="fas fa-bus"></i>{{ autocarro.numero }}</div>
+        <span class="ac-modelo-badge">{{ autocarro.modelo }}</span>
+      </div>
 
-                                <li>
-                                    <i class="fas fa-chair text-secondary me-1"></i>
-                                    Bancos:
-                                    {% if ultimo_estado.bancos_bons %}
-                                        <span class="text-success fw-bold">Bom</span>
-                                    {% else %}
-                                        <span class="text-danger fw-bold">Avariado</span>
-                                    {% endif %}
-                                </li>
-                                <li>
-                                    <i class="fas fa-comment-dots text-secondary me-1"></i>
-                                    Obs: {{ ultimo_estado.observacoes|default:"-" }}
-                                </li>
-                                <li class="text-muted">
-                                    <i class="fas fa-calendar-alt me-1"></i>
-                                    {{ ultimo_estado.data|date:"d/m/Y" }}
-                                </li>
-                            </ul>
-                        {% else %}
-                            <p class="text-muted"><em>Nenhum estado registado</em></p>
-                        {% endif %}
-                    {% endwith %}
-                </div>
-                <div class="card-footer d-flex justify-content-between">
-                    <div class="btn-group">
-                        <a href="{% url 'editar_autocarro' autocarro.pk %}" class="btn btn-sm btn-outline-warning">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <a href="{% url 'atualizar_estado' %}?autocarro={{ autocarro.pk }}" class="btn btn-sm btn-outline-info">
-                            <i class="fas fa-wrench"></i> Atualizar Estado
-                        </a>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-outline-danger"
-                            data-bs-toggle="modal" data-bs-target="#deleteModal{{ autocarro.pk }}">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+      <!-- BODY -->
+      <div class="ac-body">
+
+        <!-- Info básica -->
+        <div class="ac-info-row">
+          <span class="ac-info-lbl"><i class="fas fa-id-card"></i> Placa</span>
+          <span class="placa-code">{{ autocarro.placa }}</span>
+        </div>
+        <div class="ac-info-row">
+          <span class="ac-info-lbl"><i class="fas fa-list"></i> Total Registos</span>
+          <span class="ac-info-val">{{ autocarro.registos.count }}</span>
+        </div>
+        <div class="ac-info-row">
+          <span class="ac-info-lbl"><i class="fas fa-calendar-day"></i> Último Registo</span>
+          {% with ultimo=autocarro.registos.first %}
+            <span class="ac-info-val">
+              {% if ultimo %}{{ ultimo.data|date:"d/m/Y" }}{% else %}<span style="color:rgba(255,255,255,.25)">—</span>{% endif %}
+            </span>
+          {% endwith %}
+        </div>
+
+        <!-- Status -->
+        <div class="status-form">
+          <div class="status-divider">Estado Operacional</div>
+          <form method="post" action="{% url 'alterar_status_autocarro' autocarro.pk %}">
+            {% csrf_token %}
+            <div class="status-wrap">
+              <select name="status">
+                <option value="ativo"       {% if autocarro.status == "ativo"       %}selected{% endif %}>Activo</option>
+                <option value="manutencao"  {% if autocarro.status == "manutencao"  %}selected{% endif %}>Em Manutenção</option>
+                <option value="inativo"     {% if autocarro.status == "inativo"     %}selected{% endif %}>Inactivo</option>
+              </select>
+              <button type="submit" class="btn-status-apply" title="Aplicar status">
+                <i class="fas fa-check"></i>
+              </button>
             </div>
+          </form>
         </div>
 
-        <!-- Modal de exclusão -->
-        <div class="modal fade" id="deleteModal{{ autocarro.pk }}" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content bg-dark">
-                    <div class="modal-header">
-                        <h5 class="modal-title text-white">Confirmar Exclusão</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body text-white">
-                        <p>Tem certeza que deseja excluir o autocarro <strong>{{ autocarro.numero }}</strong>?</p>
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>Atenção:</strong> Todos os registos relacionados a este autocarro também serão removidos!
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <form method="post" action="{% url 'deletar_autocarro' autocarro.pk %}" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger">
-                                <i class="fas fa-trash me-1"></i>Excluir
-                            </button>
-                        </form>
-                    </div>
-                </div>
+        <!-- Último estado técnico -->
+        {% with ue=autocarro.estados.last %}
+        {% if ue %}
+        <div class="estado-section">
+          <div class="estado-divider">Último Estado Técnico</div>
+          <div class="estado-grid">
+            <div class="estado-item">
+              <span class="estado-lbl"><i class="fas fa-lightbulb"></i> Luzes</span>
+              {% if ue.luzes_funcionam %}<span class="e-bom">✓ Bom</span>{% else %}<span class="e-avaria">✗ Avaria</span>{% endif %}
             </div>
+            <div class="estado-item">
+              <span class="estado-lbl"><i class="fas fa-car-burst"></i> Travões</span>
+              {% if ue.travoes_bons %}<span class="e-bom">✓ Bom</span>{% else %}<span class="e-avaria">✗ Avaria</span>{% endif %}
+            </div>
+            <div class="estado-item">
+              <span class="estado-lbl"><i class="fas fa-circle-dot"></i> Pneus</span>
+              {% if ue.pneus_bons %}<span class="e-bom">✓ Bom</span>{% else %}<span class="e-avaria">✗ Avaria</span>{% endif %}
+            </div>
+            <div class="estado-item">
+              <span class="estado-lbl"><i class="fas fa-cogs"></i> Motor</span>
+              {% if ue.motor_funciona %}<span class="e-bom">✓ Bom</span>{% else %}<span class="e-avaria">✗ Avaria</span>{% endif %}
+            </div>
+            <div class="estado-item">
+              <span class="estado-lbl"><i class="fas fa-wind"></i> Para-brisas</span>
+              {% if ue.parabrisas_ok %}<span class="e-bom">✓ Bom</span>{% else %}<span class="e-avaria">✗ Avaria</span>{% endif %}
+            </div>
+            <div class="estado-item">
+              <span class="estado-lbl"><i class="fas fa-couch"></i> Bancos</span>
+              {% if ue.bancos_bons %}<span class="e-bom">✓ Bom</span>{% else %}<span class="e-avaria">✗ Avaria</span>{% endif %}
+            </div>
+          </div>
+          {% if ue.observacoes %}
+          <div class="estado-obs">
+            <i class="fas fa-comment-dots"></i>
+            {{ ue.observacoes }}
+          </div>
+          {% endif %}
+          <div class="estado-date">
+            <i class="fas fa-calendar-alt"></i> {{ ue.data|date:"d/m/Y" }}
+          </div>
         </div>
-        {% endfor %}
-    {% else %}
-        <div class="text-center py-5">
-            <i class="fas fa-bus fa-5x text-muted mb-4"></i>
-            <h4 class="text-muted">Nenhum Autocarro Cadastrado</h4>
-            <p class="text-muted">Cadastre o primeiro autocarro para começar a usar o sistema.</p>
-            <a href="{% url 'cadastrar_autocarro' %}" class="btn btn-primary btn-lg">
-                <i class="fas fa-plus me-2"></i>Cadastrar Autocarro
-            </a>
+        {% else %}
+        <div style="margin-top:12px;font-size:.75rem;color:rgba(255,255,255,.25);text-align:center;padding:10px">
+          <i class="fas fa-wrench" style="margin-right:5px;opacity:.4"></i>Nenhum estado técnico registado
         </div>
-    {% endif %}
+        {% endif %}
+        {% endwith %}
+
+      </div><!-- ac-body -->
+
+      <!-- FOOTER -->
+      <div class="ac-footer">
+        <div class="ac-footer-left">
+          <a href="{% url 'editar_autocarro' autocarro.pk %}" class="btn-acf edit" title="Editar">
+            <i class="fas fa-pen"></i> Editar
+          </a>
+          <a href="{% url 'atualizar_estado' %}?autocarro={{ autocarro.pk }}" class="btn-acf state">
+            <i class="fas fa-wrench"></i> Estado
+          </a>
+        </div>
+        <button type="button" class="btn-acf del"
+                data-bs-toggle="modal" data-bs-target="#deleteModal{{ autocarro.pk }}">
+          <i class="fas fa-trash-can"></i>
+        </button>
+      </div>
+
+    </div><!-- ac-card -->
+
+    <!-- MODAL ELIMINAR -->
+    <div class="modal fade" id="deleteModal{{ autocarro.pk }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-triangle-exclamation" style="color:#ff8a80;margin-right:8px"></i>
+              Confirmar Eliminação
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            Tem a certeza que deseja eliminar o autocarro <strong>{{ autocarro.numero }}</strong>?
+            <div class="modal-warning">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>Todos os registos relacionados a este autocarro também serão removidos permanentemente.</span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-modal cancel" data-bs-dismiss="modal">
+              <i class="fas fa-xmark"></i> Cancelar
+            </button>
+            <form method="post" action="{% url 'deletar_autocarro' autocarro.pk %}" style="margin:0">
+              {% csrf_token %}
+              <button type="submit" class="btn-modal confirm-del">
+                <i class="fas fa-trash-can"></i> Eliminar
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% endfor %}
+  </div><!-- ac-grid -->
+
+  {% else %}
+  <div class="empty-la">
+    <i class="fas fa-bus"></i>
+    <h4>Nenhum Autocarro Cadastrado</h4>
+    <p>Cadastre o primeiro autocarro para começar a usar o sistema.</p>
+    <a href="{% url 'cadastrar_autocarro' %}" class="btn-new-la" style="margin-top:4px">
+      <i class="fas fa-plus"></i> Cadastrar Autocarro
+    </a>
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}

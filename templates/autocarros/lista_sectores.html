@@ -1,58 +1,269 @@
 {% extends "base.html" %}
-
-{% block title %}Lista de Setores{% endblock %}
+{% block title %}Sectores{% endblock %}
+{% block breadcrumb %}Sectores{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2><i class="fas fa-map-marker-alt"></i> Setores</h2>
-        <a href="{% url 'adicionar_sector' %}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Novo Setor
-        </a>
+<style>
+/* ════════════════════════════════════════════════════
+   LISTA DE SECTORES
+════════════════════════════════════════════════════ */
+
+.ls-wrapper {
+  animation: lsIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes lsIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── HEADER ──────────────────────────────────────── */
+.ls-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 24px;
+}
+.ls-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem; letter-spacing: 2px; line-height: 1;
+}
+.ls-title span { color: var(--accent); }
+.ls-subtitle { font-size: .78rem; color: var(--grey); margin-top: 4px; }
+
+/* ── NEW BUTTON ──────────────────────────────────── */
+.btn-new-ls {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 22px;
+  background: var(--grad-btn); color: var(--white);
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem; letter-spacing: 2px;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(36,99,163,.3);
+  transition: transform var(--ease-spring), box-shadow var(--ease-base);
+  position: relative; overflow: hidden;
+}
+.btn-new-ls::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-new-ls:hover::before { transform: translateX(100%); }
+.btn-new-ls:hover  { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(36,99,163,.45); color: var(--white); }
+.btn-new-ls:active { transform: scale(.97); }
+
+/* ── MESSAGES ────────────────────────────────────── */
+.msg-success {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(39,174,96,.1);
+  border: 1px solid rgba(39,174,96,.25);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  color: #69f0ae; font-size: .88rem;
+  margin-bottom: 20px;
+}
+.msg-success i { font-size: 1rem; }
+
+/* ── TABLE CARD ──────────────────────────────────── */
+.table-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(4,30,66,.28);
+}
+.table-card-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 13px 20px;
+  background: linear-gradient(90deg, rgba(36,99,163,.3), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+}
+.table-card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 1rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--white); display: flex; align-items: center; gap: 8px;
+}
+.table-card-title i { color: var(--accent); }
+.table-count { font-size: .75rem; color: var(--grey); }
+
+/* ── TABLE ───────────────────────────────────────── */
+.ls-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.ls-table {
+  width: 100%; border-collapse: collapse; font-size: .85rem;
+}
+.ls-table thead th {
+  background: rgba(4,30,66,.7);
+  color: var(--accent);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .72rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--glass-border);
+  white-space: nowrap;
+}
+.ls-table thead th:last-child { text-align: center; }
+
+.ls-table tbody tr {
+  border-bottom: 1px solid rgba(79,195,247,.06);
+  transition: background var(--ease-fast);
+}
+.ls-table tbody tr:hover { background: rgba(36,99,163,.18); }
+.ls-table tbody td {
+  padding: 13px 18px;
+  color: rgba(255,255,255,.75);
+  vertical-align: middle;
+}
+.ls-table tbody td:last-child { text-align: center; }
+
+/* id pill */
+.id-pill {
+  display: inline-flex; align-items: center;
+  background: rgba(79,195,247,.07);
+  border: 1px solid rgba(79,195,247,.12);
+  border-radius: 30px; padding: 2px 10px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .78rem;
+  color: rgba(255,255,255,.45);
+}
+
+/* sector name */
+.sec-name {
+  font-weight: 600; color: var(--white);
+  display: flex; align-items: center; gap: 8px;
+}
+.sec-name::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0;
+}
+
+/* action buttons */
+.actions-wrap { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+
+.btn-act-ls {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 12px;
+  border: 1px solid; border-radius: var(--radius-sm);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .72rem;
+  letter-spacing: .8px; text-transform: uppercase;
+  cursor: pointer; text-decoration: none; background: transparent;
+  white-space: nowrap;
+  transition: background var(--ease-fast), transform var(--ease-spring);
+}
+.btn-act-ls:hover { transform: translateY(-1px); }
+.btn-act-ls:active { transform: scale(.97); }
+
+.btn-edit-ls  { border-color: rgba(255,213,79,.3);  color: #ffd54f; }
+.btn-edit-ls:hover  { background: rgba(255,213,79,.12); }
+.btn-del-ls   { border-color: rgba(231,76,60,.3);   color: #ff8a80; }
+.btn-del-ls:hover   { background: rgba(231,76,60,.12); }
+.btn-view-ls  { border-color: rgba(79,195,247,.25); color: var(--accent); }
+.btn-view-ls:hover  { background: rgba(79,195,247,.12); }
+.btn-gest-ls  { border-color: rgba(206,147,216,.25);color: #ce93d8; }
+.btn-gest-ls:hover  { background: rgba(206,147,216,.1); }
+
+/* empty */
+.table-empty {
+  padding: 52px 20px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  color: rgba(255,255,255,.25);
+}
+.table-empty i { font-size: 2.4rem; opacity: .35; }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 640px) {
+  .ls-header { flex-direction: column; align-items: flex-start; }
+  .btn-new-ls { width: 100%; justify-content: center; }
+  .actions-wrap { flex-direction: column; align-items: center; }
+  .btn-act-ls { width: 100%; justify-content: center; }
+}
+</style>
+
+<div class="ls-wrapper">
+
+  <!-- HEADER -->
+  <div class="ls-header">
+    <div>
+      <div class="ls-title">Gestão de <span>Sectores</span></div>
+      <div class="ls-subtitle">Lista de todos os sectores registados no sistema</div>
+    </div>
+    <a href="{% url 'adicionar_sector' %}" class="btn-new-ls">
+      <i class="fas fa-plus"></i> Novo Sector
+    </a>
+  </div>
+
+  <!-- MESSAGES -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="msg-success">
+        <i class="fas fa-check-circle"></i>
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- TABLE CARD -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="table-card-title">
+        <i class="fas fa-map-marker-alt"></i> Sectores
+      </div>
+      {% if sectores %}
+        <span class="table-count">{{ sectores|length }} sector(es)</span>
+      {% endif %}
     </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-success">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
-
-    <table class="table table-striped table-hover shadow">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>Nome</th>
-                <th>Ações</th>
-            </tr>
+    <div class="ls-table-wrap">
+      {% if sectores %}
+      <table class="ls-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Ações</th>
+          </tr>
         </thead>
         <tbody>
-            {% for setor in sectores %}
-                <tr>
-                    <td class="align-middle">{{ setor.id }}</td>
-                    <td class="align-middle">{{ setor.nome }}</td>
-                    <td class="align-middle">
-                        <a href="{% url 'editar_sector' setor.id %}" class="btn btn-warning btn-sm">
-                            <i class="fas fa-edit"></i> Editar
-                        </a>
-                        <a href="{% url 'apagar_sector' setor.id %}" class="btn btn-danger btn-sm">
-                            <i class="fas fa-trash"></i> Apagar
-                        </a>
-                        <a href="{% url 'resumo_sector' setor.slug %}" class="btn btn-info btn-sm">
-                            <i class="fas fa-eye"></i> Resumo
-                        </a>
-                        {% if setor.id %}
-                            <a href="{% url 'associar_gestor' setor.id %}" class="btn btn-sm btn-primary">
-                                <i class="fas fa-user-cog me-1"></i> Associar Gestor
-                            </a>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="3" class="text-center text-muted">Nenhum setor cadastrado</td>
-                </tr>
-            {% endfor %}
+          {% for setor in sectores %}
+          <tr>
+            <td><span class="id-pill">#{{ setor.id }}</span></td>
+            <td><span class="sec-name">{{ setor.nome }}</span></td>
+            <td>
+              <div class="actions-wrap">
+                <a href="{% url 'editar_sector' setor.id %}" class="btn-act-ls btn-edit-ls">
+                  <i class="fas fa-pen"></i> Editar
+                </a>
+                <a href="{% url 'apagar_sector' setor.id %}" class="btn-act-ls btn-del-ls"
+                   onclick="return confirm('Apagar o sector {{ setor.nome }}?')">
+                  <i class="fas fa-trash-can"></i> Apagar
+                </a>
+                <a href="{% url 'resumo_sector' setor.slug %}" class="btn-act-ls btn-view-ls">
+                  <i class="fas fa-eye"></i> Resumo
+                </a>
+                {% if setor.id %}
+                <a href="{% url 'associar_gestor' setor.id %}" class="btn-act-ls btn-gest-ls">
+                  <i class="fas fa-user-gear"></i> Gestor
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
         </tbody>
-    </table>
+      </table>
+      {% else %}
+      <div class="table-empty">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>Nenhum sector registado.</span>
+        <small>Clique em "Novo Sector" para adicionar o primeiro.</small>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
 </div>
 {% endblock %}

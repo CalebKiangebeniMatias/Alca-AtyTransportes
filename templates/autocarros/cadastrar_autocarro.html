@@ -1,131 +1,401 @@
 {% extends 'base.html' %}
-
-{% block title %}Cadastrar Autocarro - Sistema de Gestão{% endblock %}
+{% block title %}Cadastrar Autocarro{% endblock %}
+{% block breadcrumb %}Frota › Autocarros › Cadastrar{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="card-title mb-0">
-                    <i class="fas fa-plus me-2"></i>
-                    Cadastrar Novo Autocarro
-                </h4>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <!-- Linha 1: Número + Modelo -->
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <label class="form-label text-white">
-                                <i class="fas fa-hashtag me-1"></i>{{ form.numero.label }}
-                            </label>
-                            {{ form.numero }}
-                            {% if form.numero.errors %}
-                                <div class="text-danger small mt-1">{{ form.numero.errors }}</div>
-                            {% endif %}
-                            <small class="text-muted">Ex: AC001, BUS01, etc.</small>
-                        </div>
-                        
-                        <div class="col-md-8">
-                            <label class="form-label text-white">
-                                <i class="fas fa-cog me-1"></i>{{ form.modelo.label }}
-                            </label>
-                            {{ form.modelo }}
-                            {% if form.modelo.errors %}
-                                <div class="text-danger small mt-1">{{ form.modelo.errors }}</div>
-                            {% endif %}
-                            <small class="text-muted">Ex: Mercedes-Benz OF-1721, Volkswagen 17.230</small>
-                        </div>
-                    </div>
-                    
-                    <!-- Linha 2: Placa + Sector -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label text-white">
-                                <i class="fas fa-id-card me-1"></i>{{ form.placa.label }}
-                            </label>
-                            {{ form.placa }}
-                            {% if form.placa.errors %}
-                                <div class="text-danger small mt-1">{{ form.placa.errors }}</div>
-                            {% endif %}
-                            <small class="text-muted">Ex: LD-12-34-AB (Formato Angola)</small>
-                        </div>
+<style>
+/* ════════════════════════════════════════════════════
+   CADASTRAR AUTOCARRO
+════════════════════════════════════════════════════ */
 
-                        <div class="col-md-6">
-                            <label class="form-label text-white">
-                                <i class="fas fa-map-marker-alt me-1"></i>{{ form.sector.label }}
-                            </label>
-                            {{ form.sector }}
-                            {% if form.sector.errors %}
-                                <div class="text-danger small mt-1">{{ form.sector.errors }}</div>
-                            {% endif %}
-                            <small class="text-muted">Escolha o sector a que o autocarro pertence</small>
-                        </div>
-                    </div>
-                    
-                    <!-- Botões -->
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-success btn-lg me-3">
-                            <i class="fas fa-save me-2"></i>
-                            Cadastrar Autocarro
-                        </button>
-                        <a href="{% url 'listar_autocarros' %}" class="btn btn-secondary btn-lg">
-                            <i class="fas fa-times me-2"></i>
-                            Cancelar
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+.ca-wrapper {
+  max-width: 700px;
+  margin: 0 auto;
+  animation: caIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes caIn {
+  from { opacity:0; transform:translateY(18px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
 
-<!-- Card de Preview -->
-<div class="row justify-content-center mt-4">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-eye me-2"></i>
-                    Preview do Autocarro
-                </h5>
-            </div>
-            <div class="card-body text-center">
-                <div class="bus-preview">
-                    <i class="fas fa-bus fa-4x text-primary mb-3"></i>
-                    <div id="preview-info">
-                        <h5 class="text-white">Número: <span id="preview-numero">---</span></h5>
-                        <p class="text-muted">Modelo: <span id="preview-modelo">---</span></p>
-                        <p class="text-muted">Placa: <span id="preview-placa">---</span></p>
-                    </div>
-                </div>
-            </div>
-        </div>
+/* ── CARD ────────────────────────────────────────── */
+.ca-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(4,30,66,.32);
+  position: relative;
+  margin-bottom: 20px;
+}
+.ca-card::before {
+  content: '';
+  position: absolute; top:0; left:10%; right:10%; height:2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  pointer-events: none;
+}
+
+.ca-card-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 24px;
+  background: linear-gradient(90deg, rgba(36,99,163,.3), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+}
+.ca-card-icon {
+  width: 44px; height: 44px; flex-shrink: 0;
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.2);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; color: var(--accent);
+}
+.ca-card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.45rem; letter-spacing: 2px; line-height: 1;
+  color: var(--white);
+}
+.ca-card-sub { font-size: .72rem; color: var(--grey); margin-top: 3px; }
+
+.ca-body { padding: 24px; }
+
+/* ── FIELDS ──────────────────────────────────────── */
+.f-label {
+  display: block;
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.42); margin-bottom: 6px;
+}
+.f-hint { font-size: .68rem; color: rgba(255,255,255,.28); margin-top: 5px; }
+.f-error { font-size: .7rem; color: #ff8a80; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+.f-group { margin-bottom: 0; }
+.f-row-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; margin-bottom: 16px; }
+.f-row-half { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+.ca-wrapper input[type="text"],
+.ca-wrapper input[type="number"],
+.ca-wrapper select {
+  width: 100%;
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 11px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .9rem !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast), background var(--ease-fast) !important;
+}
+.ca-wrapper input:focus,
+.ca-wrapper select:focus {
+  border-color: var(--accent) !important;
+  background: rgba(4,30,66,.85) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+}
+.ca-wrapper input::placeholder { color: rgba(255,255,255,.25) !important; }
+.ca-wrapper select option { background: var(--navy); color: var(--white); }
+
+/* error border */
+.ca-wrapper input.field-error,
+.ca-wrapper select.field-error {
+  border-color: rgba(231,76,60,.5) !important;
+  box-shadow: 0 0 0 2px rgba(231,76,60,.15) !important;
+}
+
+/* ── FOOTER ──────────────────────────────────────── */
+.ca-footer {
+  display: flex; align-items: center;
+  justify-content: flex-end; gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(4,30,66,.3);
+}
+.btn-ca {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 26px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem; letter-spacing: 2px;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+  position: relative; overflow: hidden;
+}
+.btn-ca::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-ca:hover::before { transform: translateX(100%); }
+.btn-ca:hover  { transform: translateY(-2px); }
+.btn-ca:active { transform: scale(.97); }
+.btn-save-ca {
+  background: var(--success); color: var(--white);
+  box-shadow: 0 4px 18px rgba(39,174,96,.3);
+}
+.btn-save-ca:hover { background: #219150; box-shadow: 0 8px 26px rgba(39,174,96,.4); color: var(--white); }
+.btn-save-ca .sp {
+  display:none; width:14px; height:14px;
+  border:2px solid rgba(255,255,255,.3); border-top-color:white;
+  border-radius:50%; animation:spin .7s linear infinite;
+}
+.btn-save-ca.loading .sp  { display:inline-block; }
+.btn-save-ca.loading .lbl { opacity:.7; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.btn-cancel-ca {
+  background: transparent;
+  border: 1px solid var(--glass-border) !important;
+  color: rgba(255,255,255,.55);
+}
+.btn-cancel-ca:hover { background: rgba(255,255,255,.07); color: var(--white); }
+
+/* ── PREVIEW CARD ────────────────────────────────── */
+.preview-card {
+  background: rgba(13,43,94,.38);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+}
+.preview-card::before {
+  content: '';
+  display: block; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(39,174,96,.5), transparent);
+}
+.preview-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 20px;
+  background: linear-gradient(90deg, rgba(39,174,96,.12), rgba(4,30,66,.1));
+  border-bottom: 1px solid var(--glass-border);
+}
+.preview-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .88rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: rgba(255,255,255,.6);
+  display: flex; align-items: center; gap: 7px;
+}
+.preview-title i { color: #69f0ae; }
+
+.preview-body {
+  padding: 20px 24px;
+  display: flex; align-items: center; gap: 24px;
+}
+
+.preview-bus-icon {
+  width: 80px; height: 80px; flex-shrink: 0;
+  background: rgba(36,99,163,.2);
+  border: 1px solid rgba(79,195,247,.18);
+  border-radius: var(--radius-lg);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform var(--ease-spring);
+}
+.preview-bus-icon i {
+  font-size: 2.2rem; color: var(--accent);
+  transition: color var(--ease-fast);
+}
+.preview-bus-icon.has-data i { color: #69f0ae; }
+.preview-bus-icon.has-data { border-color: rgba(105,240,174,.25); background: rgba(39,174,96,.1); }
+
+.preview-info { flex: 1; }
+.preview-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem; letter-spacing: 3px; line-height: 1;
+  color: var(--white); margin-bottom: 6px;
+  min-height: 2rem;
+}
+.preview-num.placeholder { color: rgba(255,255,255,.15); }
+.preview-details { display: flex; flex-direction: column; gap: 4px; }
+.preview-detail {
+  font-size: .78rem; color: rgba(255,255,255,.5);
+  display: flex; align-items: center; gap: 6px;
+}
+.preview-detail i { color: var(--accent); font-size: .65rem; width: 10px; }
+.preview-detail .val { color: rgba(255,255,255,.8); font-weight: 600; }
+.preview-detail .val.placeholder { color: rgba(255,255,255,.2); font-weight: 400; }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 560px) {
+  .f-row-2, .f-row-half { grid-template-columns: 1fr; }
+  .ca-footer { flex-direction: column; }
+  .btn-ca { width: 100%; justify-content: center; }
+  .preview-body { flex-direction: column; align-items: flex-start; }
+}
+</style>
+
+<div class="ca-wrapper">
+
+  <!-- FORM CARD -->
+  <div class="ca-card">
+    <div class="ca-card-header">
+      <div class="ca-card-icon"><i class="fas fa-bus"></i></div>
+      <div>
+        <div class="ca-card-title">Cadastrar Novo Autocarro</div>
+        <div class="ca-card-sub">Preencha os dados de identificação do autocarro</div>
+      </div>
     </div>
+
+    <div class="ca-body">
+      <form method="post" id="formAutocarro">
+        {% csrf_token %}
+
+        <!-- Número + Modelo -->
+        <div class="f-row-2">
+          <div class="f-group">
+            <label class="f-label"><i class="fas fa-hashtag" style="color:var(--accent);margin-right:4px"></i>{{ form.numero.label }}</label>
+            {{ form.numero }}
+            {% if form.numero.errors %}
+              <div class="f-error"><i class="fas fa-circle-exclamation"></i>{{ form.numero.errors }}</div>
+            {% endif %}
+            <div class="f-hint">Ex: AC001, BUS01</div>
+          </div>
+          <div class="f-group">
+            <label class="f-label"><i class="fas fa-cog" style="color:var(--accent);margin-right:4px"></i>{{ form.modelo.label }}</label>
+            {{ form.modelo }}
+            {% if form.modelo.errors %}
+              <div class="f-error"><i class="fas fa-circle-exclamation"></i>{{ form.modelo.errors }}</div>
+            {% endif %}
+            <div class="f-hint">Ex: Mercedes-Benz OF-1721</div>
+          </div>
+        </div>
+
+        <!-- Placa + Sector -->
+        <div class="f-row-half" style="margin-bottom:0">
+          <div class="f-group">
+            <label class="f-label"><i class="fas fa-id-card" style="color:var(--accent);margin-right:4px"></i>{{ form.placa.label }}</label>
+            {{ form.placa }}
+            {% if form.placa.errors %}
+              <div class="f-error"><i class="fas fa-circle-exclamation"></i>{{ form.placa.errors }}</div>
+            {% endif %}
+            <div class="f-hint">Ex: LD-12-34-AB</div>
+          </div>
+          <div class="f-group">
+            <label class="f-label"><i class="fas fa-map-marker-alt" style="color:var(--accent);margin-right:4px"></i>{{ form.sector.label }}</label>
+            {{ form.sector }}
+            {% if form.sector.errors %}
+              <div class="f-error"><i class="fas fa-circle-exclamation"></i>{{ form.sector.errors }}</div>
+            {% endif %}
+            <div class="f-hint">Sector ao qual pertence</div>
+          </div>
+        </div>
+
+      </form>
+    </div>
+
+    <div class="ca-footer">
+      <a href="{% url 'listar_autocarros' %}" class="btn-ca btn-cancel-ca">
+        <i class="fas fa-arrow-left"></i> Cancelar
+      </a>
+      <button type="submit" form="formAutocarro" class="btn-ca btn-save-ca" id="btnSave">
+        <span class="sp"></span>
+        <span class="lbl"><i class="fas fa-floppy-disk"></i> Cadastrar</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- PREVIEW CARD -->
+  <div class="preview-card">
+    <div class="preview-header">
+      <div class="preview-title"><i class="fas fa-eye"></i> Preview em Tempo Real</div>
+    </div>
+    <div class="preview-body">
+      <div class="preview-bus-icon" id="previewIcon">
+        <i class="fas fa-bus"></i>
+      </div>
+      <div class="preview-info">
+        <div class="preview-num placeholder" id="previewNum">---</div>
+        <div class="preview-details">
+          <div class="preview-detail">
+            <i class="fas fa-cog"></i>
+            <span>Modelo:</span>
+            <span class="val placeholder" id="previewModelo">—</span>
+          </div>
+          <div class="preview-detail">
+            <i class="fas fa-id-card"></i>
+            <span>Placa:</span>
+            <span class="val placeholder" id="previewPlaca">—</span>
+          </div>
+          <div class="preview-detail">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Sector:</span>
+            <span class="val placeholder" id="previewSector">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const numeroInput = document.getElementById('id_numero');
-    const modeloInput = document.getElementById('id_modelo');
-    const placaInput = document.getElementById('id_placa');
-    
-    const previewNumero = document.getElementById('preview-numero');
-    const previewModelo = document.getElementById('preview-modelo');
-    const previewPlaca = document.getElementById('preview-placa');
-    
-    function updatePreview() {
-        previewNumero.textContent = numeroInput.value || '---';
-        previewModelo.textContent = modeloInput.value || '---';
-        previewPlaca.textContent = placaInput.value || '---';
-    }
-    
-    numeroInput.addEventListener('input', updatePreview);
-    modeloInput.addEventListener('input', updatePreview);
-    placaInput.addEventListener('input', updatePreview);
-});
+(function () {
+  /* ── Remove Bootstrap classes ─────────────────── */
+  document.querySelectorAll('.ca-wrapper input, .ca-wrapper select').forEach(function (el) {
+    el.classList.remove('form-control', 'form-select');
+    /* flag errors */
+    var parent = el.closest('.f-group');
+    if (parent && parent.querySelector('.f-error')) el.classList.add('field-error');
+  });
+
+  /* ── Loading ──────────────────────────────────── */
+  var form = document.getElementById('formAutocarro');
+  var btn  = document.getElementById('btnSave');
+  if (form && btn) {
+    form.addEventListener('submit', function () {
+      btn.classList.add('loading'); btn.disabled = true;
+      setTimeout(function () { btn.classList.remove('loading'); btn.disabled = false; }, 8000);
+    });
+  }
+
+  /* ── Live Preview ─────────────────────────────── */
+  var numInput    = document.getElementById('id_numero');
+  var modInput    = document.getElementById('id_modelo');
+  var placaInput  = document.getElementById('id_placa');
+  var sectorSel   = document.getElementById('id_sector');
+
+  var pNum    = document.getElementById('previewNum');
+  var pMod    = document.getElementById('previewModelo');
+  var pPlaca  = document.getElementById('previewPlaca');
+  var pSector = document.getElementById('previewSector');
+  var pIcon   = document.getElementById('previewIcon');
+
+  function updatePreview() {
+    var num   = numInput   ? numInput.value.trim()   : '';
+    var mod   = modInput   ? modInput.value.trim()   : '';
+    var placa = placaInput ? placaInput.value.trim() : '';
+    var sector = sectorSel ? (sectorSel.options[sectorSel.selectedIndex] && sectorSel.selectedIndex > 0
+                  ? sectorSel.options[sectorSel.selectedIndex].text : '') : '';
+
+    var hasData = num || mod || placa;
+
+    /* Número */
+    pNum.textContent = num || '---';
+    pNum.classList.toggle('placeholder', !num);
+
+    /* Modelo */
+    pMod.textContent = mod || '—';
+    pMod.classList.toggle('placeholder', !mod);
+
+    /* Placa */
+    pPlaca.textContent = placa || '—';
+    pPlaca.classList.toggle('placeholder', !placa);
+
+    /* Sector */
+    pSector.textContent = sector || '—';
+    pSector.classList.toggle('placeholder', !sector);
+
+    /* Icon state */
+    pIcon.classList.toggle('has-data', !!hasData);
+  }
+
+  if (numInput)   numInput.addEventListener('input', updatePreview);
+  if (modInput)   modInput.addEventListener('input', updatePreview);
+  if (placaInput) placaInput.addEventListener('input', updatePreview);
+  if (sectorSel)  sectorSel.addEventListener('change', updatePreview);
+
+  updatePreview();
+})();
 </script>
 {% endblock %}

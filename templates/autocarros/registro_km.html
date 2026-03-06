@@ -1,110 +1,588 @@
 {% extends 'base.html' %}
+{% block title %}Registo de KMs{% endblock %}
+{% block breadcrumb %}Frota › Registo de KMs{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-  <div class="row g-3">
-    <div class="col-12 col-md-6">
-      <div class="card p-3">
-        <h5 class="card-title">Registro de KMs — Sector</h5>
-        <div class="mb-2">
-          <label class="form-label">Sector</label>
-          <select id="select_sector" class="form-select">
-            <option value="">-- Escolha sector --</option>
-            {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
+<style>
+/* ════════════════════════════════════════════════════
+   REGISTO DE KMs
+════════════════════════════════════════════════════ */
+
+.km-wrapper {
+  animation: kmIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes kmIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── HEADER ──────────────────────────────────────── */
+.km-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 24px;
+}
+.km-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem; letter-spacing: 2px; line-height: 1;
+}
+.km-title span { color: var(--accent); }
+.km-subtitle { font-size: .78rem; color: var(--grey); margin-top: 4px; }
+
+/* ── LAYOUT GRID ─────────────────────────────────── */
+.km-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ── SHARED CARD ─────────────────────────────────── */
+.km-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(4,30,66,.25);
+  position: relative;
+}
+.km-card::before {
+  content: '';
+  position: absolute; top:0; left:10%; right:10%; height:2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  pointer-events: none;
+}
+
+.km-card-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 20px;
+  background: linear-gradient(90deg, rgba(36,99,163,.3), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+}
+.km-card-icon {
+  width: 38px; height: 38px; flex-shrink: 0;
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.18);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .9rem; color: var(--accent);
+}
+.km-card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.15rem; letter-spacing: 2px; line-height: 1;
+  color: var(--white);
+}
+.km-card-sub { font-size: .7rem; color: var(--grey); margin-top: 2px; }
+
+.km-card-body { padding: 18px 20px; }
+
+/* ── FIELDS ──────────────────────────────────────── */
+.f-label {
+  display: block;
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.42); margin-bottom: 6px;
+}
+.f-group { margin-bottom: 14px; }
+
+.km-wrapper select,
+.km-wrapper input[type="date"],
+.km-wrapper input[type="number"] {
+  width: 100%;
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 10px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .88rem !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast), background var(--ease-fast) !important;
+}
+.km-wrapper select:focus,
+.km-wrapper input:focus {
+  border-color: var(--accent) !important;
+  background: rgba(4,30,66,.85) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+}
+.km-wrapper select option { background: var(--navy); color: var(--white); }
+.km-wrapper input::placeholder { color: rgba(255,255,255,.25) !important; }
+.km-wrapper input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7); }
+
+/* ── AUTOCARROS LIST ─────────────────────────────── */
+.aut-list {
+  max-height: 360px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: rgba(79,195,247,.2) transparent;
+}
+.aut-list::-webkit-scrollbar { width: 4px; }
+.aut-list::-webkit-scrollbar-thumb { background: rgba(79,195,247,.2); border-radius: 4px; }
+
+.aut-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 12px;
+  background: rgba(4,30,66,.35);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  transition: border-color var(--ease-fast), background var(--ease-fast);
+}
+.aut-row:last-child { margin-bottom: 0; }
+.aut-row:hover { border-color: rgba(79,195,247,.25); background: rgba(36,99,163,.15); }
+
+.aut-info { flex: 1; min-width: 0; }
+.aut-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .95rem;
+  letter-spacing: 1px; color: var(--white);
+  display: flex; align-items: center; gap: 6px;
+}
+.aut-num i { color: var(--accent); font-size: .75rem; }
+.aut-modelo { font-size: .68rem; color: var(--grey); }
+
+.km-input-wrap { width: 130px; flex-shrink: 0; position: relative; }
+.km-input-wrap input {
+  text-align: right !important;
+  padding-right: 38px !important;
+}
+.km-sym {
+  position: absolute; right: 10px; top: 50%;
+  transform: translateY(-50%);
+  font-size: .65rem; font-weight: 700;
+  color: var(--grey); pointer-events: none;
+}
+
+/* empty / loading states */
+.aut-empty {
+  text-align: center; padding: 32px 16px;
+  color: rgba(255,255,255,.25);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  font-size: .82rem;
+}
+.aut-empty i { font-size: 1.8rem; opacity: .3; }
+.aut-loading {
+  text-align: center; padding: 24px;
+  color: var(--accent); font-size: .82rem;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.spin-sm {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(79,195,247,.25); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── CARD FOOTER / ACTIONS ───────────────────────── */
+.km-card-footer {
+  display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(4,30,66,.3);
+}
+
+.btn-km {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 20px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: .95rem; letter-spacing: 2px;
+  cursor: pointer; white-space: nowrap; text-decoration: none;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+  position: relative; overflow: hidden;
+}
+.btn-km::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-km:hover::before { transform: translateX(100%); }
+.btn-km:hover  { transform: translateY(-2px); }
+.btn-km:active { transform: scale(.97); }
+
+.btn-load-km {
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.25) !important;
+  color: var(--accent);
+}
+.btn-load-km:hover { background: rgba(79,195,247,.2); }
+
+.btn-save-km {
+  background: var(--grad-btn); color: var(--white);
+  box-shadow: 0 4px 16px rgba(36,99,163,.3);
+}
+.btn-save-km:hover { box-shadow: 0 8px 24px rgba(36,99,163,.45); color: var(--white); }
+.btn-save-km .sp {
+  display:none; width:13px; height:13px;
+  border:2px solid rgba(255,255,255,.3); border-top-color:white;
+  border-radius:50%; animation:spin .7s linear infinite;
+}
+.btn-save-km.loading .sp  { display:inline-block; }
+.btn-save-km.loading .lbl { opacity:.7; }
+
+/* ── REGISTOS HISTÓRICO ──────────────────────────── */
+.reg-item {
+  background: rgba(4,30,66,.4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 14px;
+  transition: border-color var(--ease-fast);
+}
+.reg-item:hover { border-color: rgba(79,195,247,.22); }
+.reg-item:last-child { margin-bottom: 0; }
+
+.reg-item-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(36,99,163,.2);
+  border-bottom: 1px solid var(--glass-border);
+}
+.reg-sector {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .9rem;
+  letter-spacing: 1px; color: var(--white);
+  display: flex; align-items: center; gap: 6px;
+}
+.reg-sector i { color: var(--accent); font-size: .7rem; }
+.reg-date { font-size: .72rem; color: var(--grey); }
+
+/* mini table */
+.reg-table-wrap { overflow-x: auto; }
+.reg-table {
+  width: 100%; border-collapse: collapse; font-size: .78rem;
+}
+.reg-table thead th {
+  background: rgba(4,30,66,.5);
+  color: var(--accent);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .65rem;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  padding: 7px 12px;
+  border-bottom: 1px solid rgba(79,195,247,.08);
+  text-align: left; white-space: nowrap;
+}
+.reg-table tbody tr {
+  border-bottom: 1px solid rgba(79,195,247,.05);
+  transition: background var(--ease-fast);
+}
+.reg-table tbody tr:hover { background: rgba(36,99,163,.15); }
+.reg-table tbody td {
+  padding: 8px 12px; color: rgba(255,255,255,.7);
+  white-space: nowrap; vertical-align: middle;
+}
+
+/* status pill */
+.km-status {
+  display: inline-flex; align-items: center; gap: 4px;
+  border-radius: 30px; padding: 2px 8px;
+  font-size: .65rem; font-weight: 700;
+  letter-spacing: .8px; text-transform: uppercase;
+}
+.km-status.ok      { background:rgba(39,174,96,.12);  border:1px solid rgba(39,174,96,.28);  color:#69f0ae; }
+.km-status.alerta  { background:rgba(243,156,18,.12); border:1px solid rgba(243,156,18,.3);  color:#ffd54f; }
+.km-status.urgente { background:rgba(231,76,60,.12);  border:1px solid rgba(231,76,60,.28);  color:#ff8a80; }
+.km-status.nd      { background:rgba(141,163,196,.08);border:1px solid rgba(141,163,196,.15);color:var(--grey); }
+
+.km-val { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: .88rem; color: var(--white); }
+.km-prox-val { color: var(--accent); font-weight: 700; }
+.km-falta { color: #ffd54f; font-weight: 700; }
+.km-dash  { color: rgba(255,255,255,.2); }
+
+/* empty registos */
+.reg-empty {
+  text-align: center; padding: 40px 16px;
+  color: rgba(255,255,255,.25);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.reg-empty i { font-size: 2rem; opacity: .3; }
+
+/* ── TOAST ───────────────────────────────────────── */
+.km-toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  background: rgba(4,30,66,.96);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 13px 18px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: .85rem; color: var(--white);
+  box-shadow: 0 8px 28px rgba(4,30,66,.5);
+  backdrop-filter: blur(12px);
+  transform: translateY(80px); opacity: 0;
+  transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .35s ease;
+  pointer-events: none;
+}
+.km-toast.show { transform: translateY(0); opacity: 1; }
+.km-toast i { font-size: 1rem; }
+.km-toast.success i { color: #69f0ae; }
+.km-toast.error   i { color: #ff8a80; }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 900px) {
+  .km-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .km-card-footer { flex-wrap: wrap; }
+  .btn-km { flex: 1; justify-content: center; }
+}
+</style>
+
+<!-- Toast -->
+<div class="km-toast" id="kmToast">
+  <i class="fas fa-check-circle" id="toastIcon"></i>
+  <span id="toastMsg"></span>
+</div>
+
+{% csrf_token %}
+
+<div class="km-wrapper">
+
+  <!-- HEADER -->
+  <div class="km-header">
+    <div>
+      <div class="km-title">Registo de <span>KMs</span></div>
+      <div class="km-subtitle">Registe os quilómetros actuais por sector e autocarro</div>
+    </div>
+  </div>
+
+  <div class="km-grid">
+
+    <!-- ── FORMULÁRIO ── -->
+    <div class="km-card">
+      <div class="km-card-header">
+        <div class="km-card-icon"><i class="fas fa-road"></i></div>
+        <div>
+          <div class="km-card-title">Novo Registo</div>
+          <div class="km-card-sub">Selecione o sector e carregue os autocarros</div>
+        </div>
+      </div>
+
+      <div class="km-card-body">
+        <div class="f-group">
+          <label class="f-label">Sector</label>
+          <select id="select_sector">
+            <option value="">— Escolha o sector —</option>
+            {% for s in sectores %}
+              <option value="{{ s.id }}">{{ s.nome }}</option>
+            {% endfor %}
           </select>
         </div>
-        <div class="mb-2">
-          <label class="form-label">Data do registo</label>
-          <input id="data_registo" type="date" class="form-control" value="{{ now|date:'Y-m-d' }}">
+
+        <div class="f-group">
+          <label class="f-label">Data do Registo</label>
+          <input id="data_registo" type="date" value="{{ now|date:'Y-m-d' }}">
         </div>
 
-        <div id="autocarros_list" class="mt-3" style="max-height:400px;overflow:auto"></div>
-
-        <div class="mt-3 text-end">
-          <button id="btn_carregar" class="btn btn-outline-primary">Carregar Autocarros</button>
-          <button id="btn_salvar" class="btn btn-primary">Salvar Registro</button>
+        <!-- Lista de autocarros (preenchida via JS) -->
+        <div id="autocarros_list">
+          <div class="aut-empty">
+            <i class="fas fa-bus"></i>
+            <span>Selecione um sector e clique em "Carregar"</span>
+          </div>
         </div>
+      </div>
+
+      <div class="km-card-footer">
+        <button id="btn_carregar" class="btn-km btn-load-km">
+          <i class="fas fa-rotate"></i> Carregar
+        </button>
+        <button id="btn_salvar" class="btn-km btn-save-km">
+          <span class="sp"></span>
+          <span class="lbl"><i class="fas fa-floppy-disk"></i> Guardar</span>
+        </button>
       </div>
     </div>
 
-    <div class="col-12 col-md-6">
-      <div class="card p-3">
-        <h5 class="card-title">Últimos Registros & Previsões</h5>
-        <div id="lista_registros">
+    <!-- ── HISTÓRICO ── -->
+    <div class="km-card">
+      <div class="km-card-header">
+        <div class="km-card-icon"><i class="fas fa-clock-rotate-left"></i></div>
+        <div>
+          <div class="km-card-title">Últimos Registos</div>
+          <div class="km-card-sub">Histórico e previsões de manutenção</div>
+        </div>
+      </div>
+
+      <div class="km-card-body" style="padding-bottom:20px">
+        <div id="lista_registros" style="max-height:560px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(79,195,247,.2) transparent">
           {% for r in registros %}
-            <div class="mb-3 border rounded p-2 bg-light text-dark">
-              <strong>{{ r.sector }}</strong> — {{ r.data_registo }}
-              <table class="table table-sm mt-2">
-                <thead><tr><th>Autocarro</th><th>Km Atual</th><th>Km Próx.</th><th>Falta (km)</th><th>Status</th></tr></thead>
+          <div class="reg-item">
+            <div class="reg-item-header">
+              <div class="reg-sector">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ r.sector }}
+              </div>
+              <span class="reg-date">{{ r.data_registo }}</span>
+            </div>
+            <div class="reg-table-wrap">
+              <table class="reg-table">
+                <thead>
+                  <tr>
+                    <th>Autocarro</th>
+                    <th>Km Atual</th>
+                    <th>Km Próx.</th>
+                    <th>Falta</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {% for it in r.itens %}
                   <tr>
-                    <td>{{ it.autocarro_numero }}</td>
-                    <td>{{ it.km_atual }}</td>
-                    <td>{% if it.km_prox %}{{ it.km_prox }}{% else %}—{% endif %}</td>
-                    <td>{% if it.falta is not None %}{{ it.falta }}{% else %}—{% endif %}</td>
-                    <td>{{ it.status }}</td>
+                    <td>
+                      <span style="display:flex;align-items:center;gap:5px">
+                        <i class="fas fa-bus" style="color:var(--accent);font-size:.65rem"></i>
+                        <span class="km-val">{{ it.autocarro_numero }}</span>
+                      </span>
+                    </td>
+                    <td><span class="km-val">{{ it.km_atual }}</span></td>
+                    <td>
+                      {% if it.km_prox %}
+                        <span class="km-prox-val">{{ it.km_prox }}</span>
+                      {% else %}
+                        <span class="km-dash">—</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if it.falta is not None %}
+                        <span class="km-falta">{{ it.falta }}</span>
+                      {% else %}
+                        <span class="km-dash">—</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if it.status == 'OK' or it.status == 'ok' %}
+                        <span class="km-status ok"><i class="fas fa-circle" style="font-size:.4rem"></i> {{ it.status }}</span>
+                      {% elif it.status == 'Alerta' or it.status == 'alerta' %}
+                        <span class="km-status alerta"><i class="fas fa-circle" style="font-size:.4rem"></i> {{ it.status }}</span>
+                      {% elif it.status == 'Urgente' or it.status == 'urgente' %}
+                        <span class="km-status urgente"><i class="fas fa-circle" style="font-size:.4rem"></i> {{ it.status }}</span>
+                      {% else %}
+                        <span class="km-status nd">{{ it.status }}</span>
+                      {% endif %}
+                    </td>
                   </tr>
                   {% endfor %}
                 </tbody>
               </table>
             </div>
+          </div>
           {% empty %}
-            <div class="text-muted">Nenhum registro encontrado.</div>
+          <div class="reg-empty">
+            <i class="fas fa-clock-rotate-left"></i>
+            <span>Nenhum registo encontrado.</span>
+          </div>
           {% endfor %}
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-{% csrf_token %}
+  </div><!-- km-grid -->
+</div><!-- km-wrapper -->
+
 <script>
-document.addEventListener('DOMContentLoaded', function(){
-  const csrftoken = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)')?.pop() || '';
-  const apiAut = "{% url 'api_autocarros_por_sector' %}";
+(function () {
+  const csrftoken = (document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)') || []).pop() || '';
+  const apiAut  = "{% url 'api_autocarros_por_sector' %}";
   const saveUrl = "{% url 'registro_km_save' %}";
 
-  document.getElementById('btn_carregar').addEventListener('click', async function(){
-    const sid = document.getElementById('select_sector').value;
-    if (!sid){ alert('Escolha um sector'); return; }
-    const resp = await fetch(apiAut + '?sector_id=' + sid, {credentials:'same-origin'});
-    if (!resp.ok){ alert('Erro ao carregar autocarros'); return; }
-    const data = await resp.json();
-    const list = document.getElementById('autocarros_list');
-    list.innerHTML = '';
-    data.autocarros.forEach(a=>{
-      const row = document.createElement('div');
-      row.className = 'd-flex align-items-center mb-2';
-      row.innerHTML = `
-        <div class="flex-grow-1"><strong>${a.numero}</strong> ${a.modelo ? ' — ' + a.modelo : ''}</div>
-        <div style="width:140px">
-          <input type="number" class="form-control form-control-sm km-input" data-aut="${a.id}" placeholder="Km atual">
-        </div>
-      `;
-      list.appendChild(row);
-    });
+  /* ── Toast helper ────────────────────────────────── */
+  function showToast(msg, type) {
+    var t = document.getElementById('kmToast');
+    var i = document.getElementById('toastIcon');
+    var m = document.getElementById('toastMsg');
+    t.className = 'km-toast ' + (type || 'success');
+    i.className = 'fas fa-' + (type === 'error' ? 'circle-exclamation' : 'check-circle');
+    m.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function () { t.classList.remove('show'); }, 3200);
+  }
+
+  /* ── Remove Bootstrap classes ────────────────────── */
+  document.querySelectorAll('.km-wrapper select, .km-wrapper input').forEach(function (el) {
+    el.classList.remove('form-control', 'form-select', 'form-control-sm');
   });
 
-  document.getElementById('btn_salvar').addEventListener('click', async function(){
-    const sid = document.getElementById('select_sector').value;
-    if (!sid){ alert('Escolha sector'); return; }
-    const data_registo = document.getElementById('data_registo').value;
-    const inputs = Array.from(document.querySelectorAll('.km-input'));
-    const itens = inputs.map(i=>({ autocarro_id: i.dataset.aut, km_atual: i.value })).filter(x=>x.km_atual && x.km_atual.trim() !== '');
-    if (!itens.length){ alert('Preencha pelo menos um km'); return; }
-    const payload = { sector_id: parseInt(sid), data_registo: data_registo, itens: itens };
-    const res = await fetch(saveUrl, {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: {'Content-Type':'application/json', 'X-CSRFToken': csrftoken},
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok){ alert('Erro ao salvar'); return; }
-    const r = await res.json();
-    if (!r.ok){ alert('Erro: ' + (r.error||'')); return; }
-    alert('Registro salvo ('+r.created+')');
-    location.reload();
+  /* ── Carregar autocarros ─────────────────────────── */
+  document.getElementById('btn_carregar').addEventListener('click', async function () {
+    var sid = document.getElementById('select_sector').value;
+    if (!sid) { showToast('Escolha um sector primeiro', 'error'); return; }
+
+    var list = document.getElementById('autocarros_list');
+    list.innerHTML = '<div class="aut-loading"><div class="spin-sm"></div> A carregar autocarros...</div>';
+
+    try {
+      var resp = await fetch(apiAut + '?sector_id=' + sid, { credentials: 'same-origin' });
+      if (!resp.ok) throw new Error('network');
+      var data = await resp.json();
+
+      if (!data.autocarros || !data.autocarros.length) {
+        list.innerHTML = '<div class="aut-empty"><i class="fas fa-bus-slash"></i><span>Nenhum autocarro encontrado para este sector.</span></div>';
+        return;
+      }
+
+      list.innerHTML = '';
+      data.autocarros.forEach(function (a) {
+        var row = document.createElement('div');
+        row.className = 'aut-row';
+        row.innerHTML =
+          '<div class="aut-info">' +
+            '<div class="aut-num"><i class="fas fa-bus"></i>' + a.numero + '</div>' +
+            '<div class="aut-modelo">' + (a.modelo || '') + '</div>' +
+          '</div>' +
+          '<div class="km-input-wrap">' +
+            '<input type="number" class="km-input" data-aut="' + a.id + '" placeholder="0" min="0">' +
+            '<span class="km-sym">km</span>' +
+          '</div>';
+        list.appendChild(row);
+      });
+
+      /* Remove BS classes from dynamically added inputs */
+      list.querySelectorAll('input').forEach(function (el) {
+        el.classList.remove('form-control', 'form-control-sm');
+      });
+
+    } catch (err) {
+      list.innerHTML = '<div class="aut-empty"><i class="fas fa-triangle-exclamation"></i><span>Erro ao carregar autocarros.</span></div>';
+    }
   });
-});
+
+  /* ── Guardar ─────────────────────────────────────── */
+  var btnSave = document.getElementById('btn_salvar');
+  btnSave.addEventListener('click', async function () {
+    var sid = document.getElementById('select_sector').value;
+    if (!sid) { showToast('Escolha um sector', 'error'); return; }
+
+    var data_registo = document.getElementById('data_registo').value;
+    var inputs = Array.from(document.querySelectorAll('.km-input'));
+    var itens = inputs
+      .map(function (i) { return { autocarro_id: i.dataset.aut, km_atual: i.value }; })
+      .filter(function (x) { return x.km_atual && x.km_atual.trim() !== ''; });
+
+    if (!itens.length) { showToast('Preencha pelo menos um KM', 'error'); return; }
+
+    btnSave.classList.add('loading'); btnSave.disabled = true;
+
+    var payload = { sector_id: parseInt(sid), data_registo: data_registo, itens: itens };
+
+    try {
+      var res = await fetch(saveUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('network');
+      var r = await res.json();
+      if (!r.ok) throw new Error(r.error || 'Erro desconhecido');
+      showToast('Registo guardado (' + r.created + ' autocarro(s))', 'success');
+      setTimeout(function () { location.reload(); }, 1400);
+    } catch (err) {
+      showToast('Erro: ' + err.message, 'error');
+      btnSave.classList.remove('loading'); btnSave.disabled = false;
+    }
+  });
+})();
 </script>
 {% endblock %}
