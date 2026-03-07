@@ -474,17 +474,17 @@
         <div class="col-md-3 col-sm-6">
           <label class="f-label">Sector</label>
           <select id="total_sector">
-            <option value="">Todos</option>
-              <option value="2030">2030</option><option value="2029">2029</option>
-              <option value="2028">2028</option><option value="2027">2027</option>
-              <option value="2026">2026</option><option value="2025">2025</option>
+            <option value="">Todos os sectores</option>
+            {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
           </select>
         </div>
         <div class="col-md-3 col-sm-6">
           <label class="f-label">Ano</label>
           <select id="total_year">
             <option value="">Todos</option>
-            {% for y in anos %}<option value="{{ y }}">{{ y }}</option>{% endfor %}
+              <option value="2030">2030</option><option value="2029">2029</option>
+              <option value="2028">2028</option><option value="2027">2027</option>
+              <option value="2026">2026</option><option value="2025">2025</option>
           </select>
         </div>
         <div class="col-md-3 col-sm-6">

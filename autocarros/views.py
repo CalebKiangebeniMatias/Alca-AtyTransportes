@@ -1541,6 +1541,7 @@ def listar_registros(request):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def deletar_registros_sector_data(request, sector_id, data):
     sector = get_object_or_404(Sector, pk=sector_id)
     data_obj = parse_date(data)
@@ -1561,6 +1562,7 @@ def deletar_registros_sector_data(request, sector_id, data):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def deletar_registro(request, pk):
     registro = get_object_or_404(RegistoDiario, pk=pk)
     if request.method == 'POST':
@@ -1574,6 +1576,7 @@ def deletar_registro(request, pk):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def concluir_relatorio(request, pk):
     """Marca o relatório como concluído"""
     relatorio = get_object_or_404(RelatorioSector, pk=pk)
@@ -1615,6 +1618,7 @@ def validar_relatorio(request, pk):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def relatorios_validados(request):
     # Obter parâmetros de filtro
     sector_id = request.GET.get('sector', '')
@@ -1835,6 +1839,7 @@ def adicionar_relatorio_sector(request):
 
 
 @login_required
+@acesso_restrito(['admin, gestor'])
 def gerir_relatorio_sector(request, pk=None):
     relatorio = RelatorioSector.objects.filter(pk=pk).first()  # 🔹 Se for edição, busca o relatório existente
 
@@ -2017,6 +2022,7 @@ def editar_relatorio_sector(request, pk=None, sector_id=None, data=None):
 
 
 @login_required
+@acesso_restrito(['admin, gestor'])
 def adicionar_comprovativos(request, pk):
     """Adicionar comprovativos a um relatório existente"""
     relatorio = get_object_or_404(RelatorioSector, pk=pk)
@@ -2046,6 +2052,7 @@ def adicionar_comprovativos(request, pk):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def deletar_comprovativo(request, pk):
     """Deletar um comprovativo específico"""
     comprovativo = get_object_or_404(ComprovativoRelatorio, pk=pk)
@@ -2062,6 +2069,7 @@ def deletar_comprovativo(request, pk):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def deletar_relatorio_sector(request, pk):
     relatorio = get_object_or_404(RelatorioSector, pk=pk)
 
@@ -2080,12 +2088,14 @@ def deletar_relatorio_sector(request, pk):
 
 # === Autocarros Views === #
 @login_required
+@acesso_restrito(['admin'])
 def listar_autocarros(request):
     autocarros = Autocarro.objects.all().order_by('numero')
     return render(request, 'autocarros/listar_autocarros.html', {'autocarros': autocarros})
 
 
 @login_required
+@acesso_restrito(['admin'])
 def alterar_status_autocarro(request, pk):
     autocarro = get_object_or_404(Autocarro, pk=pk)
     if request.method == "POST":
@@ -2100,6 +2110,7 @@ def alterar_status_autocarro(request, pk):
 
 
 @login_required
+@acesso_restrito(['admin'])
 def cadastrar_autocarro(request):
     if request.method == 'POST':
         form = AutocarroForm(request.POST)
@@ -2117,8 +2128,9 @@ def cadastrar_autocarro(request):
     return render(request, 'autocarros/cadastrar_autocarro.html', {'form': form})
 
 
+# Atulizar o estado autocarro
 @login_required
-# Atualizar estado do autocarro
+@acesso_restrito(['admin'])
 def atualizar_estado(request):
     if request.method == "POST":
         form = EstadoAutocarroForm(request.POST)
@@ -2138,6 +2150,7 @@ def atualizar_estado(request):
 
 @login_required
 # editar autocarro
+@acesso_restrito(['admin'])
 def editar_autocarro(request, pk):
     autocarro = get_object_or_404(Autocarro, pk=pk)
     if request.method == 'POST':
@@ -2159,6 +2172,7 @@ def editar_autocarro(request, pk):
 
 @login_required
 # deletar autocarro
+@acesso_restrito(['admin'])
 def deletar_autocarro(request, pk):
     autocarro = get_object_or_404(Autocarro, pk=pk)
     if request.method == 'POST':
@@ -2179,6 +2193,7 @@ from .models import DespesaCombustivel, Autocarro
 
 @login_required
 # Listar despesas de combustível
+@acesso_restrito(['admin'])
 def listar_combustivel(request):
     """
     Listagem de despesas de combustível (filtro por intervalo de datas e por autocarro).
@@ -2211,6 +2226,7 @@ def listar_combustivel(request):
 
 @login_required
 # selecionar sector antes de adicionar despesas de combustível
+@acesso_restrito(['admin'])
 def selecionar_sector_combustivel(request):
     if request.method == "POST":
         form = SelecionarSectorCombustivelForm(request.POST)
@@ -2225,6 +2241,7 @@ def selecionar_sector_combustivel(request):
 
 @login_required
 # adicionar despesas de combustível para todos os autocarros de um sector
+@acesso_restrito(['admin'])
 def adicionar_combustivel(request, pk):
     sector = get_object_or_404(Sector, pk=pk)
     autocarros = Autocarro.objects.filter(sector=sector).order_by("numero")
@@ -2276,6 +2293,7 @@ def adicionar_combustivel(request, pk):
 
 @login_required
 # editar despesas de combustível
+@acesso_restrito(['admin'])
 def editar_combustivel(request, pk):
     despesa = get_object_or_404(DespesaCombustivel, pk=pk)
 
@@ -2301,6 +2319,7 @@ def editar_combustivel(request, pk):
 
 @login_required
 # deletar despesas de combustível
+@acesso_restrito(['admin'])
 def deletar_combustivel(request, pk):
     despesa = get_object_or_404(DespesaCombustivel, pk=pk)
 
@@ -2320,6 +2339,7 @@ def deletar_combustivel(request, pk):
 # ------------ Despesas normais ou variavéis ----------#
 @login_required
 # Despesas 'normais ou variáveis' (não combustível)
+@acesso_restrito(['admin'])
 def listar_despesas(request):
     """
     Listar apenas despesas 'normais' (classificadas aqui como 'variáveis').
@@ -3665,6 +3685,7 @@ def cobrador_viagens_validate_action(request):
 
 # ---------- Manutenção Autocarros Views ----------#
 @login_required
+@acesso_restrito(['admin, gestor'])
 def manutencao_create(request):
     if request.method == 'POST':
         form = ManutencaoForm(request.POST)
@@ -3701,6 +3722,7 @@ def manutencao_create(request):
 
 
 @login_required
+@acesso_restrito(['admin, gestor'])
 def manutencao_list(request):
     qs = Manutencao.objects.select_related('autocarro', 'sector', 'responsavel').all()
 
@@ -3727,7 +3749,7 @@ def manutencao_list(request):
 
 
 @login_required
-@acesso_restrito(['admin'])
+@acesso_restrito(['admin, gestor'])
 def manutencao_edit(request, pk):
     manut = get_object_or_404(Manutencao, pk=pk)
     if request.method == 'POST':
@@ -4295,13 +4317,11 @@ class MotoristaListView(ListView):
     context_object_name = 'motoristas'
     ordering = ['nome']
 
-
 class MotoristaCreateView(CreateView):
     model = Motorista
     form_class = MotoristaForm
     template_name = 'cobradores/motoristas_form.html'
     success_url = reverse_lazy('motorista_list')
-
 
 class MotoristaUpdateView(UpdateView):
     model = Motorista
@@ -4318,6 +4338,7 @@ from django.contrib.auth.decorators import login_required
 from collections import defaultdict
 
 @login_required
+@acesso_restrito(['admin'])
 def comparacao_registo_deposito(request):
 
     hoje = timezone.now().date()
