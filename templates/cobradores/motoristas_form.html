@@ -1,53 +1,303 @@
 {% extends "base.html" %}
+{% block title %}{% if object %}Editar Motorista{% else %}Novo Motorista{% endif %}{% endblock %}
+{% block breadcrumb %}Equipa › Motoristas › {% if object %}Editar{% else %}Novo{% endif %}{% endblock %}
+
 {% block content %}
+<style>
+/* ════════════════════════════════════════════════════
+   FORM MOTORISTA
+════════════════════════════════════════════════════ */
 
-<div class="container mt-4">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">
-                {% if object %}
-                    Editar Motorista
-                {% else %}
-                    Novo Motorista
-                {% endif %}
-            </h4>
+.mf-wrapper {
+  max-width: 520px;
+  margin: 0 auto;
+  animation: mfIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes mfIn {
+  from { opacity:0; transform:translateY(18px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+
+/* ── CARD ────────────────────────────────────────── */
+.mf-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(4,30,66,.32);
+  position: relative;
+}
+.mf-card::before {
+  content: '';
+  position: absolute; top:0; left:10%; right:10%; height:2px;
+  background: linear-gradient(90deg, transparent,
+    {% if object %}#ffd54f{% else %}#69f0ae{% endif %}, transparent);
+  pointer-events: none;
+}
+
+/* ── HEADER ──────────────────────────────────────── */
+.mf-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 24px;
+  background: linear-gradient(90deg,
+    {% if object %}rgba(243,156,18,.18){% else %}rgba(39,174,96,.15){% endif %},
+    rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+}
+.mf-header-icon {
+  width: 44px; height: 44px; flex-shrink: 0;
+  background: {% if object %}rgba(255,213,79,.1){% else %}rgba(105,240,174,.1){% endif %};
+  border: 1px solid {% if object %}rgba(255,213,79,.22){% else %}rgba(105,240,174,.22){% endif %};
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  color: {% if object %}#ffd54f{% else %}#69f0ae{% endif %};
+}
+.mf-header-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem; letter-spacing: 2px; line-height: 1;
+  color: var(--white);
+}
+.mf-header-sub { font-size: .72rem; color: var(--grey); margin-top: 3px; }
+
+{% if object %}
+.motorista-id-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(79,195,247,.08);
+  border: 1px solid rgba(79,195,247,.15);
+  border-radius: 30px; padding: 2px 10px;
+  font-size: .72rem; font-weight: 700;
+  letter-spacing: .8px; color: var(--accent);
+  margin-top: 5px;
+}
+{% endif %}
+
+/* ── BODY ────────────────────────────────────────── */
+.mf-body { padding: 24px; }
+
+.f-label {
+  display: block;
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: rgba(255,255,255,.42); margin-bottom: 6px;
+}
+.f-group { margin-bottom: 16px; }
+.f-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+
+.mf-wrapper input[type="text"],
+.mf-wrapper input[type="number"],
+.mf-wrapper input[type="tel"],
+.mf-wrapper input[type="email"],
+.mf-wrapper select,
+.mf-wrapper textarea {
+  width: 100%;
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 11px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .9rem !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast), background var(--ease-fast) !important;
+}
+.mf-wrapper input:focus,
+.mf-wrapper select:focus,
+.mf-wrapper textarea:focus {
+  border-color: var(--accent) !important;
+  background: rgba(4,30,66,.85) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+}
+.mf-wrapper input::placeholder { color: rgba(255,255,255,.25) !important; }
+.mf-wrapper select option { background: var(--navy); color: var(--white); }
+
+/* ── CHECKBOX (Ativo) ────────────────────────────── */
+.ativo-toggle {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(4,30,66,.4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 13px 16px;
+  cursor: pointer;
+  transition: border-color var(--ease-fast), background var(--ease-fast);
+  margin-bottom: 0;
+}
+.ativo-toggle:hover { border-color: rgba(79,195,247,.25); background: rgba(36,99,163,.15); }
+
+.ativo-toggle input[type="checkbox"] {
+  width: 18px !important; height: 18px !important;
+  padding: 0 !important;
+  accent-color: #69f0ae;
+  cursor: pointer; flex-shrink: 0;
+}
+.ativo-toggle-text {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.ativo-toggle-lbl {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .88rem;
+  letter-spacing: .8px; color: var(--white);
+}
+.ativo-toggle-hint { font-size: .7rem; color: var(--grey); }
+
+/* ── FOOTER ──────────────────────────────────────── */
+.mf-footer {
+  display: flex; align-items: center;
+  justify-content: flex-end; gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(4,30,66,.3);
+}
+
+.btn-mf {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 24px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem; letter-spacing: 2px;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+  position: relative; overflow: hidden;
+}
+.btn-mf::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.09), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-mf:hover::before { transform: translateX(100%); }
+.btn-mf:hover  { transform: translateY(-2px); }
+.btn-mf:active { transform: scale(.97); }
+
+.btn-save-mf {
+  background: {% if object %}linear-gradient(135deg,#f39c12,#d68910){% else %}rgba(39,174,96,.85){% endif %};
+  color: var(--white);
+  box-shadow: 0 4px 18px {% if object %}rgba(243,156,18,.3){% else %}rgba(39,174,96,.3){% endif %};
+}
+.btn-save-mf:hover {
+  box-shadow: 0 8px 26px {% if object %}rgba(243,156,18,.45){% else %}rgba(39,174,96,.45){% endif %};
+  color: var(--white);
+}
+.btn-save-mf .sp {
+  display:none; width:14px; height:14px;
+  border:2px solid rgba(255,255,255,.3); border-top-color:white;
+  border-radius:50%; animation:spin .7s linear infinite;
+}
+.btn-save-mf.loading .sp  { display:inline-block; }
+.btn-save-mf.loading .lbl { opacity:.7; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.btn-cancel-mf {
+  background: transparent;
+  border: 1px solid var(--glass-border) !important;
+  color: rgba(255,255,255,.55);
+}
+.btn-cancel-mf:hover { background: rgba(255,255,255,.07); color: var(--white); }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 480px) {
+  .f-row-2 { grid-template-columns: 1fr; }
+  .mf-footer { flex-direction: column; }
+  .btn-mf { width: 100%; justify-content: center; }
+}
+</style>
+
+<div class="mf-wrapper">
+  <div class="mf-card">
+
+    <!-- HEADER -->
+    <div class="mf-header">
+      <div class="mf-header-icon">
+        <i class="fas fa-{% if object %}pen{% else %}user-plus{% endif %}"></i>
+      </div>
+      <div>
+        <div class="mf-header-title">
+          {% if object %}Editar Motorista{% else %}Novo Motorista{% endif %}
         </div>
-
-        <div class="card-body">
-            <form method="post">
-                {% csrf_token %}
-
-                <div class="mb-3">
-                    <label class="form-label">Nome</label>
-                    {{ form.nome }}
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Telefone</label>
-                    {{ form.telefone }}
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Número BI</label>
-                    {{ form.numero_bi }}
-                </div>
-
-                <div class="form-check mb-3">
-                    {{ form.ativo }}
-                    <label class="form-check-label">
-                        Ativo
-                    </label>
-                </div>
-
-                <button type="submit" class="btn btn-success">
-                    Salvar
-                </button>
-                <a href="{% url 'motorista_list' %}" class="btn btn-secondary">
-                    Cancelar
-                </a>
-            </form>
-        </div>
+        {% if object %}
+          <div class="motorista-id-tag">
+            <i class="fas fa-id-card"></i> {{ object.nome }}
+          </div>
+        {% else %}
+          <div class="mf-header-sub">Preencha os dados do novo motorista</div>
+        {% endif %}
+      </div>
     </div>
+
+    <!-- BODY -->
+    <div class="mf-body">
+      <form method="post" id="formMotorista">
+        {% csrf_token %}
+
+        <!-- Nome -->
+        <div class="f-group">
+          <label class="f-label"><i class="fas fa-user" style="color:var(--accent);margin-right:4px"></i>{{ form.nome.label }}</label>
+          {{ form.nome }}
+        </div>
+
+        <!-- Telefone + BI -->
+        <div class="f-row-2">
+          <div class="f-group" style="margin-bottom:0">
+            <label class="f-label"><i class="fas fa-phone" style="color:var(--accent);margin-right:4px"></i>{{ form.telefone.label }}</label>
+            {{ form.telefone }}
+          </div>
+          <div class="f-group" style="margin-bottom:0">
+            <label class="f-label"><i class="fas fa-id-card" style="color:var(--accent);margin-right:4px"></i>{{ form.numero_bi.label }}</label>
+            {{ form.numero_bi }}
+          </div>
+        </div>
+
+        <!-- Ativo -->
+        <div class="f-group" style="margin-top:16px;margin-bottom:0">
+          <label class="f-label">Estado</label>
+          <label class="ativo-toggle">
+            {{ form.ativo }}
+            <div class="ativo-toggle-text">
+              <span class="ativo-toggle-lbl">Motorista Activo</span>
+              <span class="ativo-toggle-hint">Marque para que o motorista apareça nas opções de registo</span>
+            </div>
+          </label>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="mf-footer">
+      <a href="{% url 'motorista_list' %}" class="btn-mf btn-cancel-mf">
+        <i class="fas fa-arrow-left"></i> Cancelar
+      </a>
+      <button type="submit" form="formMotorista" class="btn-mf btn-save-mf" id="btnSave">
+        <span class="sp"></span>
+        <span class="lbl">
+          <i class="fas fa-floppy-disk"></i>
+          {% if object %}Actualizar{% else %}Guardar{% endif %}
+        </span>
+      </button>
+    </div>
+
+  </div>
 </div>
 
+<script>
+(function () {
+  /* Remove Bootstrap classes */
+  document.querySelectorAll('.mf-wrapper input, .mf-wrapper select, .mf-wrapper textarea').forEach(function (el) {
+    el.classList.remove('form-control', 'form-select', 'form-check-input');
+  });
+
+  /* Loading */
+  var form = document.getElementById('formMotorista');
+  var btn  = document.getElementById('btnSave');
+  if (form && btn) {
+    form.addEventListener('submit', function () {
+      btn.classList.add('loading'); btn.disabled = true;
+      setTimeout(function () { btn.classList.remove('loading'); btn.disabled = false; }, 6000);
+    });
+  }
+})();
+</script>
 {% endblock %}

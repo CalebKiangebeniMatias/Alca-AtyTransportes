@@ -2477,16 +2477,73 @@ def deletar_despesa_fixa(request, pk):
 
 # ---------- Depósitos Views ----------#
 
+from decimal import Decimal, InvalidOperation
+import json
+from datetime import date
+
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.views.decorators.http import require_POST
+
+from .models import Deposito, Sector
+from .decorators import acesso_restrito  # ajuste ao seu caminho
+
+
+# ──────────────────────────────────────────────────────────────
+# HELPERS
+# ──────────────────────────────────────────────────────────────
+
+def _parse_json_body(request):
+    """Devolve (data, erro). erro é None se tudo correu bem."""
+    try:
+        return json.loads(request.body.decode('utf-8')), None
+    except Exception as e:
+        return None, str(e)
+
+
+def _is_json(request):
+    ct = (request.META.get('CONTENT_TYPE') or '').lower()
+    return ct.startswith('application/json')
+
+
+# ──────────────────────────────────────────────────────────────
+# PÁGINA PRINCIPAL
+# ──────────────────────────────────────────────────────────────
+
 @login_required
 @acesso_restrito(['admin'])
 def depositos_view(request):
     """
-    Página com abas: Registrar depósito, Listar depósitos, Totais por sector.
+    Página com abas: Registar depósito, Listar depósitos, Totais por sector.
+    FIX: passa 'anos' no contexto para os selects de filtro no template.
     """
     sectores = Sector.objects.all().order_by('nome')
-    ultimos = Deposito.objects.select_related('sector','responsavel').order_by('-data_deposito')[:20]
-    return render(request, 'depositos/depositos.html', {'sectores': sectores, 'ultimos': ultimos})
 
+    # Anos disponíveis para filtro — obtidos directamente da BD, sem trazer todos os registos
+    anos_qs = (
+        Deposito.objects
+        .exclude(data_deposito=None)
+        .dates('data_deposito', 'year', order='DESC')
+    )
+    anos = [d.year for d in anos_qs]
+
+    # Se não houver depósitos ainda, mostrar o ano corrente
+    if not anos:
+        anos = [date.today().year]
+
+    return render(request, 'depositos/depositos.html', {
+        'sectores': sectores,
+        'anos': anos,
+        'now': date.today(),
+    })
+
+
+# ──────────────────────────────────────────────────────────────
+# GUARDAR NOVO
+# ──────────────────────────────────────────────────────────────
 
 @login_required
 @require_POST
@@ -2494,129 +2551,128 @@ def depositos_view(request):
 def depositos_save(request):
     """
     Salvar depósito via POST JSON ou form-POST.
-    Aceita JSON no body ou form-data.
-    Se for JSON retorna JSON; se for form-POST redireciona para a listagem.
+    FIX: tratamento de erro mais robusto; não expõe traceback ao cliente.
     """
-    # detectar JSON independentemente de charset
-    content_type = (request.META.get('CONTENT_TYPE') or request.content_type or '').lower()
-    is_json = content_type.startswith('application/json')
-
-    if is_json:
-        try:
-            data = json.loads(request.body.decode('utf-8'))
-        except Exception:
-            return HttpResponseBadRequest('JSON inválido')
-        sector_id = data.get('sector_id')
-        data_deposito = data.get('data_deposito')
-        valor = data.get('valor')
-        observacao = data.get('observacao', '')
+    if _is_json(request):
+        data, err = _parse_json_body(request)
+        if err:
+            return JsonResponse({'ok': False, 'error': 'JSON inválido: ' + err}, status=400)
+        sector_id     = data.get('sector_id')
+        data_deposito = data.get('data_deposito') or None
+        valor         = data.get('valor')
+        observacao    = data.get('observacao', '')
     else:
-        sector_id = request.POST.get('sector_id')
-        data_deposito = request.POST.get('data_deposito')
-        valor = request.POST.get('valor')
-        observacao = request.POST.get('observacao', '')
+        sector_id     = request.POST.get('sector_id')
+        data_deposito = request.POST.get('data_deposito') or None
+        valor         = request.POST.get('valor')
+        observacao    = request.POST.get('observacao', '')
 
-    if not sector_id or not valor:
-        if is_json:
-            return JsonResponse({'ok': False, 'error': 'sector_id e valor obrigatórios'}, status=400)
-        messages.error(request, 'sector_id e valor obrigatórios')
-        return redirect('depositos_view')
+    # Validações
+    if not sector_id:
+        return JsonResponse({'ok': False, 'error': 'Sector obrigatório'}, status=400)
+    if not valor:
+        return JsonResponse({'ok': False, 'error': 'Valor obrigatório'}, status=400)
 
     try:
         sector = Sector.objects.get(pk=sector_id)
     except Sector.DoesNotExist:
-        if is_json:
-            return JsonResponse({'ok': False, 'error': 'Sector não encontrado'}, status=404)
-        messages.error(request, 'Sector não encontrado')
-        return redirect('depositos_view')
+        return JsonResponse({'ok': False, 'error': 'Sector não encontrado'}, status=404)
 
     try:
         valor_dec = Decimal(str(valor))
-    except Exception:
-        if is_json:
-            return JsonResponse({'ok': False, 'error': 'Valor inválido'}, status=400)
-        messages.error(request, 'Valor inválido')
-        return redirect('depositos_view')
+        if valor_dec <= 0:
+            return JsonResponse({'ok': False, 'error': 'Valor deve ser positivo'}, status=400)
+    except (InvalidOperation, ValueError):
+        return JsonResponse({'ok': False, 'error': 'Valor inválido'}, status=400)
 
     dep = Deposito.objects.create(
         sector=sector,
-        data_deposito=data_deposito or None,
+        data_deposito=data_deposito,
         valor=valor_dec,
-        observacao=observacao,
-        responsavel=request.user
+        observacao=observacao or '',
+        responsavel=request.user,
     )
 
-    if is_json:
+    if _is_json(request):
         return JsonResponse({
             'ok': True,
             'deposito_id': dep.id,
             'valor': str(dep.valor),
-            'data_deposito': dep.data_deposito.isoformat() if dep.data_deposito else None
+            'data_deposito': dep.data_deposito.isoformat() if dep.data_deposito else None,
         })
-    else:
-        messages.success(request, '✅ Depósito adicionado com sucesso!')
-        return redirect('depositos_view')
 
+    messages.success(request, '✅ Depósito adicionado com sucesso!')
+    return redirect('depositos_view')
+
+
+# ──────────────────────────────────────────────────────────────
+# LISTAR  (GET — retorna JSON)
+# ──────────────────────────────────────────────────────────────
 
 @login_required
 @acesso_restrito(['admin'])
 def depositos_list(request):
     """
-    API para listar depósitos com filtros opcionais:
-    GET params: sector_id, year, month, limit
+    API para listar depósitos com filtros opcionais.
+    FIX: o aggregate era chamado sobre o queryset não-sliced mas a listagem
+    usava um segundo .order_by()[:200] — agora o total é calculado antes
+    do slice para garantir consistência, e só há um queryset avaliado.
     """
-    qs = Deposito.objects.select_related('sector','responsavel').all()
+    qs = Deposito.objects.select_related('sector', 'responsavel')
 
-    # ✅ FILTRO POR SECTOR
     sector_id = request.GET.get('sector_id')
     if sector_id:
         qs = qs.filter(sector_id=sector_id)
 
-    # ✅ FILTRO POR MÊS E ANO
-    year = request.GET.get('year')
+    year  = request.GET.get('year')
     month = request.GET.get('month')
-    if year and month:
-        qs = qs.filter(data_deposito__year=year,
-                       data_deposito__month=month)
+    if year:
+        qs = qs.filter(data_deposito__year=year)
+    if month:
+        qs = qs.filter(data_deposito__month=month)
 
-    # Limite opcional
-    limit = request.GET.get('limit')
-    if limit:
-        try:
-            qs = qs[:int(limit)]
-        except:
-            pass
-
-    # Total filtrado
+    # FIX: calcular o total ANTES do slice (aggregate ignora slice em Django,
+    # mas manter a ordem correcta evita confusão futura)
     total = qs.aggregate(total_valor=Sum('valor'))['total_valor'] or Decimal('0.00')
 
-    items = []
-    for d in qs.order_by('-data_deposito')[:200]:
-        items.append({
+    # Ordenar e limitar — um único queryset avaliado
+    qs_ordered = qs.order_by('-data_deposito')
+
+    limit = request.GET.get('limit')
+    try:
+        max_items = min(int(limit), 500) if limit else 200
+    except (ValueError, TypeError):
+        max_items = 200
+
+    items = [
+        {
             'id': d.id,
             'sector_id': d.sector_id,
             'sector': d.sector.nome,
             'data_deposito': d.data_deposito.isoformat() if d.data_deposito else None,
             'valor': str(d.valor),
             'observacao': d.observacao or '',
-            'responsavel': d.responsavel.get_full_name() if d.responsavel else ''
-        })
+            'responsavel': d.responsavel.get_full_name() if d.responsavel else '',
+        }
+        for d in qs_ordered[:max_items]
+    ]
 
-    return JsonResponse({
-        'ok': True,
-        'total': str(total),
-        'depositos': items
-    })
+    return JsonResponse({'ok': True, 'total': str(total), 'depositos': items})
 
+
+# ──────────────────────────────────────────────────────────────
+# DETALHE  (GET — retorna JSON)
+# ──────────────────────────────────────────────────────────────
 
 @login_required
 @acesso_restrito(['admin'])
 def depositos_detail(request, pk):
-    """Retorna um depósito específico em JSON"""
+    """Retorna um depósito específico em JSON."""
     try:
-        d = Deposito.objects.select_related('sector','responsavel').get(pk=pk)
+        d = Deposito.objects.select_related('sector', 'responsavel').get(pk=pk)
     except Deposito.DoesNotExist:
         return JsonResponse({'ok': False, 'error': 'Depósito não encontrado'}, status=404)
+
     return JsonResponse({'ok': True, 'deposito': {
         'id': d.id,
         'sector_id': d.sector_id,
@@ -2624,9 +2680,13 @@ def depositos_detail(request, pk):
         'data_deposito': d.data_deposito.isoformat() if d.data_deposito else None,
         'valor': str(d.valor),
         'observacao': d.observacao or '',
-        'responsavel': d.responsavel.get_full_name() if d.responsavel else ''
+        'responsavel': d.responsavel.get_full_name() if d.responsavel else '',
     }})
 
+
+# ──────────────────────────────────────────────────────────────
+# EDITAR  (POST — retorna JSON)
+# ──────────────────────────────────────────────────────────────
 
 @login_required
 @require_POST
@@ -2634,28 +2694,26 @@ def depositos_detail(request, pk):
 def depositos_edit(request, pk):
     """
     Edita depósito via POST JSON ou form.
-    Campos aceitos: data_deposito, valor, observacao, sector_id
+    FIX: validação de valor negativo/zero adicionada.
     """
     try:
-        dep = Deposito.objects.get(pk=pk)
+        dep = Deposito.objects.select_related('sector').get(pk=pk)
     except Deposito.DoesNotExist:
         return JsonResponse({'ok': False, 'error': 'Depósito não encontrado'}, status=404)
 
-    content_type = (request.META.get('CONTENT_TYPE') or request.content_type or '').lower()
-    if content_type.startswith('application/json'):
-        try:
-            data = json.loads(request.body.decode('utf-8'))
-        except Exception:
-            return HttpResponseBadRequest('JSON inválido')
-        data_deposito = data.get('data_deposito')
-        valor = data.get('valor')
-        observacao = data.get('observacao', dep.observacao)
-        sector_id = data.get('sector_id')
+    if _is_json(request):
+        data, err = _parse_json_body(request)
+        if err:
+            return JsonResponse({'ok': False, 'error': 'JSON inválido'}, status=400)
+        data_deposito = data.get('data_deposito') or None
+        valor         = data.get('valor')
+        observacao    = data.get('observacao', dep.observacao)
+        sector_id     = data.get('sector_id')
     else:
-        data_deposito = request.POST.get('data_deposito')
-        valor = request.POST.get('valor')
-        observacao = request.POST.get('observacao', dep.observacao)
-        sector_id = request.POST.get('sector_id')
+        data_deposito = request.POST.get('data_deposito') or None
+        valor         = request.POST.get('valor')
+        observacao    = request.POST.get('observacao', dep.observacao)
+        sector_id     = request.POST.get('sector_id')
 
     if sector_id:
         try:
@@ -2665,44 +2723,50 @@ def depositos_edit(request, pk):
 
     if valor:
         try:
-            dep.valor = Decimal(str(valor))
-        except Exception:
+            valor_dec = Decimal(str(valor))
+            if valor_dec <= 0:
+                return JsonResponse({'ok': False, 'error': 'Valor deve ser positivo'}, status=400)
+            dep.valor = valor_dec
+        except (InvalidOperation, ValueError):
             return JsonResponse({'ok': False, 'error': 'Valor inválido'}, status=400)
+
     if data_deposito:
         dep.data_deposito = data_deposito
-    dep.observacao = observacao
+
+    dep.observacao  = observacao or ''
     dep.responsavel = request.user
     dep.save()
+
     return JsonResponse({'ok': True, 'deposito_id': dep.id})
 
+
+# ──────────────────────────────────────────────────────────────
+# ELIMINAR  (POST — retorna JSON)
+# ──────────────────────────────────────────────────────────────
 
 @login_required
 @require_POST
 @acesso_restrito(['admin'])
 def depositos_delete(request):
-    """
-    Excluir depósito via POST JSON {id: pk} ou form (id).
-    """
-    content_type = (request.META.get('CONTENT_TYPE') or request.content_type or '').lower()
-    if content_type.startswith('application/json'):
-        try:
-            data = json.loads(request.body.decode('utf-8'))
-        except Exception:
-            return HttpResponseBadRequest('JSON inválido')
+    """Excluir depósito via POST JSON {id: pk} ou form."""
+    if _is_json(request):
+        data, err = _parse_json_body(request)
+        if err:
+            return JsonResponse({'ok': False, 'error': 'JSON inválido'}, status=400)
         pk = data.get('id')
     else:
         pk = request.POST.get('id')
 
     if not pk:
         return JsonResponse({'ok': False, 'error': 'id obrigatório'}, status=400)
+
     try:
-        d = Deposito.objects.get(pk=pk)
-        d.delete()
+        dep = Deposito.objects.get(pk=pk)
+        dep.delete()
     except Deposito.DoesNotExist:
         return JsonResponse({'ok': False, 'error': 'Depósito não encontrado'}, status=404)
+
     return JsonResponse({'ok': True})
-
-
 
 # 🔹 Dashboards Especializados
 from django.db.models import ExpressionWrapper

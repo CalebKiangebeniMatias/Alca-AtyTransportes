@@ -1,53 +1,280 @@
 {% extends "base.html" %}
-{% block content %}
+{% block title %}Motoristas{% endblock %}
+{% block breadcrumb %}Equipa › Motoristas{% endblock %}
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between mb-3">
-        <h3>Lista de Motoristas</h3>
-        <a href="{% url 'motorista_create' %}" class="btn btn-success">
-            + Novo Motorista
-        </a>
+{% block content %}
+<style>
+/* ════════════════════════════════════════════════════
+   LISTA DE MOTORISTAS
+════════════════════════════════════════════════════ */
+
+.lm-wrapper {
+  animation: lmIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes lmIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── HEADER ──────────────────────────────────────── */
+.lm-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 24px;
+}
+.lm-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem; letter-spacing: 2px; line-height: 1;
+}
+.lm-title span { color: var(--accent); }
+.lm-subtitle { font-size: .78rem; color: var(--grey); margin-top: 4px; }
+
+.btn-new-lm {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 22px;
+  background: rgba(39,174,96,.85); color: var(--white);
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem; letter-spacing: 2px;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(39,174,96,.3);
+  transition: transform var(--ease-spring), box-shadow var(--ease-base);
+  position: relative; overflow: hidden;
+}
+.btn-new-lm::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-new-lm:hover::before { transform: translateX(100%); }
+.btn-new-lm:hover  { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(39,174,96,.4); color: var(--white); }
+.btn-new-lm:active { transform: scale(.97); }
+
+/* ── TABLE CARD ──────────────────────────────────── */
+.table-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(4,30,66,.25);
+}
+.table-card-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 13px 20px;
+  background: linear-gradient(90deg, rgba(36,99,163,.3), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+}
+.table-card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: 1rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--white);
+  display: flex; align-items: center; gap: 8px;
+}
+.table-card-title i { color: var(--accent); }
+.table-count { font-size: .75rem; color: var(--grey); }
+
+/* ── TABLE ───────────────────────────────────────── */
+.lm-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.lm-table {
+  width: 100%; border-collapse: collapse; font-size: .85rem;
+}
+.lm-table thead th {
+  background: rgba(4,30,66,.7);
+  color: var(--accent);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .72rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--glass-border);
+  white-space: nowrap;
+}
+.lm-table thead th:last-child { text-align: center; }
+
+.lm-table tbody tr {
+  border-bottom: 1px solid rgba(79,195,247,.06);
+  transition: background var(--ease-fast);
+}
+.lm-table tbody tr:last-child { border-bottom: none; }
+.lm-table tbody tr:hover { background: rgba(36,99,163,.18); }
+.lm-table tbody td {
+  padding: 13px 18px;
+  color: rgba(255,255,255,.75);
+  vertical-align: middle;
+}
+.lm-table tbody td:last-child { text-align: center; }
+
+/* nome */
+.motorista-nome {
+  font-weight: 600; color: var(--white);
+  display: flex; align-items: center; gap: 9px;
+}
+.motorista-avatar {
+  width: 32px; height: 32px; flex-shrink: 0;
+  background: rgba(79,195,247,.1);
+  border: 1px solid rgba(79,195,247,.18);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .75rem; color: var(--accent);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+}
+
+/* telefone / BI */
+.tel-val {
+  display: flex; align-items: center; gap: 6px;
+  font-size: .82rem;
+}
+.tel-val i { color: var(--grey); font-size: .65rem; }
+.bi-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  background: rgba(4,30,66,.5);
+  border: 1px solid rgba(79,195,247,.12);
+  border-radius: 4px; padding: 2px 8px;
+  font-size: .78rem; letter-spacing: 1px;
+  color: rgba(255,255,255,.55);
+}
+
+/* status */
+.status-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  border-radius: 30px; padding: 3px 10px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .68rem;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.status-ativo   { background:rgba(39,174,96,.12);  border:1px solid rgba(39,174,96,.28);  color:#69f0ae; }
+.status-inativo { background:rgba(231,76,60,.1);   border:1px solid rgba(231,76,60,.25);  color:#ff8a80; }
+.status-pill i  { font-size: .45rem; }
+
+/* edit button */
+.btn-edit-lm {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 14px;
+  border: 1px solid rgba(79,195,247,.25);
+  border-radius: var(--radius-sm);
+  background: transparent; color: var(--accent);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .72rem;
+  letter-spacing: .8px; text-transform: uppercase;
+  cursor: pointer; text-decoration: none;
+  transition: background var(--ease-fast), transform var(--ease-spring);
+}
+.btn-edit-lm:hover { background: rgba(79,195,247,.12); transform: translateY(-1px); color: var(--accent); }
+.btn-edit-lm:active { transform: scale(.97); }
+
+/* ── EMPTY ───────────────────────────────────────── */
+.lm-empty {
+  padding: 56px 20px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  color: rgba(255,255,255,.25);
+}
+.lm-empty i { font-size: 2.5rem; opacity: .3; }
+.lm-empty h4 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem; letter-spacing: 2px; color: rgba(255,255,255,.35);
+}
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 640px) {
+  .lm-header { flex-direction: column; align-items: flex-start; }
+  .btn-new-lm { width: 100%; justify-content: center; }
+}
+</style>
+
+<div class="lm-wrapper">
+
+  <!-- HEADER -->
+  <div class="lm-header">
+    <div>
+      <div class="lm-title">Lista de <span>Motoristas</span></div>
+      <div class="lm-subtitle">Gestão da equipa de condução</div>
+    </div>
+    <a href="{% url 'motorista_create' %}" class="btn-new-lm">
+      <i class="fas fa-plus"></i> Novo Motorista
+    </a>
+  </div>
+
+  <!-- TABLE CARD -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="table-card-title">
+        <i class="fas fa-id-card"></i> Motoristas
+      </div>
+      {% if motoristas %}
+        <span class="table-count">{{ motoristas|length }} motorista(s)</span>
+      {% endif %}
     </div>
 
-    <table class="table table-bordered table-striped">
-        <thead class="table-dark">
-            <tr>
-                <th>Nome</th>
-                <th>Telefone</th>
-                <th>BI</th>
-                <th>Status</th>
-                <th>Ações</th>
-            </tr>
+    <div class="lm-table-wrap">
+      {% if motoristas %}
+      <table class="lm-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Telefone</th>
+            <th>BI</th>
+            <th>Estado</th>
+            <th>Ações</th>
+          </tr>
         </thead>
         <tbody>
-            {% for motorista in motoristas %}
-            <tr>
-                <td>{{ motorista.nome }}</td>
-                <td>{{ motorista.telefone }}</td>
-                <td>{{ motorista.numero_bi }}</td>
-                <td>
-                    {% if motorista.ativo %}
-                        <span class="badge bg-success">Ativo</span>
-                    {% else %}
-                        <span class="badge bg-danger">Inativo</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <a href="{% url 'motorista_update' motorista.pk %}" 
-                       class="btn btn-sm btn-primary">
-                       Editar
-                    </a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5" class="text-center">
-                    Nenhum motorista cadastrado.
-                </td>
-            </tr>
-            {% endfor %}
+          {% for motorista in motoristas %}
+          <tr>
+            <td>
+              <div class="motorista-nome">
+                <div class="motorista-avatar">
+                  {{ motorista.nome|first|upper }}
+                </div>
+                {{ motorista.nome }}
+              </div>
+            </td>
+            <td>
+              <div class="tel-val">
+                <i class="fas fa-phone"></i>
+                {{ motorista.telefone|default:"—" }}
+              </div>
+            </td>
+            <td>
+              <span class="bi-val">{{ motorista.numero_bi|default:"—" }}</span>
+            </td>
+            <td>
+              {% if motorista.ativo %}
+                <span class="status-pill status-ativo">
+                  <i class="fas fa-circle"></i> Activo
+                </span>
+              {% else %}
+                <span class="status-pill status-inativo">
+                  <i class="fas fa-circle"></i> Inactivo
+                </span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{% url 'motorista_update' motorista.pk %}" class="btn-edit-lm">
+                <i class="fas fa-pen"></i> Editar
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
         </tbody>
-    </table>
-</div>
+      </table>
 
+      {% else %}
+      <div class="lm-empty">
+        <i class="fas fa-id-card"></i>
+        <h4>Nenhum motorista cadastrado</h4>
+        <p>Clique em "Novo Motorista" para adicionar o primeiro.</p>
+        <a href="{% url 'motorista_create' %}" class="btn-new-lm" style="margin-top:4px">
+          <i class="fas fa-plus"></i> Novo Motorista
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
 {% endblock %}

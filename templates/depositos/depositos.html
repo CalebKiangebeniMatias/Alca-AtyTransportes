@@ -90,8 +90,29 @@
   margin-bottom: 6px;
 }
 
-/* Kz suffix */
-.kz-wrap { position: relative; }
+/* Modal fields — fora do .dep-wrapper */
+.dep-modal-field {
+  width: 100%;
+  background: rgba(4,30,66,.55) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--white) !important;
+  padding: 9px 13px !important;
+  font-family: 'Barlow', sans-serif !important;
+  font-size: .9rem !important;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+  outline: none !important;
+  -webkit-appearance: none;
+  resize: vertical;
+}
+.dep-modal-field:focus {
+  border-color: var(--accent) !important;
+  background: rgba(4,30,66,.85) !important;
+  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+}
+.dep-modal-field option { background: var(--navy); color: var(--white); }
+.dep-modal-field::placeholder { color: rgba(255,255,255,.3) !important; }
+.dep-modal-field::-webkit-calendar-picker-indicator { filter: invert(.7); }
 .kz-wrap input { padding-right: 34px !important; text-align: right; }
 .kz-sym {
   position: absolute; right: 11px; top: 50%;
@@ -263,29 +284,6 @@
 .btn-dep.loading .sp { display:inline-block; }
 .btn-dep.loading .btn-text { opacity:.7; }
 
-/* ── MODAL ───────────────────────────────────────── */
-.modal-content {
-  background: rgba(4,30,66,.97);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  backdrop-filter: blur(16px);
-  color: var(--white);
-}
-.modal-header {
-  background: var(--grad-header);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  border-bottom: 1px solid var(--glass-border);
-  padding: 14px 22px;
-}
-.modal-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: 1.1rem;
-  letter-spacing: 1.5px; text-transform: uppercase;
-}
-.modal-footer { border-top: 1px solid var(--glass-border); padding: 12px 22px; }
-.modal-backdrop { background: rgba(4,30,66,.75); backdrop-filter: blur(4px); }
-
 /* ── TOAST ───────────────────────────────────────── */
 .dep-toast {
   position: fixed; top: 70px; right: 20px; z-index: 9000;
@@ -350,15 +348,32 @@
     </button>
   </div>
 
-  <!-- ══ TAB: REGISTAR ══ -->
+  <!-- ══ TAB: REGISTAR / EDITAR ══ -->
   <div class="dep-pane active" id="tab-reg">
     <div class="dep-card">
-      <div style="margin-bottom:20px">
-        <div class="page-topbar-title" style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;margin-bottom:4px">
-          Novo <span style="color:var(--accent)">Depósito</span>
+
+      <!-- Cabeçalho dinâmico: muda conforme modo novo/editar -->
+      <div style="margin-bottom:20px;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div id="form-title" class="page-topbar-title" style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;margin-bottom:4px">
+            Novo <span style="color:var(--accent)">Depósito</span>
+          </div>
+          <div id="form-subtitle" style="font-size:.8rem;color:var(--grey)">Registe um novo depósito para um sector</div>
         </div>
-        <div style="font-size:.8rem;color:var(--grey)">Registe um novo depósito para um sector</div>
+        <!-- Botão cancelar edição — só visível em modo edição -->
+        <button id="btn_cancel_edit" class="btn-dep btn-dep-outline" style="display:none">
+          <i class="fas fa-xmark"></i> Cancelar edição
+        </button>
       </div>
+
+      <!-- Barra de contexto de edição — aparece quando a editar -->
+      <div id="edit-banner" style="display:none;background:rgba(79,195,247,.08);border:1px solid rgba(79,195,247,.25);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:16px;font-size:.82rem;color:var(--accent);display:none;align-items:center;gap:8px">
+        <i class="fas fa-pen-to-square"></i>
+        <span>A editar registo <strong id="edit-banner-id"></strong></span>
+      </div>
+
+      <!-- Campo oculto para o ID em modo edição -->
+      <input type="hidden" id="dep_edit_id" value="">
 
       <div class="row g-3">
         <div class="col-md-4 col-sm-6">
@@ -374,7 +389,7 @@
         </div>
         <div class="col-md-3 col-sm-6">
           <label class="f-label">Valor</label>
-          <div class="kz-wrap">
+          <div class="kz-wrap" style="position:relative">
             <input id="dep_valor" type="number" step="0.01" placeholder="0.00">
             <span class="kz-sym">Kz</span>
           </div>
@@ -409,9 +424,7 @@
         <label class="f-label">Ano</label>
         <select id="filter_year">
           <option value="">Todos</option>
-            <option value="2030">2030</option><option value="2029">2029</option>
-            <option value="2028">2028</option><option value="2027">2027</option>
-            <option value="2026">2026</option><option value="2025">2025</option>
+          {% for y in anos %}<option value="{{ y }}">{{ y }}</option>{% endfor %}
         </select>
       </div>
       <div class="f-group">
@@ -467,9 +480,7 @@
           <label class="f-label">Ano</label>
           <select id="total_year">
             <option value="">Todos</option>
-            <option value="2030">2030</option><option value="2029">2029</option>
-            <option value="2028">2028</option><option value="2027">2027</option>
-            <option value="2026">2026</option><option value="2025">2025</option>
+            {% for y in anos %}<option value="{{ y }}">{{ y }}</option>{% endfor %}
           </select>
         </div>
         <div class="col-md-3 col-sm-6">
@@ -500,56 +511,10 @@
 
 </div><!-- dep-wrapper -->
 
-<!-- ══ MODAL EDITAR ══ -->
-<div class="modal fade" id="modalEditarDeposito" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-pen" style="color:var(--accent);margin-right:8px"></i>Editar Depósito</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body" style="padding:22px">
-        <input type="hidden" id="edit_id">
-        <div class="row g-3">
-          <div class="col-12">
-            <label class="f-label">Sector</label>
-            <select id="edit_sector">
-              <option value="">-- Escolha sector --</option>
-              {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
-            </select>
-          </div>
-          <div class="col-6">
-            <label class="f-label">Data</label>
-            <input id="edit_data" type="date">
-          </div>
-          <div class="col-6">
-            <label class="f-label">Valor</label>
-            <div class="kz-wrap">
-              <input id="edit_valor" type="number" step="0.01">
-              <span class="kz-sym">Kz</span>
-            </div>
-          </div>
-          <div class="col-12">
-            <label class="f-label">Observação</label>
-            <textarea id="edit_obs" rows="2"></textarea>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer" style="gap:10px">
-        <button type="button" class="btn-dep btn-dep-outline" data-bs-dismiss="modal">
-          <i class="fas fa-xmark"></i> Fechar
-        </button>
-        <button id="btn_edit_save" class="btn-dep btn-dep-primary">
-          <span class="sp"></span>
-          <span class="btn-text"><i class="fas fa-floppy-disk"></i> Guardar</span>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ══ ÁREA DE IMPRESSÃO ══ -->
 <div id="print-area" style="display:none"></div>
+
+{% endblock %}
 
 {% block extra_js %}
 <script>
@@ -560,18 +525,20 @@
   const detailBase = "{% url 'depositos_detail' 0 %}";
   const editBase   = "{% url 'depositos_edit' 0 %}";
   const deleteUrl  = "{% url 'depositos_delete' %}";
+  const todayStr   = "{{ now|date:'Y-m-d' }}";
 
   const fmt = new Intl.NumberFormat('pt-PT', { minimumFractionDigits:2, maximumFractionDigits:2 });
   const meses = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
   // ── TABS ───────────────────────────────────────
+  function activateTab(tabId) {
+    document.querySelectorAll('.dep-tab').forEach(function (b) { b.classList.remove('active'); });
+    document.querySelectorAll('.dep-pane').forEach(function (p) { p.classList.remove('active'); });
+    document.querySelector('[data-tab="' + tabId + '"]').classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+  }
   document.querySelectorAll('.dep-tab').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      document.querySelectorAll('.dep-tab').forEach(function (b) { b.classList.remove('active'); });
-      document.querySelectorAll('.dep-pane').forEach(function (p) { p.classList.remove('active'); });
-      btn.classList.add('active');
-      document.getElementById(btn.dataset.tab).classList.add('active');
-    });
+    btn.addEventListener('click', function () { activateTab(btn.dataset.tab); });
   });
 
   // ── TOAST ──────────────────────────────────────
@@ -589,8 +556,149 @@
   }
 
   // ── URL HELPERS ────────────────────────────────
-  function detailUrl(id) { return detailBase.replace('/0/', '/' + id + '/'); }
-  function editUrl(id)   { return editBase.replace('/0/', '/' + id + '/edit/'); }
+  function detailUrl(id) { return detailBase.replace(/\/0(\/|$)/, '/' + id + '$1'); }
+  function editUrl(id)   { return editBase.replace(/\/0(\/|$)/, '/' + id + '$1'); }
+
+  // ── SAFE FETCH ─────────────────────────────────
+  async function safeFetch(url, options) {
+    const res = await fetch(url, options);
+    const ct  = res.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      const text = await res.text();
+      console.error('Resposta não-JSON [' + res.status + '] de', url, '\n', text.substring(0, 400));
+      return { ok: false, error: 'Erro do servidor (HTTP ' + res.status + '). Ver consola.' };
+    }
+    const data = await res.json();
+    if (!res.ok && data.ok === undefined) {
+      data.ok = false;
+      if (!data.error) data.error = 'Erro HTTP ' + res.status;
+    }
+    return data;
+  }
+
+  // ── MODO EDIÇÃO ────────────────────────────────
+  // Controla se o formulário está em modo "novo" ou "editar"
+  var _editandoId = null;
+
+  function entrarModoEdicao(d) {
+    _editandoId = d.id;
+
+    // Preencher campos com os dados do depósito
+    document.getElementById('dep_sector').value = d.sector_id || '';
+    document.getElementById('dep_data').value   = d.data_deposito || '';
+    document.getElementById('dep_valor').value  = d.valor || '';
+    document.getElementById('dep_obs').value    = d.observacao || '';
+    document.getElementById('dep_edit_id').value = d.id;
+
+    // Actualizar cabeçalho
+    document.getElementById('form-title').innerHTML =
+      'Editar <span style="color:var(--accent)">Depósito</span>';
+    document.getElementById('form-subtitle').textContent =
+      'Edite os dados do depósito #' + d.id;
+
+    // Mostrar banner e botão cancelar
+    var banner = document.getElementById('edit-banner');
+    banner.style.display = 'flex';
+    document.getElementById('edit-banner-id').textContent = '#' + d.id;
+    document.getElementById('btn_cancel_edit').style.display = 'inline-flex';
+
+    // Mudar texto do botão guardar
+    document.querySelector('#btn_dep_save .btn-text').innerHTML =
+      '<i class="fas fa-floppy-disk"></i> Actualizar Depósito';
+
+    // Mudar cor do card para sinalizar modo edição
+    document.querySelector('#tab-reg .dep-card').style.borderColor = 'rgba(79,195,247,.4)';
+
+    // Navegar para o tab de registo e fazer scroll suave ao topo
+    activateTab('tab-reg');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function sairModoEdicao() {
+    _editandoId = null;
+
+    // Limpar campos
+    document.getElementById('dep_sector').value  = '';
+    document.getElementById('dep_data').value    = todayStr;
+    document.getElementById('dep_valor').value   = '';
+    document.getElementById('dep_obs').value     = '';
+    document.getElementById('dep_edit_id').value = '';
+
+    // Restaurar cabeçalho
+    document.getElementById('form-title').innerHTML =
+      'Novo <span style="color:var(--accent)">Depósito</span>';
+    document.getElementById('form-subtitle').textContent =
+      'Registe um novo depósito para um sector';
+
+    // Esconder banner e botão cancelar
+    document.getElementById('edit-banner').style.display = 'none';
+    document.getElementById('btn_cancel_edit').style.display = 'none';
+
+    // Restaurar botão guardar
+    document.querySelector('#btn_dep_save .btn-text').innerHTML =
+      '<i class="fas fa-floppy-disk"></i> Guardar Depósito';
+
+    // Restaurar borda do card
+    document.querySelector('#tab-reg .dep-card').style.borderColor = '';
+  }
+
+  document.getElementById('btn_cancel_edit').addEventListener('click', sairModoEdicao);
+
+  // ── GUARDAR (novo OU editar) ────────────────────
+  var btnSave = document.getElementById('btn_dep_save');
+  btnSave.addEventListener('click', async function () {
+    const sector = document.getElementById('dep_sector').value;
+    const valor  = document.getElementById('dep_valor').value;
+    if (!sector || !valor) { toast('Sector e valor são obrigatórios', 'warning'); return; }
+
+    btnSave.classList.add('loading'); btnSave.disabled = true;
+    try {
+      var url, payload;
+
+      if (_editandoId) {
+        // ── MODO EDITAR ──
+        url = editUrl(_editandoId);
+        payload = {
+          sector_id:    sector || null,
+          data_deposito:document.getElementById('dep_data').value || null,
+          valor:        valor,
+          observacao:   document.getElementById('dep_obs').value || ''
+        };
+      } else {
+        // ── MODO NOVO ──
+        url = saveUrl;
+        payload = {
+          sector_id:    parseInt(sector),
+          data_deposito:document.getElementById('dep_data').value,
+          valor:        valor,
+          observacao:   document.getElementById('dep_obs').value
+        };
+      }
+
+      const r = await safeFetch(url, {
+        method:'POST', credentials:'same-origin',
+        headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},
+        body: JSON.stringify(payload)
+      });
+
+      if (!r.ok) {
+        toast(r.error || 'Erro ao guardar. Ver consola.', 'error');
+        console.error('Resposta do servidor:', r);
+        return;
+      }
+
+      toast(_editandoId ? 'Depósito actualizado!' : 'Depósito registado com sucesso!');
+      sairModoEdicao();
+      await carregarLista();
+      carregarTotal();
+
+    } catch(e) {
+      console.error('Erro ao guardar:', e);
+      toast('Erro inesperado: ' + e.message, 'error');
+    } finally {
+      btnSave.classList.remove('loading'); btnSave.disabled = false;
+    }
+  });
 
   // ── CARREGAR LISTA ─────────────────────────────
   var _lastDepositos = [];
@@ -608,8 +716,7 @@
     lista.innerHTML = '<div class="dep-loading"><div class="dep-spinner"></div><span>A carregar...</span></div>';
 
     try {
-      const res  = await fetch(listUrl + '?' + params.toString(), { credentials:'same-origin' });
-      const data = await res.json();
+      const data = await safeFetch(listUrl + '?' + params.toString(), { credentials:'same-origin' });
       _lastDepositos = data.depositos || [];
 
       lista.innerHTML = '';
@@ -643,6 +750,7 @@
 
       document.getElementById('lista_total').textContent = fmt.format(total) + ' Kz';
     } catch (err) {
+      console.error('carregarLista error:', err);
       lista.innerHTML = '<div class="dep-empty"><i class="fas fa-triangle-exclamation"></i>Erro ao carregar depósitos.</div>';
     }
   }
@@ -662,104 +770,49 @@
     el.classList.add('loading');
 
     try {
-      const res  = await fetch(listUrl + '?' + params.toString(), { credentials:'same-origin' });
-      const data = await res.json();
+      const data = await safeFetch(listUrl + '?' + params.toString(), { credentials:'same-origin' });
       el.classList.remove('loading');
       el.textContent = fmt.format(parseFloat(data.total || 0)) + ' Kz';
     } catch (e) {
+      console.error('carregarTotal error:', e);
       el.classList.remove('loading');
       el.textContent = 'Erro';
     }
   }
 
-  // ── GUARDAR NOVO ───────────────────────────────
-  var btnSave = document.getElementById('btn_dep_save');
-  btnSave.addEventListener('click', async function () {
-    const sector = document.getElementById('dep_sector').value;
-    const valor  = document.getElementById('dep_valor').value;
-    if (!sector || !valor) { toast('Sector e valor são obrigatórios', 'warning'); return; }
-
-    btnSave.classList.add('loading'); btnSave.disabled = true;
-    try {
-      const res = await fetch(saveUrl, {
-        method:'POST', credentials:'same-origin',
-        headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},
-        body: JSON.stringify({
-          sector_id: parseInt(sector),
-          data_deposito: document.getElementById('dep_data').value,
-          valor: valor,
-          observacao: document.getElementById('dep_obs').value
-        })
-      });
-      const r = await res.json();
-      if (!r.ok) { toast(r.error || 'Erro ao guardar', 'error'); return; }
-      toast('Depósito registado com sucesso!');
-      document.getElementById('dep_valor').value = '';
-      document.getElementById('dep_obs').value   = '';
-      carregarLista(); carregarTotal();
-    } catch(e) { toast('Erro de ligação', 'error'); }
-    finally { btnSave.classList.remove('loading'); btnSave.disabled = false; }
-  });
-
   // ── BOTÕES LISTA (editar / eliminar) ───────────
   document.getElementById('lista_depositos').addEventListener('click', async function (e) {
     const btn = e.target.closest('button'); if (!btn) return;
-    const id = btn.dataset.id;
+    const id  = btn.dataset.id;
 
     if (btn.classList.contains('btn-dep-edit')) {
       try {
-        const res = await fetch(detailUrl(id), { credentials:'same-origin' });
-        const r   = await res.json();
+        const r = await safeFetch(detailUrl(id), { credentials:'same-origin' });
         if (!r.ok) { toast(r.error || 'Erro ao carregar', 'error'); return; }
-        const d = r.deposito;
-        document.getElementById('edit_id').value    = d.id;
-        document.getElementById('edit_sector').value= d.sector_id || '';
-        document.getElementById('edit_data').value  = d.data_deposito || '';
-        document.getElementById('edit_valor').value = d.valor || '';
-        document.getElementById('edit_obs').value   = d.observacao || '';
-        new bootstrap.Modal(document.getElementById('modalEditarDeposito')).show();
-      } catch(e) { toast('Erro de ligação', 'error'); }
+        entrarModoEdicao(r.deposito);
+      } catch(e) {
+        console.error('editar load error:', e);
+        toast('Erro ao carregar depósito', 'error');
+      }
     }
 
     if (btn.classList.contains('btn-dep-del')) {
       if (!confirm('Eliminar este depósito?')) return;
       try {
-        const res = await fetch(deleteUrl, {
+        const r = await safeFetch(deleteUrl, {
           method:'POST', credentials:'same-origin',
           headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},
           body: JSON.stringify({ id })
         });
-        const r = await res.json();
         if (!r.ok) { toast(r.error || 'Erro ao eliminar', 'error'); return; }
         toast('Depósito removido.');
-        carregarLista(); carregarTotal();
-      } catch(e) { toast('Erro de ligação', 'error'); }
+        await carregarLista();
+        carregarTotal();
+      } catch(e) {
+        console.error('eliminar error:', e);
+        toast('Erro ao eliminar', 'error');
+      }
     }
-  });
-
-  // ── GUARDAR EDIÇÃO ─────────────────────────────
-  var btnEditSave = document.getElementById('btn_edit_save');
-  btnEditSave.addEventListener('click', async function () {
-    const id = document.getElementById('edit_id').value;
-    btnEditSave.classList.add('loading'); btnEditSave.disabled = true;
-    try {
-      const res = await fetch(editUrl(id), {
-        method:'POST', credentials:'same-origin',
-        headers:{'Content-Type':'application/json','X-CSRFToken':csrftoken},
-        body: JSON.stringify({
-          sector_id:    document.getElementById('edit_sector').value || null,
-          data_deposito:document.getElementById('edit_data').value || null,
-          valor:        document.getElementById('edit_valor').value || null,
-          observacao:   document.getElementById('edit_obs').value || ''
-        })
-      });
-      const r = await res.json();
-      if (!r.ok) { toast(r.error || 'Erro ao actualizar', 'error'); return; }
-      bootstrap.Modal.getInstance(document.getElementById('modalEditarDeposito')).hide();
-      toast('Depósito actualizado!');
-      carregarLista(); carregarTotal();
-    } catch(e) { toast('Erro de ligação', 'error'); }
-    finally { btnEditSave.classList.remove('loading'); btnEditSave.disabled = false; }
   });
 
   // ── RECARREGAR ─────────────────────────────────
@@ -770,10 +823,10 @@
   document.getElementById('btn_print').addEventListener('click', function () {
     if (_lastDepositos.length === 0) { toast('Nenhum depósito para imprimir', 'warning'); return; }
 
-    const sec   = document.getElementById('filter_sector');
-    const year  = document.getElementById('filter_year').value;
-    const month = document.getElementById('filter_month').value;
-    const secText = sec.options[sec.selectedIndex]?.text || 'Todos os sectores';
+    const sec      = document.getElementById('filter_sector');
+    const year     = document.getElementById('filter_year').value;
+    const month    = document.getElementById('filter_month').value;
+    const secText  = sec.options[sec.selectedIndex]?.text || 'Todos os sectores';
 
     var periodoText = '';
     if (year && month) periodoText = meses[parseInt(month)] + ' de ' + year;
@@ -782,8 +835,7 @@
     else               periodoText = 'Todo o período';
 
     var total = _lastDepositos.reduce(function (s, d) { return s + parseFloat(d.valor || 0); }, 0);
-
-    var rows = _lastDepositos.map(function (d, i) {
+    var rows  = _lastDepositos.map(function (d, i) {
       return '<tr>' +
         '<td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:center">' + (i+1) + '</td>' +
         '<td style="padding:8px 12px;border-bottom:1px solid #eee;font-weight:600">' + (d.sector || '—') + '</td>' +
@@ -798,8 +850,6 @@
 
     var html =
       '<div style="font-family:Arial,sans-serif;color:#111;max-width:860px;margin:0 auto">' +
-
-        /* HEADER */
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1565c0;padding-bottom:16px;margin-bottom:20px">' +
           '<div>' +
             '<div style="font-size:22px;font-weight:900;letter-spacing:2px;color:#1565c0">ALCA &amp; ATY TRANSPORTES</div>' +
@@ -811,36 +861,27 @@
             '<div>Período: <strong>' + periodoText + '</strong></div>' +
           '</div>' +
         '</div>' +
-
-        /* TABELA */
         '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
-          '<thead>' +
-            '<tr style="background:#1565c0;color:white">' +
-              '<th style="padding:10px 12px;text-align:center;font-weight:700;letter-spacing:1px">#</th>' +
-              '<th style="padding:10px 12px;font-weight:700;letter-spacing:1px">SECTOR</th>' +
-              '<th style="padding:10px 12px;font-weight:700;letter-spacing:1px">DATA</th>' +
-              '<th style="padding:10px 12px;text-align:right;font-weight:700;letter-spacing:1px">VALOR</th>' +
-              '<th style="padding:10px 12px;font-weight:700;letter-spacing:1px">OBSERVAÇÃO</th>' +
-            '</tr>' +
-          '</thead>' +
+          '<thead><tr style="background:#1565c0;color:white">' +
+            '<th style="padding:10px 12px;text-align:center">#</th>' +
+            '<th style="padding:10px 12px">SECTOR</th>' +
+            '<th style="padding:10px 12px">DATA</th>' +
+            '<th style="padding:10px 12px;text-align:right">VALOR</th>' +
+            '<th style="padding:10px 12px">OBSERVAÇÃO</th>' +
+          '</tr></thead>' +
           '<tbody>' + rows + '</tbody>' +
         '</table>' +
-
-        /* TOTAL */
         '<div style="display:flex;justify-content:flex-end;margin-top:20px;padding-top:12px;border-top:2px solid #1565c0">' +
           '<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:12px 24px;text-align:right">' +
-            '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#555;margin-bottom:4px">Total de Depósitos</div>' +
+            '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;margin-bottom:4px">Total de Depósitos</div>' +
             '<div style="font-size:22px;font-weight:900;color:#1a7a3b">' + fmt.format(total) + ' Kz</div>' +
             '<div style="font-size:11px;color:#888;margin-top:2px">' + _lastDepositos.length + ' registo(s)</div>' +
           '</div>' +
         '</div>' +
-
-        /* RODAPÉ */
         '<div style="margin-top:40px;padding-top:12px;border-top:1px solid #ddd;font-size:10px;color:#aaa;display:flex;justify-content:space-between">' +
           '<span>ALCA &amp; ATY Transportes — Sistema de Gestão</span>' +
           '<span>© ' + now.getFullYear() + ' @Kiangebeni Kaleba Matias</span>' +
         '</div>' +
-
       '</div>';
 
     var printArea = document.getElementById('print-area');
@@ -851,10 +892,8 @@
   });
 
   // ── INICIAR ────────────────────────────────────
-  carregarLista();
-  carregarTotal();
+  Promise.all([carregarLista(), carregarTotal()]);
 
 })();
 </script>
-{% endblock %}
 {% endblock %}
