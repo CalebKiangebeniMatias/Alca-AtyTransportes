@@ -1,201 +1,459 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Gerência de Campo{% endblock %}
+{% block breadcrumb %}Frota › Gerência de Campo{% endblock %}
 
 {% block content %}
-  <div class="container mt-4">
-    <h2 class="mb-3"><i class="fas fa-map-marked-alt me-2"></i>Gerência de Campo</h2>
+<style>
+/* ════════════════════════════════════════════════════
+   GERÊNCIA DE CAMPO
+════════════════════════════════════════════════════ */
 
-    <div class="row mb-4">
-      <div class="col-md-4">
-        <div class="card p-3 bg-azul-forte">
-          <h6 class="mb-2"><i class="fas fa-bus text-success me-2"></i>Autocarros Ativos</h6>
-          <p class="h3">{{ autocarros_ativos }}</p>
-        </div>
-      </div>
+.gc-wrapper {
+  animation: gcIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes gcIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
 
-      <div class="col-md-4">
-        <div class="card p-3 bg-azul-forte">
-          <h6 class="mb-2"><i class="fas fa-bus text-secondary me-2"></i>Autocarros Inativos</h6>
-          <p class="h3">{{ autocarros_inativos }}</p>
-        </div>
-      </div>
+/* ── HEADER ──────────────────────────────────────── */
+.gc-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 24px;
+}
+.gc-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem; letter-spacing: 2px; line-height: 1;
+}
+.gc-title span { color: var(--accent); }
+.gc-subtitle { font-size: .78rem; color: var(--grey); margin-top: 4px; }
 
-      <div class="col-md-4">
-        <div class="card p-3 bg-azul-forte">
-          <h6 class="mb-2"><i class="fas fa-tools text-warning me-2"></i>Em Manutenção</h6>
-          <p class="h3">{{ autocarros_manutencao }}</p>
-        </div>
+/* ── STAT STRIP ──────────────────────────────────── */
+.gc-stats {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 14px; margin-bottom: 24px;
+}
+.gc-stat {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  display: flex; align-items: center; gap: 14px;
+  backdrop-filter: blur(8px);
+  transition: transform var(--ease-spring), border-color var(--ease-fast);
+}
+.gc-stat:hover { transform: translateY(-3px); border-color: rgba(79,195,247,.25); }
+.gc-stat-icon {
+  width: 42px; height: 42px; flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .95rem;
+}
+.gc-stat-icon.ativo    { background:rgba(39,174,96,.12);  color:#69f0ae; }
+.gc-stat-icon.inativo  { background:rgba(141,163,196,.1); color:var(--grey); }
+.gc-stat-icon.manut    { background:rgba(243,156,18,.12); color:#ffd54f; }
+.gc-stat-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem; letter-spacing: 1px; line-height: 1;
+  color: var(--white);
+}
+.gc-stat-lbl {
+  font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: var(--grey); margin-top: 3px;
+}
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.gc-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ── SHARED CARD ─────────────────────────────────── */
+.gc-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(4,30,66,.25);
+  margin-bottom: 20px;
+}
+.gc-card:last-child { margin-bottom: 0; }
+.gc-card-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 18px;
+  background: linear-gradient(90deg, rgba(36,99,163,.3), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+}
+.gc-card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .9rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--white);
+  display: flex; align-items: center; gap: 7px;
+}
+.gc-card-title i { color: var(--accent); }
+
+/* ── MAPA ────────────────────────────────────────── */
+#map {
+  height: 420px;
+  border-radius: 0;
+  z-index: 1;
+}
+
+/* ── MANÓMETRO ───────────────────────────────────── */
+.gauge-wrap {
+  padding: 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.gauge-label {
+  font-size: .72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--grey);
+}
+#gaugeCombustivel { max-width: 260px; }
+
+/* ── LISTA AUTOCARROS ────────────────────────────── */
+.ac-list {
+  padding: 14px;
+  max-height: 560px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px;
+  scrollbar-width: thin; scrollbar-color: rgba(79,195,247,.2) transparent;
+}
+.ac-list::-webkit-scrollbar { width: 4px; }
+.ac-list::-webkit-scrollbar-thumb { background: rgba(79,195,247,.2); border-radius: 4px; }
+
+.ac-item {
+  background: rgba(4,30,66,.45);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  transition: border-color var(--ease-fast), background var(--ease-fast);
+}
+.ac-item:hover { border-color: rgba(79,195,247,.25); background: rgba(36,99,163,.18); }
+
+.ac-item-top {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 8px;
+  margin-bottom: 8px;
+}
+.ac-item-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .95rem; letter-spacing: 1px;
+  color: var(--white);
+  display: flex; align-items: center; gap: 6px;
+}
+.ac-item-num i { color: var(--accent); font-size: .75rem; }
+.ac-item-modelo { font-size: .7rem; color: var(--grey); margin-top: 2px; }
+
+.status-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  border-radius: 30px; padding: 2px 9px;
+  font-size: .62rem; font-weight: 700;
+  letter-spacing: .8px; text-transform: uppercase; flex-shrink: 0;
+}
+.s-ativo   { background:rgba(39,174,96,.12);  border:1px solid rgba(39,174,96,.28);  color:#69f0ae; }
+.s-manut   { background:rgba(243,156,18,.12); border:1px solid rgba(243,156,18,.3);  color:#ffd54f; }
+.s-inativo { background:rgba(141,163,196,.08);border:1px solid rgba(141,163,196,.18);color:var(--grey); }
+
+.ac-item-coords {
+  font-size: .68rem; color: rgba(255,255,255,.3);
+  display: flex; align-items: center; gap: 5px;
+  margin-bottom: 10px;
+}
+.ac-item-coords i { color: rgba(79,195,247,.4); font-size: .6rem; }
+
+.ac-item-actions { display: flex; gap: 6px; }
+.btn-ac-sm {
+  flex: 1;
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  padding: 5px 10px;
+  border: 1px solid; border-radius: var(--radius-sm);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .68rem;
+  letter-spacing: .8px; text-transform: uppercase;
+  cursor: pointer; text-decoration: none; background: transparent;
+  white-space: nowrap;
+  transition: background var(--ease-fast), transform var(--ease-spring);
+}
+.btn-ac-sm:hover { transform: translateY(-1px); }
+.btn-ac-sm.detail { border-color: rgba(79,195,247,.25); color: var(--accent); }
+.btn-ac-sm.detail:hover { background: rgba(79,195,247,.12); }
+.btn-ac-sm.state  { border-color: rgba(39,174,96,.25);  color: #69f0ae; }
+.btn-ac-sm.state:hover  { background: rgba(39,174,96,.12); }
+
+/* empty */
+.ac-list-empty {
+  padding: 32px 16px; text-align: center;
+  color: rgba(255,255,255,.25);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.ac-list-empty i { font-size: 2rem; opacity: .3; }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 1024px) {
+  .gc-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .gc-stats { grid-template-columns: 1fr 1fr; }
+  .gc-header { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 400px) {
+  .gc-stats { grid-template-columns: 1fr; }
+}
+</style>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div class="gc-wrapper">
+
+  <!-- HEADER -->
+  <div class="gc-header">
+    <div>
+      <div class="gc-title">Gerência de <span>Campo</span></div>
+      <div class="gc-subtitle">Monitorização em tempo real da frota</div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="gc-stats">
+    <div class="gc-stat">
+      <div class="gc-stat-icon ativo"><i class="fas fa-bus"></i></div>
+      <div>
+        <div class="gc-stat-val">{{ autocarros_ativos }}</div>
+        <div class="gc-stat-lbl">Activos</div>
       </div>
     </div>
-
-    <div class="row">
-      <div class="col-lg-8 mb-4">
-        <div class="card">
-          <div class="card-header">
-            <strong>Mapa da Frota</strong>
-          </div>
-          <div class="card-body p-0">
-            <div id="map" style="height:480px;"></div>
-          </div>
-        </div>
-
-        <!-- manómetro do combustível -->
-        <div class="card mt-3">
-          <div class="card-header">
-            <strong>Nível de Combustível</strong>
-          </div>
-          <div class="card-body d-flex justify-content-center">
-            <canvas id="gaugeCombustivel" width="250" height="130"></canvas>
-          </div>
-        </div>
+    <div class="gc-stat">
+      <div class="gc-stat-icon inativo"><i class="fas fa-bus-slash"></i></div>
+      <div>
+        <div class="gc-stat-val">{{ autocarros_inativos }}</div>
+        <div class="gc-stat-lbl">Inactivos</div>
       </div>
-
-      <div class="col-lg-4 mb-4">
-        <div class="card">
-          <div class="card-header">
-            <strong>Lista de Autocarros</strong>
-          </div>
-          <div class="card-body">
-            {% if autocarros %}
-              {% for a in autocarros %}
-                <div class="card mb-2 bg-azul-forte">
-                  <div class="card-body p-2">
-                      <div class="d-flex justify-content-between align-items-start">
-                          <div>
-                              <strong>{{ a.numero }}</strong><br>
-                              <small>{{ a.modelo }}</small>
-                          </div>
-                          <div class="text-end">
-                              {% if a.status == "ativo" %}
-                                <span class="badge bg-success">Ativo</span>
-                              {% elif a.status == "manutencao" %}
-                                <span class="badge bg-warning text-dark">Manutenção</span>
-                              {% else %}
-                                <span class="badge bg-secondary">Inativo</span>
-                              {% endif %}
-                          </div>
-                      </div>
-                      <div class="mt-2 small text-muted">
-                        Lat: {{ a.lat }} · Lng: {{ a.lng }}
-                      </div>
-                      <div class="mt-2">
-                        <a href="{% url 'detalhe_autocarro' a.pk %}" class="btn btn-sm btn-outline-primary">Detalhe</a>
-                        <a href="{% url 'atualizar_estado' %}?autocarro={{ a.pk }}" class="btn btn-sm btn-outline-success">Atualizar Estado</a>
-                      </div>
-                  </div>
-                </div>
-              {% endfor %}
-            {% else %}
-              <p class="text-muted">Nenhum autocarro encontrado.</p>
-            {% endif %}
-          </div>
-        </div>
+    </div>
+    <div class="gc-stat">
+      <div class="gc-stat-icon manut"><i class="fas fa-wrench"></i></div>
+      <div>
+        <div class="gc-stat-val">{{ autocarros_manutencao }}</div>
+        <div class="gc-stat-lbl">Em Manutenção</div>
       </div>
     </div>
   </div>
 
-  <!-- Leaflet (mapa) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- GRID PRINCIPAL -->
+  <div class="gc-grid">
 
-  <!-- Chart.js para o manómetro -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- COLUNA ESQUERDA -->
+    <div>
 
-  <!-- passa dados para JS de forma segura -->
-  {{ autocarros|json_script:"autocarros-data" }}
+      <!-- MAPA -->
+      <div class="gc-card">
+        <div class="gc-card-header">
+          <div class="gc-card-title"><i class="fas fa-map-location-dot"></i> Mapa da Frota</div>
+        </div>
+        <div id="map"></div>
+      </div>
 
-  <script>
-    const autocarros = JSON.parse(document.getElementById('autocarros-data').textContent || '[]');
+      <!-- MANÓMETRO -->
+      <div class="gc-card">
+        <div class="gc-card-header">
+          <div class="gc-card-title"><i class="fas fa-gas-pump"></i> Nível de Combustível</div>
+        </div>
+        <div class="gauge-wrap">
+          <canvas id="gaugeCombustivel" width="260" height="140"></canvas>
+          <span class="gauge-label">Nível médio da frota</span>
+        </div>
+      </div>
 
-    // iniciar mapa
-    const map = L.map('map').setView(
-      autocarros.length ? [autocarros[0].lat, autocarros[0].lng] : [-8.8383, 13.2344],
-      11
-    );
+    </div>
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+    <!-- COLUNA DIREITA — LISTA -->
+    <div class="gc-card" style="margin-bottom:0">
+      <div class="gc-card-header">
+        <div class="gc-card-title"><i class="fas fa-list"></i> Lista de Autocarros</div>
+      </div>
 
-    autocarros.forEach(a => {
-      if (a.lat && a.lng) {
-        const marker = L.marker([a.lat, a.lng]).addTo(map);
-        marker.bindPopup(`<strong>${a.numero}</strong><br>${a.modelo}<br>Status: ${a.status || 'N/A'}`);
-      }
+      <div class="ac-list">
+        {% if autocarros %}
+          {% for a in autocarros %}
+          <div class="ac-item">
+            <div class="ac-item-top">
+              <div>
+                <div class="ac-item-num"><i class="fas fa-bus"></i>{{ a.numero }}</div>
+                <div class="ac-item-modelo">{{ a.modelo }}</div>
+              </div>
+              {% if a.status == "ativo" %}
+                <span class="status-pill s-ativo"><i class="fas fa-circle" style="font-size:.4rem"></i>Activo</span>
+              {% elif a.status == "manutencao" %}
+                <span class="status-pill s-manut"><i class="fas fa-circle" style="font-size:.4rem"></i>Manutenção</span>
+              {% else %}
+                <span class="status-pill s-inativo"><i class="fas fa-circle" style="font-size:.4rem"></i>Inactivo</span>
+              {% endif %}
+            </div>
+            {% if a.lat and a.lng %}
+            <div class="ac-item-coords">
+              <i class="fas fa-location-dot"></i>
+              {{ a.lat|floatformat:4 }} · {{ a.lng|floatformat:4 }}
+            </div>
+            {% endif %}
+            <div class="ac-item-actions">
+              <a href="{% url 'detalhe_autocarro' a.pk %}" class="btn-ac-sm detail">
+                <i class="fas fa-eye"></i> Detalhe
+              </a>
+              <a href="{% url 'atualizar_estado' %}?autocarro={{ a.pk }}" class="btn-ac-sm state">
+                <i class="fas fa-wrench"></i> Estado
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="ac-list-empty">
+            <i class="fas fa-bus-slash"></i>
+            <span>Nenhum autocarro encontrado.</span>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Dados para JS -->
+{{ autocarros|json_script:"autocarros-data" }}
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{% block extra_js %}
+<script>
+(function () {
+  var autocarros = JSON.parse(document.getElementById('autocarros-data').textContent || '[]');
+
+  /* ── MAPA ─────────────────────────────────────── */
+  var defaultCenter = [-8.8383, 13.2344];
+  var center = (autocarros.length && autocarros[0].lat && autocarros[0].lng)
+    ? [autocarros[0].lat, autocarros[0].lng]
+    : defaultCenter;
+
+  var map = L.map('map').setView(center, 11);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
+  }).addTo(map);
+
+  /* Ícone personalizado por status */
+  function busIcon(status) {
+    var color = status === 'ativo' ? '#69f0ae' : status === 'manutencao' ? '#ffd54f' : '#8da3c4';
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24">' +
+      '<circle cx="12" cy="12" r="11" fill="rgba(4,30,66,.85)" stroke="' + color + '" stroke-width="2"/>' +
+      '<text x="12" y="16" text-anchor="middle" font-size="11" fill="' + color + '" font-family="sans-serif">🚌</text>' +
+      '</svg>';
+    return L.divIcon({
+      html: svg,
+      className: '',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -14]
     });
+  }
 
-    // --- manómetro de combustível (simulação, 65% por exemplo) ---
-    // --- manómetro de combustível ---
-    const ctxGauge = document.getElementById('gaugeCombustivel').getContext('2d');
-    const combustivel = 90; // <-- backend pode enviar valor (%)
+  autocarros.forEach(function (a) {
+    if (a.lat && a.lng) {
+      var statusLabel = a.status === 'ativo' ? 'Activo' : a.status === 'manutencao' ? 'Em Manutenção' : 'Inactivo';
+      L.marker([a.lat, a.lng], { icon: busIcon(a.status) })
+        .addTo(map)
+        .bindPopup(
+          '<div style="font-family:Barlow,sans-serif;min-width:140px">' +
+          '<strong style="font-size:1rem">' + a.numero + '</strong><br>' +
+          '<span style="color:#888;font-size:.8rem">' + (a.modelo || '') + '</span><br>' +
+          '<span style="font-size:.75rem;color:#aaa">Estado: ' + statusLabel + '</span>' +
+          '</div>'
+        );
+    }
+  });
 
-    new Chart(ctxGauge, {
-      type: 'doughnut',
-      data: {
-        datasets: [{
-          data: [combustivel, 100 - combustivel],
-          backgroundColor: ['#28a745', '#e9ecef'],
-          borderWidth: 0,
-          cutout: '200',
-          circumference: 180,  // meia lua
-          rotation: 270        // começa da esquerda
-        }]
-      },
-      options: {
-        plugins: {
-          legend: { display: false },
-          tooltip: { enabled: false },
-        }
-      },
-      plugins: [{
-        id: 'combustivel-gauge',
-        beforeDraw(chart) {
-          const {ctx, chartArea: {width, height}} = chart;
-          const centerX = width / 2;
-          const centerY = height * 0.9; // parte de baixo do semicírculo
-          const radius = Math.min(width, height) / 2.5;
+  /* ── MANÓMETRO COMBUSTÍVEL ────────────────────── */
+  var combustivel = typeof combustivelNivel !== 'undefined' ? combustivelNivel : 90;
+  var ctxGauge = document.getElementById('gaugeCombustivel').getContext('2d');
 
-          // Texto central (percentagem)
-          ctx.save();
-          ctx.font = "bold 18px sans-serif";
-          ctx.fillStyle = "#333";
-          ctx.textAlign = "center";
-          ctx.fillText(combustivel + "%", centerX, centerY - radius / 2);
-          ctx.restore();
+  var gaugeColor = combustivel > 50 ? '#69f0ae' : combustivel > 20 ? '#ffd54f' : '#ff8a80';
 
-          // Marcadores E (esquerda), 1/2 (topo), F (direita)
-          ctx.save();
-          ctx.font = "14px sans-serif";
-          ctx.fillStyle = "#000";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText("E - Vazio", centerX - radius, centerY);
-          ctx.fillText("1/2 - Meio", centerX, centerY - radius);
-          ctx.fillText("1/1 - Cheio", centerX + radius, centerY);
-          ctx.restore();
-
-          // Agulha (ponteiro)
-          const angle = Math.PI - (combustivel / 100) * Math.PI; // 180º -> 0-100%
-          const needleX = centerX + radius * Math.cos(angle);
-          const needleY = centerY - radius * Math.sin(angle);
-
-          ctx.save();
-          ctx.beginPath();
-          ctx.moveTo(centerX, centerY);
-          ctx.lineTo(needleX, needleY);
-          ctx.lineWidth = 3;
-          ctx.strokeStyle = "red";
-          ctx.stroke();
-          ctx.restore();
-
-          // Ponto central da agulha
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
-          ctx.fillStyle = "black";
-          ctx.fill();
-        }
+  new Chart(ctxGauge, {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [combustivel, 100 - combustivel],
+        backgroundColor: [gaugeColor, 'rgba(255,255,255,.06)'],
+        borderWidth: 0,
+        circumference: 180,
+        rotation: 270
       }]
-    });
-  </script>
+    },
+    options: {
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      animation: { duration: 1000, easing: 'easeOutQuart' }
+    },
+    plugins: [{
+      id: 'gauge-draw',
+      beforeDraw: function (chart) {
+        var ctx = chart.ctx;
+        var w = chart.chartArea.width;
+        var h = chart.chartArea.height;
+        var cx = w / 2 + chart.chartArea.left;
+        var cy = h * 0.88 + chart.chartArea.top;
+        var r  = Math.min(w, h * 2) / 2.2;
+
+        /* Percentagem central */
+        ctx.save();
+        ctx.font = 'bold 22px Bebas Neue, sans-serif';
+        ctx.fillStyle = gaugeColor;
+        ctx.textAlign = 'center';
+        ctx.fillText(combustivel + '%', cx, cy - r * 0.38);
+        ctx.restore();
+
+        /* Labels E / 1/2 / F */
+        ctx.save();
+        ctx.font = '11px Barlow Condensed, sans-serif';
+        ctx.fillStyle = 'rgba(255,255,255,.4)';
+        ctx.textAlign = 'center';
+        ctx.fillText('E', cx - r * 0.95, cy + 14);
+        ctx.fillText('1/2', cx, cy - r - 6);
+        ctx.fillText('F', cx + r * 0.95, cy + 14);
+        ctx.restore();
+
+        /* Agulha */
+        var angle = Math.PI - (combustivel / 100) * Math.PI;
+        var nx = cx + r * 0.78 * Math.cos(angle);
+        var ny = cy - r * 0.78 * Math.sin(angle);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(nx, ny);
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#fff';
+        ctx.lineCap = 'round';
+        ctx.stroke();
+        ctx.restore();
+
+        /* Ponto central */
+        ctx.beginPath();
+        ctx.arc(cx, cy, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(255,255,255,.85)';
+        ctx.fill();
+      }
+    }]
+  });
+})();
+</script>
+{% endblock %}
 {% endblock %}

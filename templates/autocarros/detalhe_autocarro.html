@@ -1,157 +1,379 @@
 {% extends 'base.html' %}
 {% load humanize %}
 {% load l10n %}
-
-{% block title %}Detalhes do Autocarro {{ autocarro.numero }}{% endblock %}
+{% block title %}Autocarro {{ autocarro.numero }}{% endblock %}
+{% block breadcrumb %}Frota › Autocarros › {{ autocarro.numero }}{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h1 class="text-white mb-4">
-            <i class="fas fa-bus me-2"></i>
-            Autocarro {{ autocarro.numero }} - {{ autocarro.modelo }}
-        </h1>
-        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Voltar ao Dashboard
-        </a>
+<style>
+/* ════════════════════════════════════════════════════
+   DETALHE DO AUTOCARRO
+════════════════════════════════════════════════════ */
+
+.da-wrapper {
+  animation: daIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes daIn {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── HEADER ──────────────────────────────────────── */
+.da-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 28px;
+}
+.da-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem; letter-spacing: 3px; line-height: 1;
+}
+.da-title span { color: var(--accent); }
+.da-subtitle { font-size: .8rem; color: var(--grey); margin-top: 4px;
+  display: flex; align-items: center; gap: 8px; }
+.da-modelo-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(79,195,247,.08);
+  border: 1px solid rgba(79,195,247,.15);
+  border-radius: 30px; padding: 2px 10px;
+  font-size: .72rem; font-weight: 700;
+  letter-spacing: .8px; color: var(--accent);
+}
+
+.btn-back-da {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 18px;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: rgba(255,255,255,.55);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .82rem;
+  letter-spacing: 1px; text-transform: uppercase;
+  text-decoration: none;
+  transition: background var(--ease-fast), color var(--ease-fast), transform var(--ease-spring);
+}
+.btn-back-da:hover { background: rgba(255,255,255,.07); color: var(--white); transform: translateY(-1px); }
+
+/* ── STAT ROWS ───────────────────────────────────── */
+.stats-row {
+  display: grid; gap: 14px; margin-bottom: 14px;
+}
+.stats-row-3 { grid-template-columns: repeat(3,1fr); }
+.stats-row-4 { grid-template-columns: repeat(4,1fr); }
+
+.scard {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 4px;
+  backdrop-filter: blur(8px);
+  transition: transform var(--ease-spring), border-color var(--ease-fast);
+  position: relative; overflow: hidden;
+}
+.scard::before {
+  content: ''; position: absolute; top:0; left:15%; right:15%; height:1px;
+  background: linear-gradient(90deg, transparent, var(--card-accent, rgba(79,195,247,.4)), transparent);
+}
+.scard:hover { transform: translateY(-3px); border-color: rgba(79,195,247,.22); }
+
+.scard-icon {
+  font-size: .85rem; margin-bottom: 4px;
+}
+.scard-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.45rem; letter-spacing: 1px; line-height: 1;
+}
+.scard-lbl {
+  font-size: .65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: var(--grey);
+}
+.scard-unit { font-size: .62rem; color: rgba(255,255,255,.3); margin-top: 1px; }
+
+/* colour variants */
+.scard.green  { --card-accent: rgba(105,240,174,.4); }
+.scard.green  .scard-val  { color: #69f0ae; }
+.scard.green  .scard-icon { color: #69f0ae; }
+.scard.red    { --card-accent: rgba(255,138,128,.4); }
+.scard.red    .scard-val  { color: #ff8a80; }
+.scard.red    .scard-icon { color: #ff8a80; }
+.scard.cyan   { --card-accent: rgba(79,195,247,.5); }
+.scard.cyan   .scard-val  { color: var(--accent); }
+.scard.cyan   .scard-icon { color: var(--accent); }
+.scard.yellow { --card-accent: rgba(255,213,79,.4); }
+.scard.yellow .scard-val  { color: #ffd54f; }
+.scard.yellow .scard-icon { color: #ffd54f; }
+.scard.purple { --card-accent: rgba(206,147,216,.4); }
+.scard.purple .scard-val  { color: #ce93d8; }
+.scard.purple .scard-icon { color: #ce93d8; }
+
+/* saldo dinâmico */
+.scard.saldo-pos { --card-accent: rgba(105,240,174,.4); }
+.scard.saldo-pos .scard-val { color: #69f0ae; }
+.scard.saldo-neg { --card-accent: rgba(255,138,128,.4); }
+.scard.saldo-neg .scard-val { color: #ff8a80; }
+
+/* ── SECTION DIVIDER ─────────────────────────────── */
+.sec-div {
+  display: flex; align-items: center; gap: 10px;
+  margin: 20px 0 14px;
+}
+.sec-div-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .72rem;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(255,255,255,.35); white-space: nowrap;
+  padding-left: 8px; border-left: 2px solid var(--accent);
+  display: flex; align-items: center; gap: 6px;
+}
+.sec-div-label i { color: var(--accent); }
+.sec-div-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(79,195,247,.15), transparent);
+}
+
+/* ── STATS TABLE ─────────────────────────────────── */
+.da-table-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.da-table {
+  width: 100%; border-collapse: collapse; font-size: .85rem;
+}
+.da-table tr { border-bottom: 1px solid rgba(79,195,247,.06); }
+.da-table tr:last-child { border-bottom: none; }
+.da-table tr:hover { background: rgba(36,99,163,.15); }
+.da-table th {
+  padding: 12px 20px;
+  background: rgba(4,30,66,.5);
+  color: var(--accent);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .72rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  width: 40%;
+}
+.da-table td {
+  padding: 12px 20px;
+  color: rgba(255,255,255,.8); font-weight: 600;
+}
+
+/* ── CHART CARD ──────────────────────────────────── */
+.chart-card {
+  background: rgba(13,43,94,.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.chart-card-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 20px;
+  background: linear-gradient(90deg, rgba(36,99,163,.3), rgba(4,30,66,.2));
+  border-bottom: 1px solid var(--glass-border);
+}
+.chart-card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700; font-size: .9rem;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--white); display: flex; align-items: center; gap: 7px;
+}
+.chart-card-title i { color: var(--accent); }
+.chart-body {
+  padding: 20px;
+  display: flex; justify-content: center; align-items: center;
+}
+#grafico { max-width: 360px; max-height: 360px; }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 900px) {
+  .stats-row-4 { grid-template-columns: repeat(2,1fr); }
+}
+@media (max-width: 640px) {
+  .stats-row-3 { grid-template-columns: repeat(2,1fr); }
+  .da-header { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 400px) {
+  .stats-row-3, .stats-row-4 { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="da-wrapper">
+
+  <!-- HEADER -->
+  <div class="da-header">
+    <div>
+      <div class="da-title">Autocarro <span>{{ autocarro.numero }}</span></div>
+      <div class="da-subtitle">
+        <span class="da-modelo-tag"><i class="fas fa-bus"></i> {{ autocarro.modelo }}</span>
+      </div>
     </div>
+    <a href="{% url 'dashboard' %}" class="btn-back-da">
+      <i class="fas fa-arrow-left"></i> Dashboard
+    </a>
+  </div>
+
+  <!-- ── FINANCEIRO ── -->
+  <div class="sec-div">
+    <div class="sec-div-label"><i class="fas fa-coins"></i> Financeiro</div>
+    <div class="sec-div-line"></div>
+  </div>
+
+  <div class="stats-row stats-row-3">
+    <div class="scard green">
+      <i class="scard-icon fas fa-arrow-down"></i>
+      <div class="scard-val">{% localize on %}{{ total_entradas|floatformat:2 }}{% endlocalize %}</div>
+      <div class="scard-lbl">Entradas</div>
+      <div class="scard-unit">Kz</div>
+    </div>
+    <div class="scard red">
+      <i class="scard-icon fas fa-arrow-up"></i>
+      <div class="scard-val">{% localize on %}{{ total_saidas|floatformat:2 }}{% endlocalize %}</div>
+      <div class="scard-lbl">Saídas incl. Comb.</div>
+      <div class="scard-unit">Kz</div>
+    </div>
+    <div class="scard {% if resto >= 0 %}saldo-pos{% else %}saldo-neg{% endif %}" id="saldo-card" data-val="{{ resto|unlocalize }}">
+      <i class="scard-icon fas fa-wallet"></i>
+      <div class="scard-val">{% localize on %}{{ resto|floatformat:2 }}{% endlocalize %}</div>
+      <div class="scard-lbl">Remanescente</div>
+      <div class="scard-unit">Kz</div>
+    </div>
+  </div>
+
+  <!-- ── COMBUSTÍVEL ── -->
+  <div class="sec-div">
+    <div class="sec-div-label"><i class="fas fa-gas-pump"></i> Combustível</div>
+    <div class="sec-div-line"></div>
+  </div>
+
+  <div class="stats-row stats-row-4">
+    <div class="scard red">
+      <i class="scard-icon fas fa-gas-pump"></i>
+      <div class="scard-val">{% localize on %}{{ total_combustivel_valor|floatformat:2 }}{% endlocalize %}</div>
+      <div class="scard-lbl">Combustível</div>
+      <div class="scard-unit">Kz</div>
+    </div>
+    <div class="scard cyan">
+      <i class="scard-icon fas fa-droplet"></i>
+      <div class="scard-val">{% localize on %}{{ total_combustivel_litros|floatformat:2 }}{% endlocalize %}</div>
+      <div class="scard-lbl">Litros</div>
+      <div class="scard-unit">L (ilustr.)</div>
+    </div>
+    <div class="scard yellow">
+      <i class="scard-icon fas fa-filter"></i>
+      <div class="scard-val">{% localize on %}{{ total_combustivel_sobragem|floatformat:2 }}{% endlocalize %}</div>
+      <div class="scard-lbl">Sopragem Filtros</div>
+      <div class="scard-unit">Kz</div>
+    </div>
+    <div class="scard cyan">
+      <i class="scard-icon fas fa-bucket"></i>
+      <div class="scard-val">{% localize on %}{{ total_combustivel_lavagem|floatformat:2 }}{% endlocalize %}</div>
+      <div class="scard-lbl">Lavagem</div>
+      <div class="scard-unit">Kz</div>
+    </div>
+  </div>
+
+  <!-- ── OPERACIONAL ── -->
+  <div class="sec-div">
+    <div class="sec-div-label"><i class="fas fa-chart-bar"></i> Operacional</div>
+    <div class="sec-div-line"></div>
+  </div>
+
+  <div class="da-table-card">
+    <table class="da-table">
+      <tr>
+        <th><i class="fas fa-road" style="margin-right:6px"></i>KM Total</th>
+        <td>{% localize on %}{{ total_km|floatformat:2 }}{% endlocalize %} km</td>
+      </tr>
+      <tr>
+        <th><i class="fas fa-users" style="margin-right:6px"></i>Passageiros</th>
+        <td>{{ total_passageiros|intcomma }}</td>
+      </tr>
+      <tr>
+        <th><i class="fas fa-route" style="margin-right:6px"></i>Viagens</th>
+        <td>{{ total_viagens|intcomma }}</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ── GRÁFICO ── -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <div class="chart-card-title"><i class="fas fa-chart-pie"></i> Distribuição Estatística</div>
+    </div>
+    <div class="chart-body">
+      <canvas id="grafico"></canvas>
+    </div>
+  </div>
+
 </div>
-
-<!-- Totais -->
-<div class="row text-center mb-4">
-    <div class="col-md-4">
-        <div class="card stats-card bg-azul-forte">
-            <div class="card-body">
-                <h4 class="text-success">{{ total_entradas|floatformat:2|intcomma }} Kz</h4>
-                <p>Entradas</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card stats-card bg-azul-forte">
-            <div class="card-body">
-                <h4 class="text-danger">{{ total_saidas|floatformat:2|intcomma }} Kz</h4>
-                <p>Despesas (incl. combustível)</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card stats-card bg-azul-forte">
-            <div class="card-body">
-                <h4 class="{% if resto >= 0 %}text-success{% else %}text-danger{% endif %}">
-                    {{ resto|floatformat:2|intcomma }} Kz
-                </h4>
-                <p>Remanescente</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Total Combustível -->
-<div class="row text-center mb-4">
-    <div class="col-md-3">
-        <div class="card stats-card bg-azul-forte">
-            <div class="card-body">
-                <h5 class="text-danger">{{ total_combustivel_valor|floatformat:2|intcomma }} Kz</h5>
-                <p>Combustível</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card stats-card bg-azul-forte">
-            <div class="card-body">
-                <h5 class="text-info">{{ total_combustivel_litros|floatformat:2|intcomma }}</h5>
-                <p>Por Litros (ilustr.)</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card stats-card bg-azul-forte">
-            <div class="card-body">
-                <h5 class="text-warning">{{ total_combustivel_sobragem|floatformat:2|intcomma }} Kz</h5>
-                <p>Sopragem Filtros</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card stats-card bg-azul-forte">
-            <div class="card-body">
-                <h5 class="text-info">{{ total_combustivel_lavagem|floatformat:2|intcomma }} Kz</h5>
-                <p>Lavagem</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Estatísticas -->
-<table class="table table-bordered">
-    <tr><th>KM Total</th><td>{{ total_km|floatformat:2|intcomma }} km</td></tr>
-    <tr><th>Passageiros</th><td>{{ total_passageiros|intcomma }}</td></tr>
-    <tr><th>Viagens</th><td>{{ total_viagens|intcomma }}</td></tr>
-</table>
-
-<!-- Gráfico -->
-<div style="max-width: 400px; margin: 20px auto;">
-    <canvas id="grafico"></canvas>
-</div>
-
-{# Últimos registos removidos por solicitação do usuário #}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% block extra_js %}
 <script>
-var ctx = document.getElementById('grafico').getContext('2d');
+(function () {
+  function toNum(v) {
+    if (typeof v === 'number') return v;
+    return parseFloat(String(v).replace(/\./g,'').replace(',','.')) || 0;
+  }
 
-new Chart(ctx, {
+  var ctx = document.getElementById('grafico').getContext('2d');
+
+  new Chart(ctx, {
     type: 'doughnut',
     data: {
-        labels: ['Entradas (Kz)', 'Saídas (Kz)', 'KM', 'Passageiros', 'Viagens'],
-        datasets: [{
-            label: 'Estatísticas do Autocarro',
-            data: [
-                {{ total_entradas|default:0|unlocalize }},
-                {{ total_saidas|default:0|unlocalize }},
-                {{ total_km|default:0|unlocalize }},
-                {{ total_passageiros|default:0|unlocalize }},
-                {{ total_viagens|default:0|unlocalize }}
-            ],
-            backgroundColor: [
-                '#28a745',
-                '#dc3545',
-                '#007bff',
-                '#ffc107',
-                '#6f42c1'
-            ],
-            borderWidth: 2,
-            hoverOffset: 15
-        }]
+      labels: ['Entradas (Kz)', 'Saídas (Kz)', 'KM', 'Passageiros', 'Viagens'],
+      datasets: [{
+        data: [
+          {{ total_entradas|default:0|unlocalize }},
+          {{ total_saidas|default:0|unlocalize }},
+          {{ total_km|default:0|unlocalize }},
+          {{ total_passageiros|default:0|unlocalize }},
+          {{ total_viagens|default:0|unlocalize }}
+        ],
+        backgroundColor: ['#69f0ae','#ff8a80','#4fc3f7','#ffd54f','#ce93d8'],
+        borderColor: 'rgba(4,30,66,.6)',
+        borderWidth: 2,
+        hoverOffset: 14
+      }]
     },
     options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: {
-            animateRotate: true,
-            animateScale: true,
-            duration: 1200,
-            easing: 'easeOutCubic'
+      responsive: true,
+      maintainAspectRatio: true,
+      animation: { animateRotate: true, animateScale: true, duration: 1200, easing: 'easeOutCubic' },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: 'rgba(255,255,255,.65)',
+            font: { size: 11, family: 'Barlow Condensed' },
+            padding: 16,
+            boxWidth: 12, boxHeight: 12
+          }
         },
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    color: '#fff',
-                    font: { size: 12 }
-                }
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        return context.label + ': ' + context.formattedValue;
-                    }
-                }
+        tooltip: {
+          backgroundColor: 'rgba(4,30,66,.95)',
+          borderColor: 'rgba(79,195,247,.2)',
+          borderWidth: 1,
+          titleColor: '#fff',
+          bodyColor: 'rgba(255,255,255,.7)',
+          callbacks: {
+            label: function (c) {
+              return ' ' + c.label + ': ' + c.formattedValue;
             }
+          }
         }
+      }
     }
-});
+  });
+})();
 </script>
-
+{% endblock %}
 {% endblock %}
