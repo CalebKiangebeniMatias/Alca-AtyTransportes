@@ -1839,7 +1839,7 @@ def adicionar_relatorio_sector(request):
 
 
 @login_required
-@acesso_restrito(['admin, gestor'])
+@acesso_restrito(['admin'])
 def gerir_relatorio_sector(request, pk=None):
     relatorio = RelatorioSector.objects.filter(pk=pk).first()  # 🔹 Se for edição, busca o relatório existente
 
@@ -4463,3 +4463,4 @@ def comparacao_registo_deposito(request):
     }
 
     return render(request, 'financeiro/comparacao_registo_deposito.html', context)
+
