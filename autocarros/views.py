@@ -2022,7 +2022,7 @@ def editar_relatorio_sector(request, pk=None, sector_id=None, data=None):
 
 
 @login_required
-@acesso_restrito(['admin, gestor'])
+@acesso_restrito(['admin', 'gestor'])
 def adicionar_comprovativos(request, pk):
     """Adicionar comprovativos a um relatório existente"""
     relatorio = get_object_or_404(RelatorioSector, pk=pk)
@@ -3685,7 +3685,7 @@ def cobrador_viagens_validate_action(request):
 
 # ---------- Manutenção Autocarros Views ----------#
 @login_required
-@acesso_restrito(['admin, gestor'])
+@acesso_restrito(['admin', 'gestor'])
 def manutencao_create(request):
     if request.method == 'POST':
         form = ManutencaoForm(request.POST)
@@ -3722,7 +3722,7 @@ def manutencao_create(request):
 
 
 @login_required
-@acesso_restrito(['admin, gestor'])
+@acesso_restrito(['admin', 'gestor'])
 def manutencao_list(request):
     qs = Manutencao.objects.select_related('autocarro', 'sector', 'responsavel').all()
 
@@ -3749,7 +3749,7 @@ def manutencao_list(request):
 
 
 @login_required
-@acesso_restrito(['admin, gestor'])
+@acesso_restrito(['admin', 'gestor'])
 def manutencao_edit(request, pk):
     manut = get_object_or_404(Manutencao, pk=pk)
     if request.method == 'POST':
@@ -4463,4 +4463,3 @@ def comparacao_registo_deposito(request):
     }
 
     return render(request, 'financeiro/comparacao_registo_deposito.html', context)
-
