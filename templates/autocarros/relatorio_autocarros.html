@@ -1,0 +1,435 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Relatório por Autocarro - ALCA & ATY{% endblock %}
+{% block breadcrumb %}Relatórios / Por Autocarro{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ═══ PRINT STYLES ═══ */
+  @media print {
+    .filter-section, .stats-container, .nav-buttons {
+      display: none !important;
+    }
+    .table-container {
+      box-shadow: none !important;
+    }
+    table.relatorio-table {
+      border: 2px solid #000 !important;
+    }
+    th, td {
+      border: 1px solid #000 !important;
+      color: black !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
+
+  /* ═══ NAV BUTTONS ═══ */
+  .nav-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  /* ═══ FILTER SECTION ═══ */
+  .filter-section {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 24px;
+    backdrop-filter: blur(var(--glass-blur));
+  }
+
+  .filter-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .filter-item {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .filter-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  /* ═══ STATS CARDS ═══ */
+  .stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card-custom {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    backdrop-filter: blur(var(--glass-blur));
+    transition: transform var(--ease-spring), box-shadow var(--ease-base);
+  }
+
+  .stat-card-custom:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .stat-card-custom .stat-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+
+  .stat-card-custom .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    transition: transform var(--ease-spring);
+  }
+
+  .stat-card-custom:hover .stat-icon {
+    transform: scale(1.1) rotate(-5deg);
+  }
+
+  .stat-card-custom.total .stat-icon {
+    background: rgba(79, 195, 247, 0.12);
+    color: var(--accent);
+  }
+
+  .stat-card-custom.income .stat-icon {
+    background: rgba(39, 174, 96, 0.12);
+    color: var(--success);
+  }
+
+  .stat-card-custom.expense .stat-icon {
+    background: rgba(231, 76, 60, 0.12);
+    color: var(--danger);
+  }
+
+  .stat-card-custom.balance .stat-icon {
+    background: rgba(243, 156, 18, 0.12);
+    color: var(--warning);
+  }
+
+  .stat-card-custom .stat-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--grey);
+    margin-bottom: 6px;
+  }
+
+  .stat-card-custom .stat-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 1px;
+    color: var(--white);
+    line-height: 1;
+  }
+
+  /* ═══ TABLE CONTAINER ═══ */
+  .table-container {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    backdrop-filter: blur(var(--glass-blur));
+    box-shadow: var(--shadow-md);
+  }
+
+  /* ═══ TABLE STYLES ═══ */
+  table.relatorio-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  table.relatorio-table th,
+  table.relatorio-table td {
+    padding: 14px 12px;
+    text-align: center;
+    border: 1px solid rgba(79, 195, 247, 0.15);
+    color: var(--white);
+  }
+
+  table.relatorio-table thead {
+    background: var(--grad-header);
+  }
+
+  table.relatorio-table th {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: var(--white);
+  }
+
+  table.relatorio-table tbody tr {
+    transition: background var(--ease-fast), transform var(--ease-fast);
+  }
+
+  table.relatorio-table tbody tr:nth-child(even) {
+    background: rgba(36, 99, 163, 0.08);
+  }
+
+  table.relatorio-table tbody tr:nth-child(odd) {
+    background: rgba(4, 30, 66, 0.4);
+  }
+
+  table.relatorio-table tbody tr:hover {
+    background: rgba(79, 195, 247, 0.12);
+    transform: scale(1.01);
+  }
+
+  table.relatorio-table td {
+    font-weight: 500;
+  }
+
+  table.relatorio-table td:first-child {
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .saldo-positive {
+    color: var(--success) !important;
+    font-weight: 800 !important;
+    font-size: 15px;
+  }
+
+  .saldo-negative {
+    color: var(--danger) !important;
+    font-weight: 800 !important;
+    font-size: 15px;
+  }
+
+  .no-data {
+    text-align: center;
+    padding: 40px;
+    color: var(--grey);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  /* ═══ RESPONSIVE ═══ */
+  @media (max-width: 768px) {
+    .filter-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .filter-item {
+      min-width: 100%;
+    }
+
+    .stats-container {
+      grid-template-columns: 1fr;
+    }
+
+    table.relatorio-table {
+      font-size: 12px;
+    }
+
+    table.relatorio-table th,
+    table.relatorio-table td {
+      padding: 10px 8px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reveal">
+  <!-- ═══ PAGE HEADER ═══ -->
+  <div class="page-header">
+    <h1 class="page-title">
+      <i class="fas fa-bus" style="color: var(--accent); margin-right: 10px;"></i>
+      <span>Relatório</span> por Autocarro
+    </h1>
+  </div>
+
+  <!-- ═══ NAV BUTTONS ═══ -->
+  <div class="nav-buttons">
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-light">
+      <i class="fas fa-arrow-left"></i> Voltar ao Dashboard
+    </a>
+  </div>
+
+  <!-- ═══ FILTER SECTION ═══ -->
+  <form method="GET" class="filter-section">
+    <div class="filter-row">
+      <div class="filter-item">
+        <label class="form-label">Dia</label>
+        <select name="dia" class="form-select">
+          {% for d in "12345678910111213141516171819202122232425262728293031"|make_list %}
+            {% if forloop.counter < 32 %}
+              <option value="{{ forloop.counter }}" {% if filtros.dia == forloop.counter|stringformat:"s" %}selected{% endif %}>
+                {{ forloop.counter|stringformat:"02d" }}
+              </option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <label class="form-label">Mês</label>
+        <select name="mes" class="form-select">
+          <option value="1" {% if filtros.mes == "1" %}selected{% endif %}>Janeiro</option>
+          <option value="2" {% if filtros.mes == "2" %}selected{% endif %}>Fevereiro</option>
+          <option value="3" {% if filtros.mes == "3" %}selected{% endif %}>Março</option>
+          <option value="4" {% if filtros.mes == "4" %}selected{% endif %}>Abril</option>
+          <option value="5" {% if filtros.mes == "5" %}selected{% endif %}>Maio</option>
+          <option value="6" {% if filtros.mes == "6" %}selected{% endif %}>Junho</option>
+          <option value="7" {% if filtros.mes == "7" %}selected{% endif %}>Julho</option>
+          <option value="8" {% if filtros.mes == "8" %}selected{% endif %}>Agosto</option>
+          <option value="9" {% if filtros.mes == "9" %}selected{% endif %}>Setembro</option>
+          <option value="10" {% if filtros.mes == "10" %}selected{% endif %}>Outubro</option>
+          <option value="11" {% if filtros.mes == "11" %}selected{% endif %}>Novembro</option>
+          <option value="12" {% if filtros.mes == "12" %}selected{% endif %}>Dezembro</option>
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <label class="form-label">Ano</label>
+        <select name="ano" class="form-select">
+          <option value="2030" {% if filtros.ano == "2030" %}selected{% endif %}>2030</option>
+          <option value="2029" {% if filtros.ano == "2029" %}selected{% endif %}>2029</option>
+          <option value="2028" {% if filtros.ano == "2028" %}selected{% endif %}>2028</option>
+          <option value="2027" {% if filtros.ano == "2027" %}selected{% endif %}>2027</option>
+          <option value="2026" {% if filtros.ano == "2026" %}selected{% endif %}>2026</option>
+          <option value="2025" {% if filtros.ano == "2025" %}selected{% endif %}>2025</option>
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <label class="form-label">Setor</label>
+        <select name="sector" class="form-select">
+          <option value="">Todos os Sectores</option>
+          {% for s in sectores %}
+            <option value="{{ s.id }}" {% if filtros.sector == s.id|stringformat:"s" %}selected{% endif %}>
+              {{ s.nome }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="filter-buttons">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-filter"></i> Filtrar
+        </button>
+        <button type="button" onclick="window.print()" class="btn btn-warning">
+          <i class="fas fa-print"></i> Imprimir
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- ═══ STATISTICS CARDS ═══ -->
+  <div class="stats-container reveal">
+    <div class="stat-card-custom total">
+      <div class="stat-header">
+        <div class="stat-icon">
+          <i class="fas fa-bus"></i>
+        </div>
+        <div>
+          <div class="stat-label">Total Autocarros</div>
+          <div class="stat-value">{{ tabela|length }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card-custom income">
+      <div class="stat-header">
+        <div class="stat-icon">
+          <i class="fas fa-arrow-trend-up"></i>
+        </div>
+        <div>
+          <div class="stat-label">Total Entradas</div>
+          <div class="stat-value">
+            {% widthratio tabela|length 1 1 as total_entradas %}
+            {{ total_entradas|default:"0" }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card-custom expense">
+      <div class="stat-header">
+        <div class="stat-icon">
+          <i class="fas fa-arrow-trend-down"></i>
+        </div>
+        <div>
+          <div class="stat-label">Total Saídas</div>
+          <div class="stat-value">
+            {% widthratio tabela|length 1 1 as total_saidas %}
+            {{ total_saidas|default:"0" }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card-custom balance">
+      <div class="stat-header">
+        <div class="stat-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div>
+          <div class="stat-label">Saldo Total</div>
+          <div class="stat-value">0 Kz</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TABLE ═══ -->
+  <div class="table-container reveal">
+    <table class="relatorio-table">
+      <thead>
+        <tr>
+          <th><i class="fas fa-bus"></i> Referência</th>
+          <th><i class="fas fa-user"></i> Motorista</th>
+          <th><i class="fas fa-arrow-up"></i> Entradas</th>
+          <th><i class="fas fa-arrow-down"></i> Saídas</th>
+          <th><i class="fas fa-calculator"></i> Saldo</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for r in tabela %}
+          <tr>
+            <td>{{ r.ref_autocarro }}</td>
+            <td>{{ r.motorista }}</td>
+            <td>{{ r.entradas|intcomma }} Kz</td>
+            <td>{{ r.saidas|intcomma }} Kz</td>
+            <td class="{% if r.saldo < 0 %}saldo-negative{% else %}saldo-positive{% endif %}">
+              {{ r.saldo|intcomma }} Kz
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="no-data">
+              <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px; display: block; opacity: 0.5;"></i>
+              Nenhum registo encontrado para os filtros selecionados
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -168,7 +168,13 @@ urlpatterns = [
         views.comparacao_registo_deposito,
         name='comparacao_registo_deposito'
     ),
-    
+
+    # Relatório de Autocarros
+    path("relatorio-autocarros/",
+        views.relatorio_autocarros,
+        name="relatorio_autocarros"
+    ),
+        
     #Mapas
     path('mapas/mensal-financeiro/', views.mapa_geral_financeiro, name='mapa_geral_financeiro'),
 

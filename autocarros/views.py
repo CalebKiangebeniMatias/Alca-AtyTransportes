@@ -4463,3 +4463,71 @@ def comparacao_registo_deposito(request):
     }
 
     return render(request, 'financeiro/comparacao_registo_deposito.html', context)
+
+
+from django.shortcuts import render
+from django.utils import timezone
+from decimal import Decimal
+
+def relatorio_autocarros(request):
+
+    hoje = timezone.now().date()
+
+    dia = request.GET.get("dia")
+    mes = request.GET.get("mes")
+    ano = request.GET.get("ano")
+    sector_id = request.GET.get("sector")
+
+    # padrão: data atual
+    if not dia and not mes and not ano:
+        dia = hoje.day
+        mes = hoje.month
+        ano = hoje.year
+
+    registos = RegistoDiario.objects.select_related(
+        "autocarro",
+        "autocarro__sector"
+    )
+
+    if ano:
+        registos = registos.filter(data__year=ano)
+
+    if mes:
+        registos = registos.filter(data__month=mes)
+
+    if dia:
+        registos = registos.filter(data__day=dia)
+
+    if sector_id:
+        registos = registos.filter(autocarro__sector_id=sector_id)
+
+    tabela = []
+
+    for r in registos:
+
+        entradas = r.entradas_total()
+        saidas = r.saidas_total()
+        saldo = entradas - saidas
+
+        tabela.append({
+            "ref_autocarro": r.autocarro.numero,
+            "motorista": r.motorista,
+            "entradas": entradas,
+            "saidas": saidas,
+            "saldo": saldo,
+        })
+
+    sectores = Sector.objects.all()
+
+    context = {
+        "tabela": tabela,
+        "sectores": sectores,
+        "filtros": {
+            "dia": dia,
+            "mes": mes,
+            "ano": ano,
+            "sector": sector_id
+        }
+    }
+
+    return render(request, "autocarros/relatorio_autocarros.html", context)
