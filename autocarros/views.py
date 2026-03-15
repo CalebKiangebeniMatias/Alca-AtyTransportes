@@ -4880,22 +4880,294 @@ def relatorio_autocarros_paginado(request):
         context
     )
 
-    # ═══════════════════════════════════════════════════════════
-# 2. EXPORTAR RELATÓRIO DE AUTOCARROS PARA CSV
+# ═══════════════════════════════════════════════════════════
+# IMPORTS NECESSÁRIOS (adicionar no topo do views.py)
 # ═══════════════════════════════════════════════════════════
 
+import csv
+from django.http import HttpResponse
+from datetime import datetime
+from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from django.db.models import Sum
+from django.db.models import Sum, F, DecimalField, Value
+from django.db.models.functions import Coalesce
 from decimal import Decimal
 from collections import defaultdict
 
+
+# ═══════════════════════════════════════════════════════════
+# 1. EXPORTAR MAPA FINANCEIRO PARA CSV
+# ═══════════════════════════════════════════════════════════
+
+@login_required
+def exportar_mapa_financeiro_csv(request):
+    """
+    Exporta o Mapa Financeiro para CSV
+    """
+    # Pegar os filtros da URL
+    sector_id = request.GET.get('sector', '')
+    mes = int(request.GET.get('mes', datetime.now().month))
+    ano = int(request.GET.get('ano', datetime.now().year))
+    
+    # Buscar o setor se fornecido
+    sector = None
+    sector_nome = "Todos"
+    if sector_id:
+        try:
+            sector = Sector.objects.get(id=sector_id)
+            sector_nome = sector.nome
+        except Sector.DoesNotExist:
+            pass
+    
+    # Nome do mês por extenso
+    meses = {
+        1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',
+        5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
+        9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
+    }
+    mes_nome = meses.get(mes, 'Desconhecido')
+    
+    # Criar resposta HTTP com tipo CSV
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="mapa_financeiro_{mes_nome}_{ano}_{sector_nome}.csv"'
+    
+    # Adicionar BOM para Excel reconhecer UTF-8
+    response.write('\ufeff')
+    
+    # Criar writer CSV
+    writer = csv.writer(response, delimiter=';')
+    
+    # ═══ CABEÇALHO DO RELATÓRIO ═══
+    writer.writerow(['MAPA FINANCEIRO - ALCA & ATY TRANSPORTES'])
+    writer.writerow([f'Setor: {sector_nome}'])
+    writer.writerow([f'Período: {mes_nome}/{ano}'])
+    writer.writerow([f'Data de Exportação: {datetime.now().strftime("%d/%m/%Y %H:%M")}'])
+    writer.writerow([])  # Linha em branco
+    
+    # ═══ CABEÇALHO DA TABELA ═══
+    writer.writerow([
+        'CATEGORIA',
+        '1ª SEMANA',
+        '2ª SEMANA',
+        '3ª SEMANA',
+        '4ª SEMANA',
+        'TOTAL MENSAL'
+    ])
+    
+    # ═══ AQUI VOCÊ DEVE BUSCAR OS DADOS DO SEU MODEL ═══
+    # Substitua isso pela sua lógica real de busca de dados
+    # Exemplo de estrutura:
+    semanas = {
+        1: {'entradas': {'normal': 0, 'frete': 0, 'alunos': 0, 'luvu': 0, 'total': 0},
+            'despesas': {'combustivel': 0, 'alimentacao': 0, 'taxi': 0, 'lavagem': 0, 
+                        'sopragem': 0, 'taxa': 0, 'parqueamento': 0, 'outros': 0,
+                        'despesa_geral': 0, 'alimentacao_estaleiro': 0, 'total': 0},
+            'saldo': 0},
+        2: {'entradas': {}, 'despesas': {}, 'saldo': 0},
+        3: {'entradas': {}, 'despesas': {}, 'saldo': 0},
+        4: {'entradas': {}, 'despesas': {}, 'saldo': 0},
+    }
+    
+    # Calcular totais
+    total_entradas_normal = sum(semanas[i]['entradas']['normal'] for i in range(1, 5))
+    total_entradas_frete = sum(semanas[i]['entradas']['frete'] for i in range(1, 5))
+    total_entradas_alunos = sum(semanas[i]['entradas']['alunos'] for i in range(1, 5))
+    total_entradas_luvu = sum(semanas[i]['entradas']['luvu'] for i in range(1, 5))
+    total_entradas = sum(semanas[i]['entradas']['total'] for i in range(1, 5))
+    
+    total_despesas_combustivel = sum(semanas[i]['despesas']['combustivel'] for i in range(1, 5))
+    total_despesas_alimentacao = sum(semanas[i]['despesas']['alimentacao'] for i in range(1, 5))
+    total_despesas_taxi = sum(semanas[i]['despesas']['taxi'] for i in range(1, 5))
+    total_despesas_lavagem = sum(semanas[i]['despesas']['lavagem'] for i in range(1, 5))
+    total_despesas_sopragem = sum(semanas[i]['despesas']['sopragem'] for i in range(1, 5))
+    total_despesas_taxa = sum(semanas[i]['despesas']['taxa'] for i in range(1, 5))
+    total_despesas_parqueamento = sum(semanas[i]['despesas']['parqueamento'] for i in range(1, 5))
+    total_despesas_outros = sum(semanas[i]['despesas']['outros'] for i in range(1, 5))
+    total_despesa_geral = sum(semanas[i]['despesas']['despesa_geral'] for i in range(1, 5))
+    total_despesa_alimentacao_estaleiro = sum(semanas[i]['despesas']['alimentacao_estaleiro'] for i in range(1, 5))
+    total_despesas = sum(semanas[i]['despesas']['total'] for i in range(1, 5))
+    
+    saldo_liquido = total_entradas - total_despesas
+    
+    # ═══ SEÇÃO DE ENTRADAS ═══
+    writer.writerow(['ENTRADAS'])
+    writer.writerow([
+        'MANHÃ/LAVRA/NORMAL',
+        f'{semanas[1]["entradas"]["normal"]:.2f}',
+        f'{semanas[2]["entradas"]["normal"]:.2f}',
+        f'{semanas[3]["entradas"]["normal"]:.2f}',
+        f'{semanas[4]["entradas"]["normal"]:.2f}',
+        f'{total_entradas_normal:.2f}'
+    ])
+    writer.writerow([
+        'FRETE/ALUGUEL',
+        f'{semanas[1]["entradas"]["frete"]:.2f}',
+        f'{semanas[2]["entradas"]["frete"]:.2f}',
+        f'{semanas[3]["entradas"]["frete"]:.2f}',
+        f'{semanas[4]["entradas"]["frete"]:.2f}',
+        f'{total_entradas_frete:.2f}'
+    ])
+    writer.writerow([
+        'ALUNOS/TARDE',
+        f'{semanas[1]["entradas"]["alunos"]:.2f}',
+        f'{semanas[2]["entradas"]["alunos"]:.2f}',
+        f'{semanas[3]["entradas"]["alunos"]:.2f}',
+        f'{semanas[4]["entradas"]["alunos"]:.2f}',
+        f'{total_entradas_alunos:.2f}'
+    ])
+    writer.writerow([
+        'LUVU',
+        f'{semanas[1]["entradas"]["luvu"]:.2f}',
+        f'{semanas[2]["entradas"]["luvu"]:.2f}',
+        f'{semanas[3]["entradas"]["luvu"]:.2f}',
+        f'{semanas[4]["entradas"]["luvu"]:.2f}',
+        f'{total_entradas_luvu:.2f}'
+    ])
+    writer.writerow([
+        'TOTAL ENTRADAS',
+        f'{semanas[1]["entradas"]["total"]:.2f}',
+        f'{semanas[2]["entradas"]["total"]:.2f}',
+        f'{semanas[3]["entradas"]["total"]:.2f}',
+        f'{semanas[4]["entradas"]["total"]:.2f}',
+        f'{total_entradas:.2f}'
+    ])
+    writer.writerow([])  # Linha em branco
+    
+    # ═══ SEÇÃO DE DESPESAS ═══
+    writer.writerow(['DESPESAS FIXAS'])
+    writer.writerow([
+        'COMBUSTÍVEL AUTOCARROS',
+        f'{semanas[1]["despesas"]["combustivel"]:.2f}',
+        f'{semanas[2]["despesas"]["combustivel"]:.2f}',
+        f'{semanas[3]["despesas"]["combustivel"]:.2f}',
+        f'{semanas[4]["despesas"]["combustivel"]:.2f}',
+        f'{total_despesas_combustivel:.2f}'
+    ])
+    writer.writerow([
+        'ALIMENTAÇÃO MOTORISTAS E COBRAD',
+        f'{semanas[1]["despesas"]["alimentacao"]:.2f}',
+        f'{semanas[2]["despesas"]["alimentacao"]:.2f}',
+        f'{semanas[3]["despesas"]["alimentacao"]:.2f}',
+        f'{semanas[4]["despesas"]["alimentacao"]:.2f}',
+        f'{total_despesas_alimentacao:.2f}'
+    ])
+    writer.writerow([
+        'TRANSPORTE MOTORISTAS/COBRAD/OUTROS',
+        f'{semanas[1]["despesas"]["taxi"]:.2f}',
+        f'{semanas[2]["despesas"]["taxi"]:.2f}',
+        f'{semanas[3]["despesas"]["taxi"]:.2f}',
+        f'{semanas[4]["despesas"]["taxi"]:.2f}',
+        f'{total_despesas_taxi:.2f}'
+    ])
+    writer.writerow([
+        'LAVAGEM',
+        f'{semanas[1]["despesas"]["lavagem"]:.2f}',
+        f'{semanas[2]["despesas"]["lavagem"]:.2f}',
+        f'{semanas[3]["despesas"]["lavagem"]:.2f}',
+        f'{semanas[4]["despesas"]["lavagem"]:.2f}',
+        f'{total_despesas_lavagem:.2f}'
+    ])
+    writer.writerow([
+        'SOPRAGENS DE FILTROS',
+        f'{semanas[1]["despesas"]["sopragem"]:.2f}',
+        f'{semanas[2]["despesas"]["sopragem"]:.2f}',
+        f'{semanas[3]["despesas"]["sopragem"]:.2f}',
+        f'{semanas[4]["despesas"]["sopragem"]:.2f}',
+        f'{total_despesas_sopragem:.2f}'
+    ])
+    writer.writerow([
+        'TAXA LOTAÇÃO',
+        f'{semanas[1]["despesas"]["taxa"]:.2f}',
+        f'{semanas[2]["despesas"]["taxa"]:.2f}',
+        f'{semanas[3]["despesas"]["taxa"]:.2f}',
+        f'{semanas[4]["despesas"]["taxa"]:.2f}',
+        f'{total_despesas_taxa:.2f}'
+    ])
+    writer.writerow([
+        'SEGURANÇA/PARQUE',
+        f'{semanas[1]["despesas"]["parqueamento"]:.2f}',
+        f'{semanas[2]["despesas"]["parqueamento"]:.2f}',
+        f'{semanas[3]["despesas"]["parqueamento"]:.2f}',
+        f'{semanas[4]["despesas"]["parqueamento"]:.2f}',
+        f'{total_despesas_parqueamento:.2f}'
+    ])
+    writer.writerow([
+        'OUTROS',
+        f'{semanas[1]["despesas"]["outros"]:.2f}',
+        f'{semanas[2]["despesas"]["outros"]:.2f}',
+        f'{semanas[3]["despesas"]["outros"]:.2f}',
+        f'{semanas[4]["despesas"]["outros"]:.2f}',
+        f'{total_despesas_outros:.2f}'
+    ])
+    writer.writerow([
+        'DESPESA FEITA NA PRODUÇÃO',
+        f'{semanas[1]["despesas"]["despesa_geral"]:.2f}',
+        f'{semanas[2]["despesas"]["despesa_geral"]:.2f}',
+        f'{semanas[3]["despesas"]["despesa_geral"]:.2f}',
+        f'{semanas[4]["despesas"]["despesa_geral"]:.2f}',
+        f'{total_despesa_geral:.2f}'
+    ])
+    writer.writerow([
+        'ALIMENTAÇÃO DO ESTALEIRO',
+        f'{semanas[1]["despesas"]["alimentacao_estaleiro"]:.2f}',
+        f'{semanas[2]["despesas"]["alimentacao_estaleiro"]:.2f}',
+        f'{semanas[3]["despesas"]["alimentacao_estaleiro"]:.2f}',
+        f'{semanas[4]["despesas"]["alimentacao_estaleiro"]:.2f}',
+        f'{total_despesa_alimentacao_estaleiro:.2f}'
+    ])
+    writer.writerow([
+        'TOTAL DESPESAS',
+        f'{semanas[1]["despesas"]["total"]:.2f}',
+        f'{semanas[2]["despesas"]["total"]:.2f}',
+        f'{semanas[3]["despesas"]["total"]:.2f}',
+        f'{semanas[4]["despesas"]["total"]:.2f}',
+        f'{total_despesas:.2f}'
+    ])
+    writer.writerow([])  # Linha em branco
+    
+    # ═══ SALDO SEMANAL ═══
+    writer.writerow([
+        'SALDO SEMANAL',
+        f'{semanas[1]["saldo"]:.2f}',
+        f'{semanas[2]["saldo"]:.2f}',
+        f'{semanas[3]["saldo"]:.2f}',
+        f'{semanas[4]["saldo"]:.2f}',
+        f'{saldo_liquido:.2f}'
+    ])
+    writer.writerow([])  # Linha em branco
+    
+    # ═══ RESUMO FINAL ═══
+    writer.writerow(['RESUMO FINAL'])
+    writer.writerow(['ENTRADAS GERAIS', '', '', '', '', f'{total_entradas:.2f}'])
+    writer.writerow(['DESPESAS FIXAS E VARIÁVEIS', '', '', '', '', f'{total_despesas:.2f}'])
+    writer.writerow(['SALDO LÍQUIDO', '', '', '', '', f'{saldo_liquido:.2f}'])
+    
+    return response
+
+
+# ═══════════════════════════════════════════════════════════
+# 2. EXPORTAR RELATÓRIO DE AUTOCARROS PARA CSV
+# ═══════════════════════════════════════════════════════════
+
+from django.shortcuts import render
+from django.utils import timezone
+from django.db.models import Sum, F, DecimalField, Value
+from django.db.models.functions import Coalesce
+from decimal import Decimal
+from collections import defaultdict
+import csv
+from django.http import HttpResponse
+from datetime import datetime
+from django.contrib.auth.decorators import login_required
+
 @login_required
 def exportar_relatorio_autocarros_csv(request):
+    """
+    Exporta o Relatório de Autocarros para CSV
+    MESMA LÓGICA OTIMIZADA da view relatorio_autocarros
+    """
     
-    #Exporta o Relatório de Autocarros para CSV
-    #MESMA LÓGICA da view relatorio_autocarros
-    
-    # ═══ BUSCAR DADOS (MESMA LÓGICA DA VIEW) ═══
+    # ═══ BUSCAR DADOS (MESMA LÓGICA DA VIEW OTIMIZADA) ═══
     hoje = timezone.now().date()
 
     dia = request.GET.get("dia")
@@ -4909,53 +5181,69 @@ def exportar_relatorio_autocarros_csv(request):
         mes = hoje.month
         ano = hoje.year
 
-    registos = RegistoDiario.objects.select_related(
+    # Query otimizada
+    registos_qs = RegistoDiario.objects.select_related(
         "autocarro",
         "autocarro__sector"
     )
 
     # Filtros de data
     if ano:
-        registos = registos.filter(data__year=ano)
+        registos_qs = registos_qs.filter(data__year=ano)
     if mes:
-        registos = registos.filter(data__month=mes)
+        registos_qs = registos_qs.filter(data__month=mes)
     if dia:
-        registos = registos.filter(data__day=dia)
+        registos_qs = registos_qs.filter(data__day=dia)
 
     # Filtro sector
     if sector_id:
-        registos = registos.filter(autocarro__sector_id=sector_id)
+        registos_qs = registos_qs.filter(autocarro__sector_id=sector_id)
 
-    # Mapa de combustivel por autocarro/data
+    # Calcular totais na query (OTIMIZADO)
+    registos = registos_qs.annotate(
+        entradas_total_calc=Coalesce(F('normal'), Value(0), output_field=DecimalField()) + 
+                           Coalesce(F('frete'), Value(0), output_field=DecimalField()) + 
+                           Coalesce(F('alunos'), Value(0), output_field=DecimalField()) + 
+                           Coalesce(F('luvu'), Value(0), output_field=DecimalField()),
+        
+        saidas_total_calc=Coalesce(F('alimentacao'), Value(0), output_field=DecimalField()) + 
+                         Coalesce(F('parqueamento'), Value(0), output_field=DecimalField()) + 
+                         Coalesce(F('taxa'), Value(0), output_field=DecimalField()) + 
+                         Coalesce(F('outros'), Value(0), output_field=DecimalField())
+    ).order_by('data', 'autocarro__numero')
+
+    # Combustíveis
+    combustiveis_qs = DespesaCombustivel.objects.select_related('autocarro')
+
+    if ano:
+        combustiveis_qs = combustiveis_qs.filter(data__year=ano)
+    if mes:
+        combustiveis_qs = combustiveis_qs.filter(data__month=mes)
+    if dia:
+        combustiveis_qs = combustiveis_qs.filter(data__day=dia)
+    if sector_id:
+        combustiveis_qs = combustiveis_qs.filter(autocarro__sector_id=sector_id)
+
+    # Mapa de combustível
     combustivel_map = defaultdict(lambda: {
         "valor": Decimal("0"),
         "sobragem": Decimal("0"),
         "lavagem": Decimal("0")
     })
 
-    combustiveis = DespesaCombustivel.objects.all()
-
-    if ano:
-        combustiveis = combustiveis.filter(data__year=ano)
-    if mes:
-        combustiveis = combustiveis.filter(data__month=mes)
-    if dia:
-        combustiveis = combustiveis.filter(data__day=dia)
-    if sector_id:
-        combustiveis = combustiveis.filter(autocarro__sector_id=sector_id)
-
-    for c in combustiveis:
-        key = f"{c.autocarro_id}_{c.data}"
-        combustivel_map[key]["valor"] += c.valor or Decimal("0")
-        combustivel_map[key]["sobragem"] += c.sobragem_filtros or Decimal("0")
-        combustivel_map[key]["lavagem"] += c.lavagem or Decimal("0")
+    for c in combustiveis_qs.values('autocarro_id', 'data', 'valor', 'sobragem_filtros', 'lavagem'):
+        key = f"{c['autocarro_id']}_{c['data']}"
+        combustivel_map[key]["valor"] += c['valor'] or Decimal("0")
+        combustivel_map[key]["sobragem"] += c['sobragem_filtros'] or Decimal("0")
+        combustivel_map[key]["lavagem"] += c['lavagem'] or Decimal("0")
 
     # Tabela final
     tabela = []
 
     for r in registos:
-        entradas = r.entradas_total()
-        saidas = r.saidas_total()
+        # Usar valores calculados pelo annotate
+        entradas = r.entradas_total_calc or Decimal("0")
+        saidas = r.saidas_total_calc or Decimal("0")
 
         key = f"{r.autocarro_id}_{r.data}"
         comb = combustivel_map.get(key, {})
@@ -4965,10 +5253,10 @@ def exportar_relatorio_autocarros_csv(request):
         combustivel_lavagem = comb.get("lavagem", Decimal("0"))
 
         saidas_total = (
-            saidas
-            + combustivel_valor
-            + combustivel_sobragem
-            + combustivel_lavagem
+            saidas +
+            combustivel_valor +
+            combustivel_sobragem +
+            combustivel_lavagem
         )
 
         saldo = entradas - saidas_total
@@ -4976,6 +5264,7 @@ def exportar_relatorio_autocarros_csv(request):
         tabela.append({
             "ref_autocarro": r.autocarro.numero,
             "motorista": r.motorista,
+            "data": r.data,
             "entradas": entradas,
             "saidas": saidas_total,
             "saldo": saldo,
@@ -5025,6 +5314,7 @@ def exportar_relatorio_autocarros_csv(request):
     
     # ═══ CABEÇALHO DA TABELA ═══
     writer.writerow([
+        'DATA',
         'REFERÊNCIA AUTOCARRO',
         'MOTORISTA',
         'ENTRADAS (Kz)',
@@ -5043,6 +5333,7 @@ def exportar_relatorio_autocarros_csv(request):
         saldo = registro.get('saldo', Decimal("0"))
         
         writer.writerow([
+            registro.get('data', '').strftime('%d/%m/%Y') if registro.get('data') else '',
             registro.get('ref_autocarro', ''),
             registro.get('motorista', ''),
             f"{float(entradas):.2f}",
@@ -5057,6 +5348,7 @@ def exportar_relatorio_autocarros_csv(request):
     # ═══ LINHA DE TOTAIS ═══
     writer.writerow([])  # Linha em branco
     writer.writerow([
+        '',
         'TOTAIS',
         '',
         f'{float(total_entradas):.2f}',
@@ -5067,14 +5359,78 @@ def exportar_relatorio_autocarros_csv(request):
     # ═══ ESTATÍSTICAS ═══
     writer.writerow([])  # Linha em branco
     writer.writerow(['ESTATÍSTICAS'])
-    writer.writerow(['Total de Autocarros', len(tabela)])
+    writer.writerow(['Total de Registos', len(tabela)])
     writer.writerow(['Total de Entradas', f'{float(total_entradas):.2f} Kz'])
     writer.writerow(['Total de Saídas', f'{float(total_saidas):.2f} Kz'])
     writer.writerow(['Saldo Total', f'{float(total_saldo):.2f} Kz'])
     
     if len(tabela) > 0:
-        writer.writerow(['Média de Entradas por Autocarro', f'{float(total_entradas)/len(tabela):.2f} Kz'])
-        writer.writerow(['Média de Saídas por Autocarro', f'{float(total_saidas)/len(tabela):.2f} Kz'])
-        writer.writerow(['Média de Saldo por Autocarro', f'{float(total_saldo)/len(tabela):.2f} Kz'])
+        writer.writerow(['Média de Entradas por Registo', f'{float(total_entradas)/len(tabela):.2f} Kz'])
+        writer.writerow(['Média de Saídas por Registo', f'{float(total_saidas)/len(tabela):.2f} Kz'])
+        writer.writerow(['Média de Saldo por Registo', f'{float(total_saldo)/len(tabela):.2f} Kz'])
     
     return response
+
+
+# ═══════════════════════════════════════════════════════════
+# 3. ADICIONAR AS URLS NO urls.py
+# ═══════════════════════════════════════════════════════════
+
+"""
+# urls.py
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    # ... suas outras URLs ...
+    
+    # Exportação CSV
+    path('mapa-financeiro/exportar-csv/', views.exportar_mapa_financeiro_csv, name='exportar_mapa_financeiro_csv'),
+    path('relatorio-autocarros/exportar-csv/', views.exportar_relatorio_autocarros_csv, name='exportar_relatorio_autocarros_csv'),
+]
+"""
+
+
+# ═══════════════════════════════════════════════════════════
+# 4. ADICIONAR BOTÃO NO TEMPLATE (Mapa Financeiro)
+# ═══════════════════════════════════════════════════════════
+
+"""
+<!-- No template mapa_financeiro.html, adicione este botão junto com o botão de Imprimir -->
+
+<div class="filter-buttons">
+  <button type="submit" class="btn btn-primary">
+    <i class="fas fa-filter"></i> Filtrar
+  </button>
+  <button type="button" onclick="window.print()" class="btn btn-warning">
+    <i class="fas fa-print"></i> Imprimir
+  </button>
+  <a href="{% url 'exportar_mapa_financeiro_csv' %}?sector={{ request.GET.sector }}&mes={{ request.GET.mes }}&ano={{ request.GET.ano }}" 
+     class="btn btn-success">
+    <i class="fas fa-file-csv"></i> Exportar CSV
+  </a>
+</div>
+"""
+
+
+# ═══════════════════════════════════════════════════════════
+# 5. ADICIONAR BOTÃO NO TEMPLATE (Relatório Autocarros)
+# ═══════════════════════════════════════════════════════════
+
+"""
+<!-- No template relatorio_autocarros.html, adicione este botão junto com o botão de Imprimir -->
+
+<div class="filter-buttons">
+  <button type="submit" class="btn btn-primary">
+    <i class="fas fa-filter"></i> Filtrar
+  </button>
+  <button type="button" onclick="window.print()" class="btn btn-warning">
+    <i class="fas fa-print"></i> Imprimir
+  </button>
+  <a href="{% url 'exportar_relatorio_autocarros_csv' %}?dia={{ request.GET.dia }}&mes={{ request.GET.mes }}&ano={{ request.GET.ano }}&sector={{ request.GET.sector }}" 
+     class="btn btn-success">
+    <i class="fas fa-file-csv"></i> Exportar CSV
+  </a>
+</div>
+"""
