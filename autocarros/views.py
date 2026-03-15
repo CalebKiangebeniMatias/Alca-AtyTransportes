@@ -4464,7 +4464,7 @@ def comparacao_registo_deposito(request):
 
     return render(request, 'financeiro/comparacao_registo_deposito.html', context)
 
-
+"""
 from django.shortcuts import render
 from django.utils import timezone
 from decimal import Decimal
@@ -4531,3 +4531,120 @@ def relatorio_autocarros(request):
     }
 
     return render(request, "autocarros/relatorio_autocarros.html", context)
+"""
+from django.shortcuts import render
+from django.utils import timezone
+from django.db.models import Sum
+from decimal import Decimal
+from collections import defaultdict
+
+def relatorio_autocarros(request):
+
+    hoje = timezone.now().date()
+
+    dia = request.GET.get("dia")
+    mes = request.GET.get("mes")
+    ano = request.GET.get("ano")
+    sector_id = request.GET.get("sector")
+
+    # 🔹 padrão = data atual
+    if not dia and not mes and not ano:
+        dia = hoje.day
+        mes = hoje.month
+        ano = hoje.year
+
+    registos = RegistoDiario.objects.select_related(
+        "autocarro",
+        "autocarro__sector"
+    )
+
+    # 🔹 filtros de data
+    if ano:
+        registos = registos.filter(data__year=ano)
+
+    if mes:
+        registos = registos.filter(data__month=mes)
+
+    if dia:
+        registos = registos.filter(data__day=dia)
+
+    # 🔹 filtro sector
+    if sector_id:
+        registos = registos.filter(autocarro__sector_id=sector_id)
+
+    # 🔹 mapa de combustivel por autocarro/data
+    combustivel_map = defaultdict(lambda: {
+        "valor": Decimal("0"),
+        "sobragem": Decimal("0"),
+        "lavagem": Decimal("0")
+    })
+
+    combustiveis = DespesaCombustivel.objects.all()
+
+    if ano:
+        combustiveis = combustiveis.filter(data__year=ano)
+    if mes:
+        combustiveis = combustiveis.filter(data__month=mes)
+    if dia:
+        combustiveis = combustiveis.filter(data__day=dia)
+    if sector_id:
+        combustiveis = combustiveis.filter(autocarro__sector_id=sector_id)
+
+    for c in combustiveis:
+
+        key = f"{c.autocarro_id}_{c.data}"
+
+        combustivel_map[key]["valor"] += c.valor or Decimal("0")
+        combustivel_map[key]["sobragem"] += c.sobragem_filtros or Decimal("0")
+        combustivel_map[key]["lavagem"] += c.lavagem or Decimal("0")
+
+    # 🔹 tabela final
+    tabela = []
+
+    for r in registos:
+
+        entradas = r.entradas_total()
+        saidas = r.saidas_total()
+
+        key = f"{r.autocarro_id}_{r.data}"
+        comb = combustivel_map.get(key, {})
+
+        combustivel_valor = comb.get("valor", Decimal("0"))
+        combustivel_sobragem = comb.get("sobragem", Decimal("0"))
+        combustivel_lavagem = comb.get("lavagem", Decimal("0"))
+
+        saidas_total = (
+            saidas
+            + combustivel_valor
+            + combustivel_sobragem
+            + combustivel_lavagem
+        )
+
+        saldo = entradas - saidas_total
+
+        tabela.append({
+            "ref_autocarro": r.autocarro.numero,
+            "motorista": r.motorista,
+            "entradas": entradas,
+            "saidas": saidas_total,
+            "saldo": saldo,
+        })
+
+    sectores = Sector.objects.all()
+
+    context = {
+        "tabela": tabela,
+        "sectores": sectores,
+        "filtros": {
+            "dia": dia,
+            "mes": mes,
+            "ano": ano,
+            "sector": sector_id
+        }
+    }
+
+    return render(
+        request,
+        "autocarros/relatorio_autocarros.html",
+        context
+    )
