@@ -434,6 +434,11 @@
           <button type="submit" class="btn btn-primary">Filtrar</button>
           <button type="button" onclick="window.print()" class="btn btn-secondary">Imprimir</button>
         </div>
+
+        <a href="{% url 'exportar_mapa_financeiro_csv' %}?sector={{ request.GET.sector }}&mes={{ request.GET.mes }}&ano={{ request.GET.ano }}" 
+        class="btn btn-success">
+          <i class="fas fa-file-csv"></i> Exportar CSV
+        </a>
       </div>
     </form>
 

@@ -341,6 +341,10 @@
         <button type="button" onclick="window.print()" class="btn btn-warning">
           <i class="fas fa-print"></i> Imprimir
         </button>
+        <a href="{% url 'exportar_relatorio_autocarros_csv' %}?dia={{ request.GET.dia }}&mes={{ request.GET.mes }}&ano={{ request.GET.ano }}&sector={{ request.GET.sector }}" 
+        class="btn btn-success">
+            <i class="fas fa-file-csv"></i> Exportar CSV
+        </a>
       </div>
     </div>
   </form>
@@ -401,6 +405,44 @@
       </div>
     </div>
   </div>
+
+  <!-- Adicionar antes da tabela -->
+    {% if paginator.num_pages > 1 %}
+    <div class="pagination-info" style="margin-bottom: 15px; color: var(--grey);">
+        Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ paginator.count }} registos
+    </div>
+    {% endif %}
+
+    <!-- Adicionar depois da tabela -->
+    {% if paginator.num_pages > 1 %}
+    <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+    {% if page_obj.has_previous %}
+        <a href="?page=1&dia={{ request.GET.dia }}&mes={{ request.GET.mes }}&ano={{ request.GET.ano }}&sector={{ request.GET.sector }}" 
+        class="btn btn-outline-light">
+            <i class="fas fa-angles-left"></i> Primeira
+        </a>
+        <a href="?page={{ page_obj.previous_page_number }}&dia={{ request.GET.dia }}&mes={{ request.GET.mes }}&ano={{ request.GET.ano }}&sector={{ request.GET.sector }}" 
+        class="btn btn-outline-light">
+            <i class="fas fa-chevron-left"></i> Anterior
+        </a>
+    {% endif %}
+
+    <span style="color: var(--white); padding: 10px;">
+        Página {{ page_obj.number }} de {{ paginator.num_pages }}
+    </span>
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&dia={{ request.GET.dia }}&mes={{ request.GET.mes }}&ano={{ request.GET.ano }}&sector={{ request.GET.sector }}" 
+        class="btn btn-outline-light">
+            Próxima <i class="fas fa-chevron-right"></i>
+        </a>
+        <a href="?page={{ paginator.num_pages }}&dia={{ request.GET.dia }}&mes={{ request.GET.mes }}&ano={{ request.GET.ano }}&sector={{ request.GET.sector }}" 
+        class="btn btn-outline-light">
+            Última <i class="fas fa-angles-right"></i>
+        </a>
+    {% endif %}
+        </div>
+    {% endif %}
 
   <!-- ═══ TABLE ═══ -->
   <div class="table-container reveal">

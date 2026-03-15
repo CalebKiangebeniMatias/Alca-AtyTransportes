@@ -174,6 +174,10 @@ urlpatterns = [
         views.relatorio_autocarros,
         name="relatorio_autocarros"
     ),
+    path('relatorio-autocarros/exportar-csv/',
+        views.exportar_relatorio_autocarros_csv,
+        name='exportar_relatorio_autocarros_csv'
+    ),
         
     #Mapas
     path('mapas/mensal-financeiro/', views.mapa_geral_financeiro, name='mapa_geral_financeiro'),

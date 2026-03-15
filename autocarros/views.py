@@ -4464,80 +4464,14 @@ def comparacao_registo_deposito(request):
 
     return render(request, 'financeiro/comparacao_registo_deposito.html', context)
 
-"""
-from django.shortcuts import render
-from django.utils import timezone
-from decimal import Decimal
 
-def relatorio_autocarros(request):
-
-    hoje = timezone.now().date()
-
-    dia = request.GET.get("dia")
-    mes = request.GET.get("mes")
-    ano = request.GET.get("ano")
-    sector_id = request.GET.get("sector")
-
-    # padrão: data atual
-    if not dia and not mes and not ano:
-        dia = hoje.day
-        mes = hoje.month
-        ano = hoje.year
-
-    registos = RegistoDiario.objects.select_related(
-        "autocarro",
-        "autocarro__sector"
-    )
-
-    if ano:
-        registos = registos.filter(data__year=ano)
-
-    if mes:
-        registos = registos.filter(data__month=mes)
-
-    if dia:
-        registos = registos.filter(data__day=dia)
-
-    if sector_id:
-        registos = registos.filter(autocarro__sector_id=sector_id)
-
-    tabela = []
-
-    for r in registos:
-
-        entradas = r.entradas_total()
-        saidas = r.saidas_total()
-        saldo = entradas - saidas
-
-        tabela.append({
-            "ref_autocarro": r.autocarro.numero,
-            "motorista": r.motorista,
-            "entradas": entradas,
-            "saidas": saidas,
-            "saldo": saldo,
-        })
-
-    sectores = Sector.objects.all()
-
-    context = {
-        "tabela": tabela,
-        "sectores": sectores,
-        "filtros": {
-            "dia": dia,
-            "mes": mes,
-            "ano": ano,
-            "sector": sector_id
-        }
-    }
-
-    return render(request, "autocarros/relatorio_autocarros.html", context)
-"""
 from django.shortcuts import render
 from django.utils import timezone
 from django.db.models import Sum
 from decimal import Decimal
 from collections import defaultdict
 
+"""
 def relatorio_autocarros(request):
 
     hoje = timezone.now().date()
@@ -4648,3 +4582,499 @@ def relatorio_autocarros(request):
         "autocarros/relatorio_autocarros.html",
         context
     )
+"""
+
+from django.shortcuts import render
+from django.utils import timezone
+from django.db.models import Sum, F, DecimalField, Value
+from django.db.models.functions import Coalesce
+from decimal import Decimal
+from collections import defaultdict
+
+def relatorio_autocarros(request):
+    """
+    Relatório detalhado por dia - OTIMIZADO
+    Mostra cada autocarro em cada dia separadamente
+    """
+    
+    hoje = timezone.now().date()
+
+    dia = request.GET.get("dia")
+    mes = request.GET.get("mes")
+    ano = request.GET.get("ano")
+    sector_id = request.GET.get("sector")
+
+    # 🔹 padrão = data atual
+    if not dia and not mes and not ano:
+        dia = hoje.day
+        mes = hoje.month
+        ano = hoje.year
+
+    # ═══════════════════════════════════════════════════
+    # QUERY OTIMIZADA: Calcular totais no banco de dados
+    # ═══════════════════════════════════════════════════
+    registos_qs = RegistoDiario.objects.select_related(
+        "autocarro",
+        "autocarro__sector"
+    )
+
+    # Filtros de data
+    if ano:
+        registos_qs = registos_qs.filter(data__year=ano)
+    if mes:
+        registos_qs = registos_qs.filter(data__month=mes)
+    if dia:
+        registos_qs = registos_qs.filter(data__day=dia)
+
+    # Filtro sector
+    if sector_id:
+        registos_qs = registos_qs.filter(autocarro__sector_id=sector_id)
+
+    # 🚀 OTIMIZAÇÃO: Calcular entradas e saídas na query (não em Python)
+    # Campos corretos: normal, frete, alunos, luvu (entradas)
+    # Campos corretos: alimentacao, parqueamento, taxa, outros (saídas)
+    registos = registos_qs.annotate(
+        entradas_total_calc=Coalesce(F('normal'), Value(0), output_field=DecimalField()) + 
+                           Coalesce(F('frete'), Value(0), output_field=DecimalField()) + 
+                           Coalesce(F('alunos'), Value(0), output_field=DecimalField()) + 
+                           Coalesce(F('luvu'), Value(0), output_field=DecimalField()),
+        
+        saidas_total_calc=Coalesce(F('alimentacao'), Value(0), output_field=DecimalField()) + 
+                         Coalesce(F('parqueamento'), Value(0), output_field=DecimalField()) + 
+                         Coalesce(F('taxa'), Value(0), output_field=DecimalField()) + 
+                         Coalesce(F('outros'), Value(0), output_field=DecimalField())
+    ).order_by('data', 'autocarro__numero')
+
+    # ═══════════════════════════════════════════════════
+    # BUSCAR COMBUSTÍVEIS - OTIMIZADO
+    # ═══════════════════════════════════════════════════
+    combustiveis_qs = DespesaCombustivel.objects.select_related('autocarro')
+
+    if ano:
+        combustiveis_qs = combustiveis_qs.filter(data__year=ano)
+    if mes:
+        combustiveis_qs = combustiveis_qs.filter(data__month=mes)
+    if dia:
+        combustiveis_qs = combustiveis_qs.filter(data__day=dia)
+    if sector_id:
+        combustiveis_qs = combustiveis_qs.filter(autocarro__sector_id=sector_id)
+
+    # Criar mapa de combustível usando values() para menos overhead
+    combustivel_map = defaultdict(lambda: {
+        "valor": Decimal("0"),
+        "sobragem": Decimal("0"),
+        "lavagem": Decimal("0")
+    })
+
+    # Buscar apenas os campos necessários
+    combustiveis_data = combustiveis_qs.values(
+        'autocarro_id', 
+        'data', 
+        'valor', 
+        'sobragem_filtros', 
+        'lavagem'
+    )
+
+    for c in combustiveis_data:
+        key = f"{c['autocarro_id']}_{c['data']}"
+        combustivel_map[key]["valor"] += c['valor'] or Decimal("0")
+        combustivel_map[key]["sobragem"] += c['sobragem_filtros'] or Decimal("0")
+        combustivel_map[key]["lavagem"] += c['lavagem'] or Decimal("0")
+
+    # ═══════════════════════════════════════════════════
+    # MONTAR TABELA FINAL - Usando valores já calculados
+    # ═══════════════════════════════════════════════════
+    tabela = []
+
+    for r in registos:
+        # Usar valores calculados pelo annotate (não chama métodos!)
+        entradas = r.entradas_total_calc or Decimal("0")
+        saidas = r.saidas_total_calc or Decimal("0")
+
+        # Buscar combustível no mapa
+        key = f"{r.autocarro_id}_{r.data}"
+        comb = combustivel_map.get(key, {})
+
+        combustivel_valor = comb.get("valor", Decimal("0"))
+        combustivel_sobragem = comb.get("sobragem", Decimal("0"))
+        combustivel_lavagem = comb.get("lavagem", Decimal("0"))
+
+        # Total de saídas
+        saidas_total = (
+            saidas +
+            combustivel_valor +
+            combustivel_sobragem +
+            combustivel_lavagem
+        )
+
+        # Saldo
+        saldo = entradas - saidas_total
+
+        tabela.append({
+            "ref_autocarro": r.autocarro.numero,
+            "motorista": r.motorista,
+            "data": r.data,
+            "entradas": entradas,
+            "saidas": saidas_total,
+            "saldo": saldo,
+        })
+
+    # ═══════════════════════════════════════════════════
+    # BUSCAR SECTORES
+    # ═══════════════════════════════════════════════════
+    sectores = Sector.objects.all()
+
+    context = {
+        "tabela": tabela,
+        "sectores": sectores,
+        "filtros": {
+            "dia": dia,
+            "mes": mes,
+            "ano": ano,
+            "sector": sector_id
+        }
+    }
+
+    return render(
+        request,
+        "autocarros/relatorio_autocarros.html",
+        context
+    )
+
+
+# ═══════════════════════════════════════════════════════════
+# OPCIONAL: Adicionar paginação para meses completos
+# ═══════════════════════════════════════════════════════════
+
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+def relatorio_autocarros_paginado(request):
+    """
+    Versão com paginação para lidar com muitos registos
+    Ideal quando filtrar por mês completo
+    """
+    
+    hoje = timezone.now().date()
+
+    dia = request.GET.get("dia")
+    mes = request.GET.get("mes")
+    ano = request.GET.get("ano")
+    sector_id = request.GET.get("sector")
+    page = request.GET.get('page', 1)
+
+    # 🔹 padrão = data atual
+    if not dia and not mes and not ano:
+        dia = hoje.day
+        mes = hoje.month
+        ano = hoje.year
+
+    # Query otimizada (igual à anterior)
+    registos_qs = RegistoDiario.objects.select_related(
+        "autocarro",
+        "autocarro__sector"
+    )
+
+    if ano:
+        registos_qs = registos_qs.filter(data__year=ano)
+    if mes:
+        registos_qs = registos_qs.filter(data__month=mes)
+    if dia:
+        registos_qs = registos_qs.filter(data__day=dia)
+    if sector_id:
+        registos_qs = registos_qs.filter(autocarro__sector_id=sector_id)
+
+    registos = registos_qs.annotate(
+        entradas_total_calc=Coalesce(F('normal'), Value(0), output_field=DecimalField()) + 
+                           Coalesce(F('frete'), Value(0), output_field=DecimalField()) + 
+                           Coalesce(F('alunos'), Value(0), output_field=DecimalField()) + 
+                           Coalesce(F('luvu'), Value(0), output_field=DecimalField()),
+        
+        saidas_total_calc=Coalesce(F('alimentacao'), Value(0), output_field=DecimalField()) + 
+                         Coalesce(F('parqueamento'), Value(0), output_field=DecimalField()) + 
+                         Coalesce(F('taxa'), Value(0), output_field=DecimalField()) + 
+                         Coalesce(F('outros'), Value(0), output_field=DecimalField())
+    ).order_by('-data', 'autocarro__numero')
+
+    # Combustíveis
+    combustiveis_qs = DespesaCombustivel.objects.select_related('autocarro')
+    if ano:
+        combustiveis_qs = combustiveis_qs.filter(data__year=ano)
+    if mes:
+        combustiveis_qs = combustiveis_qs.filter(data__month=mes)
+    if dia:
+        combustiveis_qs = combustiveis_qs.filter(data__day=dia)
+    if sector_id:
+        combustiveis_qs = combustiveis_qs.filter(autocarro__sector_id=sector_id)
+
+    combustivel_map = defaultdict(lambda: {
+        "valor": Decimal("0"),
+        "sobragem": Decimal("0"),
+        "lavagem": Decimal("0")
+    })
+
+    for c in combustiveis_qs.values('autocarro_id', 'data', 'valor', 'sobragem_filtros', 'lavagem'):
+        key = f"{c['autocarro_id']}_{c['data']}"
+        combustivel_map[key]["valor"] += c['valor'] or Decimal("0")
+        combustivel_map[key]["sobragem"] += c['sobragem_filtros'] or Decimal("0")
+        combustivel_map[key]["lavagem"] += c['lavagem'] or Decimal("0")
+
+    # 🔹 PAGINAÇÃO: 50 registos por página
+    paginator = Paginator(registos, 50)
+    
+    try:
+        registos_page = paginator.page(page)
+    except PageNotAnInteger:
+        registos_page = paginator.page(1)
+    except EmptyPage:
+        registos_page = paginator.page(paginator.num_pages)
+
+    # Montar tabela apenas para a página atual
+    tabela = []
+    for r in registos_page:
+        entradas = r.entradas_total_calc or Decimal("0")
+        saidas = r.saidas_total_calc or Decimal("0")
+
+        key = f"{r.autocarro_id}_{r.data}"
+        comb = combustivel_map.get(key, {})
+
+        combustivel_valor = comb.get("valor", Decimal("0"))
+        combustivel_sobragem = comb.get("sobragem", Decimal("0"))
+        combustivel_lavagem = comb.get("lavagem", Decimal("0"))
+
+        saidas_total = (
+            saidas +
+            combustivel_valor +
+            combustivel_sobragem +
+            combustivel_lavagem
+        )
+
+        saldo = entradas - saidas_total
+
+        tabela.append({
+            "ref_autocarro": r.autocarro.numero,
+            "motorista": r.motorista,
+            "data": r.data,
+            "entradas": entradas,
+            "saidas": saidas_total,
+            "saldo": saldo,
+        })
+
+    sectores = Sector.objects.all()
+
+    context = {
+        "tabela": tabela,
+        "sectores": sectores,
+        "paginator": paginator,
+        "page_obj": registos_page,
+        "filtros": {
+            "dia": dia,
+            "mes": mes,
+            "ano": ano,
+            "sector": sector_id
+        }
+    }
+
+    return render(
+        request,
+        "autocarros/relatorio_autocarros.html",
+        context
+    )
+
+    # ═══════════════════════════════════════════════════════════
+# 2. EXPORTAR RELATÓRIO DE AUTOCARROS PARA CSV
+# ═══════════════════════════════════════════════════════════
+
+from django.utils import timezone
+from django.db.models import Sum
+from decimal import Decimal
+from collections import defaultdict
+
+@login_required
+def exportar_relatorio_autocarros_csv(request):
+    
+    #Exporta o Relatório de Autocarros para CSV
+    #MESMA LÓGICA da view relatorio_autocarros
+    
+    # ═══ BUSCAR DADOS (MESMA LÓGICA DA VIEW) ═══
+    hoje = timezone.now().date()
+
+    dia = request.GET.get("dia")
+    mes = request.GET.get("mes")
+    ano = request.GET.get("ano")
+    sector_id = request.GET.get("sector")
+
+    # Padrão = data atual
+    if not dia and not mes and not ano:
+        dia = hoje.day
+        mes = hoje.month
+        ano = hoje.year
+
+    registos = RegistoDiario.objects.select_related(
+        "autocarro",
+        "autocarro__sector"
+    )
+
+    # Filtros de data
+    if ano:
+        registos = registos.filter(data__year=ano)
+    if mes:
+        registos = registos.filter(data__month=mes)
+    if dia:
+        registos = registos.filter(data__day=dia)
+
+    # Filtro sector
+    if sector_id:
+        registos = registos.filter(autocarro__sector_id=sector_id)
+
+    # Mapa de combustivel por autocarro/data
+    combustivel_map = defaultdict(lambda: {
+        "valor": Decimal("0"),
+        "sobragem": Decimal("0"),
+        "lavagem": Decimal("0")
+    })
+
+    combustiveis = DespesaCombustivel.objects.all()
+
+    if ano:
+        combustiveis = combustiveis.filter(data__year=ano)
+    if mes:
+        combustiveis = combustiveis.filter(data__month=mes)
+    if dia:
+        combustiveis = combustiveis.filter(data__day=dia)
+    if sector_id:
+        combustiveis = combustiveis.filter(autocarro__sector_id=sector_id)
+
+    for c in combustiveis:
+        key = f"{c.autocarro_id}_{c.data}"
+        combustivel_map[key]["valor"] += c.valor or Decimal("0")
+        combustivel_map[key]["sobragem"] += c.sobragem_filtros or Decimal("0")
+        combustivel_map[key]["lavagem"] += c.lavagem or Decimal("0")
+
+    # Tabela final
+    tabela = []
+
+    for r in registos:
+        entradas = r.entradas_total()
+        saidas = r.saidas_total()
+
+        key = f"{r.autocarro_id}_{r.data}"
+        comb = combustivel_map.get(key, {})
+
+        combustivel_valor = comb.get("valor", Decimal("0"))
+        combustivel_sobragem = comb.get("sobragem", Decimal("0"))
+        combustivel_lavagem = comb.get("lavagem", Decimal("0"))
+
+        saidas_total = (
+            saidas
+            + combustivel_valor
+            + combustivel_sobragem
+            + combustivel_lavagem
+        )
+
+        saldo = entradas - saidas_total
+
+        tabela.append({
+            "ref_autocarro": r.autocarro.numero,
+            "motorista": r.motorista,
+            "entradas": entradas,
+            "saidas": saidas_total,
+            "saldo": saldo,
+        })
+
+    # ═══ INFORMAÇÕES PARA O CABEÇALHO ═══
+    sector_nome = "Todos"
+    if sector_id:
+        try:
+            sector = Sector.objects.get(id=sector_id)
+            sector_nome = sector.nome
+        except Sector.DoesNotExist:
+            pass
+    
+    # Montar nome do período
+    periodo_parts = []
+    if dia:
+        periodo_parts.append(f"Dia {dia}")
+    if mes:
+        meses = {
+            '1': 'Janeiro', '2': 'Fevereiro', '3': 'Março', '4': 'Abril',
+            '5': 'Maio', '6': 'Junho', '7': 'Julho', '8': 'Agosto',
+            '9': 'Setembro', '10': 'Outubro', '11': 'Novembro', '12': 'Dezembro'
+        }
+        periodo_parts.append(meses.get(str(mes), f"Mês {mes}"))
+    if ano:
+        periodo_parts.append(str(ano))
+    
+    periodo = ' - '.join(periodo_parts) if periodo_parts else 'Todos os períodos'
+    
+    # ═══ CRIAR RESPOSTA CSV ═══
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="relatorio_autocarros_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+    
+    # Adicionar BOM para Excel reconhecer UTF-8
+    response.write('\ufeff')
+    
+    # Criar writer CSV
+    writer = csv.writer(response, delimiter=';')
+    
+    # ═══ CABEÇALHO DO RELATÓRIO ═══
+    writer.writerow(['RELATÓRIO POR AUTOCARRO - ALCA & ATY TRANSPORTES'])
+    writer.writerow([f'Setor: {sector_nome}'])
+    writer.writerow([f'Período: {periodo}'])
+    writer.writerow([f'Data de Exportação: {datetime.now().strftime("%d/%m/%Y %H:%M")}'])
+    writer.writerow([])  # Linha em branco
+    
+    # ═══ CABEÇALHO DA TABELA ═══
+    writer.writerow([
+        'REFERÊNCIA AUTOCARRO',
+        'MOTORISTA',
+        'ENTRADAS (Kz)',
+        'SAÍDAS (Kz)',
+        'SALDO (Kz)'
+    ])
+    
+    # ═══ DADOS DA TABELA ═══
+    total_entradas = Decimal("0")
+    total_saidas = Decimal("0")
+    total_saldo = Decimal("0")
+    
+    for registro in tabela:
+        entradas = registro.get('entradas', Decimal("0"))
+        saidas = registro.get('saidas', Decimal("0"))
+        saldo = registro.get('saldo', Decimal("0"))
+        
+        writer.writerow([
+            registro.get('ref_autocarro', ''),
+            registro.get('motorista', ''),
+            f"{float(entradas):.2f}",
+            f"{float(saidas):.2f}",
+            f"{float(saldo):.2f}"
+        ])
+        
+        total_entradas += entradas
+        total_saidas += saidas
+        total_saldo += saldo
+    
+    # ═══ LINHA DE TOTAIS ═══
+    writer.writerow([])  # Linha em branco
+    writer.writerow([
+        'TOTAIS',
+        '',
+        f'{float(total_entradas):.2f}',
+        f'{float(total_saidas):.2f}',
+        f'{float(total_saldo):.2f}'
+    ])
+    
+    # ═══ ESTATÍSTICAS ═══
+    writer.writerow([])  # Linha em branco
+    writer.writerow(['ESTATÍSTICAS'])
+    writer.writerow(['Total de Autocarros', len(tabela)])
+    writer.writerow(['Total de Entradas', f'{float(total_entradas):.2f} Kz'])
+    writer.writerow(['Total de Saídas', f'{float(total_saidas):.2f} Kz'])
+    writer.writerow(['Saldo Total', f'{float(total_saldo):.2f} Kz'])
+    
+    if len(tabela) > 0:
+        writer.writerow(['Média de Entradas por Autocarro', f'{float(total_entradas)/len(tabela):.2f} Kz'])
+        writer.writerow(['Média de Saídas por Autocarro', f'{float(total_saidas)/len(tabela):.2f} Kz'])
+        writer.writerow(['Média de Saldo por Autocarro', f'{float(total_saldo)/len(tabela):.2f} Kz'])
+    
+    return response
