@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # 🔹 Chave e Debug
 SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
 
-DEBUG = False
+DEBUG = True
 
 # 🔹 Hosts permitidos
 ALLOWED_HOSTS = [
