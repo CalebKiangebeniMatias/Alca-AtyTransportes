@@ -14,16 +14,14 @@
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;">
     {% if total_contas == 0 %}
-    <a href="{% url 'carregar_plano_padrao' %}" class="btn btn-outline-light"
-       onclick="return confirm('Importar a estrutura-base de classes (1 a 8)? Pode editar tudo depois.');">
-      <i class="fas fa-download"></i> Carregar Plano Base
+    <a href="{% url 'carregar_plano_padrao' %}" class="btn btn-primary"
+       onclick="return abrirModalConta(this.href);">
+       <i class="fas fa-download"></i> Carregar Plano Base
     </a>
     {% endif %}
-    <a href="{% url 'plano_contas_create' %}" class="btn btn-primary"
-       data-bs-toggle="modal" data-bs-target="#modalConta"
-       onclick="return abrirModalConta(this.href);">
-      <i class="fas fa-plus"></i> Nova Classe
-    </a>
+      <a href="{% url 'plano_contas_create' %}" class="btn btn-primary" onclick="return abrirModalConta(this.href);">
+        <i class="fas fa-plus"></i> Nova Classe
+      </a>
   </div>
 </div>
 
@@ -70,61 +68,115 @@
 {% endblock %}
 
 {% block extra_css %}
-<style>
-.conta-tree .conta-node { margin-bottom: 2px; }
-.conta-children {
-  margin-left: 22px;
-  border-left: 1px dashed var(--glass-border);
-  padding-left: 14px;
+
+.modal {
+z-index: 1060 !important;
 }
-.conta-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px; border-radius: var(--radius-sm);
-  flex-wrap: wrap;
-  transition: background var(--ease-fast);
+
+.modal-backdrop {
+z-index: 1050 !important;
 }
-.conta-row:hover { background: rgba(79,195,247,.08); }
-.conta-codigo {
-  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-  color: var(--accent); min-width: 80px;
+
+.modal-dialog {
+z-index: 1070 !important;
 }
-.conta-nome { flex: 1; min-width: 140px; }
-.badge { font-size: .68rem; font-weight: 700; letter-spacing: .5px; padding: 4px 9px; border-radius: 20px; }
-.badge-sint { background: rgba(243,156,18,.18); color: var(--warning); }
-.badge-anal { background: rgba(39,174,96,.18); color: var(--success); }
-.badge-dev  { background: rgba(231,76,60,.15); color: var(--danger); }
-.badge-cred { background: rgba(79,195,247,.15); color: var(--accent); }
-.conta-actions { display: flex; gap: 6px; margin-left: auto; }
-.conta-actions .btn { padding: 5px 9px; font-size: .72rem; }
-.conta-inativa { opacity: .45; }
-</style>
+
+.modal-content {
+background: #1c2434;
+color: white;
+}
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function abrirModalConta(url) {
-  fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-    .then(r => r.text())
-    .then(html => { document.getElementById('modalContaContent').innerHTML = html; });
-  return false;
-}
 
-document.addEventListener('submit', function (e) {
-  if (e.target.closest('#modalContaContent')) {
-    e.preventDefault();
-    const form = e.target;
-    fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-      .then(r => r.text())
+  let modalConta = null;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    modalConta = new bootstrap.Modal(
+      document.getElementById('modalConta'),
+      {
+        backdrop: true,
+        keyboard: true
+      }
+    );
+  });
+
+  function abrirModalConta(url) {
+
+    fetch(url, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+      .then(response => response.text())
       .then(html => {
-        // Se o servidor devolveu o formulário novamente (erros), mostra-o no modal.
-        // Caso contrário (sucesso -> redirect), recarrega a página.
+
+        document.getElementById('modalContaContent').innerHTML = html;
+
+        modalConta.show();
+
+      })
+      .catch(error => {
+        console.error(error);
+      });
+
+    return false;
+  }
+
+  document.addEventListener('submit', function (e) {
+
+    if (!e.target.closest('#modalContaContent')) {
+      return;
+    }
+
+    e.preventDefault();
+
+    const form = e.target;
+
+    fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+      .then(response => response.text())
+      .then(html => {
+
         if (html.includes('id="form-plano-contas"')) {
+
           document.getElementById('modalContaContent').innerHTML = html;
+
         } else {
+
+          modalConta.hide();
+
+          document.querySelectorAll('.modal-backdrop').forEach(
+            el => el.remove()
+          );
+
+          document.body.classList.remove('modal-open');
+
           window.location.reload();
         }
       });
-  }
-});
+  });
+
+  document.getElementById('modalConta').addEventListener(
+    'hidden.bs.modal',
+    function () {
+
+      document.querySelectorAll('.modal-backdrop').forEach(
+        el => el.remove()
+      );
+
+      document.body.classList.remove('modal-open');
+
+      document.body.style.removeProperty('padding-right');
+    }
+  );
+
 </script>
 {% endblock %}
