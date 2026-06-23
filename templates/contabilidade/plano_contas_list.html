@@ -14,14 +14,13 @@
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;">
     {% if total_contas == 0 %}
-    <a href="{% url 'carregar_plano_padrao' %}" class="btn btn-primary"
-       onclick="return abrirModalConta(this.href);">
-       <i class="fas fa-download"></i> Carregar Plano Base
+    <a href="{% url 'carregar_plano_padrao' %}" class="btn btn-primary" onclick="return abrirModalConta(this.href);">
+      <i class="fas fa-download"></i> Carregar Plano Base
     </a>
     {% endif %}
-      <a href="{% url 'plano_contas_create' %}" class="btn btn-primary" onclick="return abrirModalConta(this.href);">
-        <i class="fas fa-plus"></i> Nova Classe
-      </a>
+    <a href="{% url 'plano_contas_create' %}" class="btn btn-primary" onclick="return abrirModalConta(this.href);">
+      <i class="fas fa-plus"></i> Nova Classe
+    </a>
   </div>
 </div>
 
@@ -31,22 +30,23 @@
   </div>
   <div class="card-body">
     {% if raiz %}
-      <div class="conta-tree">
-        {% for conta in raiz %}
-          {% include 'contabilidade/_conta_node.html' with conta=conta %}
-        {% endfor %}
-      </div>
-      <div style="margin-top:18px;display:flex;gap:18px;font-size:.78rem;color:var(--grey);flex-wrap:wrap;">
-        <span><span class="badge badge-sint">Sintética</span> agrupa e soma as filhas — não recebe lançamentos</span>
-        <span><span class="badge badge-anal">Analítica</span> recebe lançamentos de movimento (caixa, despesas, etc.)</span>
-        <span><span class="badge badge-dev">Devedora</span> Ativos e Gastos</span>
-        <span><span class="badge badge-cred">Credora</span> Passivos, Capital e Rendimentos</span>
-      </div>
+    <div class="conta-tree">
+      {% for conta in raiz %}
+      {% include 'contabilidade/_conta_node.html' with conta=conta %}
+      {% endfor %}
+    </div>
+    <div style="margin-top:18px;display:flex;gap:18px;font-size:.78rem;color:var(--grey);flex-wrap:wrap;">
+      <span><span class="badge badge-sint">Sintética</span> agrupa e soma as filhas — não recebe lançamentos</span>
+      <span><span class="badge badge-anal">Analítica</span> recebe lançamentos de movimento (caixa, despesas,
+        etc.)</span>
+      <span><span class="badge badge-dev">Devedora</span> Ativos e Gastos</span>
+      <span><span class="badge badge-cred">Credora</span> Passivos, Capital e Rendimentos</span>
+    </div>
     {% else %}
-      <p style="color:var(--grey)">
-        Ainda não tem contas criadas. Pode carregar a estrutura-base (Classes 1 a 8)
-        e depois ajustar tudo à sua realidade, ou começar do zero criando a primeira Classe.
-      </p>
+    <p style="color:var(--grey)">
+      Ainda não tem contas criadas. Pode carregar a estrutura-base (Classes 1 a 8)
+      e depois ajustar tudo à sua realidade, ou começar do zero criando a primeira Classe.
+    </p>
     {% endif %}
   </div>
 </div>
@@ -58,7 +58,7 @@
       <div class="modal-header">
         <h5 class="modal-title">A carregar…</h5>
       </div>
-      <div class="modal-body">
+      <div class="modal-body text-center">
         <div class="spinner-border text-info" role="status"></div>
       </div>
     </div>
@@ -68,115 +68,120 @@
 {% endblock %}
 
 {% block extra_css %}
+<style>
+  .modal {
+    z-index: 1060 !important;
+  }
 
-.modal {
-z-index: 1060 !important;
-}
+  .modal-backdrop {
+    z-index: 1050 !important;
+  }
 
-.modal-backdrop {
-z-index: 1050 !important;
-}
+  .modal-dialog {
+    z-index: 1070 !important;
+  }
 
-.modal-dialog {
-z-index: 1070 !important;
-}
-
-.modal-content {
-background: #1c2434;
-color: white;
-}
-
+  .modal-content {
+    background: #1c2434;
+    color: white;
+  }
+</style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-
   let modalConta = null;
 
   document.addEventListener('DOMContentLoaded', function () {
-    modalConta = new bootstrap.Modal(
-      document.getElementById('modalConta'),
-      {
-        backdrop: true,
-        keyboard: true
-      }
-    );
+    const modalEl = document.getElementById('modalConta');
+
+    modalConta = new bootstrap.Modal(modalEl, {
+      backdrop: true,
+      keyboard: true
+    });
+
+    // Limpeza garantida sempre que o modal fecha
+    modalEl.addEventListener('hidden.bs.modal', function () {
+      document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+      document.body.classList.remove('modal-open');
+      document.body.style.removeProperty('padding-right');
+
+      // Repõe o conteúdo de loading para a próxima abertura
+      document.getElementById('modalContaContent').innerHTML = `
+        <div class="modal-header">
+          <h5 class="modal-title">A carregar…</h5>
+        </div>
+        <div class="modal-body text-center">
+          <div class="spinner-border text-info" role="status"></div>
+        </div>`;
+    });
   });
 
   function abrirModalConta(url) {
+    // Mostrar modal com spinner imediatamente
+    modalConta.show();
 
     fetch(url, {
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest'
-      }
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
-      .then(response => response.text())
+      .then(r => r.text())
       .then(html => {
-
         document.getElementById('modalContaContent').innerHTML = html;
 
-        modalConta.show();
+        // Re-ligar o botão Cancelar após injectar o HTML
+        religarBotaoCancelar();
 
+        // Executar scripts inline injectados (ex: do parcial do form)
+        document.querySelectorAll('#modalContaContent script').forEach(s => {
+          const novo = document.createElement('script');
+          novo.textContent = s.textContent;
+          document.body.appendChild(novo);
+        });
       })
-      .catch(error => {
-        console.error(error);
+      .catch(err => {
+        console.error('Erro ao carregar modal:', err);
+        modalConta.hide();
       });
 
     return false;
   }
 
-  document.addEventListener('submit', function (e) {
+  function religarBotaoCancelar() {
+    document.querySelectorAll('#modalContaContent [data-modal-dismiss], #modalContaContent .btn-cancelar-modal')
+      .forEach(btn => {
+        btn.addEventListener('click', function () {
+          modalConta.hide();
+        });
+      });
+  }
 
-    if (!e.target.closest('#modalContaContent')) {
-      return;
-    }
+  // Intercept form submit dentro do modal
+  document.addEventListener('submit', function (e) {
+    const form = e.target;
+    if (!form.closest('#modalContaContent')) return;
 
     e.preventDefault();
-
-    const form = e.target;
 
     fetch(form.action, {
       method: 'POST',
       body: new FormData(form),
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest'
-      }
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
-      .then(response => response.text())
+      .then(r => r.text())
       .then(html => {
-
         if (html.includes('id="form-plano-contas"')) {
-
+          // Erro de validação — mostrar o form com erros
           document.getElementById('modalContaContent').innerHTML = html;
-
+          religarBotaoCancelar();
         } else {
-
+          // Sucesso — fechar e recarregar
           modalConta.hide();
-
-          document.querySelectorAll('.modal-backdrop').forEach(
-            el => el.remove()
-          );
-
-          document.body.classList.remove('modal-open');
-
           window.location.reload();
         }
+      })
+      .catch(err => {
+        console.error('Erro ao submeter form:', err);
       });
   });
-
-  document.getElementById('modalConta').addEventListener(
-    'hidden.bs.modal',
-    function () {
-
-      document.querySelectorAll('.modal-backdrop').forEach(
-        el => el.remove()
-      );
-
-      document.body.classList.remove('modal-open');
-
-      document.body.style.removeProperty('padding-right');
-    }
-  );
-
 </script>
 {% endblock %}

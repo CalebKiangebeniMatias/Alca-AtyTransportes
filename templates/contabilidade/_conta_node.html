@@ -9,31 +9,33 @@
     <span class="badge {% if conta.natureza == 'D' %}badge-dev{% else %}badge-cred{% endif %}">
       {% if conta.natureza == 'D' %}Devedora{% else %}Credora{% endif %}
     </span>
-    {% if not conta.ativo %}<span class="badge" style="background:rgba(255,255,255,.08);color:var(--grey);">Inativa</span>{% endif %}
+    {% if not conta.ativo %}
+    <span class="badge" style="background:rgba(255,255,255,.08);color:var(--grey);">Inativa</span>
+    {% endif %}
 
     <div class="conta-actions">
       <a href="{% url 'plano_contas_create' %}?parent={{ conta.pk }}" class="btn btn-outline-light"
-         onclick="return abrirModalConta(this.href);" title="Adicionar subconta">
+        onclick="return abrirModalConta(this.href);" title="Adicionar subconta">
         <i class="fas fa-plus"></i>
       </a>
       <a href="{% url 'plano_contas_edit' conta.pk %}" class="btn btn-outline-light"
-         onclick="return abrirModalConta(this.href);" title="Editar conta">
+        onclick="return abrirModalConta(this.href);" title="Editar conta">
         <i class="fas fa-pen"></i>
       </a>
       <a href="{% url 'plano_contas_delete' conta.pk %}" class="btn btn-danger" title="Eliminar conta"
-         onclick="return confirm('Eliminar a conta {{ conta.codigo }} - {{ conta.nome }}?');">
+        onclick="return confirm('Eliminar a conta {{ conta.codigo }} — {{ conta.nome }}?');">
         <i class="fas fa-trash"></i>
       </a>
     </div>
   </div>
 
   {% with filhas=conta.get_children %}
-    {% if filhas %}
-    <div class="conta-children">
-      {% for filha in filhas %}
-        {% include 'contabilidade/_conta_node.html' with conta=filha %}
-      {% endfor %}
-    </div>
-    {% endif %}
+  {% if filhas %}
+  <div class="conta-children">
+    {% for filha in filhas %}
+    {% include 'contabilidade/_conta_node.html' with conta=filha %}
+    {% endfor %}
+  </div>
+  {% endif %}
   {% endwith %}
 </div>

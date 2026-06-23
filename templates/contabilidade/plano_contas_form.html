@@ -1,27 +1,31 @@
 <div class="modal-header">
   <h5 class="modal-title">{% if conta %}Editar Conta{% else %}Nova Conta{% endif %}</h5>
-  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  <button type="button" class="btn-close btn-close-white btn-cancelar-modal" aria-label="Fechar"></button>
 </div>
 
 <form id="form-plano-contas" method="post"
-      action="{% if conta %}{% url 'plano_contas_edit' conta.pk %}{% else %}{% url 'plano_contas_create' %}{% endif %}">
+  action="{% if conta %}{% url 'plano_contas_edit' conta.pk %}{% else %}{% url 'plano_contas_create' %}{% endif %}">
   {% csrf_token %}
   <div class="modal-body">
 
     {% if form.non_field_errors %}
-      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
     {% endif %}
 
     <div class="mb-3">
       <label class="form-label">{{ form.codigo.label_tag }}</label>
       {{ form.codigo }}
-      {% if form.codigo.errors %}<div style="color:var(--danger);font-size:.8rem;margin-top:4px;">{{ form.codigo.errors|join:' ' }}</div>{% endif %}
+      {% if form.codigo.errors %}
+      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">{{ form.codigo.errors|join:' ' }}</div>
+      {% endif %}
     </div>
 
     <div class="mb-3">
       <label class="form-label">{{ form.nome.label_tag }}</label>
       {{ form.nome }}
-      {% if form.nome.errors %}<div style="color:var(--danger);font-size:.8rem;margin-top:4px;">{{ form.nome.errors|join:' ' }}</div>{% endif %}
+      {% if form.nome.errors %}
+      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">{{ form.nome.errors|join:' ' }}</div>
+      {% endif %}
     </div>
 
     <div class="row">
@@ -38,17 +42,20 @@
     <div class="mb-3">
       <label class="form-label">{{ form.parent.label_tag }}</label>
       {{ form.parent }}
-      {% if form.parent.errors %}<div style="color:var(--danger);font-size:.8rem;margin-top:4px;">{{ form.parent.errors|join:' ' }}</div>{% endif %}
+      {% if form.parent.errors %}
+      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">{{ form.parent.errors|join:' ' }}</div>
+      {% endif %}
     </div>
 
     <div class="form-check">
       {{ form.ativo }}
       <label class="form-check-label" style="color:rgba(255,255,255,.7);">Conta ativa</label>
     </div>
+
   </div>
 
   <div class="modal-footer">
-    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+    <button type="button" class="btn btn-outline-light btn-cancelar-modal">Cancelar</button>
     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar</button>
   </div>
 </form>
