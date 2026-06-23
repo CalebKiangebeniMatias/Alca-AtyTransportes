@@ -1,0 +1,36 @@
+[
+  {"codigo": "1", "nome": "Meios Financeiros Líquidos", "tipo": "S", "natureza": "D", "parent_codigo": null},
+  {"codigo": "1.1", "nome": "Caixa", "tipo": "A", "natureza": "D", "parent_codigo": "1"},
+  {"codigo": "1.2", "nome": "Depósitos em Instituições Financeiras", "tipo": "A", "natureza": "D", "parent_codigo": "1"},
+
+  {"codigo": "2", "nome": "Contas a Receber e a Pagar", "tipo": "S", "natureza": "D", "parent_codigo": null},
+  {"codigo": "2.1", "nome": "Clientes", "tipo": "A", "natureza": "D", "parent_codigo": "2"},
+  {"codigo": "2.2", "nome": "Fornecedores", "tipo": "A", "natureza": "C", "parent_codigo": "2"},
+  {"codigo": "2.3", "nome": "Estado e Outros Entes Públicos", "tipo": "A", "natureza": "C", "parent_codigo": "2"},
+
+  {"codigo": "3", "nome": "Inventários e Ativos Biológicos", "tipo": "S", "natureza": "D", "parent_codigo": null},
+  {"codigo": "3.1", "nome": "Mercadorias", "tipo": "A", "natureza": "D", "parent_codigo": "3"},
+  {"codigo": "3.2", "nome": "Matérias-primas, Subsidiárias e de Consumo", "tipo": "A", "natureza": "D", "parent_codigo": "3"},
+
+  {"codigo": "4", "nome": "Investimentos", "tipo": "S", "natureza": "D", "parent_codigo": null},
+  {"codigo": "4.1", "nome": "Ativos Fixos Tangíveis", "tipo": "A", "natureza": "D", "parent_codigo": "4"},
+  {"codigo": "4.2", "nome": "Ativos Intangíveis", "tipo": "A", "natureza": "D", "parent_codigo": "4"},
+
+  {"codigo": "5", "nome": "Capital, Reservas e Resultados Transitados", "tipo": "S", "natureza": "C", "parent_codigo": null},
+  {"codigo": "5.1", "nome": "Capital", "tipo": "A", "natureza": "C", "parent_codigo": "5"},
+  {"codigo": "5.2", "nome": "Reservas", "tipo": "A", "natureza": "C", "parent_codigo": "5"},
+  {"codigo": "5.3", "nome": "Resultados Transitados", "tipo": "A", "natureza": "C", "parent_codigo": "5"},
+
+  {"codigo": "6", "nome": "Gastos", "tipo": "S", "natureza": "D", "parent_codigo": null},
+  {"codigo": "6.1", "nome": "Custo das Mercadorias Vendidas", "tipo": "A", "natureza": "D", "parent_codigo": "6"},
+  {"codigo": "6.2", "nome": "Fornecimentos e Serviços Externos", "tipo": "A", "natureza": "D", "parent_codigo": "6"},
+  {"codigo": "6.3", "nome": "Gastos com o Pessoal", "tipo": "A", "natureza": "D", "parent_codigo": "6"},
+  {"codigo": "6.4", "nome": "Gastos com Combustíveis e Manutenção", "tipo": "A", "natureza": "D", "parent_codigo": "6"},
+
+  {"codigo": "7", "nome": "Rendimentos", "tipo": "S", "natureza": "C", "parent_codigo": null},
+  {"codigo": "7.1", "nome": "Vendas e Serviços Prestados", "tipo": "A", "natureza": "C", "parent_codigo": "7"},
+  {"codigo": "7.2", "nome": "Outros Rendimentos", "tipo": "A", "natureza": "C", "parent_codigo": "7"},
+
+  {"codigo": "8", "nome": "Resultados", "tipo": "S", "natureza": "C", "parent_codigo": null},
+  {"codigo": "8.1", "nome": "Resultado Líquido do Período", "tipo": "A", "natureza": "C", "parent_codigo": "8"}
+]

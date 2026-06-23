@@ -9,6 +9,7 @@ gunicorn
 whitenoise
 dj-database-url
 python-dotenv
+django-mptt
 
 # Tarefas assíncronas e cache
 celery==5.5.3

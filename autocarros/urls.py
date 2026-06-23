@@ -11,7 +11,6 @@ from .views import (
     MotoristaUpdateView,
 )
 
-
 # Define os padrões de URL para a app "autocarros"
 urlpatterns = [
 
@@ -182,8 +181,17 @@ urlpatterns = [
     #Mapas
     path('mapas/mensal-financeiro/', views.mapa_geral_financeiro, name='mapa_geral_financeiro'),
 
-]
 
+    #Inclua isto no urls.py do projeto, por exemplo:
+    #path('contabilidade/', include('contabilidade.urls')),
+    path('plano-de-contas/', views.plano_contas_list, name='plano_contas_list'),
+    path('plano-de-contas/nova/', views.plano_contas_create, name='plano_contas_create'),
+    path('plano-de-contas/<int:pk>/editar/', views.plano_contas_edit, name='plano_contas_edit'),
+    path('plano-de-contas/<int:pk>/eliminar/', views.plano_contas_delete, name='plano_contas_delete'),
+    path('plano-de-contas/sugerir-codigo/', views.sugerir_codigo_ajax, name='sugerir_codigo_ajax'),
+    path('plano-de-contas/carregar-padrao/', views.carregar_plano_padrao, name='carregar_plano_padrao'),
+
+]
 
 # Servir arquivos de mídia em modo DEBUG
 if settings.DEBUG:

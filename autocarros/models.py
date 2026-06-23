@@ -591,3 +591,113 @@ class Despesa2(models.Model):
 
     def __str__(self):
         return f"{self.data} - {self.subcategoria.nome} - {self.valor}"
+
+
+# ═══════════════════════════════════════════════════════════
+# 3. CONTABILIDA & FINANÇAS
+# ═══════════════════════════════════════════════════════════
+
+
+from django.db import models
+from django.core.exceptions import ValidationError
+from mptt.models import MPTTModel, TreeForeignKey
+
+
+class PlanoContas(MPTTModel):
+    """
+    Plano de Contas dinâmico e hierárquico (Classe > Subclasse > Conta > Subconta).
+
+    O utilizador (contabilista/gestor) define livremente a estrutura pela
+    interface. O sistema só garante 3 regras mínimas para não deixar o plano
+    "quebrar" — não é preciso ser especialista em contabilidade para usar isto.
+    """
+
+    TIPO_CHOICES = [
+        ('S', 'Sintética (agrupadora — soma as filhas)'),
+        ('A', 'Analítica (recebe lançamentos)'),
+    ]
+
+    NATUREZA_CHOICES = [
+        ('D', 'Devedora'),   # Ativos, Gastos
+        ('C', 'Credora'),    # Passivos, Capital Próprio, Rendimentos
+    ]
+
+    codigo = models.CharField('Código', max_length=20, unique=True)
+    nome = models.CharField('Designação', max_length=150)
+    tipo = models.CharField('Tipo', max_length=1, choices=TIPO_CHOICES, default='A')
+    natureza = models.CharField('Natureza', max_length=1, choices=NATUREZA_CHOICES)
+    ativo = models.BooleanField('Ativa', default=True)
+    permite_lancamento = models.BooleanField(
+        'Permite lançamento direto', default=True,
+        help_text='É desligado automaticamente para contas Sintéticas.'
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    parent = TreeForeignKey(
+        'self', on_delete=models.CASCADE, null=True, blank=True,
+        related_name='filhas', verbose_name='Conta-mãe'
+    )
+
+    class MPTTMeta:
+        order_insertion_by = ['codigo']
+
+    class Meta:
+        verbose_name = 'Conta'
+        verbose_name_plural = 'Plano de Contas'
+
+    def __str__(self):
+        return f'{self.codigo} — {self.nome}'
+
+    def clean(self):
+        # Regra 1 — só contas Analíticas recebem lançamentos de movimento.
+        if self.tipo == 'S':
+            self.permite_lancamento = False
+
+        # Regra 2 — o código da filha tem de começar pelo código da mãe,
+        # para a árvore ficar sempre coerente (ex.: mãe "1" -> filha "1.1").
+        if self.parent_id:
+            mae = PlanoContas.objects.filter(pk=self.parent_id).first()
+            if mae and self.codigo and not self.codigo.startswith(mae.codigo):
+                raise ValidationError({
+                    'codigo': f'O código deve começar por "{mae.codigo}" '
+                              f'(código da conta-mãe selecionada).'
+                })
+
+        # Regra 3 — uma conta que já tem subcontas não pode ser Analítica,
+        # porque já deixou de ser uma conta de movimento direto.
+        if self.pk and self.tipo == 'A' and self.filhas.exists():
+            raise ValidationError({
+                'tipo': 'Esta conta já tem subcontas — passe-a para o tipo '
+                        'Sintética antes de gravar.'
+            })
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def sugerir_codigo(parent_id=None):
+        """
+        Sugere automaticamente o próximo código livre, para o utilizador
+        não ter de pensar em numeração ao criar uma conta nova.
+        """
+        if parent_id:
+            mae = PlanoContas.objects.filter(pk=parent_id).first()
+            if not mae:
+                return ''
+            irmas = mae.filhas.order_by('-codigo')
+            if irmas.exists():
+                ultimo_codigo = irmas.first().codigo
+                base, sep, sufixo = ultimo_codigo.rpartition('.')
+                if sufixo.isdigit():
+                    novo_sufixo = str(int(sufixo) + 1).zfill(len(sufixo))
+                    return f'{base}{sep}{novo_sufixo}' if base else novo_sufixo
+                return f'{ultimo_codigo}.1'
+            # primeira filha desta mãe
+            return f'{mae.codigo}.1' if '.' in mae.codigo else f'{mae.codigo}.1'
+        else:
+            ultima_raiz = PlanoContas.objects.filter(parent__isnull=True).order_by('-codigo').first()
+            if ultima_raiz and ultima_raiz.codigo.isdigit():
+                return str(int(ultima_raiz.codigo) + 1)
+            return '1'

@@ -5372,6 +5372,134 @@ def exportar_relatorio_autocarros_csv(request):
     return response
 
 
+
+# ═══════════════════════════════════════════════════════════
+# 3. CONTABILIDA & FINANÇAS
+# ═══════════════════════════════════════════════════════════
+
+
+import json
+import os
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .forms import PlanoContasForm
+from .models import PlanoContas
+
+
+@login_required
+def plano_contas_list(request):
+    """Lista todas as contas de raiz; cada uma desenha as suas filhas recursivamente."""
+    raiz = PlanoContas.objects.filter(parent__isnull=True).order_by('codigo')
+    contexto = {
+        'raiz': raiz,
+        'total_contas': PlanoContas.objects.count(),
+    }
+    return render(request, 'contabilidade/plano_contas_list.html', contexto)
+
+
+@login_required
+def plano_contas_create(request):
+    parent_id = request.POST.get('parent') or request.GET.get('parent')
+
+    if request.method == 'POST':
+        form = PlanoContasForm(request.POST)
+        if form.is_valid():
+            try:
+                form.save()
+                messages.success(request, 'Conta criada com sucesso.')
+            except Exception as exc:
+                messages.error(request, f'Não foi possível guardar a conta: {exc}')
+            return redirect('plano_contas_list')
+        # formulário inválido — devolve o modal com os erros
+        return render(request, 'contabilidade/plano_contas_form.html', {
+            'form': form, 'parent_id': parent_id,
+        })
+
+    inicial = {}
+    if parent_id:
+        inicial['parent'] = parent_id
+        inicial['codigo'] = PlanoContas.sugerir_codigo(parent_id)
+
+    form = PlanoContasForm(initial=inicial)
+    return render(request, 'contabilidade/plano_contas_form.html', {
+        'form': form, 'parent_id': parent_id,
+    })
+
+
+@login_required
+def plano_contas_edit(request, pk):
+    conta = get_object_or_404(PlanoContas, pk=pk)
+
+    if request.method == 'POST':
+        form = PlanoContasForm(request.POST, instance=conta)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Conta atualizada com sucesso.')
+            return redirect('plano_contas_list')
+        messages.error(request, 'Verifique os dados do formulário.')
+    else:
+        form = PlanoContasForm(instance=conta)
+
+    return render(request, 'contabilidade/plano_contas_form.html', {
+        'form': form, 'conta': conta,
+    })
+
+
+@login_required
+def plano_contas_delete(request, pk):
+    conta = get_object_or_404(PlanoContas, pk=pk)
+    if conta.filhas.exists():
+        messages.error(request, 'Não é possível eliminar: esta conta ainda tem subcontas associadas.')
+    else:
+        conta.delete()
+        messages.success(request, 'Conta eliminada.')
+    return redirect('plano_contas_list')
+
+
+@login_required
+def sugerir_codigo_ajax(request):
+    """Usado pelo botão 'Adicionar subconta' para pré-preencher o código."""
+    parent_id = request.GET.get('parent')
+    return JsonResponse({'codigo': PlanoContas.sugerir_codigo(parent_id)})
+
+
+@login_required
+@transaction.atomic
+def carregar_plano_padrao(request):
+    """
+    Importa uma estrutura-base de classes (1 a 8) a partir do fixture JSON,
+    para o utilizador não ter de começar do zero. Só corre se a tabela
+    ainda estiver vazia, para nunca duplicar nem misturar com dados reais.
+    """
+    if PlanoContas.objects.exists():
+        messages.warning(request, 'Já existem contas registadas — a importação foi cancelada para evitar duplicados.')
+        return redirect('plano_contas_list')
+
+    caminho = os.path.join(os.path.dirname(__file__), 'fixtures', 'plano_base.json')
+    with open(caminho, encoding='utf-8') as ficheiro:
+        dados = json.load(ficheiro)
+
+    mapa_codigo_para_objeto = {}
+    for item in dados:
+        mae = mapa_codigo_para_objeto.get(item.get('parent_codigo'))
+        conta = PlanoContas.objects.create(
+            codigo=item['codigo'],
+            nome=item['nome'],
+            tipo=item['tipo'],
+            natureza=item['natureza'],
+            parent=mae,
+        )
+        mapa_codigo_para_objeto[item['codigo']] = conta
+
+    messages.success(request, f'{len(dados)} conta(s) importada(s) a partir do plano-base.')
+    return redirect('plano_contas_list')
+
+
 # ═══════════════════════════════════════════════════════════
 # 3. ADICIONAR AS URLS NO urls.py
 # ═══════════════════════════════════════════════════════════

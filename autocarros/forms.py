@@ -437,3 +437,40 @@ class MotoristaForm(forms.ModelForm):
             'numero_bi': forms.TextInput(attrs={'class': 'form-control'}),
             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+
+# ═══════════════════════════════════════════════════════════
+# 3. CONTABILIDA & FINANÇAS
+# ═══════════════════════════════════════════════════════════
+
+
+from django import forms
+from .models import PlanoContas
+
+
+class PlanoContasForm(forms.ModelForm):
+    class Meta:
+        model = PlanoContas
+        fields = ['codigo', 'nome', 'tipo', 'natureza', 'parent', 'ativo']
+        labels = {
+            'parent': 'Conta-mãe (deixe em branco se for uma Classe / conta de raiz)',
+        }
+        widgets = {
+            'codigo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 1.1.01'}),
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Caixa Geral'}),
+            'tipo': forms.Select(attrs={'class': 'form-select'}),
+            'natureza': forms.Select(attrs={'class': 'form-select'}),
+            'parent': forms.Select(attrs={'class': 'form-select'}),
+            'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['parent'].required = False
+        self.fields['parent'].empty_label = '— Sem mãe (Classe de raiz) —'
+
+        # Numa edição, a conta nunca pode passar a ser mãe de si própria
+        # nem de um dos seus próprios descendentes (isso quebraria a árvore).
+        if self.instance.pk:
+            excluidos = [self.instance.pk] + [d.pk for d in self.instance.get_descendants()]
+            self.fields['parent'].queryset = PlanoContas.objects.exclude(pk__in=excluidos)

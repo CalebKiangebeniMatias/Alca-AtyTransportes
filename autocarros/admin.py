@@ -166,3 +166,21 @@ class MotoristaAdmin(admin.ModelAdmin):
     search_fields = ['nome', 'telefone', 'numero_bi']
     list_editable = ['ativo']
 
+
+# ═══════════════════════════════════════════════════════════
+# 3. CONTABILIDA & FINANÇAS
+# ═══════════════════════════════════════════════════════════
+
+
+from django.contrib import admin
+from mptt.admin import MPTTModelAdmin
+
+from .models import PlanoContas
+
+
+@admin.register(PlanoContas)
+class PlanoContasAdmin(MPTTModelAdmin):
+    list_display = ('codigo', 'nome', 'tipo', 'natureza', 'ativo', 'permite_lancamento')
+    list_filter = ('tipo', 'natureza', 'ativo')
+    search_fields = ('codigo', 'nome')
+    mptt_indent_field = 'nome'
