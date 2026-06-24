@@ -1,5 +1,8 @@
 <div class="modal-header">
-  <h5 class="modal-title">{% if conta %}Editar Conta{% else %}Nova Conta{% endif %}</h5>
+  <h5 class="modal-title">
+    {% if conta %}Editar Conta{% else %}Nova Conta{% endif %}
+  </h5>
+  {# btn-close nativo do BS5 — o JS já o interceta via _religarCancelar() #}
   <button type="button" class="btn-close btn-close-white btn-cancelar-modal" aria-label="Fechar"></button>
 </div>
 
@@ -13,37 +16,43 @@
     {% endif %}
 
     <div class="mb-3">
-      <label class="form-label">{{ form.codigo.label_tag }}</label>
+      <label class="form-label">{{ form.codigo.label }}</label>
       {{ form.codigo }}
       {% if form.codigo.errors %}
-      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">{{ form.codigo.errors|join:' ' }}</div>
+      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">
+        {{ form.codigo.errors|join:' ' }}
+      </div>
       {% endif %}
     </div>
 
     <div class="mb-3">
-      <label class="form-label">{{ form.nome.label_tag }}</label>
+      <label class="form-label">{{ form.nome.label }}</label>
       {{ form.nome }}
       {% if form.nome.errors %}
-      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">{{ form.nome.errors|join:' ' }}</div>
+      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">
+        {{ form.nome.errors|join:' ' }}
+      </div>
       {% endif %}
     </div>
 
     <div class="row">
       <div class="col-6 mb-3">
-        <label class="form-label">{{ form.tipo.label_tag }}</label>
+        <label class="form-label">{{ form.tipo.label }}</label>
         {{ form.tipo }}
       </div>
       <div class="col-6 mb-3">
-        <label class="form-label">{{ form.natureza.label_tag }}</label>
+        <label class="form-label">{{ form.natureza.label }}</label>
         {{ form.natureza }}
       </div>
     </div>
 
     <div class="mb-3">
-      <label class="form-label">{{ form.parent.label_tag }}</label>
+      <label class="form-label">{{ form.parent.label }}</label>
       {{ form.parent }}
       {% if form.parent.errors %}
-      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">{{ form.parent.errors|join:' ' }}</div>
+      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">
+        {{ form.parent.errors|join:' ' }}
+      </div>
       {% endif %}
     </div>
 
@@ -55,7 +64,11 @@
   </div>
 
   <div class="modal-footer">
-    <button type="button" class="btn btn-outline-light btn-cancelar-modal">Cancelar</button>
-    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar</button>
+    <button type="button" class="btn btn-outline-light btn-cancelar-modal">
+      Cancelar
+    </button>
+    <button type="submit" class="btn btn-primary">
+      <i class="fas fa-save"></i> Guardar
+    </button>
   </div>
 </form>
