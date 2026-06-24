@@ -14,11 +14,12 @@
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;">
     {% if total_contas == 0 %}
-    <a href="{% url 'carregar_plano_padrao' %}" class="btn btn-primary js-modal-conta">
+    <a href="{% url 'carregar_plano_padrao' %}" class="btn btn-outline-light js-confirmar"
+      data-msg="Importar a estrutura-base de classes (1 a 8)? Pode editar tudo depois.">
       <i class="fas fa-download"></i> Carregar Plano Base
     </a>
     {% endif %}
-    <a href="{% url 'plano_contas_create' %}" class="btn btn-primary js-modal-conta">
+    <a href="{% url 'plano_contas_create' %}" class="btn btn-primary js-modal">
       <i class="fas fa-plus"></i> Nova Classe
     </a>
   </div>
@@ -51,11 +52,12 @@
   </div>
 </div>
 
-{# Modal — conteúdo injectado via AJAX #}
+{# ── Modal — NÃO usar data-bs-toggle aqui, o JS controla tudo ── #}
 <div class="modal fade" id="modalConta" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" id="modalContaContent">
-      <div class="modal-header">
+      {# conteúdo inicial — substituído pelo AJAX #}
+      <div class="modal-header border-0">
         <h5 class="modal-title">A carregar…</h5>
       </div>
       <div class="modal-body text-center py-4">
@@ -72,15 +74,94 @@
 
 {% block extra_css %}
 <style>
-  /* Apenas o essencial — não sobrepor z-index do Bootstrap 5 */
+  /* ── Árvore de contas ── */
+  .conta-tree .conta-node {
+    margin-bottom: 2px;
+  }
+
+  .conta-children {
+    margin-left: 22px;
+    border-left: 1px dashed var(--glass-border);
+    padding-left: 14px;
+  }
+
+  .conta-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    flex-wrap: wrap;
+    transition: background var(--ease-fast);
+  }
+
+  .conta-row:hover {
+    background: rgba(79, 195, 247, .08);
+  }
+
+  .conta-codigo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 80px;
+  }
+
+  .conta-nome {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .badge {
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .5px;
+    padding: 4px 9px;
+    border-radius: 20px;
+  }
+
+  .badge-sint {
+    background: rgba(243, 156, 18, .18);
+    color: var(--warning);
+  }
+
+  .badge-anal {
+    background: rgba(39, 174, 96, .18);
+    color: var(--success);
+  }
+
+  .badge-dev {
+    background: rgba(231, 76, 60, .15);
+    color: var(--danger);
+  }
+
+  .badge-cred {
+    background: rgba(79, 195, 247, .15);
+    color: var(--accent);
+  }
+
+  .conta-actions {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .conta-actions .btn {
+    padding: 5px 9px;
+    font-size: .72rem;
+  }
+
+  .conta-inativa {
+    opacity: .45;
+  }
+
+  /* ── Modal ── */
   .modal-content {
     background: #1c2434;
     color: #fff;
   }
 
-  /* Garantia: backdrop nunca fica visível fora do fluxo normal do BS5 */
-  body:not(.modal-open) .modal-backdrop {
-    display: none !important;
+  .btn-close-white {
+    filter: invert(1) grayscale(1);
   }
 </style>
 {% endblock %}
@@ -91,103 +172,106 @@
   (function () {
     'use strict';
 
-    /* ── Instância única do modal ────────────────────────────── */
-    let bsModal = null;
+    /* ───────────────────────────────────────────────
+       Instância Bootstrap — criada uma única vez
+    ─────────────────────────────────────────────── */
+    const modalEl = document.getElementById('modalConta');
+    const bsModal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
 
-    function getModal() {
-      if (!bsModal) {
-        const el = document.getElementById('modalConta');
-        bsModal = new bootstrap.Modal(el, { backdrop: true, keyboard: true });
+    const SPINNER =
+      '<div class="modal-header border-0"><h5 class="modal-title">A carregar…</h5></div>' +
+      '<div class="modal-body text-center py-4">' +
+      '<div class="spinner-border text-info" role="status">' +
+      '<span class="visually-hidden">A carregar…</span></div></div>';
 
-        /* Sempre que o modal terminar de fechar: limpar resíduos */
-        el.addEventListener('hidden.bs.modal', function () {
-          _limparBackdrops();
-          _resetarConteudo();
-        });
-      }
-      return bsModal;
-    }
-
-    /* ── Limpeza de backdrops "fantasmas" ───────────────────── */
-    function _limparBackdrops() {
-      document.querySelectorAll('.modal-backdrop').forEach(function (el) {
-        el.remove();
-      });
+    /* ───────────────────────────────────────────────
+       Quando o modal termina de fechar:
+       - remove qualquer backdrop que tenha ficado preso
+       - repõe o spinner para a próxima abertura
+    ─────────────────────────────────────────────── */
+    modalEl.addEventListener('hidden.bs.modal', function () {
+      /* Limpar backdrops residuais */
+      document.querySelectorAll('.modal-backdrop').forEach(function (el) { el.remove(); });
       document.body.classList.remove('modal-open');
       document.body.style.removeProperty('overflow');
       document.body.style.removeProperty('padding-right');
-    }
 
-    /* ── Repõe o spinner para a próxima abertura ────────────── */
-    function _resetarConteudo() {
-      document.getElementById('modalContaContent').innerHTML =
-        '<div class="modal-header"><h5 class="modal-title">A carregar…</h5></div>' +
-        '<div class="modal-body text-center py-4">' +
-        '<div class="spinner-border text-info" role="status">' +
-        '<span class="visually-hidden">A carregar…</span></div></div>';
-    }
+      /* Repõe spinner */
+      document.getElementById('modalContaContent').innerHTML = SPINNER;
+    });
 
-    /* ── Abre o modal e carrega o conteúdo via AJAX ─────────── */
-    function abrirModalConta(url) {
-      const modal = getModal();
-      modal.show();
+    /* ───────────────────────────────────────────────
+       Abre o modal e carrega o URL via AJAX
+    ─────────────────────────────────────────────── */
+    function abrirModal(url) {
+      /* Mostrar imediatamente com o spinner */
+      document.getElementById('modalContaContent').innerHTML = SPINNER;
+      bsModal.show();
 
       fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(function (r) {
-          if (!r.ok) throw new Error('HTTP ' + r.status);
+          if (!r.ok) { throw new Error('HTTP ' + r.status); }
           return r.text();
         })
         .then(function (html) {
           document.getElementById('modalContaContent').innerHTML = html;
-          _religarCancelar();
-          _executarScripts();
+          religarFechar();
         })
         .catch(function (err) {
           console.error('Erro ao carregar modal:', err);
-          modal.hide();
+          bsModal.hide();
         });
     }
 
-    /* ── Re-liga botões de cancelar injectados pelo AJAX ───── */
-    function _religarCancelar() {
+    /* ───────────────────────────────────────────────
+       Liga os botões de fechar injectados via AJAX.
+       O data-bs-dismiss NÃO funciona em conteúdo
+       injectado dinamicamente — temos de ligar à mão.
+    ─────────────────────────────────────────────── */
+    function religarFechar() {
       document
-        .querySelectorAll(
-          '#modalContaContent [data-modal-dismiss], ' +
-          '#modalContaContent .btn-cancelar-modal, ' +
-          '#modalContaContent .btn-close'
-        )
+        .querySelectorAll('#modalContaContent [data-bs-dismiss="modal"], #modalContaContent .js-fechar-modal')
         .forEach(function (btn) {
-          /* Evitar duplo-listener se o mesmo elemento for re-injectado */
-          btn.removeEventListener('click', _fecharModal);
-          btn.addEventListener('click', _fecharModal);
+          btn.addEventListener('click', function () { bsModal.hide(); });
         });
     }
 
-    function _fecharModal() {
-      getModal().hide();
-    }
-
-    /* ── Executa <script> injectados via innerHTML ───────────── */
-    function _executarScripts() {
-      document.querySelectorAll('#modalContaContent script').forEach(function (s) {
-        const novo = document.createElement('script');
-        novo.textContent = s.textContent;
-        document.body.appendChild(novo);
-      });
-    }
-
-    /* ── Delegação de clique — substitui onclick inline ─────── */
+    /* ───────────────────────────────────────────────
+       Delegação de cliques — apanha todos os .js-modal
+       na página (incluindo os injectados na árvore)
+    ─────────────────────────────────────────────── */
     document.addEventListener('click', function (e) {
-      const link = e.target.closest('a.js-modal-conta');
-      if (!link) return;
-      e.preventDefault();
-      abrirModalConta(link.href);
+      /* Abrir modal */
+      var link = e.target.closest('a.js-modal');
+      if (link) {
+        e.preventDefault();
+        abrirModal(link.href);
+        return;
+      }
+
+      /* Confirmar antes de navegar (ex: Carregar Plano Base) */
+      var confirmar = e.target.closest('a.js-confirmar');
+      if (confirmar) {
+        var msg = confirmar.dataset.msg || 'Confirmar?';
+        if (!confirm(msg)) { e.preventDefault(); }
+        return;
+      }
+
+      /* Confirmar antes de eliminar */
+      var eliminar = e.target.closest('a.js-eliminar');
+      if (eliminar) {
+        var msg2 = eliminar.dataset.msg || 'Eliminar este registo?';
+        if (!confirm(msg2)) { e.preventDefault(); }
+        return;
+      }
     });
 
-    /* ── Intercepção do submit dentro do modal ──────────────── */
+    /* ───────────────────────────────────────────────
+       Submit do formulário dentro do modal via AJAX
+    ─────────────────────────────────────────────── */
     document.addEventListener('submit', function (e) {
-      const form = e.target;
-      if (!form.closest('#modalContaContent')) return;
+      var form = e.target;
+      if (!form.closest('#modalContaContent')) { return; }
       e.preventDefault();
 
       fetch(form.action, {
@@ -198,18 +282,17 @@
         .then(function (r) { return r.text(); })
         .then(function (html) {
           if (html.includes('id="form-plano-contas"')) {
-            /* Erro de validação — mostrar form com erros */
+            /* Validação falhou — mostrar form com erros */
             document.getElementById('modalContaContent').innerHTML = html;
-            _religarCancelar();
-            _executarScripts();
+            religarFechar();
           } else {
-            /* Sucesso — fechar modal e recarregar página */
-            getModal().hide();
+            /* Sucesso — fechar e recarregar */
+            bsModal.hide();
             window.location.reload();
           }
         })
         .catch(function (err) {
-          console.error('Erro ao submeter form:', err);
+          console.error('Erro ao submeter:', err);
         });
     });
 

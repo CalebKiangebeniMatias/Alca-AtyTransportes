@@ -14,21 +14,16 @@
     {% endif %}
 
     <div class="conta-actions">
-      {# Adicionar subconta #}
-      <a href="{% url 'plano_contas_create' %}?parent={{ conta.pk }}" class="btn btn-outline-light js-modal-conta"
+      {# ── IMPORTANTE: sem data-bs-toggle nem onclick — o JS delega via .js-modal ── #}
+      <a href="{% url 'plano_contas_create' %}?parent={{ conta.pk }}" class="btn btn-outline-light js-modal"
         title="Adicionar subconta">
         <i class="fas fa-plus"></i>
       </a>
-
-      {# Editar conta #}
-      <a href="{% url 'plano_contas_edit' conta.pk %}" class="btn btn-outline-light js-modal-conta"
-        title="Editar conta">
+      <a href="{% url 'plano_contas_edit' conta.pk %}" class="btn btn-outline-light js-modal" title="Editar conta">
         <i class="fas fa-pen"></i>
       </a>
-
-      {# Eliminar conta — confirmação nativa, sem modal #}
-      <a href="{% url 'plano_contas_delete' conta.pk %}" class="btn btn-danger js-confirmar-delete"
-        data-mensagem="Eliminar a conta {{ conta.codigo }} — {{ conta.nome }}?" title="Eliminar conta">
+      <a href="{% url 'plano_contas_delete' conta.pk %}" class="btn btn-danger js-eliminar"
+        data-msg="Eliminar a conta {{ conta.codigo }} — {{ conta.nome }}?" title="Eliminar conta">
         <i class="fas fa-trash"></i>
       </a>
     </div>

@@ -2,13 +2,18 @@
   <h5 class="modal-title">
     {% if conta %}Editar Conta{% else %}Nova Conta{% endif %}
   </h5>
-  {# btn-close nativo do BS5 — o JS já o interceta via _religarCancelar() #}
-  <button type="button" class="btn-close btn-close-white btn-cancelar-modal" aria-label="Fechar"></button>
+  {#
+  IMPORTANTE: data-bs-dismiss="modal" NÃO funciona em conteúdo injectado via AJAX
+  porque o Bootstrap já inicializou o modal antes de este HTML existir.
+  A classe .js-fechar-modal é apanhada pelo religarFechar() no script da página.
+  #}
+  <button type="button" class="btn-close btn-close-white js-fechar-modal" aria-label="Fechar"></button>
 </div>
 
 <form id="form-plano-contas" method="post"
   action="{% if conta %}{% url 'plano_contas_edit' conta.pk %}{% else %}{% url 'plano_contas_create' %}{% endif %}">
   {% csrf_token %}
+
   <div class="modal-body">
 
     {% if form.non_field_errors %}
@@ -19,9 +24,7 @@
       <label class="form-label">{{ form.codigo.label }}</label>
       {{ form.codigo }}
       {% if form.codigo.errors %}
-      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">
-        {{ form.codigo.errors|join:' ' }}
-      </div>
+      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">{{ form.codigo.errors|join:' ' }}</div>
       {% endif %}
     </div>
 
@@ -29,9 +32,7 @@
       <label class="form-label">{{ form.nome.label }}</label>
       {{ form.nome }}
       {% if form.nome.errors %}
-      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">
-        {{ form.nome.errors|join:' ' }}
-      </div>
+      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">{{ form.nome.errors|join:' ' }}</div>
       {% endif %}
     </div>
 
@@ -50,9 +51,7 @@
       <label class="form-label">{{ form.parent.label }}</label>
       {{ form.parent }}
       {% if form.parent.errors %}
-      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">
-        {{ form.parent.errors|join:' ' }}
-      </div>
+      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">{{ form.parent.errors|join:' ' }}</div>
       {% endif %}
     </div>
 
@@ -64,7 +63,8 @@
   </div>
 
   <div class="modal-footer">
-    <button type="button" class="btn btn-outline-light btn-cancelar-modal">
+    {# Cancelar também via js-fechar-modal — não data-bs-dismiss #}
+    <button type="button" class="btn btn-outline-light js-fechar-modal">
       Cancelar
     </button>
     <button type="submit" class="btn btn-primary">
