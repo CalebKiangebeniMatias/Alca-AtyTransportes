@@ -5377,32 +5377,26 @@ def exportar_relatorio_autocarros_csv(request):
 # 3. CONTABILIDA & FINANÇAS
 # ═══════════════════════════════════════════════════════════
 
-
 import json
 import os
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import PlanoContasForm
 from .models import PlanoContas
 
 
-def _is_ajax(request):
-    return request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-
-
 @login_required
 def plano_contas_list(request):
     raiz = PlanoContas.objects.filter(parent__isnull=True).order_by('codigo')
-    contexto = {
+    return render(request, 'contabilidade/plano_contas_list.html', {
         'raiz': raiz,
         'total_contas': PlanoContas.objects.count(),
-    }
-    return render(request, 'contabilidade/plano_contas_list.html', contexto)
+    })
 
 
 @login_required
@@ -5415,24 +5409,16 @@ def plano_contas_create(request):
             try:
                 form.save()
                 messages.success(request, 'Conta criada com sucesso.')
+                return redirect('plano_contas_list')
             except Exception as exc:
                 messages.error(request, f'Não foi possível guardar a conta: {exc}')
-
-            # AJAX: devolve resposta vazia com 200 — o JS deteta e recarrega a página
-            if _is_ajax(request):
-                return HttpResponse(status=200)
-            return redirect('plano_contas_list')
-
-        # Formulário inválido — devolve o partial com os erros
-        if _is_ajax(request):
-            return render(request, 'contabilidade/plano_contas_form.html', {
-                'form': form, 'parent_id': parent_id,
-            })
+        # Formulário inválido — mostrar erros na mesma página
         return render(request, 'contabilidade/plano_contas_form.html', {
-            'form': form, 'parent_id': parent_id,
+            'form': form,
+            'parent_id': parent_id,
         })
 
-    # GET — mostrar formulário em branco
+    # GET — form em branco, com valores iniciais se vier de subconta
     inicial = {}
     if parent_id:
         inicial['parent'] = parent_id
@@ -5440,7 +5426,8 @@ def plano_contas_create(request):
 
     form = PlanoContasForm(initial=inicial)
     return render(request, 'contabilidade/plano_contas_form.html', {
-        'form': form, 'parent_id': parent_id,
+        'form': form,
+        'parent_id': parent_id,
     })
 
 
@@ -5452,22 +5439,15 @@ def plano_contas_edit(request, pk):
         form = PlanoContasForm(request.POST, instance=conta)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Conta atualizada com sucesso.')
-
-            if _is_ajax(request):
-                return HttpResponse(status=200)
+            messages.success(request, 'Conta actualizada com sucesso.')
             return redirect('plano_contas_list')
-
         messages.error(request, 'Verifique os dados do formulário.')
-        if _is_ajax(request):
-            return render(request, 'contabilidade/plano_contas_form.html', {
-                'form': form, 'conta': conta,
-            })
     else:
         form = PlanoContasForm(instance=conta)
 
     return render(request, 'contabilidade/plano_contas_form.html', {
-        'form': form, 'conta': conta,
+        'form': form,
+        'conta': conta,
     })
 
 
@@ -5499,9 +5479,9 @@ def carregar_plano_padrao(request):
     with open(caminho, encoding='utf-8') as ficheiro:
         dados = json.load(ficheiro)
 
-    mapa_codigo_para_objeto = {}
+    mapa = {}
     for item in dados:
-        mae = mapa_codigo_para_objeto.get(item.get('parent_codigo'))
+        mae = mapa.get(item.get('parent_codigo'))
         conta = PlanoContas.objects.create(
             codigo=item['codigo'],
             nome=item['nome'],
@@ -5509,11 +5489,12 @@ def carregar_plano_padrao(request):
             natureza=item['natureza'],
             parent=mae,
         )
-        mapa_codigo_para_objeto[item['codigo']] = conta
+        mapa[item['codigo']] = conta
 
     messages.success(request, f'{len(dados)} conta(s) importada(s) a partir do plano-base.')
     return redirect('plano_contas_list')
 
+    
 # ═══════════════════════════════════════════════════════════
 # 3. ADICIONAR AS URLS NO urls.py
 # ═══════════════════════════════════════════════════════════

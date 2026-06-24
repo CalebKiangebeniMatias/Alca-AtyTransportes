@@ -1,66 +1,371 @@
-<div class="modal-header">
-  <h5 class="modal-title">
-    {% if conta %}Editar Conta{% else %}Nova Conta{% endif %}
-  </h5>
-  <button type="button" class="btn-close btn-close-white js-fechar-modal" aria-label="Fechar"></button>
-</div>
+{% extends 'base.html' %}
+{% block title %}{% if conta %}Editar Conta{% else %}Nova Conta{% endif %} — ALCA & ATY{% endblock %}
+{% block breadcrumb %}Contabilidade / Plano de Contas / {% if conta %}Editar{% else %}Nova Conta{% endif %}{% endblock
+%}
 
-<form id="form-plano-contas" method="post"
-  action="{% if conta %}{% url 'plano_contas_edit' conta.pk %}{% else %}{% url 'plano_contas_create' %}{% endif %}">
-  {% csrf_token %}
+{% block extra_css %}
+<style>
+  /* ════════════════════════════════════════════════════
+   FORM PLANO DE CONTAS
+════════════════════════════════════════════════════ */
+  .pc-form-wrapper {
+    max-width: 620px;
+    margin: 0 auto;
+    animation: pcIn .45s cubic-bezier(.34, 1.56, .64, 1) both;
+  }
 
-  <div class="modal-body">
+  @keyframes pcIn {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Cabeçalho do formulário */
+  .pc-form-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .pc-form-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-md);
+    background: rgba(79, 195, 247, .12);
+    border: 1px solid rgba(79, 195, 247, .25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .pc-form-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+
+  .pc-form-title span {
+    color: var(--accent);
+  }
+
+  .pc-form-subtitle {
+    font-size: .8rem;
+    color: var(--grey);
+    margin-top: 3px;
+  }
+
+  /* Card do formulário */
+  .pc-form-card {
+    background: rgba(13, 43, 94, .45);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    padding: 28px 32px;
+  }
+
+  /* Campos */
+  .pc-form-card .form-label {
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, .5);
+    margin-bottom: 7px;
+    display: block;
+  }
+
+  .pc-form-card .form-control,
+  .pc-form-card .form-select,
+  .pc-form-card select,
+  .pc-form-card input[type="text"],
+  .pc-form-card input[type="number"],
+  .pc-form-card textarea {
+    background: rgba(4, 30, 66, .55) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: var(--radius-md) !important;
+    color: var(--white) !important;
+    padding: 10px 14px !important;
+    font-family: 'Barlow', sans-serif !important;
+    font-size: .92rem !important;
+    width: 100%;
+    transition: border-color var(--ease-fast), box-shadow var(--ease-fast), background var(--ease-fast) !important;
+    outline: none !important;
+  }
+
+  .pc-form-card .form-control:focus,
+  .pc-form-card .form-select:focus,
+  .pc-form-card select:focus,
+  .pc-form-card input:focus {
+    border-color: var(--accent) !important;
+    background: rgba(4, 30, 66, .85) !important;
+    box-shadow: 0 0 0 3px rgba(79, 195, 247, .15) !important;
+  }
+
+  .pc-form-card select option {
+    background: var(--navy);
+    color: var(--white);
+  }
+
+  .pc-form-card input::placeholder {
+    color: rgba(255, 255, 255, .3) !important;
+  }
+
+  /* Checkbox */
+  .pc-form-card .form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: rgba(4, 30, 66, .3);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+  }
+
+  .pc-form-card .form-check-input {
+    width: 18px;
+    height: 18px;
+    background: rgba(4, 30, 66, .6);
+    border: 1px solid var(--glass-border);
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin: 0;
+  }
+
+  .pc-form-card .form-check-input:checked {
+    background-color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .pc-form-card .form-check-label {
+    font-size: .88rem;
+    color: rgba(255, 255, 255, .75);
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  /* Erros */
+  .pc-field-error {
+    color: #ff8a80;
+    font-size: .78rem;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* Separador de secção */
+  .pc-section-sep {
+    height: 1px;
+    background: linear-gradient(90deg, rgba(79, 195, 247, .2), transparent);
+    margin: 20px 0;
+  }
+
+  /* Rodapé do form */
+  .pc-form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(79, 195, 247, .12);
+    flex-wrap: wrap;
+  }
+
+  /* Banners contextuais */
+  .pc-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 15px;
+    border-radius: var(--radius-md);
+    font-size: .83rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  .pc-banner-edit {
+    background: rgba(79, 195, 247, .08);
+    border: 1px solid rgba(79, 195, 247, .22);
+    color: var(--accent);
+  }
+
+  .pc-banner-sub {
+    background: rgba(39, 174, 96, .08);
+    border: 1px solid rgba(39, 174, 96, .22);
+    color: var(--success);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pc-form-wrapper">
+
+  <!-- CABEÇALHO -->
+  <div class="pc-form-header">
+    <div class="pc-form-icon">
+      <i class="fas fa-{% if conta %}pen{% else %}plus{% endif %}"></i>
+    </div>
+    <div>
+      <div class="pc-form-title">
+        {% if conta %}
+        Editar <span>Conta</span>
+        {% else %}
+        Nova <span>Conta</span>
+        {% endif %}
+      </div>
+      <div class="pc-form-subtitle">
+        {% if conta %}
+        A editar: {{ conta.codigo }} — {{ conta.nome }}
+        {% elif parent_id %}
+        A criar subconta
+        {% else %}
+        Criar uma nova classe ou conta de topo
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- BANNER contextual -->
+  {% if conta %}
+  <div class="pc-banner pc-banner-edit">
+    <i class="fas fa-pen-to-square"></i>
+    A editar a conta <strong>{{ conta.codigo }}</strong> — {{ conta.nome }}
+  </div>
+  {% elif parent_id %}
+  <div class="pc-banner pc-banner-sub">
+    <i class="fas fa-diagram-project"></i>
+    A criar subconta
+  </div>
+  {% endif %}
+
+  <!-- MENSAGENS DJANGO -->
+  {% if messages %}
+  <div style="margin-bottom:20px">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- FORMULÁRIO -->
+  <div class="pc-form-card">
 
     {% if form.non_field_errors %}
-    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    <div class="alert alert-danger" style="margin-bottom:20px">
+      <i class="fas fa-circle-exclamation" style="margin-right:7px"></i>
+      {{ form.non_field_errors }}
+    </div>
     {% endif %}
 
-    <div class="mb-3">
-      <label class="form-label">{{ form.codigo.label }}</label>
-      {{ form.codigo }}
-      {% if form.codigo.errors %}
-      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">{{ form.codigo.errors|join:' ' }}</div>
-      {% endif %}
-    </div>
+    <form method="post"
+      action="{% if conta %}{% url 'plano_contas_edit' conta.pk %}{% else %}{% url 'plano_contas_create' %}{% endif %}">
+      {% csrf_token %}
 
-    <div class="mb-3">
-      <label class="form-label">{{ form.nome.label }}</label>
-      {{ form.nome }}
-      {% if form.nome.errors %}
-      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">{{ form.nome.errors|join:' ' }}</div>
-      {% endif %}
-    </div>
+      <div class="row g-3">
 
-    <div class="row">
-      <div class="col-6 mb-3">
-        <label class="form-label">{{ form.tipo.label }}</label>
-        {{ form.tipo }}
+        <!-- Código -->
+        <div class="col-md-4">
+          <label class="form-label" for="{{ form.codigo.id_for_label }}">
+            {{ form.codigo.label }}
+          </label>
+          {{ form.codigo }}
+          {% if form.codigo.errors %}
+          <div class="pc-field-error">
+            <i class="fas fa-triangle-exclamation"></i>
+            {{ form.codigo.errors|join:' ' }}
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Nome -->
+        <div class="col-md-8">
+          <label class="form-label" for="{{ form.nome.id_for_label }}">
+            {{ form.nome.label }}
+          </label>
+          {{ form.nome }}
+          {% if form.nome.errors %}
+          <div class="pc-field-error">
+            <i class="fas fa-triangle-exclamation"></i>
+            {{ form.nome.errors|join:' ' }}
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Tipo e Natureza -->
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.tipo.id_for_label }}">
+            {{ form.tipo.label }}
+          </label>
+          {{ form.tipo }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.natureza.id_for_label }}">
+            {{ form.natureza.label }}
+          </label>
+          {{ form.natureza }}
+        </div>
+
+        <!-- Conta-mãe -->
+        <div class="col-12">
+          <label class="form-label" for="{{ form.parent.id_for_label }}">
+            {{ form.parent.label }}
+          </label>
+          {{ form.parent }}
+          {% if form.parent.errors %}
+          <div class="pc-field-error">
+            <i class="fas fa-triangle-exclamation"></i>
+            {{ form.parent.errors|join:' ' }}
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Ativo -->
+        <div class="col-12">
+          <div class="form-check">
+            {{ form.ativo }}
+            <label class="form-check-label" for="{{ form.ativo.id_for_label }}">
+              <i class="fas fa-circle-check" style="color:var(--success);margin-right:5px"></i>
+              Conta ativa
+            </label>
+          </div>
+        </div>
+
       </div>
-      <div class="col-6 mb-3">
-        <label class="form-label">{{ form.natureza.label }}</label>
-        {{ form.natureza }}
+
+      <!-- RODAPÉ -->
+      <div class="pc-form-footer">
+        <a href="{% url 'plano_contas_list' %}" class="btn btn-outline-light">
+          <i class="fas fa-arrow-left"></i> Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-floppy-disk"></i>
+          {% if conta %}Actualizar Conta{% else %}Criar Conta{% endif %}
+        </button>
       </div>
-    </div>
 
-    <div class="mb-3">
-      <label class="form-label">{{ form.parent.label }}</label>
-      {{ form.parent }}
-      {% if form.parent.errors %}
-      <div style="color:var(--danger);font-size:.8rem;margin-top:4px;">{{ form.parent.errors|join:' ' }}</div>
-      {% endif %}
-    </div>
-
-    <div class="form-check">
-      {{ form.ativo }}
-      <label class="form-check-label" style="color:rgba(255,255,255,.7);">Conta ativa</label>
-    </div>
-
+    </form>
   </div>
 
-  <div class="modal-footer">
-    <button type="button" class="btn btn-outline-light js-fechar-modal">Cancelar</button>
-    <button type="submit" class="btn btn-primary">
-      <i class="fas fa-save"></i> Guardar
-    </button>
-  </div>
-</form>
+</div>
+{% endblock %}
