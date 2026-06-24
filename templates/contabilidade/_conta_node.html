@@ -14,7 +14,6 @@
     {% endif %}
 
     <div class="conta-actions">
-      {# ── IMPORTANTE: sem data-bs-toggle nem onclick — o JS delega via .js-modal ── #}
       <a href="{% url 'plano_contas_create' %}?parent={{ conta.pk }}" class="btn btn-outline-light js-modal"
         title="Adicionar subconta">
         <i class="fas fa-plus"></i>

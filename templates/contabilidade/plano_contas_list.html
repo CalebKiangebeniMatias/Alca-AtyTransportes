@@ -52,11 +52,10 @@
   </div>
 </div>
 
-{# ── Modal — NÃO usar data-bs-toggle aqui, o JS controla tudo ── #}
+{# Modal — JS controla tudo, sem data-bs-toggle em lado nenhum #}
 <div class="modal fade" id="modalConta" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" id="modalContaContent">
-      {# conteúdo inicial — substituído pelo AJAX #}
       <div class="modal-header border-0">
         <h5 class="modal-title">A carregar…</h5>
       </div>
@@ -74,7 +73,6 @@
 
 {% block extra_css %}
 <style>
-  /* ── Árvore de contas ── */
   .conta-tree .conta-node {
     margin-bottom: 2px;
   }
@@ -154,14 +152,9 @@
     opacity: .45;
   }
 
-  /* ── Modal ── */
   .modal-content {
     background: #1c2434;
     color: #fff;
-  }
-
-  .btn-close-white {
-    filter: invert(1) grayscale(1);
   }
 </style>
 {% endblock %}
@@ -172,75 +165,53 @@
   (function () {
     'use strict';
 
-    /* ───────────────────────────────────────────────
-       Instância Bootstrap — criada uma única vez
-    ─────────────────────────────────────────────── */
-    const modalEl = document.getElementById('modalConta');
-    const bsModal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
+    var modalEl = document.getElementById('modalConta');
+    var bsModal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
 
-    const SPINNER =
+    var SPINNER =
       '<div class="modal-header border-0"><h5 class="modal-title">A carregar…</h5></div>' +
       '<div class="modal-body text-center py-4">' +
       '<div class="spinner-border text-info" role="status">' +
       '<span class="visually-hidden">A carregar…</span></div></div>';
 
-    /* ───────────────────────────────────────────────
-       Quando o modal termina de fechar:
-       - remove qualquer backdrop que tenha ficado preso
-       - repõe o spinner para a próxima abertura
-    ─────────────────────────────────────────────── */
+    /* Ao fechar: limpar backdrops presos e repor spinner */
     modalEl.addEventListener('hidden.bs.modal', function () {
-      /* Limpar backdrops residuais */
       document.querySelectorAll('.modal-backdrop').forEach(function (el) { el.remove(); });
       document.body.classList.remove('modal-open');
       document.body.style.removeProperty('overflow');
       document.body.style.removeProperty('padding-right');
-
-      /* Repõe spinner */
       document.getElementById('modalContaContent').innerHTML = SPINNER;
     });
 
-    /* ───────────────────────────────────────────────
-       Abre o modal e carrega o URL via AJAX
-    ─────────────────────────────────────────────── */
+    /* Abre o modal e carrega HTML parcial via AJAX */
     function abrirModal(url) {
-      /* Mostrar imediatamente com o spinner */
       document.getElementById('modalContaContent').innerHTML = SPINNER;
       bsModal.show();
 
       fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(function (r) {
-          if (!r.ok) { throw new Error('HTTP ' + r.status); }
+          if (!r.ok) throw new Error('HTTP ' + r.status);
           return r.text();
         })
         .then(function (html) {
           document.getElementById('modalContaContent').innerHTML = html;
           religarFechar();
         })
-        .catch(function (err) {
-          console.error('Erro ao carregar modal:', err);
-          bsModal.hide();
-        });
+        .catch(function () { bsModal.hide(); });
     }
 
-    /* ───────────────────────────────────────────────
-       Liga os botões de fechar injectados via AJAX.
-       O data-bs-dismiss NÃO funciona em conteúdo
-       injectado dinamicamente — temos de ligar à mão.
-    ─────────────────────────────────────────────── */
+    /* Liga botões de fechar injectados via AJAX
+       (data-bs-dismiss não funciona em conteúdo dinâmico) */
     function religarFechar() {
-      document
-        .querySelectorAll('#modalContaContent [data-bs-dismiss="modal"], #modalContaContent .js-fechar-modal')
+      document.querySelectorAll('#modalContaContent .js-fechar-modal')
         .forEach(function (btn) {
           btn.addEventListener('click', function () { bsModal.hide(); });
         });
     }
 
-    /* ───────────────────────────────────────────────
-       Delegação de cliques — apanha todos os .js-modal
-       na página (incluindo os injectados na árvore)
-    ─────────────────────────────────────────────── */
+    /* Delegação de cliques na página inteira */
     document.addEventListener('click', function (e) {
+
       /* Abrir modal */
       var link = e.target.closest('a.js-modal');
       if (link) {
@@ -249,29 +220,25 @@
         return;
       }
 
-      /* Confirmar antes de navegar (ex: Carregar Plano Base) */
+      /* Confirmar antes de navegar (Carregar Plano Base) */
       var confirmar = e.target.closest('a.js-confirmar');
       if (confirmar) {
-        var msg = confirmar.dataset.msg || 'Confirmar?';
-        if (!confirm(msg)) { e.preventDefault(); }
+        if (!confirm(confirmar.dataset.msg || 'Confirmar?')) e.preventDefault();
         return;
       }
 
       /* Confirmar antes de eliminar */
       var eliminar = e.target.closest('a.js-eliminar');
       if (eliminar) {
-        var msg2 = eliminar.dataset.msg || 'Eliminar este registo?';
-        if (!confirm(msg2)) { e.preventDefault(); }
+        if (!confirm(eliminar.dataset.msg || 'Eliminar?')) e.preventDefault();
         return;
       }
     });
 
-    /* ───────────────────────────────────────────────
-       Submit do formulário dentro do modal via AJAX
-    ─────────────────────────────────────────────── */
+    /* Submit do formulário dentro do modal */
     document.addEventListener('submit', function (e) {
       var form = e.target;
-      if (!form.closest('#modalContaContent')) { return; }
+      if (!form.closest('#modalContaContent')) return;
       e.preventDefault();
 
       fetch(form.action, {
@@ -279,21 +246,26 @@
         body: new FormData(form),
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
       })
-        .then(function (r) { return r.text(); })
-        .then(function (html) {
-          if (html.includes('id="form-plano-contas"')) {
-            /* Validação falhou — mostrar form com erros */
-            document.getElementById('modalContaContent').innerHTML = html;
-            religarFechar();
-          } else {
-            /* Sucesso — fechar e recarregar */
+        .then(function (r) {
+          /* Sucesso (200 vazio) vs erro de validação (200 com HTML do form) */
+          if (r.ok && r.headers.get('content-length') === '0') {
             bsModal.hide();
             window.location.reload();
+            return;
           }
+          return r.text().then(function (html) {
+            if (html.trim() === '' || !html.includes('id="form-plano-contas"')) {
+              /* Resposta de sucesso sem corpo */
+              bsModal.hide();
+              window.location.reload();
+            } else {
+              /* Form com erros de validação */
+              document.getElementById('modalContaContent').innerHTML = html;
+              religarFechar();
+            }
+          });
         })
-        .catch(function (err) {
-          console.error('Erro ao submeter:', err);
-        });
+        .catch(function (err) { console.error('Erro ao submeter:', err); });
     });
 
   })();

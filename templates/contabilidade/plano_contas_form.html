@@ -2,11 +2,6 @@
   <h5 class="modal-title">
     {% if conta %}Editar Conta{% else %}Nova Conta{% endif %}
   </h5>
-  {#
-  IMPORTANTE: data-bs-dismiss="modal" NÃO funciona em conteúdo injectado via AJAX
-  porque o Bootstrap já inicializou o modal antes de este HTML existir.
-  A classe .js-fechar-modal é apanhada pelo religarFechar() no script da página.
-  #}
   <button type="button" class="btn-close btn-close-white js-fechar-modal" aria-label="Fechar"></button>
 </div>
 
@@ -63,10 +58,7 @@
   </div>
 
   <div class="modal-footer">
-    {# Cancelar também via js-fechar-modal — não data-bs-dismiss #}
-    <button type="button" class="btn btn-outline-light js-fechar-modal">
-      Cancelar
-    </button>
+    <button type="button" class="btn btn-outline-light js-fechar-modal">Cancelar</button>
     <button type="submit" class="btn btn-primary">
       <i class="fas fa-save"></i> Guardar
     </button>

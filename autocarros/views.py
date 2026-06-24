@@ -5384,16 +5384,19 @@ import os
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import PlanoContasForm
 from .models import PlanoContas
 
 
+def _is_ajax(request):
+    return request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+
 @login_required
 def plano_contas_list(request):
-    """Lista todas as contas de raiz; cada uma desenha as suas filhas recursivamente."""
     raiz = PlanoContas.objects.filter(parent__isnull=True).order_by('codigo')
     contexto = {
         'raiz': raiz,
@@ -5414,12 +5417,22 @@ def plano_contas_create(request):
                 messages.success(request, 'Conta criada com sucesso.')
             except Exception as exc:
                 messages.error(request, f'Não foi possível guardar a conta: {exc}')
+
+            # AJAX: devolve resposta vazia com 200 — o JS deteta e recarrega a página
+            if _is_ajax(request):
+                return HttpResponse(status=200)
             return redirect('plano_contas_list')
-        # formulário inválido — devolve o modal com os erros
+
+        # Formulário inválido — devolve o partial com os erros
+        if _is_ajax(request):
+            return render(request, 'contabilidade/plano_contas_form.html', {
+                'form': form, 'parent_id': parent_id,
+            })
         return render(request, 'contabilidade/plano_contas_form.html', {
             'form': form, 'parent_id': parent_id,
         })
 
+    # GET — mostrar formulário em branco
     inicial = {}
     if parent_id:
         inicial['parent'] = parent_id
@@ -5440,8 +5453,16 @@ def plano_contas_edit(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Conta atualizada com sucesso.')
+
+            if _is_ajax(request):
+                return HttpResponse(status=200)
             return redirect('plano_contas_list')
+
         messages.error(request, 'Verifique os dados do formulário.')
+        if _is_ajax(request):
+            return render(request, 'contabilidade/plano_contas_form.html', {
+                'form': form, 'conta': conta,
+            })
     else:
         form = PlanoContasForm(instance=conta)
 
@@ -5463,7 +5484,6 @@ def plano_contas_delete(request, pk):
 
 @login_required
 def sugerir_codigo_ajax(request):
-    """Usado pelo botão 'Adicionar subconta' para pré-preencher o código."""
     parent_id = request.GET.get('parent')
     return JsonResponse({'codigo': PlanoContas.sugerir_codigo(parent_id)})
 
@@ -5471,11 +5491,6 @@ def sugerir_codigo_ajax(request):
 @login_required
 @transaction.atomic
 def carregar_plano_padrao(request):
-    """
-    Importa uma estrutura-base de classes (1 a 8) a partir do fixture JSON,
-    para o utilizador não ter de começar do zero. Só corre se a tabela
-    ainda estiver vazia, para nunca duplicar nem misturar com dados reais.
-    """
     if PlanoContas.objects.exists():
         messages.warning(request, 'Já existem contas registadas — a importação foi cancelada para evitar duplicados.')
         return redirect('plano_contas_list')
@@ -5498,7 +5513,6 @@ def carregar_plano_padrao(request):
 
     messages.success(request, f'{len(dados)} conta(s) importada(s) a partir do plano-base.')
     return redirect('plano_contas_list')
-
 
 # ═══════════════════════════════════════════════════════════
 # 3. ADICIONAR AS URLS NO urls.py
