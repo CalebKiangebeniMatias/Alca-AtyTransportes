@@ -1,276 +1,273 @@
 {% extends 'base.html' %}
+
 {% block title %}Plano de Contas — ALCA & ATY{% endblock %}
 {% block breadcrumb %}Contabilidade / Plano de Contas{% endblock %}
 
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">PLANO DE <span>CONTAS</span></h1>
+    <p style="color:var(--grey);font-size:.85rem;margin-top:4px;">
+      {{ total_contas }} conta(s) registada(s)
+    </p>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    {% if total_contas == 0 %}
+    <a href="{% url 'carregar_plano_padrao' %}" class="btn btn-outline-light js-confirmar"
+      data-msg="Importar a estrutura-base de classes (1 a 8)? Pode editar tudo depois.">
+      <i class="fas fa-download"></i> Carregar Plano Base
+    </a>
+    {% endif %}
+    <a href="{% url 'plano_contas_create' %}" class="btn btn-primary js-modal">
+      <i class="fas fa-plus"></i> Nova Classe
+    </a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <i class="fas fa-sitemap"></i> Estrutura Hierárquica
+  </div>
+  <div class="card-body">
+    {% if raiz %}
+    <div class="conta-tree">
+      {% for conta in raiz %}
+      {% include 'contabilidade/_conta_node.html' with conta=conta %}
+      {% endfor %}
+    </div>
+    <div style="margin-top:18px;display:flex;gap:18px;font-size:.78rem;color:var(--grey);flex-wrap:wrap;">
+      <span><span class="badge badge-sint">Sintética</span> agrupa e soma as filhas — não recebe lançamentos</span>
+      <span><span class="badge badge-anal">Analítica</span> recebe lançamentos de movimento (caixa, despesas,
+        etc.)</span>
+      <span><span class="badge badge-dev">Devedora</span> Ativos e Gastos</span>
+      <span><span class="badge badge-cred">Credora</span> Passivos, Capital e Rendimentos</span>
+    </div>
+    {% else %}
+    <p style="color:var(--grey)">
+      Ainda não tem contas criadas. Pode carregar a estrutura-base (Classes 1 a 8)
+      e depois ajustar tudo à sua realidade, ou começar do zero criando a primeira Classe.
+    </p>
+    {% endif %}
+  </div>
+</div>
+
+{# Modal — JS controla tudo, sem data-bs-toggle em lado nenhum #}
+<div class="modal fade" id="modalConta" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" id="modalContaContent">
+      <div class="modal-header border-0">
+        <h5 class="modal-title">A carregar…</h5>
+      </div>
+      <div class="modal-body text-center py-4">
+        <div class="spinner-border text-info" role="status">
+          <span class="visually-hidden">A carregar…</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+
 {% block extra_css %}
 <style>
-  /* ════════════════════════════════════════════════════
-   PLANO DE CONTAS
-════════════════════════════════════════════════════ */
-  .pc-wrapper {
-    max-width: 960px;
-    margin: 0 auto;
-    animation: pcIn .45s cubic-bezier(.34, 1.56, .64, 1) both;
-  }
-
-  @keyframes pcIn {
-    from {
-      opacity: 0;
-      transform: translateY(16px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  /* ── ÁRVORE ── */
   .conta-tree .conta-node {
     margin-bottom: 2px;
   }
 
   .conta-children {
-    margin-left: 24px;
-    border-left: 1px dashed rgba(79, 195, 247, .22);
-    padding-left: 16px;
+    margin-left: 22px;
+    border-left: 1px dashed var(--glass-border);
+    padding-left: 14px;
   }
 
   .conta-row {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 14px;
-    border-radius: var(--radius-md);
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
     flex-wrap: wrap;
-    transition: background var(--ease-fast), border-color var(--ease-fast);
-    border: 1px solid transparent;
+    transition: background var(--ease-fast);
   }
 
   .conta-row:hover {
-    background: rgba(79, 195, 247, .07);
-    border-color: rgba(79, 195, 247, .15);
+    background: rgba(79, 195, 247, .08);
   }
 
   .conta-codigo {
     font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900;
-    font-size: 1rem;
+    font-weight: 700;
     color: var(--accent);
-    min-width: 72px;
-    letter-spacing: .5px;
+    min-width: 80px;
   }
 
   .conta-nome {
     flex: 1;
-    min-width: 160px;
-    font-weight: 600;
-    font-size: .9rem;
+    min-width: 140px;
   }
 
-  /* ── BADGES ── */
-  .pc-badge {
-    font-size: .65rem;
+  .badge {
+    font-size: .68rem;
     font-weight: 700;
-    letter-spacing: .8px;
-    text-transform: uppercase;
-    padding: 3px 9px;
+    letter-spacing: .5px;
+    padding: 4px 9px;
     border-radius: 20px;
-    white-space: nowrap;
   }
 
   .badge-sint {
-    background: rgba(243, 156, 18, .15);
+    background: rgba(243, 156, 18, .18);
     color: var(--warning);
-    border: 1px solid rgba(243, 156, 18, .25);
   }
 
   .badge-anal {
-    background: rgba(39, 174, 96, .15);
+    background: rgba(39, 174, 96, .18);
     color: var(--success);
-    border: 1px solid rgba(39, 174, 96, .25);
   }
 
   .badge-dev {
-    background: rgba(231, 76, 60, .13);
-    color: #ff8a80;
-    border: 1px solid rgba(231, 76, 60, .22);
+    background: rgba(231, 76, 60, .15);
+    color: var(--danger);
   }
 
   .badge-cred {
-    background: rgba(79, 195, 247, .13);
+    background: rgba(79, 195, 247, .15);
     color: var(--accent);
-    border: 1px solid rgba(79, 195, 247, .22);
   }
 
-  .badge-inativo {
-    background: rgba(255, 255, 255, .05);
-    color: var(--grey);
-    border: 1px solid rgba(255, 255, 255, .1);
-  }
-
-  /* ── ACÇÕES ── */
   .conta-actions {
     display: flex;
     gap: 6px;
     margin-left: auto;
-    flex-shrink: 0;
   }
 
-  .btn-pc {
-    width: 30px;
-    height: 30px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-sm);
+  .conta-actions .btn {
+    padding: 5px 9px;
     font-size: .72rem;
-    border: 1px solid;
-    background: transparent;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background var(--ease-fast), transform var(--ease-spring), border-color var(--ease-fast);
-  }
-
-  .btn-pc:hover {
-    transform: scale(1.1);
-  }
-
-  .btn-pc-add {
-    border-color: rgba(39, 174, 96, .35);
-    color: var(--success);
-  }
-
-  .btn-pc-add:hover {
-    background: rgba(39, 174, 96, .15);
-  }
-
-  .btn-pc-edit {
-    border-color: rgba(79, 195, 247, .35);
-    color: var(--accent);
-  }
-
-  .btn-pc-edit:hover {
-    background: rgba(79, 195, 247, .15);
-  }
-
-  .btn-pc-del {
-    border-color: rgba(231, 76, 60, .35);
-    color: #ff8a80;
-  }
-
-  .btn-pc-del:hover {
-    background: rgba(231, 76, 60, .15);
   }
 
   .conta-inativa {
-    opacity: .4;
+    opacity: .45;
   }
 
-  /* ── LEGENDA ── */
-  .pc-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    font-size: .76rem;
-    color: var(--grey);
-    margin-top: 18px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(79, 195, 247, .1);
-  }
-
-  /* ── EMPTY STATE ── */
-  .pc-empty {
-    text-align: center;
-    padding: 52px 20px;
-    color: rgba(255, 255, 255, .3);
-  }
-
-  .pc-empty i {
-    font-size: 2.5rem;
-    display: block;
-    margin-bottom: 12px;
-    opacity: .5;
-  }
-
-  .pc-empty p {
-    font-size: .9rem;
-    max-width: 380px;
-    margin: 0 auto;
-    line-height: 1.6;
+  .modal-content {
+    background: #1c2434;
+    color: #fff;
   }
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="pc-wrapper">
 
-  <!-- CABEÇALHO -->
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">PLANO DE <span>CONTAS</span></h1>
-      <p style="color:var(--grey);font-size:.82rem;margin-top:4px;">
-        {{ total_contas }} conta(s) registada(s)
-      </p>
-    </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      {% if total_contas == 0 %}
-      <a href="{% url 'carregar_plano_padrao' %}" class="btn btn-outline-light"
-        onclick="return confirm('Importar a estrutura-base de classes (1 a 8)? Pode editar tudo depois.');">
-        <i class="fas fa-download"></i> Carregar Plano Base
-      </a>
-      {% endif %}
-      <a href="{% url 'plano_contas_create' %}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Nova Classe
-      </a>
-    </div>
-  </div>
+{% block extra_js %}
+<script>
+  (function () {
+    'use strict';
 
-  <!-- MENSAGENS DJANGO -->
-  {% if messages %}
-  <div style="margin-bottom:20px">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-      {{ message }}
-      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
+    var modalEl = document.getElementById('modalConta');
+    var bsModal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
 
-  <!-- ÁRVORE -->
-  <div class="card">
-    <div class="card-header">
-      <i class="fas fa-sitemap"></i> Estrutura Hierárquica
-    </div>
-    <div class="card-body">
+    var SPINNER =
+      '<div class="modal-header border-0"><h5 class="modal-title">A carregar…</h5></div>' +
+      '<div class="modal-body text-center py-4">' +
+      '<div class="spinner-border text-info" role="status">' +
+      '<span class="visually-hidden">A carregar…</span></div></div>';
 
-      {% if raiz %}
-      <div class="conta-tree">
-        {% for conta in raiz %}
-        {% include 'contabilidade/_conta_node.html' with conta=conta %}
-        {% endfor %}
-      </div>
+    /* Ao fechar: limpar backdrops presos e repor spinner */
+    modalEl.addEventListener('hidden.bs.modal', function () {
+      document.querySelectorAll('.modal-backdrop').forEach(function (el) { el.remove(); });
+      document.body.classList.remove('modal-open');
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('padding-right');
+      document.getElementById('modalContaContent').innerHTML = SPINNER;
+    });
 
-      <div class="pc-legend">
-        <span><span class="pc-badge badge-sint">Sintética</span> — agrupa, não recebe lançamentos</span>
-        <span><span class="pc-badge badge-anal">Analítica</span> — recebe lançamentos de movimento</span>
-        <span><span class="pc-badge badge-dev">Devedora</span> — Ativos e Gastos</span>
-        <span><span class="pc-badge badge-cred">Credora</span> — Passivos, Capital e Rendimentos</span>
-      </div>
+    /* Abre o modal e carrega HTML parcial via AJAX */
+    function abrirModal(url) {
+      document.getElementById('modalContaContent').innerHTML = SPINNER;
+      bsModal.show();
 
-      {% else %}
-      <div class="pc-empty">
-        <i class="fas fa-sitemap"></i>
-        <p>
-          Ainda não tem contas criadas.<br>
-          Carregue a estrutura-base (Classes 1 a 8) ou crie a primeira Classe manualmente.
-        </p>
-      </div>
-      {% endif %}
+      fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.text();
+        })
+        .then(function (html) {
+          document.getElementById('modalContaContent').innerHTML = html;
+          religarFechar();
+        })
+        .catch(function () { bsModal.hide(); });
+    }
 
-    </div>
-  </div>
+    /* Liga botões de fechar injectados via AJAX
+       (data-bs-dismiss não funciona em conteúdo dinâmico) */
+    function religarFechar() {
+      document.querySelectorAll('#modalContaContent .js-fechar-modal')
+        .forEach(function (btn) {
+          btn.addEventListener('click', function () { bsModal.hide(); });
+        });
+    }
 
-</div>
+    /* Delegação de cliques na página inteira */
+    document.addEventListener('click', function (e) {
+
+      /* Abrir modal */
+      var link = e.target.closest('a.js-modal');
+      if (link) {
+        e.preventDefault();
+        abrirModal(link.href);
+        return;
+      }
+
+      /* Confirmar antes de navegar (Carregar Plano Base) */
+      var confirmar = e.target.closest('a.js-confirmar');
+      if (confirmar) {
+        if (!confirm(confirmar.dataset.msg || 'Confirmar?')) e.preventDefault();
+        return;
+      }
+
+      /* Confirmar antes de eliminar */
+      var eliminar = e.target.closest('a.js-eliminar');
+      if (eliminar) {
+        if (!confirm(eliminar.dataset.msg || 'Eliminar?')) e.preventDefault();
+        return;
+      }
+    });
+
+    /* Submit do formulário dentro do modal */
+    document.addEventListener('submit', function (e) {
+      var form = e.target;
+      if (!form.closest('#modalContaContent')) return;
+      e.preventDefault();
+
+      fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+        .then(function (r) {
+          /* Sucesso (200 vazio) vs erro de validação (200 com HTML do form) */
+          if (r.ok && r.headers.get('content-length') === '0') {
+            bsModal.hide();
+            window.location.reload();
+            return;
+          }
+          return r.text().then(function (html) {
+            if (html.trim() === '' || !html.includes('id="form-plano-contas"')) {
+              /* Resposta de sucesso sem corpo */
+              bsModal.hide();
+              window.location.reload();
+            } else {
+              /* Form com erros de validação */
+              document.getElementById('modalContaContent').innerHTML = html;
+              religarFechar();
+            }
+          });
+        })
+        .catch(function (err) { console.error('Erro ao submeter:', err); });
+    });
+
+  })();
+</script>
 {% endblock %}
