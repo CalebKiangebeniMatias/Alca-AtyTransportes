@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # 🔹 Chave e Debug
 SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
 
-DEBUG = True
+DEBUG = False
 
 # 🔹 Hosts permitidos
 ALLOWED_HOSTS = [
@@ -45,7 +45,6 @@ if os.getenv('DATABASE_URL'):
             os.getenv('DATABASE_URL'),
             conn_max_age=600,
             ssl_require=True,
-            conn_health_checks=True
         )
     }
 else:
