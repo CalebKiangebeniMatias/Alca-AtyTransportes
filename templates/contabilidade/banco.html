@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Banco — Sistema de Gestão{% endblock %}
+{% block breadcrumb %}Banco{% endblock %}
+
+{% block content %}
+<div class="page-header reveal visible">
+        <div>
+                <h1 class="page-title">GESTÃO <span>BANCÁRIA</span></h1>
+                <p style="color:var(--grey);font-size:.9rem;margin-top:4px;">
+                        Selecione uma opção para gerir as contas e operações bancárias.
+                </p>
+        </div>
+</div>
+
+<div class="row g-4">
+
+        <!-- CARD 1 — CONTAS BANCÁRIAS -->
+        <div class="col-12 col-sm-6 col-lg-3">
+                <a href="#" class="text-decoration-none">
+                        <div class="card h-100">
+                                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="min-height:220px;">
+                                        <div class="stat-icon mb-3" style="width:64px;height:64px;font-size:1.8rem;">
+                                                <i class="fas fa-building-columns"></i>
+                                        </div>
+                                        <div class="card-title mb-2">Contas Bancárias</div>
+                                        <p style="color:var(--grey);font-size:.85rem;margin:0;">
+                                                Ver todas as contas cadastradas
+                                        </p>
+                                </div>
+                        </div>
+                </a>
+        </div>
+
+        <!-- CARD 2 — MOVIMENTOS -->
+        <div class="col-12 col-sm-6 col-lg-3">
+                <a href="#" class="text-decoration-none">
+                        <div class="card h-100">
+                                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="min-height:220px;">
+                                        <div class="stat-icon mb-3" style="width:64px;height:64px;font-size:1.8rem;">
+                                                <i class="fas fa-money-bill-wave"></i>
+                                        </div>
+                                        <div class="card-title mb-2">Movimentos</div>
+                                        <p style="color:var(--grey);font-size:.85rem;margin:0;">
+                                                Consultar entradas e saídas bancárias
+                                        </p>
+                                </div>
+                        </div>
+                </a>
+        </div>
+
+        <!-- CARD 3 — TRANSFERÊNCIAS -->
+        <div class="col-12 col-sm-6 col-lg-3">
+                <a href="#" class="text-decoration-none">
+                        <div class="card h-100">
+                                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="min-height:220px;">
+                                        <div class="stat-icon mb-3" style="width:64px;height:64px;font-size:1.8rem;">
+                                                <i class="fas fa-right-left"></i>
+                                        </div>
+                                        <div class="card-title mb-2">Transferências</div>
+                                        <p style="color:var(--grey);font-size:.85rem;margin:0;">
+                                                Transferir valores entre contas
+                                        </p>
+                                </div>
+                        </div>
+                </a>
+        </div>
+
+        <!-- CARD 4 — DEPÓSITOS -->
+        <div class="col-12 col-sm-6 col-lg-3">
+                <a href="#" class="text-decoration-none">
+                        <div class="card h-100">
+                                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="min-height:220px;">
+                                        <div class="stat-icon mb-3" style="width:64px;height:64px;font-size:1.8rem;">
+                                                <i class="fas fa-arrow-down"></i>
+                                        </div>
+                                        <div class="card-title mb-2">Depósitos</div>
+                                        <p style="color:var(--grey);font-size:.85rem;margin:0;">
+                                                Registar depósitos bancários
+                                        </p>
+                                </div>
+                        </div>
+                </a>
+        </div>
+
+        <!-- CARD 5 — LEVANTAMENTOS -->
+        <div class="col-12 col-sm-6 col-lg-3">
+                <a href="#" class="text-decoration-none">
+                        <div class="card h-100">
+                                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="min-height:220px;">
+                                        <div class="stat-icon mb-3" style="width:64px;height:64px;font-size:1.8rem;">
+                                                <i class="fas fa-arrow-up"></i>
+                                        </div>
+                                        <div class="card-title mb-2">Levantamentos</div>
+                                        <p style="color:var(--grey);font-size:.85rem;margin:0;">
+                                                Registar levantamentos bancários
+                                        </p>
+                                </div>
+                        </div>
+                </a>
+        </div>
+
+        <!-- CARD 6 — EXTRATOS -->
+        <div class="col-12 col-sm-6 col-lg-3">
+                <a href="#" class="text-decoration-none">
+                        <div class="card h-100">
+                                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="min-height:220px;">
+                                        <div class="stat-icon mb-3" style="width:64px;height:64px;font-size:1.8rem;">
+                                                <i class="fas fa-receipt"></i>
+                                        </div>
+                                        <div class="card-title mb-2">Extratos</div>
+                                        <p style="color:var(--grey);font-size:.85rem;margin:0;">
+                                                Consultar extratos por conta e período
+                                        </p>
+                                </div>
+                        </div>
+                </a>
+        </div>
+
+        <!-- CARD 7 — CONCILIAÇÃO BANCÁRIA -->
+        <div class="col-12 col-sm-6 col-lg-3">
+                <a href="#" class="text-decoration-none">
+                        <div class="card h-100">
+                                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="min-height:220px;">
+                                        <div class="stat-icon mb-3" style="width:64px;height:64px;font-size:1.8rem;">
+                                                <i class="fas fa-scale-balanced"></i>
+                                        </div>
+                                        <div class="card-title mb-2">Conciliação Bancária</div>
+                                        <p style="color:var(--grey);font-size:.85rem;margin:0;">
+                                                Conciliar movimentos com o extrato do banco
+                                        </p>
+                                </div>
+                        </div>
+                </a>
+        </div>
+
+        <!-- CARD 8 — CHEQUES -->
+        <div class="col-12 col-sm-6 col-lg-3">
+                <a href="#" class="text-decoration-none">
+                        <div class="card h-100">
+                                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="min-height:220px;">
+                                        <div class="stat-icon mb-3" style="width:64px;height:64px;font-size:1.8rem;">
+                                                <i class="fas fa-money-check"></i>
+                                        </div>
+                                        <div class="card-title mb-2">Cheques</div>
+                                        <p style="color:var(--grey);font-size:.85rem;margin:0;">
+                                                Gerir cheques emitidos e recebidos
+                                        </p>
+                                </div>
+                        </div>
+                </a>
+        </div>
+
+        <!-- CARD 9 — RELATÓRIOS -->
+        <div class="col-12 col-sm-6 col-lg-3">
+                <a href="#" class="text-decoration-none">
+                        <div class="card h-100">
+                                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="min-height:220px;">
+                                        <div class="stat-icon mb-3" style="width:64px;height:64px;font-size:1.8rem;">
+                                                <i class="fas fa-file-invoice-dollar"></i>
+                                        </div>
+                                        <div class="card-title mb-2">Relatórios</div>
+                                        <p style="color:var(--grey);font-size:.85rem;margin:0;">
+                                                Relatórios financeiros bancários
+                                        </p>
+                                </div>
+                        </div>
+                </a>
+        </div>
+
+</div>
+{% endblock %}

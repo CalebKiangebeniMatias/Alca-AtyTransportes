@@ -5515,6 +5515,15 @@ def menu_caixas(request):
 
 
 # ═══════════════════════════════════════════════════════════
+# 3.2 BANCOS
+# ═══════════════════════════════════════════════════════════
+
+def menu_banco(request):
+    """Página com os 9 cards de acesso ao módulo de Banco."""
+    return render(request, 'contabilidade/banco.html')
+
+
+# ═══════════════════════════════════════════════════════════
 # 3. ADICIONAR AS URLS NO urls.py
 # ═══════════════════════════════════════════════════════════
 

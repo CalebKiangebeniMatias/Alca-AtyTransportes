@@ -192,6 +192,7 @@ urlpatterns = [
     path('plano-de-contas/carregar-padrao/', views.carregar_plano_padrao, name='carregar_plano_padrao'),
 
     path('caixas/', views.menu_caixas, name='menu_caixas'),
+    path('banco/', views.menu_banco, name='menu_banco'),
 
 ]
 
