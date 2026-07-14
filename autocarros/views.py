@@ -5376,6 +5376,10 @@ def exportar_relatorio_autocarros_csv(request):
 # ═══════════════════════════════════════════════════════════
 # 3. CONTABILIDA & FINANÇAS
 # ═══════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════
+# 3.1 PLANO DE CONTAS
+# ═══════════════════════════════════════════════════════════
 import json
 import os
 
@@ -5492,6 +5496,23 @@ def carregar_plano_padrao(request):
 
     messages.success(request, f'{len(dados)} conta(s) importada(s) a partir do plano-base.')
     return redirect('plano_contas_list')
+
+# ═══════════════════════════════════════════════════════════
+# 3.2 CAIXAS
+# ═══════════════════════════════════════════════════════════
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+
+# Ajuste o import para o seu model real de Caixa
+# from .models import Caixa
+
+
+@login_required
+def menu_caixas(request):
+    """Página com os 6 cards de acesso ao módulo de Caixas."""
+    return render(request, 'contabilidade/caixas.html')
+
 
 # ═══════════════════════════════════════════════════════════
 # 3. ADICIONAR AS URLS NO urls.py

@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Caixas — Sistema de Gestão{% endblock %}
+{% block breadcrumb %}Caixas{% endblock %}
+
+{% block content %}
+<div class="page-header reveal visible">
+        <div>
+                <h1 class="page-title">GESTÃO DE <span>CAIXAS</span></h1>
+                <p style="color:var(--grey);font-size:.9rem;margin-top:4px;">
+                        Selecione uma opção para gerir os movimentos financeiros das caixas.
+                </p>
+        </div>
+</div>
+
+<div class="row g-4">
+
+        <!-- CARD 1 — LISTA DE CAIXAS -->
+        <div class="col-12 col-sm-6 col-lg-3">
+                <a href="{% url 'lista_caixas' %}" class="text-decoration-none">
+                        <div class="card h-100">
+                                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="min-height:220px;">
+                                        <div class="stat-icon mb-3" style="width:64px;height:64px;font-size:1.8rem;">
+                                                <i class="fas fa-building-columns"></i>
+                                        </div>
+                                        <div class="card-title mb-2">Lista de Caixas</div>
+                                        <p style="color:var(--grey);font-size:.85rem;margin:0;">
+                                                Ver todas as caixas cadastradas
+                                        </p>
+                                </div>
+                        </div>
+                </a>
+        </div>
+
+        <!-- CARD 2 — OPERADORES -->
+        <div class="col-12 col-sm-6 col-lg-3">
+                <a href="#" class="text-decoration-none">
+                        <div class="card h-100">
+                                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="min-height:220px;">
+                                        <div class="stat-icon mb-3" style="width:64px;height:64px;font-size:1.8rem;">
+                                                <i class="fas fa-user-tie"></i>
+                                        </div>
+                                        <div class="card-title mb-2">Operadores</div>
+                                        <p style="color:var(--grey);font-size:.85rem;margin:0;">
+                                                Gerir operadores responsáveis por cada caixa
+                                        </p>
+                                </div>
+                        </div>
+                </a>
+        </div>
+
+        <!-- CARD 3 — SALDO ANUAL -->
+        <div class="col-12 col-sm-6 col-lg-3">
+                <a href="#" class="text-decoration-none">
+                        <div class="card h-100">
+                                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="min-height:220px;">
+                                        <div class="stat-icon mb-3" style="width:64px;height:64px;font-size:1.8rem;">
+                                                <i class="fas fa-chart-column"></i>
+                                        </div>
+                                        <div class="card-title mb-2">Saldo Anual</div>
+                                        <p style="color:var(--grey);font-size:.85rem;margin:0;">
+                                                Consultar o saldo consolidado do ano
+                                        </p>
+                                </div>
+                        </div>
+                </a>
+        </div>
+
+        <!-- CARD 4 — HISTÓRICO -->
+        <div class="col-12 col-sm-6 col-lg-3">
+                <a href="#" class="text-decoration-none">
+                        <div class="card h-100">
+                                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="min-height:220px;">
+                                        <div class="stat-icon mb-3" style="width:64px;height:64px;font-size:1.8rem;">
+                                                <i class="fas fa-clock-rotate-left"></i>
+                                        </div>
+                                        <div class="card-title mb-2">Histórico</div>
+                                        <p style="color:var(--grey);font-size:.85rem;margin:0;">
+                                                Ver o histórico de movimentos das caixas
+                                        </p>
+                                </div>
+                        </div>
+                </a>
+        </div>
+
+        <!-- CARD 5 — CONFIGURAÇÕES -->
+        <div class="col-12 col-sm-6 col-lg-3">
+                <a href="#" class="text-decoration-none">
+                        <div class="card h-100">
+                                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="min-height:220px;">
+                                        <div class="stat-icon mb-3" style="width:64px;height:64px;font-size:1.8rem;">
+                                                <i class="fas fa-gear"></i>
+                                        </div>
+                                        <div class="card-title mb-2">Configurações</div>
+                                        <p style="color:var(--grey);font-size:.85rem;margin:0;">
+                                                Ajustar parâmetros do módulo de caixas
+                                        </p>
+                                </div>
+                        </div>
+                </a>
+        </div>
+
+        <!-- CARD 6 — ESTADO -->
+        <div class="col-12 col-sm-6 col-lg-3">
+                <a href="#" class="text-decoration-none">
+                        <div class="card h-100">
+                                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="min-height:220px;">
+                                        <div class="stat-icon mb-3" style="width:64px;height:64px;font-size:1.8rem;">
+                                                <i class="fas fa-toggle-on"></i>
+                                        </div>
+                                        <div class="card-title mb-2">Estado</div>
+                                        <p style="color:var(--grey);font-size:.85rem;margin:0;">
+                                                Ver estado atual (aberto/fechado) de cada caixa
+                                        </p>
+                                </div>
+                        </div>
+                </a>
+        </div>
+
+</div>
+{% endblock %}
