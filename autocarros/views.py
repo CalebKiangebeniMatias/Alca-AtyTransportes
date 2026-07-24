@@ -3782,10 +3782,12 @@ def manutencao_list(request):
             )
 
         if i == 0:
-            label = 'Última Manutenção'
+            label = 'Proxíma Manutenção'
         elif i == 1:
-            label = 'Penúltima Manutenção'
+            label = 'Última Manutenção'
         elif i == 2:
+            label = 'Penúltima Manutenção'
+        elif i == 3:
             label = 'Antepenúltima Manutenção'
         else:
             label = f'{i + 1}ª Manutenção Mais Antiga'
