@@ -3721,8 +3721,87 @@ def manutencao_create(request):
     })
 
 
+from collections import defaultdict
+from django.shortcuts import render
+
 @login_required
 @acesso_restrito(['admin', 'gestor'])
+def manutencao_list(request):
+    qs = Manutencao.objects.select_related('autocarro', 'sector', 'responsavel').all()
+
+    # Tentar descobrir qual campo de data existe no modelo (data_ultima ou data),
+    # igual à lógica original, mas agora guardamos o NOME do campo para usar no agrupamento.
+    date_field = None
+    try:
+        Manutencao._meta.get_field('data_ultima')
+        date_field = 'data_ultima'
+    except Exception:
+        try:
+            Manutencao._meta.get_field('data')
+            date_field = 'data'
+        except Exception:
+            date_field = None
+
+    # ── Filtros (sector, autocarro, status) ──────────────────────────
+    sector_id = request.GET.get('sector')
+    if sector_id:
+        qs = qs.filter(sector_id=sector_id)
+
+    autocarro_numero = request.GET.get('autocarro')
+    if autocarro_numero:
+        qs = qs.filter(autocarro__numero__icontains=autocarro_numero)
+
+    status = request.GET.get('status')
+    if status:
+        qs = qs.filter(status=status)
+
+    # Ordena por autocarro e, dentro de cada autocarro, da manutenção mais
+    # recente para a mais antiga (é isso que permite depois separar em
+    # "última", "penúltima", "antepenúltima"...).
+    if date_field:
+        qs = qs.order_by('autocarro_id', f'-{date_field}')
+    else:
+        qs = qs.order_by('autocarro_id')
+
+    # ── Agrupamento: junta as manutenções por posição relativa ───────
+    por_autocarro = defaultdict(list)
+    for m in qs:
+        por_autocarro[m.autocarro_id].append(m)
+
+    max_len = max((len(lista) for lista in por_autocarro.values()), default=0)
+
+    grupos = []
+    for i in range(max_len):
+        itens = [lista[i] for lista in por_autocarro.values() if i < len(lista)]
+
+        # Dentro do próprio grupo, ordena os autocarros pela data mais recente primeiro.
+        if date_field:
+            itens.sort(
+                key=lambda m: (getattr(m, date_field) is not None, getattr(m, date_field)),
+                reverse=True,
+            )
+
+        if i == 0:
+            label = 'Última Manutenção'
+        elif i == 1:
+            label = 'Penúltima Manutenção'
+        elif i == 2:
+            label = 'Antepenúltima Manutenção'
+        else:
+            label = f'{i + 1}ª Manutenção Mais Antiga'
+
+        grupos.append({'label': label, 'itens': itens})
+
+    total_manutencoes = sum(len(lista) for lista in por_autocarro.values())
+
+    return render(request, 'autocarros/manutencao_list.html', {
+        'grupos': grupos,
+        'total_manutencoes': total_manutencoes,
+        'sectores': Sector.objects.all(),
+    })
+
+"""
+
 def manutencao_list(request):
     qs = Manutencao.objects.select_related('autocarro', 'sector', 'responsavel').all()
 
@@ -3746,7 +3825,7 @@ def manutencao_list(request):
         qs = qs.filter(sector_id=sector_id)
 
     return render(request, 'autocarros/manutencao_list.html', {'manutencoes': qs, 'sectores': Sector.objects.all()})
-
+"""
 
 @login_required
 @acesso_restrito(['admin', 'gestor'])
