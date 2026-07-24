@@ -628,19 +628,13 @@
               <span class="sec-chip">{{ m.sector.nome }}</span>
             </td>
             <td>
-              {% if m.status == 'agendada' %}
-              <span class="s-badge s-agendada"><i class="fas fa-clock" style="font-size:.55rem"></i> {{
-                m.get_status_display }}</span>
-              {% elif m.status == 'em_progresso' %}
-              <span class="s-badge s-em_progresso"><i class="fas fa-spinner" style="font-size:.55rem"></i> {{
-                m.get_status_display }}</span>
-              {% elif m.status == 'concluida' %}
-              <span class="s-badge s-concluida"><i class="fas fa-check" style="font-size:.55rem"></i> {{
-                m.get_status_display }}</span>
-              {% else %}
-              <span class="s-badge s-cancelada"><i class="fas fa-xmark" style="font-size:.55rem"></i> {{
-                m.get_status_display }}</span>
-              {% endif %}
+              <span class="s-badge
+                    {% if m.status == 'agendada' %}s-agendada
+                    {% elif m.status == 'em_progresso' %}s-em_progresso
+                    {% elif m.status == 'concluida' %}s-concluida
+                    {% else %}s-cancelada{% endif %}">
+                {{ m.get_status_display }}
+              </span>
             </td>
             <td>
               <div style="display:flex;gap:6px;justify-content:center">
