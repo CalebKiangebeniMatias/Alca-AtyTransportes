@@ -510,7 +510,7 @@
         <select name="sector">
           <option value="">Todos os sectores</option>
           {% for s in sectores %}
-          <option value="{{ s.id }}" {% if request.GET.sector==s.id|stringformat:"s" %}selected{% endif %}>
+          <option value="{{ s.id }}" {% if request.GET.sector == s.id|stringformat:"s" %}selected{% endif %}>
             {{ s.nome }}
           </option>
           {% endfor %}
@@ -524,11 +524,11 @@
         <label class="f-label">Estado</label>
         <select name="status">
           <option value="">Todos os estados</option>
-          <option value="agendada" {% if request.GET.status=='agendada' %}selected{% endif %}>Agendada</option>
-          <option value="em_progresso" {% if request.GET.status=='em_progresso' %}selected{% endif %}>Em Progresso
+          <option value="agendada" {% if request.GET.status == 'agendada' %}selected{% endif %}>Agendada</option>
+          <option value="em_progresso" {% if request.GET.status == 'em_progresso' %}selected{% endif %}>Em Progresso
           </option>
-          <option value="concluida" {% if request.GET.status=='concluida' %}selected{% endif %}>Concluída</option>
-          <option value="cancelada" {% if request.GET.status=='cancelada' %}selected{% endif %}>Cancelada</option>
+          <option value="concluida" {% if request.GET.status == 'concluida' %}selected{% endif %}>Concluída</option>
+          <option value="cancelada" {% if request.GET.status == 'cancelada' %}selected{% endif %}>Cancelada</option>
         </select>
       </div>
       <div style="display:flex;align-items:flex-end;flex-shrink:0">
