@@ -459,9 +459,11 @@
                                 <label class="f-label">Local</label>
                                 <select name="local">
                                         <option value="">Todos os locais</option>
+                                
                                         {% for valor, rotulo in local_choices %}
-                                        <option value="{{ valor }}" {% if request.GET.local==valor %}selected{% endif
-                                                %}>{{ rotulo }}</option>
+                                        <option value="{{ valor }}" {% if request.GET.local == valor %}selected{% endif %}>
+                                                {{ rotulo }}
+                                        </option>
                                         {% endfor %}
                                 </select>
                         </div>
