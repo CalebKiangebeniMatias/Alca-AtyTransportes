@@ -154,6 +154,10 @@ urlpatterns = [
     path('pneus/novo/', views.pneu_create, name='pneu_create'),
     path('pneus/<int:pk>/editar/', views.pneu_edit, name='pneu_edit'),
     path('pneus/<int:pk>/eliminar/', views.pneu_delete, name='pneu_delete'),
+    path('trocas/nova/', views.troca_create, name='troca_create'),
+    path('trocas/<int:pk>/editar/', views.troca_edit, name='troca_edit'),
+    path('trocas/<int:pk>/eliminar/', views.troca_delete, name='troca_delete'),
+    path('inspecao/', views.inspecao_list, name='inspecao_list'),
 
     # Depósitos
     path('depositos/', views.depositos_view, name='depositos'),

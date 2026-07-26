@@ -525,6 +525,80 @@ class Pneu(models.Model):
     def __str__(self):
         return f'{self.marca} ({self.referencia}) — {self.fornecedor}'
 
+from decimal import Decimal
+
+from dateutil.relativedelta import relativedelta
+from django.db import models
+from django.utils import timezone
+
+
+class Troca(models.Model):
+    LOCAL_CHOICES = [
+        ('dianteira_e', 'Dianteira-E'),
+        ('dianteira_d', 'Dianteira-D'),
+        ('traseira_e_0', 'Traseira-E-0'),
+        ('traseira_e_1', 'Traseira-E-1'),
+        ('traseira_d_0', 'Traseira-D-0'),
+        ('traseira_d_1', 'Traseira-D-1'),
+    ]
+
+    pneu = models.ForeignKey(
+        'Pneu', on_delete=models.CASCADE, related_name='trocas',
+        help_text='Pneu que foi instalado nesta troca'
+    )
+    autocarro = models.ForeignKey(
+        'Autocarro', on_delete=models.CASCADE, related_name='trocas_pneu',
+        help_text='Autocarro onde o pneu foi instalado'
+    )
+    local = models.CharField(
+        max_length=20, choices=LOCAL_CHOICES,
+        help_text='Posição do pneu no autocarro'
+    )
+    data_troca = models.DateField(help_text='Data em que a troca foi realizada')
+
+    # Opcional: km do autocarro no momento da troca. Sem restruturar nada
+    # que já existe — só permite calcular a previsão da próxima troca por km.
+    km_troca = models.DecimalField(
+        max_digits=14, decimal_places=2, null=True, blank=True,
+        help_text='Km do autocarro no momento da troca (opcional, usado para prever a próxima troca)'
+    )
+
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    KM_PREVISAO = Decimal('60000.00')
+    MESES_PREVISAO = 10
+
+    class Meta:
+        ordering = ['-data_troca', '-criado_em']
+        verbose_name = 'Troca de Pneu'
+        verbose_name_plural = 'Trocas de Pneus'
+
+    def __str__(self):
+        return f'{self.pneu.referencia} → {self.autocarro.numero} ({self.get_local_display()})'
+
+    @property
+    def km_previsto_proxima_troca(self):
+        """Km previsto para a próxima troca (km_troca + 60.000). None se km_troca não foi informado."""
+        if self.km_troca is None:
+            return None
+        return self.km_troca + self.KM_PREVISAO
+
+    @property
+    def data_prevista_proxima_troca(self):
+        """Data prevista para a próxima troca (data_troca + 10 meses)."""
+        if not self.data_troca:
+            return None
+        return self.data_troca + relativedelta(months=self.MESES_PREVISAO)
+
+    @property
+    def esta_atrasada(self):
+        """True se já passamos da data prevista para a próxima troca."""
+        prevista = self.data_prevista_proxima_troca
+        if not prevista:
+            return False
+        return timezone.now().date() >= prevista
+
 
 # <----- Modelo para Categoria de Despesa -----> #
 from django.db import models

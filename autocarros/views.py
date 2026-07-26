@@ -3997,7 +3997,7 @@ def pneu_create(request):
     else:
         form = PneuForm()
 
-    return render(request, 'autocarros/pneu_form.html', {
+    return render(request, 'pneus/pneu_form.html', {
         'form': form,
         'titulo': 'Registar Pneu',
     })
@@ -4015,7 +4015,7 @@ def pneu_edit(request, pk):
     else:
         form = PneuForm(instance=pneu)
 
-    return render(request, 'autocarros/pneu_form.html', {
+    return render(request, 'pneus/pneu_form.html', {
         'form': form,
         'titulo': 'Editar Pneu',
     })
@@ -4027,6 +4027,77 @@ def pneu_delete(request, pk):
         pneu.delete()
         messages.success(request, 'Pneu eliminado com sucesso.')
     return redirect('pneu_list')
+
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .forms import TrocaForm
+from .models import Troca
+
+
+def troca_create(request):
+    if request.method == 'POST':
+        form = TrocaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Troca registada com sucesso.')
+            return redirect('inspecao_list')
+    else:
+        form = TrocaForm()
+
+    return render(request, 'pneus/troca_form.html', {
+        'form': form,
+        'titulo': 'Registar Troca de Pneu',
+    })
+
+
+def troca_edit(request, pk):
+    troca = get_object_or_404(Troca, pk=pk)
+
+    if request.method == 'POST':
+        form = TrocaForm(request.POST, instance=troca)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Troca atualizada com sucesso.')
+            return redirect('inspecao_list')
+    else:
+        form = TrocaForm(instance=troca)
+
+    return render(request, 'pneus/troca_form.html', {
+        'form': form,
+        'titulo': 'Editar Troca de Pneu',
+    })
+
+
+def troca_delete(request, pk):
+    troca = get_object_or_404(Troca, pk=pk)
+    if request.method == 'POST':
+        troca.delete()
+        messages.success(request, 'Troca eliminada com sucesso.')
+    return redirect('inspecao_list')
+
+
+def inspecao_list(request):
+    qs = Troca.objects.select_related('pneu', 'autocarro').all().order_by('-data_troca', '-criado_em')
+
+    # ── Filtros ────────────────────────────────────────────
+    referencia = request.GET.get('referencia')
+    if referencia:
+        qs = qs.filter(pneu__referencia__icontains=referencia)
+
+    autocarro_numero = request.GET.get('autocarro')
+    if autocarro_numero:
+        qs = qs.filter(autocarro__numero__icontains=autocarro_numero)
+
+    local = request.GET.get('local')
+    if local:
+        qs = qs.filter(local=local)
+
+    return render(request, 'pneus/inspecao_list.html', {
+        'trocas': qs,
+        'total_trocas': qs.count(),
+        'local_choices': Troca.LOCAL_CHOICES,
+    })
 
 # ---------- Mapa Geral Financeiro View ----------#
 from decimal import Decimal

@@ -378,6 +378,37 @@ class PneuForm(forms.ModelForm):
             'data_compra': forms.DateInput(attrs={'type': 'date'}),
         }
 
+from django import forms
+
+from .models import Autocarro, Pneu, Troca
+
+
+class PneuChoiceField(forms.ModelChoiceField):
+    """Mostra o pneu pela referência (+ marca) em vez do __str__ padrão."""
+    def label_from_instance(self, obj):
+        return f'{obj.referencia} — {obj.marca}'
+
+
+class AutocarroChoiceField(forms.ModelChoiceField):
+    """Mostra o autocarro pelo número."""
+    def label_from_instance(self, obj):
+        return f'Autocarro {obj.numero}'
+
+
+class TrocaForm(forms.ModelForm):
+    pneu = PneuChoiceField(queryset=Pneu.objects.all().order_by('referencia'))
+    autocarro = AutocarroChoiceField(queryset=Autocarro.objects.all().order_by('numero'))
+
+    class Meta:
+        model = Troca
+        fields = ['pneu', 'autocarro', 'local', 'data_troca', 'km_troca']
+        widgets = {
+            'data_troca': forms.DateInput(attrs={'type': 'date'}),
+            'km_troca': forms.NumberInput(attrs={
+                'placeholder': 'Km do autocarro nesta troca (opcional, para previsão)'
+            }),
+        }
+
 
 # ---- SubCategoriaDespesa ---- #
 from django import forms

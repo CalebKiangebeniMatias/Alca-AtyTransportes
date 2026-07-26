@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block breadcrumb %}Frota › Pneus › {{ titulo }}{% endblock %}
+
+{% block content %}
+<style>
+        .troca-form-wrapper {
+                animation: trocaFormIn .5s cubic-bezier(.34, 1.56, .64, 1) both;
+                max-width: 560px;
+        }
+
+        @keyframes trocaFormIn {
+                from {
+                        opacity: 0;
+                        transform: translateY(16px);
+                }
+
+                to {
+                        opacity: 1;
+                        transform: translateY(0);
+                }
+        }
+
+        .troca-form-title {
+                font-family: 'Bebas Neue', sans-serif;
+                font-size: 1.8rem;
+                letter-spacing: 2px;
+                margin-bottom: 20px;
+        }
+
+        .troca-form-card {
+                background: rgba(13, 43, 94, .42);
+                border: 1px solid var(--glass-border);
+                border-radius: var(--radius-lg);
+                backdrop-filter: blur(14px);
+                padding: 24px;
+                box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
+        }
+
+        .tf-group {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                margin-bottom: 18px;
+        }
+
+        .tf-label {
+                font-size: .68rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                color: rgba(255, 255, 255, .5);
+        }
+
+        .troca-form-wrapper select,
+        .troca-form-wrapper input[type="date"] {
+                width: 100%;
+                background: rgba(4, 30, 66, .55);
+                border: 1px solid var(--glass-border);
+                border-radius: var(--radius-md);
+                color: var(--white);
+                padding: 10px 13px;
+                font-family: 'Barlow', sans-serif;
+                font-size: .9rem;
+                outline: none;
+                -webkit-appearance: none;
+                transition: border-color var(--ease-fast), box-shadow var(--ease-fast);
+        }
+
+        .troca-form-wrapper select:focus,
+        .troca-form-wrapper input:focus {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 3px rgba(79, 195, 247, .15);
+                background: rgba(4, 30, 66, .85);
+        }
+
+        .troca-form-wrapper select option {
+                background: var(--navy);
+                color: var(--white);
+        }
+
+        .tf-error {
+                color: #ff8a80;
+                font-size: .75rem;
+                margin-top: 4px;
+        }
+
+        .tf-actions {
+                display: flex;
+                gap: 10px;
+                margin-top: 22px;
+        }
+
+        .btn-tf {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                padding: 10px 22px;
+                border: none;
+                border-radius: var(--radius-md);
+                font-family: 'Barlow Condensed', sans-serif;
+                font-weight: 700;
+                font-size: .88rem;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                cursor: pointer;
+                text-decoration: none;
+                transition: transform var(--ease-spring), box-shadow var(--ease-base);
+        }
+
+        .btn-tf-save {
+                background: var(--success);
+                color: var(--white);
+                box-shadow: 0 4px 16px rgba(39, 174, 96, .3);
+        }
+
+        .btn-tf-save:hover {
+                transform: translateY(-2px);
+        }
+
+        .btn-tf-cancel {
+                background: rgba(255, 255, 255, .06);
+                border: 1px solid var(--glass-border);
+                color: rgba(255, 255, 255, .7);
+        }
+
+        .btn-tf-cancel:hover {
+                background: rgba(255, 255, 255, .1);
+        }
+</style>
+
+<div class="troca-form-wrapper">
+        <div class="troca-form-title">{{ titulo }}</div>
+
+        <div class="troca-form-card">
+                <form method="post">
+                        {% csrf_token %}
+
+                        <div class="tf-group">
+                                <label class="tf-label">Pneu (Referência)</label>
+                                {{ form.pneu }}
+                                {% if form.pneu.errors %}
+                                <div class="tf-error">{{ form.pneu.errors|join:", " }}</div>
+                                {% endif %}
+                        </div>
+
+                        <div class="tf-group">
+                                <label class="tf-label">Autocarro</label>
+                                {{ form.autocarro }}
+                                {% if form.autocarro.errors %}
+                                <div class="tf-error">{{ form.autocarro.errors|join:", " }}</div>
+                                {% endif %}
+                        </div>
+
+                        <div class="tf-group">
+                                <label class="tf-label">Local</label>
+                                {{ form.local }}
+                                {% if form.local.errors %}
+                                <div class="tf-error">{{ form.local.errors|join:", " }}</div>
+                                {% endif %}
+                        </div>
+
+                        <div class="tf-group">
+                                <label class="tf-label">Data da Troca</label>
+                                {{ form.data_troca }}
+                                {% if form.data_troca.errors %}
+                                <div class="tf-error">{{ form.data_troca.errors|join:", " }}</div>
+                                {% endif %}
+                        </div>
+
+                        <div class="tf-group">
+                                <label class="tf-label">Km na Troca <span
+                                                style="text-transform:none;font-weight:400;color:rgba(255,255,255,.35)">(opcional
+                                                — usado para prever a próxima troca)</span></label>
+                                {{ form.km_troca }}
+                                {% if form.km_troca.errors %}
+                                <div class="tf-error">{{ form.km_troca.errors|join:", " }}</div>
+                                {% endif %}
+                        </div>
+
+                        <div class="tf-actions">
+                                <button type="submit" class="btn-tf btn-tf-save">
+                                        <i class="fas fa-check"></i> Guardar
+                                </button>
+                                <a href="{% url 'inspecao_list' %}" class="btn-tf btn-tf-cancel">
+                                        Cancelar
+                                </a>
+                        </div>
+                </form>
+        </div>
+</div>
+{% endblock %}
