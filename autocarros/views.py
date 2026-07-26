@@ -3981,7 +3981,7 @@ def pneu_list(request):
 
     total_pneus = sum(len(g['itens']) for g in grupos)
 
-    return render(request, 'autocarros/pneu_list.html', {
+    return render(request, 'pneus/pneu_list.html', {
         'grupos': grupos,
         'total_pneus': total_pneus,
     })
