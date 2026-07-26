@@ -25,14 +25,4 @@ class Migration(migrations.Migration):
                 'ordering': ['-data_compra', '-criado_em'],
             },
         ),
-        migrations.AddField(
-            model_name='registodiario',
-            name='taxi',
-            field=models.DecimalField(decimal_places=2, default=0, max_digits=10),
-        ),
-        migrations.AddField(
-            model_name='relatoriosector',
-            name='alimentacao_estaleiro',
-            field=models.DecimalField(decimal_places=2, default=0, max_digits=12, verbose_name='Despesa com alimentação do estaleiro'),
-        ),
     ]
