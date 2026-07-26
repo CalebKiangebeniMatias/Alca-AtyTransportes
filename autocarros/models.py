@@ -505,6 +505,26 @@ class RegistroKMItem(models.Model):
     def __str__(self):
         return f"{self.autocarro.numero} — {self.km_atual}"
 
+# <----- Modelo para Pneus de Autocarros -----> #
+from django.db import models
+
+class Pneu(models.Model):
+    fornecedor = models.CharField(max_length=150, help_text='Nome do fornecedor do pneu')
+    marca = models.CharField(max_length=100, help_text='Marca do pneu (ex: Michelin, Bridgestone...)')
+    referencia = models.CharField(max_length=100, help_text='Referência / código do modelo do pneu')
+    data_compra = models.DateField(help_text='Data em que o pneu foi comprado')
+
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-data_compra', '-criado_em']
+        verbose_name = 'Pneu'
+        verbose_name_plural = 'Pneus'
+
+    def __str__(self):
+        return f'{self.marca} ({self.referencia}) — {self.fornecedor}'
+
 
 # <----- Modelo para Categoria de Despesa -----> #
 from django.db import models

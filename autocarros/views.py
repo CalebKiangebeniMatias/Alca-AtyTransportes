@@ -3944,7 +3944,89 @@ def registro_km_save(request):
     return JsonResponse({'ok': True, 'registro_id': registro.id, 'created': created})
 
 
+from itertools import groupby
 
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .forms import PneuForm
+from .models import Pneu
+
+
+def pneu_list(request):
+    qs = Pneu.objects.all().order_by('-data_compra', '-criado_em')
+
+    # ── Filtros ────────────────────────────────────────────
+    fornecedor = request.GET.get('fornecedor')
+    if fornecedor:
+        qs = qs.filter(fornecedor__icontains=fornecedor)
+
+    marca = request.GET.get('marca')
+    if marca:
+        qs = qs.filter(marca__icontains=marca)
+
+    referencia = request.GET.get('referencia')
+    if referencia:
+        qs = qs.filter(referencia__icontains=referencia)
+
+    # ── Agrupamento por data de compra ──────────────────────
+    # Como a queryset já vem ordenada por -data_compra, os registos com a
+    # mesma data ficam sempre contíguos, então dá para usar groupby direto.
+    grupos = []
+    for data_compra, itens in groupby(qs, key=lambda p: p.data_compra):
+        grupos.append({
+            'data_compra': data_compra,
+            'itens': list(itens),
+        })
+
+    total_pneus = sum(len(g['itens']) for g in grupos)
+
+    return render(request, 'autocarros/pneu_list.html', {
+        'grupos': grupos,
+        'total_pneus': total_pneus,
+    })
+
+# ---------- Mapa Registro de Pneus ----------#
+def pneu_create(request):
+    if request.method == 'POST':
+        form = PneuForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Pneu registado com sucesso.')
+            return redirect('pneu_list')
+    else:
+        form = PneuForm()
+
+    return render(request, 'autocarros/pneu_form.html', {
+        'form': form,
+        'titulo': 'Registar Pneu',
+    })
+
+
+def pneu_edit(request, pk):
+    pneu = get_object_or_404(Pneu, pk=pk)
+
+    if request.method == 'POST':
+        form = PneuForm(request.POST, instance=pneu)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Pneu atualizado com sucesso.')
+            return redirect('pneu_list')
+    else:
+        form = PneuForm(instance=pneu)
+
+    return render(request, 'autocarros/pneu_form.html', {
+        'form': form,
+        'titulo': 'Editar Pneu',
+    })
+
+
+def pneu_delete(request, pk):
+    pneu = get_object_or_404(Pneu, pk=pk)
+    if request.method == 'POST':
+        pneu.delete()
+        messages.success(request, 'Pneu eliminado com sucesso.')
+    return redirect('pneu_list')
 
 # ---------- Mapa Geral Financeiro View ----------#
 from decimal import Decimal

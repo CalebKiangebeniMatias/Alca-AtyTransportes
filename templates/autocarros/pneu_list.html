@@ -1,0 +1,527 @@
+{% extends 'base.html' %}
+{% block title %}Pneus{% endblock %}
+{% block breadcrumb %}Frota › Pneus{% endblock %}
+
+{% block content %}
+<style>
+        /* ════════════════════════════════════════════════════
+     PNEUS
+  ════════════════════════════════════════════════════ */
+
+        .pneu-wrapper {
+                animation: pneuIn .5s cubic-bezier(.34, 1.56, .64, 1) both;
+        }
+
+        @keyframes pneuIn {
+                from {
+                        opacity: 0;
+                        transform: translateY(16px);
+                }
+
+                to {
+                        opacity: 1;
+                        transform: translateY(0);
+                }
+        }
+
+        /* ── HEADER ──────────────────────────────────────── */
+        .pneu-header {
+                display: flex;
+                align-items: flex-end;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 12px;
+                margin-bottom: 24px;
+        }
+
+        .pneu-title {
+                font-family: 'Bebas Neue', sans-serif;
+                font-size: 1.8rem;
+                letter-spacing: 2px;
+                line-height: 1;
+        }
+
+        .pneu-title span {
+                color: var(--accent);
+        }
+
+        .pneu-subtitle {
+                font-size: .78rem;
+                color: var(--grey);
+                margin-top: 4px;
+        }
+
+        /* ── BUTTONS ─────────────────────────────────────── */
+        .btn-pneu {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                padding: 9px 20px;
+                border: none;
+                border-radius: var(--radius-md);
+                font-family: 'Barlow Condensed', sans-serif;
+                font-weight: 700;
+                font-size: .88rem;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                cursor: pointer;
+                text-decoration: none;
+                white-space: nowrap;
+                transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+                position: relative;
+                overflow: hidden;
+        }
+
+        .btn-pneu::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .09), transparent);
+                transform: translateX(-100%);
+                transition: transform .5s ease;
+        }
+
+        .btn-pneu:hover::before {
+                transform: translateX(100%);
+        }
+
+        .btn-pneu:hover {
+                transform: translateY(-2px);
+        }
+
+        .btn-pneu:active {
+                transform: scale(.97);
+        }
+
+        .btn-new-pneu {
+                background: var(--success);
+                color: var(--white);
+                box-shadow: 0 4px 16px rgba(39, 174, 96, .3);
+        }
+
+        .btn-new-pneu:hover {
+                background: #219150;
+                box-shadow: 0 8px 24px rgba(39, 174, 96, .4);
+                color: var(--white);
+        }
+
+        .btn-filter-pneu {
+                background: var(--grad-btn);
+                color: var(--white);
+                box-shadow: var(--shadow-sm);
+        }
+
+        .btn-filter-pneu:hover {
+                box-shadow: 0 6px 20px rgba(36, 99, 163, .4);
+                color: var(--white);
+        }
+
+        .btn-act {
+                width: 30px;
+                height: 30px;
+                border-radius: var(--radius-sm);
+                border: 1px solid;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: .72rem;
+                cursor: pointer;
+                background: transparent;
+                text-decoration: none;
+                transition: background var(--ease-fast), transform var(--ease-spring);
+        }
+
+        .btn-act:hover {
+                transform: scale(1.12);
+        }
+
+        .btn-act-edit {
+                border-color: rgba(255, 213, 79, .35);
+                color: #ffd54f;
+        }
+
+        .btn-act-edit:hover {
+                background: rgba(255, 213, 79, .15);
+        }
+
+        .btn-act-del {
+                border-color: rgba(231, 76, 60, .35);
+                color: #ff8a80;
+                background: transparent;
+        }
+
+        .btn-act-del:hover {
+                background: rgba(231, 76, 60, .15);
+        }
+
+        /* ── FILTER BAR ──────────────────────────────────── */
+        .filter-bar {
+                background: rgba(13, 43, 94, .42);
+                border: 1px solid var(--glass-border);
+                border-radius: var(--radius-lg);
+                backdrop-filter: blur(14px);
+                padding: 14px 18px;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+                align-items: flex-end;
+                margin-bottom: 22px;
+        }
+
+        .f-group {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+                flex: 1;
+                min-width: 140px;
+        }
+
+        .f-label {
+                font-size: .68rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                color: rgba(255, 255, 255, .4);
+        }
+
+        .pneu-wrapper input[type="text"] {
+                width: 100%;
+                background: rgba(4, 30, 66, .55) !important;
+                border: 1px solid var(--glass-border) !important;
+                border-radius: var(--radius-md) !important;
+                color: var(--white) !important;
+                padding: 9px 13px !important;
+                font-family: 'Barlow', sans-serif !important;
+                font-size: .88rem !important;
+                outline: none !important;
+                -webkit-appearance: none;
+                transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+        }
+
+        .pneu-wrapper input[type="text"]:focus {
+                border-color: var(--accent) !important;
+                box-shadow: 0 0 0 3px rgba(79, 195, 247, .15) !important;
+                background: rgba(4, 30, 66, .85) !important;
+        }
+
+        .pneu-wrapper input::placeholder {
+                color: rgba(255, 255, 255, .25) !important;
+        }
+
+        /* ── TABLE CARD ──────────────────────────────────── */
+        .table-card {
+                background: rgba(13, 43, 94, .42);
+                border: 1px solid var(--glass-border);
+                border-radius: var(--radius-lg);
+                backdrop-filter: blur(14px);
+                overflow: hidden;
+                box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
+        }
+
+        .table-card-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 13px 20px;
+                background: linear-gradient(90deg, rgba(36, 99, 163, .3), rgba(4, 30, 66, .2));
+                border-bottom: 1px solid var(--glass-border);
+                flex-wrap: wrap;
+                gap: 8px;
+        }
+
+        .table-card-title {
+                font-family: 'Barlow Condensed', sans-serif;
+                font-weight: 700;
+                font-size: 1rem;
+                letter-spacing: 1.5px;
+                text-transform: uppercase;
+                color: var(--white);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+        }
+
+        .table-card-title i {
+                color: var(--accent);
+        }
+
+        .table-count {
+                font-size: .75rem;
+                color: var(--grey);
+        }
+
+        /* ── TABLE ───────────────────────────────────────── */
+        .pneu-table-wrap {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+        }
+
+        .pneu-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: .82rem;
+        }
+
+        .pneu-table thead th {
+                background: rgba(4, 30, 66, .7);
+                color: var(--accent);
+                font-family: 'Barlow Condensed', sans-serif;
+                font-weight: 700;
+                font-size: .68rem;
+                letter-spacing: 1.5px;
+                text-transform: uppercase;
+                padding: 11px 12px;
+                border-bottom: 1px solid var(--glass-border);
+                white-space: nowrap;
+                text-align: left;
+        }
+
+        .pneu-table tbody tr {
+                border-bottom: 1px solid rgba(79, 195, 247, .06);
+                transition: background var(--ease-fast);
+        }
+
+        .pneu-table tbody tr:hover {
+                background: rgba(36, 99, 163, .18);
+        }
+
+        .pneu-table tbody td {
+                padding: 10px 12px;
+                color: rgba(255, 255, 255, .72);
+                white-space: nowrap;
+                vertical-align: middle;
+                text-align: left;
+        }
+
+        .forn-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                background: rgba(79, 195, 247, .07);
+                border: 1px solid rgba(79, 195, 247, .14);
+                border-radius: 30px;
+                padding: 2px 10px;
+                font-size: .75rem;
+                font-weight: 600;
+                color: rgba(255, 255, 255, .7);
+        }
+
+        .forn-chip i {
+                color: var(--accent);
+                font-size: .6rem;
+        }
+
+        .marca-val {
+                font-family: 'Bebas Neue', sans-serif;
+                font-size: .95rem;
+                letter-spacing: .5px;
+                color: var(--white);
+        }
+
+        .ref-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                background: rgba(255, 213, 79, .06);
+                border: 1px solid rgba(255, 213, 79, .14);
+                border-radius: 30px;
+                padding: 2px 10px;
+                font-size: .72rem;
+                font-weight: 600;
+                color: rgba(255, 213, 79, .75);
+        }
+
+        /* ── GRUPOS (por data de compra) ──────────────────── */
+        .pneu-table tbody tr.group-row td {
+                padding: 9px 14px;
+                text-align: left;
+                white-space: normal;
+                background: linear-gradient(90deg, rgba(79, 195, 247, .14), rgba(79, 195, 247, .02));
+                border-top: 1px solid rgba(79, 195, 247, .25);
+                border-bottom: 1px solid rgba(79, 195, 247, .12);
+        }
+
+        .group-label {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                font-family: 'Barlow Condensed', sans-serif;
+                font-weight: 700;
+                font-size: .82rem;
+                letter-spacing: 1.2px;
+                text-transform: uppercase;
+                color: var(--accent);
+        }
+
+        .group-label i {
+                font-size: .75rem;
+        }
+
+        .group-count {
+                font-family: 'Barlow', sans-serif;
+                font-weight: 400;
+                font-size: .72rem;
+                letter-spacing: .3px;
+                text-transform: none;
+                color: rgba(255, 255, 255, .35);
+        }
+
+        /* empty */
+        .table-empty {
+                padding: 52px 20px;
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+                color: rgba(255, 255, 255, .25);
+        }
+
+        .table-empty i {
+                font-size: 2.4rem;
+                opacity: .35;
+        }
+
+        /* ── RESPONSIVE ─────────────────────────────────── */
+        @media (max-width: 768px) {
+                .pneu-header {
+                        flex-direction: column;
+                        align-items: flex-start;
+                }
+
+                .filter-bar {
+                        flex-direction: column;
+                }
+
+                .f-group {
+                        min-width: unset;
+                        width: 100%;
+                }
+
+                .btn-filter-pneu {
+                        width: 100%;
+                        justify-content: center;
+                }
+        }
+</style>
+
+<div class="pneu-wrapper">
+
+        <!-- HEADER -->
+        <div class="pneu-header">
+                <div>
+                        <div class="pneu-title">Gestão de <span>Pneus</span></div>
+                        <div class="pneu-subtitle">Registo de compras de pneus da frota</div>
+                </div>
+                <a href="{% url 'pneu_create' %}" class="btn-pneu btn-new-pneu">
+                        <i class="fas fa-plus"></i> Registar Pneu
+                </a>
+        </div>
+
+        <!-- FILTROS -->
+        <form method="get">
+                <div class="filter-bar">
+                        <div class="f-group">
+                                <label class="f-label">Fornecedor</label>
+                                <input type="text" name="fornecedor" placeholder="Nome do fornecedor"
+                                        value="{{ request.GET.fornecedor }}">
+                        </div>
+                        <div class="f-group">
+                                <label class="f-label">Marca</label>
+                                <input type="text" name="marca" placeholder="Marca do pneu"
+                                        value="{{ request.GET.marca }}">
+                        </div>
+                        <div class="f-group">
+                                <label class="f-label">Referência</label>
+                                <input type="text" name="referencia" placeholder="Referência do pneu"
+                                        value="{{ request.GET.referencia }}">
+                        </div>
+                        <div style="display:flex;align-items:flex-end;flex-shrink:0">
+                                <button type="submit" class="btn-pneu btn-filter-pneu">
+                                        <i class="fas fa-filter"></i> Filtrar
+                                </button>
+                        </div>
+                </div>
+        </form>
+
+        <!-- TABLE CARD -->
+        <div class="table-card">
+                <div class="table-card-header">
+                        <div class="table-card-title">
+                                <i class="fas fa-circle-notch"></i> Pneus
+                        </div>
+                        {% if total_pneus %}
+                        <span class="table-count">{{ total_pneus }} registo(s)</span>
+                        {% endif %}
+                </div>
+
+                <div class="pneu-table-wrap">
+                        {% if grupos %}
+                        <table class="pneu-table">
+                                <thead>
+                                        <tr>
+                                                <th>Fornecedor</th>
+                                                <th>Marca</th>
+                                                <th>Referência</th>
+                                                <th>Data da Compra</th>
+                                                <th>Ações</th>
+                                        </tr>
+                                </thead>
+                                <tbody>
+                                        {% for grupo in grupos %}
+                                        <tr class="group-row">
+                                                <td colspan="5">
+                                                        <span class="group-label">
+                                                                <i class="fas fa-calendar-day"></i>
+                                                                Compra em {{ grupo.data_compra|date:"d/m/Y" }}
+                                                                <span class="group-count">({{ grupo.itens|length }}
+                                                                        pneu{{ grupo.itens|length|pluralize }})</span>
+                                                        </span>
+                                                </td>
+                                        </tr>
+                                        {% for p in grupo.itens %}
+                                        <tr>
+                                                <td>
+                                                        <span class="forn-chip">
+                                                                <i class="fas fa-truck"></i> {{ p.fornecedor }}
+                                                        </span>
+                                                </td>
+                                                <td><span class="marca-val">{{ p.marca }}</span></td>
+                                                <td><span class="ref-chip">{{ p.referencia }}</span></td>
+                                                <td>{{ p.data_compra|date:"d/m/Y" }}</td>
+                                                <td>
+                                                        <div style="display:flex;gap:6px">
+                                                                <a href="{% url 'pneu_edit' p.pk %}"
+                                                                        class="btn-act btn-act-edit" title="Editar">
+                                                                        <i class="fas fa-pen"></i>
+                                                                </a>
+                                                                <form action="{% url 'pneu_delete' p.pk %}"
+                                                                        method="post" style="display:inline"
+                                                                        onsubmit="return confirm('Confirma eliminar este pneu?')">
+                                                                        {% csrf_token %}
+                                                                        <button type="submit"
+                                                                                class="btn-act btn-act-del"
+                                                                                title="Eliminar">
+                                                                                <i class="fas fa-trash-can"></i>
+                                                                        </button>
+                                                                </form>
+                                                        </div>
+                                                </td>
+                                        </tr>
+                                        {% endfor %}
+                                        {% endfor %}
+                                </tbody>
+                        </table>
+
+                        {% else %}
+                        <div class="table-empty">
+                                <i class="fas fa-circle-notch"></i>
+                                <span>Nenhum pneu encontrado.</span>
+                                <small>Tente ajustar os filtros ou registe uma nova compra.</small>
+                        </div>
+                        {% endif %}
+                </div>
+        </div>
+
+</div>
+{% endblock %}

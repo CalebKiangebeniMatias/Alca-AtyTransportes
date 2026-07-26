@@ -149,6 +149,12 @@ urlpatterns = [
     path('registros/km/', views.registro_km_view, name='registro_km'),
     path('registros/km/save/', views.registro_km_save, name='registro_km_save'),
 
+    # Pneus
+    path('pneus/', views.pneu_list, name='pneu_list'),
+    path('pneus/novo/', views.pneu_create, name='pneu_create'),
+    path('pneus/<int:pk>/editar/', views.pneu_edit, name='pneu_edit'),
+    path('pneus/<int:pk>/eliminar/', views.pneu_delete, name='pneu_delete'),
+
     # Depósitos
     path('depositos/', views.depositos_view, name='depositos'),
     path('depositos/save/', views.depositos_save, name='depositos_save'),

@@ -361,6 +361,22 @@ class ManutencaoForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-select'}),  # 🔹 select estilizado
         }
 
+# ---- Pneus ---- #
+from django import forms
+
+from .models import Pneu
+
+
+class PneuForm(forms.ModelForm):
+    class Meta:
+        model = Pneu
+        fields = ['fornecedor', 'marca', 'referencia', 'data_compra']
+        widgets = {
+            'fornecedor': forms.TextInput(attrs={'placeholder': 'Nome do fornecedor'}),
+            'marca': forms.TextInput(attrs={'placeholder': 'Ex: Michelin, Bridgestone...'}),
+            'referencia': forms.TextInput(attrs={'placeholder': 'Referência / código do modelo'}),
+            'data_compra': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 
 # ---- SubCategoriaDespesa ---- #
