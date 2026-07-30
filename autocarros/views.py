@@ -3867,6 +3867,7 @@ def api_autocarros_por_sector(request):
 
 
 @login_required
+@acesso_restrito(['admin', 'gestor'])
 def registro_km_view(request):
     sectores = Sector.objects.all().order_by('nome')
     # listar últimos registros (paginacao simples: últimos 20)
@@ -3912,6 +3913,7 @@ def registro_km_view(request):
 
 @login_required
 @require_POST
+@acesso_restrito(['admin', 'gestor'])
 def registro_km_save(request):
     try:
         data = json.loads(request.body.decode('utf-8'))
@@ -3953,6 +3955,8 @@ from .forms import PneuForm
 from .models import Pneu
 
 
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def pneu_list(request):
     qs = Pneu.objects.all().order_by('-data_compra', '-criado_em')
 
@@ -3987,6 +3991,8 @@ def pneu_list(request):
     })
 
 # ---------- Mapa Registro de Pneus ----------#
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def pneu_create(request):
     if request.method == 'POST':
         form = PneuForm(request.POST)
@@ -4003,6 +4009,8 @@ def pneu_create(request):
     })
 
 
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def pneu_edit(request, pk):
     pneu = get_object_or_404(Pneu, pk=pk)
 
@@ -4021,6 +4029,8 @@ def pneu_edit(request, pk):
     })
 
 
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def pneu_delete(request, pk):
     pneu = get_object_or_404(Pneu, pk=pk)
     if request.method == 'POST':
@@ -4034,7 +4044,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from .forms import TrocaForm
 from .models import Troca
 
-
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def troca_create(request):
     if request.method == 'POST':
         form = TrocaForm(request.POST)
@@ -4050,7 +4061,8 @@ def troca_create(request):
         'titulo': 'Registar Troca de Pneu',
     })
 
-
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def troca_edit(request, pk):
     troca = get_object_or_404(Troca, pk=pk)
 
@@ -4068,7 +4080,8 @@ def troca_edit(request, pk):
         'titulo': 'Editar Troca de Pneu',
     })
 
-
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def troca_delete(request, pk):
     troca = get_object_or_404(Troca, pk=pk)
     if request.method == 'POST':
@@ -4076,7 +4089,8 @@ def troca_delete(request, pk):
         messages.success(request, 'Troca eliminada com sucesso.')
     return redirect('inspecao_list')
 
-
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def inspecao_list(request):
     qs = Troca.objects.select_related('pneu', 'autocarro').all().order_by('-data_troca', '-criado_em')
 
@@ -4108,7 +4122,8 @@ from .models import Movimentacao, Peca
 
 
 # ───────────────────────── PEÇAS ─────────────────────────
-
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def peca_list(request):
     qs = Peca.objects.all().order_by('nome')
 
@@ -4129,7 +4144,8 @@ def peca_list(request):
         'total_pecas': qs.count(),
     })
 
-
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def peca_create(request):
     if request.method == 'POST':
         form = PecaForm(request.POST)
@@ -4146,6 +4162,8 @@ def peca_create(request):
     })
 
 
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def peca_edit(request, pk):
     peca = get_object_or_404(Peca, pk=pk)
 
@@ -4164,6 +4182,8 @@ def peca_edit(request, pk):
     })
 
 
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def peca_delete(request, pk):
     peca = get_object_or_404(Peca, pk=pk)
     if request.method == 'POST':
@@ -4172,6 +4192,8 @@ def peca_delete(request, pk):
     return redirect('peca_list')
 
 
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def estoque_list(request):
     qs = Peca.objects.all().order_by('nome')
 
@@ -4190,7 +4212,8 @@ def estoque_list(request):
 
 
 # ─────────────────────── MOVIMENTAÇÕES ───────────────────────
-
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def movimentacao_create(request):
     if request.method == 'POST':
         form = MovimentacaoForm(request.POST)
@@ -4209,7 +4232,8 @@ def movimentacao_create(request):
         'titulo': 'Registar Movimentação',
     })
 
-
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def movimentacao_edit(request, pk):
     movimentacao = get_object_or_404(Movimentacao, pk=pk)
 
@@ -4227,7 +4251,8 @@ def movimentacao_edit(request, pk):
         'titulo': 'Editar Movimentação',
     })
 
-
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def movimentacao_delete(request, pk):
     movimentacao = get_object_or_404(Movimentacao, pk=pk)
     if request.method == 'POST':
@@ -4235,7 +4260,8 @@ def movimentacao_delete(request, pk):
         messages.success(request, 'Movimentação eliminada com sucesso.')
     return redirect('movimentacao_historico')
 
-
+@login_required
+@acesso_restrito(['admin', 'gestor'])
 def movimentacao_historico(request):
     qs = Movimentacao.objects.select_related('peca', 'autocarro', 'sector').all().order_by('-data', '-criado_em')
 
