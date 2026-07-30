@@ -159,6 +159,20 @@ urlpatterns = [
     path('trocas/<int:pk>/eliminar/', views.troca_delete, name='troca_delete'),
     path('inspecao/', views.inspecao_list, name='inspecao_list'),
 
+    # Peças
+    path('pecas/', views.peca_list, name='peca_list'),
+    path('pecas/nova/', views.peca_create, name='peca_create'),
+    path('pecas/<int:pk>/editar/', views.peca_edit, name='peca_edit'),
+    path('pecas/<int:pk>/eliminar/', views.peca_delete, name='peca_delete'),
+    # Peças Estoque
+    path('pecas/estoque/', views.estoque_list, name='estoque_list'),
+    # Peças Movimentações
+    path('movimentacoes/nova/', views.movimentacao_create, name='movimentacao_create'),
+    path('movimentacoes/<int:pk>/editar/', views.movimentacao_edit, name='movimentacao_edit'),
+    path('movimentacoes/<int:pk>/eliminar/', views.movimentacao_delete, name='movimentacao_delete'),
+    # Peças Histórico
+    path('movimentacoes/historico/', views.movimentacao_historico, name='movimentacao_historico'),
+
     # Depósitos
     path('depositos/', views.depositos_view, name='depositos'),
     path('depositos/save/', views.depositos_save, name='depositos_save'),

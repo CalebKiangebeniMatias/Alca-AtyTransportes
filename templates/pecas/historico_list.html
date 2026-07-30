@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% block title %}Histórico de Movimentações{% endblock %}
+{% block breadcrumb %}Frota › Peças › Histórico{% endblock %}
+
+{% block content %}
+<style>
+  .hist-wrapper { animation: histIn .5s cubic-bezier(.34, 1.56, .64, 1) both; }
+  @keyframes histIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .hist-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 24px;
+  }
+  .hist-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; line-height: 1; }
+  .hist-title span { color: var(--accent); }
+  .hist-subtitle { font-size: .78rem; color: var(--grey); margin-top: 4px; }
+
+  .btn-hist {
+    display: inline-flex; align-items: center; gap: 7px; padding: 9px 20px; border: none;
+    border-radius: var(--radius-md); font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: .88rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; text-decoration: none;
+    white-space: nowrap; transition: transform var(--ease-spring), box-shadow var(--ease-base);
+  }
+  .btn-hist:hover { transform: translateY(-2px); }
+  .btn-new-hist { background: var(--success); color: var(--white); box-shadow: 0 4px 16px rgba(39, 174, 96, .3); }
+  .btn-new-hist:hover { background: #219150; box-shadow: 0 8px 24px rgba(39, 174, 96, .4); color: var(--white); }
+  .btn-filter-hist { background: var(--grad-btn); color: var(--white); box-shadow: var(--shadow-sm); }
+  .btn-filter-hist:hover { box-shadow: 0 6px 20px rgba(36, 99, 163, .4); color: var(--white); }
+
+  .btn-act {
+    width: 30px; height: 30px; border-radius: var(--radius-sm); border: 1px solid;
+    display: inline-flex; align-items: center; justify-content: center; font-size: .72rem;
+    cursor: pointer; background: transparent; text-decoration: none;
+    transition: background var(--ease-fast), transform var(--ease-spring);
+  }
+  .btn-act:hover { transform: scale(1.12); }
+  .btn-act-edit { border-color: rgba(255, 213, 79, .35); color: #ffd54f; }
+  .btn-act-edit:hover { background: rgba(255, 213, 79, .15); }
+  .btn-act-del { border-color: rgba(231, 76, 60, .35); color: #ff8a80; background: transparent; }
+  .btn-act-del:hover { background: rgba(231, 76, 60, .15); }
+
+  .filter-bar {
+    background: rgba(13, 43, 94, .42); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+    backdrop-filter: blur(14px); padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 12px;
+    align-items: flex-end; margin-bottom: 22px;
+  }
+  .f-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px; }
+  .f-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, .4); }
+
+  .hist-wrapper select,
+  .hist-wrapper input[type="text"] {
+    width: 100%; background: rgba(4, 30, 66, .55) !important; border: 1px solid var(--glass-border) !important;
+    border-radius: var(--radius-md) !important; color: var(--white) !important; padding: 9px 13px !important;
+    font-family: 'Barlow', sans-serif !important; font-size: .88rem !important; outline: none !important;
+    -webkit-appearance: none;
+  }
+  .hist-wrapper select option { background: var(--navy); color: var(--white); }
+  .hist-wrapper input::placeholder { color: rgba(255, 255, 255, .25) !important; }
+
+  .table-card {
+    background: rgba(13, 43, 94, .42); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+    backdrop-filter: blur(14px); overflow: hidden; box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
+  }
+  .table-card-header {
+    display: flex; align-items: center; justify-content: space-between; padding: 13px 20px;
+    background: linear-gradient(90deg, rgba(36, 99, 163, .3), rgba(4, 30, 66, .2));
+    border-bottom: 1px solid var(--glass-border); flex-wrap: wrap; gap: 8px;
+  }
+  .table-card-title {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1rem;
+    letter-spacing: 1.5px; text-transform: uppercase; color: var(--white); display: flex; align-items: center; gap: 8px;
+  }
+  .table-card-title i { color: var(--accent); }
+  .table-count { font-size: .75rem; color: var(--grey); }
+
+  .hist-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .hist-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  .hist-table thead th {
+    background: rgba(4, 30, 66, .7); color: var(--accent); font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: .68rem; letter-spacing: 1.5px; text-transform: uppercase; padding: 11px 12px;
+    border-bottom: 1px solid var(--glass-border); white-space: nowrap; text-align: left;
+  }
+  .hist-table tbody tr { border-bottom: 1px solid rgba(79, 195, 247, .06); transition: background var(--ease-fast); }
+  .hist-table tbody tr:hover { background: rgba(36, 99, 163, .18); }
+  .hist-table tbody td { padding: 10px 12px; color: rgba(255, 255, 255, .72); white-space: nowrap; vertical-align: middle; text-align: left; }
+
+  .date-cell { font-size: .75rem; color: var(--grey); display: inline-flex; align-items: center; gap: 5px; }
+  .date-cell i { color: var(--accent); font-size: .6rem; }
+
+  .nome-val { font-family: 'Bebas Neue', sans-serif; font-size: .95rem; letter-spacing: .5px; color: var(--white); }
+
+  .ac-chip {
+    display: inline-flex; align-items: center; gap: 5px; background: rgba(79, 195, 247, .07);
+    border: 1px solid rgba(79, 195, 247, .14); border-radius: 30px; padding: 2px 10px;
+    font-size: .75rem; font-weight: 600; color: rgba(255, 255, 255, .7);
+  }
+  .ac-chip i { color: var(--accent); font-size: .6rem; }
+  .qtd-dash { color: rgba(255, 255, 255, .2); font-size: .8rem; }
+
+  .s-badge {
+    display: inline-flex; align-items: center; gap: 4px; border-radius: 30px; padding: 3px 10px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: .7rem;
+    letter-spacing: .8px; text-transform: uppercase; white-space: nowrap;
+  }
+  .s-entrada { background: rgba(39, 174, 96, .12); border: 1px solid rgba(39, 174, 96, .3); color: #69f0ae; }
+  .s-saida { background: rgba(231, 76, 60, .12); border: 1px solid rgba(231, 76, 60, .28); color: #ff8a80; }
+
+  .table-empty {
+    padding: 52px 20px; text-align: center; display: flex; flex-direction: column;
+    align-items: center; gap: 10px; color: rgba(255, 255, 255, .25);
+  }
+  .table-empty i { font-size: 2.4rem; opacity: .35; }
+
+  @media (max-width: 768px) {
+    .hist-header { flex-direction: column; align-items: flex-start; }
+    .filter-bar { flex-direction: column; }
+    .f-group { min-width: unset; width: 100%; }
+    .btn-filter-hist { width: 100%; justify-content: center; }
+  }
+</style>
+
+<div class="hist-wrapper">
+
+  <div class="hist-header">
+    <div>
+      <div class="hist-title">Histórico de <span>Movimentações</span></div>
+      <div class="hist-subtitle">Entradas e saídas de peças, em ordem</div>
+    </div>
+    <a href="{% url 'movimentacao_create' %}" class="btn-hist btn-new-hist">
+      <i class="fas fa-plus"></i> Registar Movimentação
+    </a>
+  </div>
+
+  <form method="get">
+    <div class="filter-bar">
+      <div class="f-group">
+        <label class="f-label">Peça</label>
+        <input type="text" name="peca" placeholder="Nome da peça" value="{{ request.GET.peca }}">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Tipo</label>
+        <select name="tipo">
+          <option value="">Todos</option>
+          {% for valor, rotulo in tipo_choices %}
+          <option value="{{ valor }}" {% if request.GET.tipo == valor %}selected{% endif %}>{{ rotulo }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="f-group">
+        <label class="f-label">Autocarro</label>
+        <input type="text" name="autocarro" placeholder="Número do autocarro" value="{{ request.GET.autocarro }}">
+      </div>
+      <div style="display:flex;align-items:flex-end;flex-shrink:0">
+        <button type="submit" class="btn-hist btn-filter-hist">
+          <i class="fas fa-filter"></i> Filtrar
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="table-card-title"><i class="fas fa-history"></i> Movimentações</div>
+      {% if total_movimentacoes %}<span class="table-count">{{ total_movimentacoes }} registo(s)</span>{% endif %}
+    </div>
+
+    <div class="hist-table-wrap">
+      {% if movimentacoes %}
+      <table class="hist-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Tipo</th>
+            <th>Peça</th>
+            <th>Quantidade</th>
+            <th>Autocarro</th>
+            <th>Sector</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in movimentacoes %}
+          <tr>
+            <td>
+              <span class="date-cell">
+                <i class="fas fa-calendar-day"></i>
+                {{ m.data|date:"d/m/Y" }}
+              </span>
+            </td>
+            <td>
+              {% if m.tipo == 'entrada' %}
+                <span class="s-badge s-entrada"><i class="fas fa-arrow-down" style="font-size:.55rem"></i> Entrada</span>
+              {% else %}
+                <span class="s-badge s-saida"><i class="fas fa-arrow-up" style="font-size:.55rem"></i> Saída</span>
+              {% endif %}
+            </td>
+            <td><span class="nome-val">{{ m.peca.nome }}</span></td>
+            <td>{{ m.quantidade }}</td>
+            <td>
+              {% if m.autocarro %}
+                <span class="ac-chip"><i class="fas fa-bus"></i> {{ m.autocarro.numero }}</span>
+              {% else %}<span class="qtd-dash">—</span>{% endif %}
+            </td>
+            <td>{{ m.sector.nome|default:"—" }}</td>
+            <td>
+              <div style="display:flex;gap:6px">
+                <a href="{% url 'movimentacao_edit' m.pk %}" class="btn-act btn-act-edit" title="Editar">
+                  <i class="fas fa-pen"></i>
+                </a>
+                <form action="{% url 'movimentacao_delete' m.pk %}" method="post" style="display:inline"
+                  onsubmit="return confirm('Confirma eliminar esta movimentação?')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-act btn-act-del" title="Eliminar">
+                    <i class="fas fa-trash-can"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="table-empty">
+        <i class="fas fa-history"></i>
+        <span>Nenhuma movimentação encontrada.</span>
+        <small>Tente ajustar os filtros ou registe uma nova movimentação.</small>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

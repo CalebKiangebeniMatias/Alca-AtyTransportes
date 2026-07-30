@@ -1007,29 +1007,29 @@
           <span class="nav-text">Controlo de Peças</span>
           <i class="fas fa-chevron-right nav-chevron"></i>
         </button>
-      
+
         <div class="collapse sidebar-submenu" id="sub-pecas">
-          <a class="sidebar-link" href="#">
+          <a class="sidebar-link" href="{% url 'peca_list' %}">
             <i class="fas fa-list nav-icon text-info"></i>
             <span class="nav-text">Listar Peças</span>
           </a>
-      
-          <a class="sidebar-link" href="#">
+
+          <a class="sidebar-link" href="{% url 'peca_create' %}">
             <i class="fas fa-plus-circle nav-icon text-success"></i>
             <span class="nav-text">Cadastrar Peça</span>
           </a>
-      
-          <a class="sidebar-link" href="#">
+
+          <a class="sidebar-link" href="{% url 'movimentacao_create' %}">
             <i class="fas fa-exchange-alt nav-icon text-primary"></i>
             <span class="nav-text">Movimentações</span>
           </a>
-      
-          <a class="sidebar-link" href="#">
+
+          <a class="sidebar-link" href="{% url 'estoque_list' %}">
             <i class="fas fa-boxes nav-icon text-secondary"></i>
             <span class="nav-text">Estoque</span>
           </a>
-      
-          <a class="sidebar-link" href="#">
+
+          <a class="sidebar-link" href="{% url 'movimentacao_historico' %}">
             <i class="fas fa-history nav-icon text-dark"></i>
             <span class="nav-text">Histórico</span>
           </a>

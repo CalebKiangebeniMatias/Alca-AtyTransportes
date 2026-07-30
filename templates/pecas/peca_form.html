@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block breadcrumb %}Frota › Peças › {{ titulo }}{% endblock %}
+
+{% block content %}
+<style>
+  .peca-form-wrapper { animation: pfIn .5s cubic-bezier(.34, 1.56, .64, 1) both; max-width: 560px; }
+  @keyframes pfIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .peca-form-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 20px; }
+
+  .peca-form-card {
+    background: rgba(13, 43, 94, .42); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+    backdrop-filter: blur(14px); padding: 24px; box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
+  }
+
+  .pf-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+  .pf-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, .5); }
+
+  .peca-form-wrapper input[type="text"],
+  .peca-form-wrapper input[type="number"],
+  .peca-form-wrapper select,
+  .peca-form-wrapper textarea {
+    width: 100%; background: rgba(4, 30, 66, .55); border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md); color: var(--white); padding: 10px 13px;
+    font-family: 'Barlow', sans-serif; font-size: .9rem; outline: none; -webkit-appearance: none;
+    transition: border-color var(--ease-fast), box-shadow var(--ease-fast);
+  }
+  .peca-form-wrapper input:focus, .peca-form-wrapper select:focus, .peca-form-wrapper textarea:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79, 195, 247, .15); background: rgba(4, 30, 66, .85);
+  }
+  .peca-form-wrapper select option { background: var(--navy); color: var(--white); }
+  .peca-form-wrapper textarea { resize: vertical; }
+
+  .pf-error { color: #ff8a80; font-size: .75rem; margin-top: 4px; }
+
+  .pf-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .btn-pf {
+    display: inline-flex; align-items: center; gap: 7px; padding: 10px 22px; border: none;
+    border-radius: var(--radius-md); font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: .88rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; text-decoration: none;
+    transition: transform var(--ease-spring), box-shadow var(--ease-base);
+  }
+  .btn-pf-save { background: var(--success); color: var(--white); box-shadow: 0 4px 16px rgba(39, 174, 96, .3); }
+  .btn-pf-save:hover { transform: translateY(-2px); }
+  .btn-pf-cancel { background: rgba(255, 255, 255, .06); border: 1px solid var(--glass-border); color: rgba(255, 255, 255, .7); }
+  .btn-pf-cancel:hover { background: rgba(255, 255, 255, .1); }
+</style>
+
+<div class="peca-form-wrapper">
+  <div class="peca-form-title">{{ titulo }}</div>
+
+  <div class="peca-form-card">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="pf-group">
+        <label class="pf-label">Nome</label>
+        {{ form.nome }}
+        {% if form.nome.errors %}<div class="pf-error">{{ form.nome.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="pf-group">
+        <label class="pf-label">Referência</label>
+        {{ form.referencia }}
+        {% if form.referencia.errors %}<div class="pf-error">{{ form.referencia.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="pf-group">
+        <label class="pf-label">Categoria</label>
+        {{ form.categoria }}
+        {% if form.categoria.errors %}<div class="pf-error">{{ form.categoria.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="pf-group">
+        <label class="pf-label">Fornecedor</label>
+        {{ form.fornecedor }}
+        {% if form.fornecedor.errors %}<div class="pf-error">{{ form.fornecedor.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="pf-group">
+        <label class="pf-label">Unidade de Medida</label>
+        {{ form.unidade_medida }}
+        {% if form.unidade_medida.errors %}<div class="pf-error">{{ form.unidade_medida.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="pf-group">
+        <label class="pf-label">Preço Unitário</label>
+        {{ form.preco_unitario }}
+        {% if form.preco_unitario.errors %}<div class="pf-error">{{ form.preco_unitario.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="pf-group">
+        <label class="pf-label">Quantidade em Estoque</label>
+        {{ form.quantidade_estoque }}
+        {% if form.quantidade_estoque.errors %}<div class="pf-error">{{ form.quantidade_estoque.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="pf-group">
+        <label class="pf-label">Observação</label>
+        {{ form.observacao }}
+        {% if form.observacao.errors %}<div class="pf-error">{{ form.observacao.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="pf-actions">
+        <button type="submit" class="btn-pf btn-pf-save"><i class="fas fa-check"></i> Guardar</button>
+        <a href="{% url 'peca_list' %}" class="btn-pf btn-pf-cancel">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

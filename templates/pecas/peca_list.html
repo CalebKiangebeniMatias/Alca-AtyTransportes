@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% block title %}Peças{% endblock %}
+{% block breadcrumb %}Frota › Peças › Listar{% endblock %}
+
+{% block content %}
+<style>
+  .peca-wrapper { animation: pecaIn .5s cubic-bezier(.34, 1.56, .64, 1) both; }
+  @keyframes pecaIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .peca-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 24px;
+  }
+  .peca-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; line-height: 1; }
+  .peca-title span { color: var(--accent); }
+  .peca-subtitle { font-size: .78rem; color: var(--grey); margin-top: 4px; }
+
+  .btn-peca {
+    display: inline-flex; align-items: center; gap: 7px; padding: 9px 20px;
+    border: none; border-radius: var(--radius-md);
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: .88rem;
+    letter-spacing: 1px; text-transform: uppercase; cursor: pointer; text-decoration: none;
+    white-space: nowrap; transition: transform var(--ease-spring), box-shadow var(--ease-base);
+  }
+  .btn-peca:hover { transform: translateY(-2px); }
+  .btn-peca:active { transform: scale(.97); }
+  .btn-new-peca { background: var(--success); color: var(--white); box-shadow: 0 4px 16px rgba(39, 174, 96, .3); }
+  .btn-new-peca:hover { background: #219150; box-shadow: 0 8px 24px rgba(39, 174, 96, .4); color: var(--white); }
+  .btn-filter-peca { background: var(--grad-btn); color: var(--white); box-shadow: var(--shadow-sm); }
+  .btn-filter-peca:hover { box-shadow: 0 6px 20px rgba(36, 99, 163, .4); color: var(--white); }
+
+  .btn-act {
+    width: 30px; height: 30px; border-radius: var(--radius-sm); border: 1px solid;
+    display: inline-flex; align-items: center; justify-content: center; font-size: .72rem;
+    cursor: pointer; background: transparent; text-decoration: none;
+    transition: background var(--ease-fast), transform var(--ease-spring);
+  }
+  .btn-act:hover { transform: scale(1.12); }
+  .btn-act-edit { border-color: rgba(255, 213, 79, .35); color: #ffd54f; }
+  .btn-act-edit:hover { background: rgba(255, 213, 79, .15); }
+  .btn-act-del { border-color: rgba(231, 76, 60, .35); color: #ff8a80; background: transparent; }
+  .btn-act-del:hover { background: rgba(231, 76, 60, .15); }
+
+  .filter-bar {
+    background: rgba(13, 43, 94, .42); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+    backdrop-filter: blur(14px); padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 12px;
+    align-items: flex-end; margin-bottom: 22px;
+  }
+  .f-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px; }
+  .f-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, .4); }
+
+  .peca-wrapper input[type="text"] {
+    width: 100%; background: rgba(4, 30, 66, .55) !important; border: 1px solid var(--glass-border) !important;
+    border-radius: var(--radius-md) !important; color: var(--white) !important; padding: 9px 13px !important;
+    font-family: 'Barlow', sans-serif !important; font-size: .88rem !important; outline: none !important;
+    transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+  }
+  .peca-wrapper input[type="text"]:focus {
+    border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(79, 195, 247, .15) !important;
+    background: rgba(4, 30, 66, .85) !important;
+  }
+  .peca-wrapper input::placeholder { color: rgba(255, 255, 255, .25) !important; }
+
+  .table-card {
+    background: rgba(13, 43, 94, .42); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+    backdrop-filter: blur(14px); overflow: hidden; box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
+  }
+  .table-card-header {
+    display: flex; align-items: center; justify-content: space-between; padding: 13px 20px;
+    background: linear-gradient(90deg, rgba(36, 99, 163, .3), rgba(4, 30, 66, .2));
+    border-bottom: 1px solid var(--glass-border); flex-wrap: wrap; gap: 8px;
+  }
+  .table-card-title {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1rem;
+    letter-spacing: 1.5px; text-transform: uppercase; color: var(--white); display: flex; align-items: center; gap: 8px;
+  }
+  .table-card-title i { color: var(--accent); }
+  .table-count { font-size: .75rem; color: var(--grey); }
+
+  .peca-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .peca-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  .peca-table thead th {
+    background: rgba(4, 30, 66, .7); color: var(--accent); font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: .68rem; letter-spacing: 1.5px; text-transform: uppercase; padding: 11px 12px;
+    border-bottom: 1px solid var(--glass-border); white-space: nowrap; text-align: left;
+  }
+  .peca-table tbody tr { border-bottom: 1px solid rgba(79, 195, 247, .06); transition: background var(--ease-fast); }
+  .peca-table tbody tr:hover { background: rgba(36, 99, 163, .18); }
+  .peca-table tbody td { padding: 10px 12px; color: rgba(255, 255, 255, .72); white-space: nowrap; vertical-align: middle; text-align: left; }
+
+  .nome-val { font-family: 'Bebas Neue', sans-serif; font-size: .95rem; letter-spacing: .5px; color: var(--white); }
+  .ref-chip {
+    display: inline-flex; align-items: center; gap: 5px; background: rgba(255, 213, 79, .06);
+    border: 1px solid rgba(255, 213, 79, .14); border-radius: 30px; padding: 2px 10px;
+    font-size: .72rem; font-weight: 600; color: rgba(255, 213, 79, .75);
+  }
+  .cat-chip {
+    display: inline-flex; align-items: center; gap: 5px; background: rgba(79, 195, 247, .07);
+    border: 1px solid rgba(79, 195, 247, .14); border-radius: 30px; padding: 2px 10px;
+    font-size: .75rem; font-weight: 600; color: rgba(255, 255, 255, .7);
+  }
+  .qtd-dash { color: rgba(255, 255, 255, .2); font-size: .8rem; }
+
+  .s-badge {
+    display: inline-flex; align-items: center; gap: 4px; border-radius: 30px; padding: 3px 10px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: .7rem;
+    letter-spacing: .8px; text-transform: uppercase; white-space: nowrap;
+  }
+  .s-baixo { background: rgba(231, 76, 60, .12); border: 1px solid rgba(231, 76, 60, .28); color: #ff8a80; }
+  .s-normal { background: rgba(39, 174, 96, .12); border: 1px solid rgba(39, 174, 96, .3); color: #69f0ae; }
+
+  .table-empty {
+    padding: 52px 20px; text-align: center; display: flex; flex-direction: column;
+    align-items: center; gap: 10px; color: rgba(255, 255, 255, .25);
+  }
+  .table-empty i { font-size: 2.4rem; opacity: .35; }
+
+  @media (max-width: 768px) {
+    .peca-header { flex-direction: column; align-items: flex-start; }
+    .filter-bar { flex-direction: column; }
+    .f-group { min-width: unset; width: 100%; }
+    .btn-filter-peca { width: 100%; justify-content: center; }
+  }
+</style>
+
+<div class="peca-wrapper">
+
+  <div class="peca-header">
+    <div>
+      <div class="peca-title">Controlo de <span>Peças</span></div>
+      <div class="peca-subtitle">Cadastro de peças disponíveis para a frota</div>
+    </div>
+    <a href="{% url 'peca_create' %}" class="btn-peca btn-new-peca">
+      <i class="fas fa-plus"></i> Cadastrar Peça
+    </a>
+  </div>
+
+  <form method="get">
+    <div class="filter-bar">
+      <div class="f-group">
+        <label class="f-label">Nome</label>
+        <input type="text" name="nome" placeholder="Nome da peça" value="{{ request.GET.nome }}">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Referência</label>
+        <input type="text" name="referencia" placeholder="Código / referência" value="{{ request.GET.referencia }}">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Categoria</label>
+        <input type="text" name="categoria" placeholder="Categoria" value="{{ request.GET.categoria }}">
+      </div>
+      <div style="display:flex;align-items:flex-end;flex-shrink:0">
+        <button type="submit" class="btn-peca btn-filter-peca">
+          <i class="fas fa-filter"></i> Filtrar
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="table-card-title"><i class="fas fa-cogs"></i> Peças</div>
+      {% if total_pecas %}<span class="table-count">{{ total_pecas }} registo(s)</span>{% endif %}
+    </div>
+
+    <div class="peca-table-wrap">
+      {% if pecas %}
+      <table class="peca-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Referência</th>
+            <th>Categoria</th>
+            <th>Fornecedor</th>
+            <th>Unidade</th>
+            <th>Preço Unit.</th>
+            <th>Estoque</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in pecas %}
+          <tr>
+            <td><span class="nome-val">{{ p.nome }}</span></td>
+            <td>
+              {% if p.referencia %}<span class="ref-chip">{{ p.referencia }}</span>
+              {% else %}<span class="qtd-dash">—</span>{% endif %}
+            </td>
+            <td>
+              {% if p.categoria %}<span class="cat-chip">{{ p.categoria }}</span>
+              {% else %}<span class="qtd-dash">—</span>{% endif %}
+            </td>
+            <td>{{ p.fornecedor|default:"—" }}</td>
+            <td>{{ p.get_unidade_medida_display }}</td>
+            <td>
+              {% if p.preco_unitario %}{{ p.preco_unitario }}
+              {% else %}<span class="qtd-dash">—</span>{% endif %}
+            </td>
+            <td>
+              {% if p.estoque_baixo %}
+                <span class="s-badge s-baixo"><i class="fas fa-triangle-exclamation" style="font-size:.55rem"></i> {{ p.quantidade_estoque }}</span>
+              {% else %}
+                <span class="s-badge s-normal"><i class="fas fa-check" style="font-size:.55rem"></i> {{ p.quantidade_estoque }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <div style="display:flex;gap:6px">
+                <a href="{% url 'peca_edit' p.pk %}" class="btn-act btn-act-edit" title="Editar">
+                  <i class="fas fa-pen"></i>
+                </a>
+                <form action="{% url 'peca_delete' p.pk %}" method="post" style="display:inline"
+                  onsubmit="return confirm('Confirma eliminar esta peça?')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-act btn-act-del" title="Eliminar">
+                    <i class="fas fa-trash-can"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="table-empty">
+        <i class="fas fa-cogs"></i>
+        <span>Nenhuma peça encontrada.</span>
+        <small>Tente ajustar os filtros ou cadastre uma nova peça.</small>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

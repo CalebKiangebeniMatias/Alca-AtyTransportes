@@ -4099,6 +4099,165 @@ def inspecao_list(request):
         'local_choices': Troca.LOCAL_CHOICES,
     })
 
+# ───────────────────────── PEÇAS ─────────────────────────
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .forms import MovimentacaoForm, PecaForm
+from .models import Movimentacao, Peca
+
+
+# ───────────────────────── PEÇAS ─────────────────────────
+
+def peca_list(request):
+    qs = Peca.objects.all().order_by('nome')
+
+    nome = request.GET.get('nome')
+    if nome:
+        qs = qs.filter(nome__icontains=nome)
+
+    referencia = request.GET.get('referencia')
+    if referencia:
+        qs = qs.filter(referencia__icontains=referencia)
+
+    categoria = request.GET.get('categoria')
+    if categoria:
+        qs = qs.filter(categoria__icontains=categoria)
+
+    return render(request, 'pecas/peca_list.html', {
+        'pecas': qs,
+        'total_pecas': qs.count(),
+    })
+
+
+def peca_create(request):
+    if request.method == 'POST':
+        form = PecaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Peça cadastrada com sucesso.')
+            return redirect('peca_list')
+    else:
+        form = PecaForm()
+
+    return render(request, 'pecas/peca_form.html', {
+        'form': form,
+        'titulo': 'Cadastrar Peça',
+    })
+
+
+def peca_edit(request, pk):
+    peca = get_object_or_404(Peca, pk=pk)
+
+    if request.method == 'POST':
+        form = PecaForm(request.POST, instance=peca)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Peça atualizada com sucesso.')
+            return redirect('peca_list')
+    else:
+        form = PecaForm(instance=peca)
+
+    return render(request, 'pecas/peca_form.html', {
+        'form': form,
+        'titulo': 'Editar Peça',
+    })
+
+
+def peca_delete(request, pk):
+    peca = get_object_or_404(Peca, pk=pk)
+    if request.method == 'POST':
+        peca.delete()
+        messages.success(request, 'Peça eliminada com sucesso.')
+    return redirect('peca_list')
+
+
+def estoque_list(request):
+    qs = Peca.objects.all().order_by('nome')
+
+    nome = request.GET.get('nome')
+    if nome:
+        qs = qs.filter(nome__icontains=nome)
+
+    apenas_baixo = request.GET.get('baixo')
+    if apenas_baixo:
+        qs = [p for p in qs if p.estoque_baixo]
+
+    return render(request, 'pecas/estoque_list.html', {
+        'pecas': qs,
+        'total_pecas': len(qs) if isinstance(qs, list) else qs.count(),
+    })
+
+
+# ─────────────────────── MOVIMENTAÇÕES ───────────────────────
+
+def movimentacao_create(request):
+    if request.method == 'POST':
+        form = MovimentacaoForm(request.POST)
+        if form.is_valid():
+            movimentacao = form.save(commit=False)
+            if request.user.is_authenticated:
+                movimentacao.responsavel = request.user
+            movimentacao.save()
+            messages.success(request, 'Movimentação registada com sucesso.')
+            return redirect('movimentacao_historico')
+    else:
+        form = MovimentacaoForm()
+
+    return render(request, 'pecas/movimentacao_form.html', {
+        'form': form,
+        'titulo': 'Registar Movimentação',
+    })
+
+
+def movimentacao_edit(request, pk):
+    movimentacao = get_object_or_404(Movimentacao, pk=pk)
+
+    if request.method == 'POST':
+        form = MovimentacaoForm(request.POST, instance=movimentacao)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Movimentação atualizada com sucesso.')
+            return redirect('movimentacao_historico')
+    else:
+        form = MovimentacaoForm(instance=movimentacao)
+
+    return render(request, 'pecas/movimentacao_form.html', {
+        'form': form,
+        'titulo': 'Editar Movimentação',
+    })
+
+
+def movimentacao_delete(request, pk):
+    movimentacao = get_object_or_404(Movimentacao, pk=pk)
+    if request.method == 'POST':
+        movimentacao.delete()
+        messages.success(request, 'Movimentação eliminada com sucesso.')
+    return redirect('movimentacao_historico')
+
+
+def movimentacao_historico(request):
+    qs = Movimentacao.objects.select_related('peca', 'autocarro', 'sector').all().order_by('-data', '-criado_em')
+
+    peca_nome = request.GET.get('peca')
+    if peca_nome:
+        qs = qs.filter(peca__nome__icontains=peca_nome)
+
+    tipo = request.GET.get('tipo')
+    if tipo:
+        qs = qs.filter(tipo=tipo)
+
+    autocarro_numero = request.GET.get('autocarro')
+    if autocarro_numero:
+        qs = qs.filter(autocarro__numero__icontains=autocarro_numero)
+
+    return render(request, 'pecas/historico_list.html', {
+        'movimentacoes': qs,
+        'total_movimentacoes': qs.count(),
+        'tipo_choices': Movimentacao.TIPO_CHOICES,
+    })
+
+
 # ---------- Mapa Geral Financeiro View ----------#
 from decimal import Decimal
 from datetime import timedelta

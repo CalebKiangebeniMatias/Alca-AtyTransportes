@@ -16,7 +16,7 @@ class CustomUser(AbstractUser):
     telefone = models.CharField(max_length=15, blank=True, null=True)
     nivel_acesso = models.CharField(
         max_length=20, 
-        choices=NIVEL_ACESSO_CHOICES, 
+        choices=NIVEL_ACESSO_CHOICES,
         default='user'
     )
     ativo = models.BooleanField(default=True)
@@ -598,6 +598,92 @@ class Troca(models.Model):
         if not prevista:
             return False
         return timezone.now().date() >= prevista
+
+
+from decimal import Decimal
+
+from django.conf import settings
+from django.db import models
+
+
+class Peca(models.Model):
+    UNIDADE_CHOICES = [
+        ('un', 'Unidade'),
+        ('par', 'Par'),
+        ('kg', 'Quilograma'),
+        ('l', 'Litro'),
+        ('m', 'Metro'),
+        ('cx', 'Caixa'),
+    ]
+
+    nome = models.CharField(max_length=150)
+    referencia = models.CharField(max_length=100, blank=True, help_text='Código / referência da peça (opcional)')
+    categoria = models.CharField(max_length=100, blank=True, help_text='Ex: Elétrica, Motor, Suspensão, Freios...')
+    fornecedor = models.CharField(max_length=150, blank=True)
+    unidade_medida = models.CharField(max_length=5, choices=UNIDADE_CHOICES, default='un')
+    preco_unitario = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+
+    # Estoque MANUAL: quem edita a peça ajusta esse valor diretamente.
+    # As Movimentações abaixo servem como registo/histórico, não recalculam este campo sozinhas.
+    quantidade_estoque = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+
+    observacao = models.TextField(blank=True, null=True)
+
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    LIMITE_ESTOQUE_BAIXO = Decimal('5.00')
+
+    class Meta:
+        ordering = ['nome']
+        verbose_name = 'Peça'
+        verbose_name_plural = 'Peças'
+
+    def __str__(self):
+        return f'{self.nome} ({self.referencia})' if self.referencia else self.nome
+
+    @property
+    def estoque_baixo(self):
+        return self.quantidade_estoque <= self.LIMITE_ESTOQUE_BAIXO
+
+
+class Movimentacao(models.Model):
+    TIPO_CHOICES = [
+        ('entrada', 'Entrada'),
+        ('saida', 'Saída'),
+    ]
+
+    peca = models.ForeignKey(Peca, on_delete=models.CASCADE, related_name='movimentacoes')
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
+    quantidade = models.DecimalField(max_digits=12, decimal_places=2)
+
+    # Obrigatório só quando tipo == 'saida' (validado no form, não aqui no banco,
+    # para não impedir migração de dados antigos ou entradas sem autocarro).
+    autocarro = models.ForeignKey(
+        'Autocarro', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='movimentacoes_peca'
+    )
+    sector = models.ForeignKey(
+        'Sector', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='movimentacoes_peca'
+    )
+
+    data = models.DateField()
+    responsavel = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='movimentacoes_peca'
+    )
+    observacao = models.TextField(blank=True, null=True)
+
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-data', '-criado_em']
+        verbose_name = 'Movimentação de Peça'
+        verbose_name_plural = 'Movimentações de Peças'
+
+    def __str__(self):
+        return f'{self.get_tipo_display()} — {self.peca.nome} ({self.quantidade})'
 
 
 # <----- Modelo para Categoria de Despesa -----> #

@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block breadcrumb %}Frota › Peças › {{ titulo }}{% endblock %}
+
+{% block content %}
+<style>
+  .mov-form-wrapper { animation: mfIn .5s cubic-bezier(.34, 1.56, .64, 1) both; max-width: 560px; }
+  @keyframes mfIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .mov-form-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 20px; }
+
+  .mov-form-card {
+    background: rgba(13, 43, 94, .42); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+    backdrop-filter: blur(14px); padding: 24px; box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
+  }
+
+  .mf-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+  .mf-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, .5); }
+  .mf-hint { font-size: .68rem; font-weight: 400; text-transform: none; color: rgba(255, 255, 255, .35); }
+
+  .mov-form-wrapper input[type="text"],
+  .mov-form-wrapper input[type="number"],
+  .mov-form-wrapper input[type="date"],
+  .mov-form-wrapper select,
+  .mov-form-wrapper textarea {
+    width: 100%; background: rgba(4, 30, 66, .55); border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md); color: var(--white); padding: 10px 13px;
+    font-family: 'Barlow', sans-serif; font-size: .9rem; outline: none; -webkit-appearance: none;
+    transition: border-color var(--ease-fast), box-shadow var(--ease-fast);
+  }
+  .mov-form-wrapper input:focus, .mov-form-wrapper select:focus, .mov-form-wrapper textarea:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79, 195, 247, .15); background: rgba(4, 30, 66, .85);
+  }
+  .mov-form-wrapper select option { background: var(--navy); color: var(--white); }
+  .mov-form-wrapper textarea { resize: vertical; }
+
+  .mf-error { color: #ff8a80; font-size: .75rem; margin-top: 4px; }
+
+  .mf-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .btn-mf {
+    display: inline-flex; align-items: center; gap: 7px; padding: 10px 22px; border: none;
+    border-radius: var(--radius-md); font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: .88rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; text-decoration: none;
+    transition: transform var(--ease-spring), box-shadow var(--ease-base);
+  }
+  .btn-mf-save { background: var(--success); color: var(--white); box-shadow: 0 4px 16px rgba(39, 174, 96, .3); }
+  .btn-mf-save:hover { transform: translateY(-2px); }
+  .btn-mf-cancel { background: rgba(255, 255, 255, .06); border: 1px solid var(--glass-border); color: rgba(255, 255, 255, .7); }
+  .btn-mf-cancel:hover { background: rgba(255, 255, 255, .1); }
+</style>
+
+<div class="mov-form-wrapper">
+  <div class="mov-form-title">{{ titulo }}</div>
+
+  <div class="mov-form-card">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="mf-group">
+        <label class="mf-label">Peça</label>
+        {{ form.peca }}
+        {% if form.peca.errors %}<div class="mf-error">{{ form.peca.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="mf-group">
+        <label class="mf-label">Tipo</label>
+        {{ form.tipo }}
+        {% if form.tipo.errors %}<div class="mf-error">{{ form.tipo.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="mf-group">
+        <label class="mf-label">Quantidade</label>
+        {{ form.quantidade }}
+        {% if form.quantidade.errors %}<div class="mf-error">{{ form.quantidade.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="mf-group">
+        <label class="mf-label">Autocarro <span class="mf-hint">(obrigatório em saídas)</span></label>
+        {{ form.autocarro }}
+        {% if form.autocarro.errors %}<div class="mf-error">{{ form.autocarro.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="mf-group">
+        <label class="mf-label">Sector <span class="mf-hint">(opcional)</span></label>
+        {{ form.sector }}
+        {% if form.sector.errors %}<div class="mf-error">{{ form.sector.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="mf-group">
+        <label class="mf-label">Data</label>
+        {{ form.data }}
+        {% if form.data.errors %}<div class="mf-error">{{ form.data.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="mf-group">
+        <label class="mf-label">Observação</label>
+        {{ form.observacao }}
+        {% if form.observacao.errors %}<div class="mf-error">{{ form.observacao.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="mf-actions">
+        <button type="submit" class="btn-mf btn-mf-save"><i class="fas fa-check"></i> Guardar</button>
+        <a href="{% url 'movimentacao_historico' %}" class="btn-mf btn-mf-cancel">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

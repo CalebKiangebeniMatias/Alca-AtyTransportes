@@ -410,6 +410,64 @@ class TrocaForm(forms.ModelForm):
         }
 
 
+# ---- Peças ---- #
+from django import forms
+
+from .models import Autocarro, Movimentacao, Peca, Sector
+
+
+class PecaForm(forms.ModelForm):
+    class Meta:
+        model = Peca
+        fields = [
+            'nome', 'referencia', 'categoria', 'fornecedor',
+            'unidade_medida', 'preco_unitario', 'quantidade_estoque', 'observacao',
+        ]
+        widgets = {
+            'nome': forms.TextInput(attrs={'placeholder': 'Nome da peça'}),
+            'referencia': forms.TextInput(attrs={'placeholder': 'Código / referência (opcional)'}),
+            'categoria': forms.TextInput(attrs={'placeholder': 'Ex: Elétrica, Motor, Freios...'}),
+            'fornecedor': forms.TextInput(attrs={'placeholder': 'Nome do fornecedor'}),
+            'observacao': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Notas adicionais (opcional)'}),
+        }
+
+
+class AutocarroChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return f'Autocarro {obj.numero}'
+
+
+class PecaChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return f'{obj.nome} — Estoque: {obj.quantidade_estoque}'
+
+
+class MovimentacaoForm(forms.ModelForm):
+    peca = PecaChoiceField(queryset=Peca.objects.all().order_by('nome'))
+    autocarro = AutocarroChoiceField(
+        queryset=Autocarro.objects.all().order_by('numero'), required=False
+    )
+    sector = forms.ModelChoiceField(queryset=Sector.objects.all(), required=False)
+
+    class Meta:
+        model = Movimentacao
+        fields = ['peca', 'tipo', 'quantidade', 'autocarro', 'sector', 'data', 'observacao']
+        widgets = {
+            'data': forms.DateInput(attrs={'type': 'date'}),
+            'observacao': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Notas adicionais (opcional)'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo = cleaned_data.get('tipo')
+        autocarro = cleaned_data.get('autocarro')
+
+        if tipo == 'saida' and not autocarro:
+            self.add_error('autocarro', 'Obrigatório informar o autocarro numa saída de peça.')
+
+        return cleaned_data
+
+
 # ---- SubCategoriaDespesa ---- #
 from django import forms
 from .models import CategoriaDespesa, SubCategoriaDespesa
