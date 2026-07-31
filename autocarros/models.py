@@ -685,8 +685,94 @@ class Movimentacao(models.Model):
     def __str__(self):
         return f'{self.get_tipo_display()} — {self.peca.nome} ({self.quantidade})'
 
+# _______________________ BATERIAS __________________________
+from decimal import Decimal
 
-# <----- Modelo para Categoria de Despesa -----> #
+from dateutil.relativedelta import relativedelta
+from django.db import models
+from django.utils import timezone
+
+
+class Bateria(models.Model):
+    fornecedor = models.CharField(max_length=150, help_text='Nome do fornecedor da bateria')
+    marca = models.CharField(max_length=100, help_text='Marca da bateria (ex: Bosch, Varta...)')
+    referencia = models.CharField(max_length=100, help_text='Referência / código do modelo da bateria')
+    data_compra = models.DateField(help_text='Data em que a bateria foi comprada')
+
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-data_compra', '-criado_em']
+        verbose_name = 'Bateria'
+        verbose_name_plural = 'Baterias'
+
+    def __str__(self):
+        return f'{self.marca} ({self.referencia}) — {self.fornecedor}'
+
+
+class TrocaBateria(models.Model):
+    LOCAL_CHOICES = [
+        ('principal', 'Principal'),
+        ('auxiliar', 'Auxiliar'),
+    ]
+
+    bateria = models.ForeignKey(
+        Bateria, on_delete=models.CASCADE, related_name='trocas',
+        help_text='Bateria que foi instalada nesta troca'
+    )
+    autocarro = models.ForeignKey(
+        'Autocarro', on_delete=models.CASCADE, related_name='trocas_bateria',
+        help_text='Autocarro onde a bateria foi instalada'
+    )
+    local = models.CharField(
+        max_length=20, choices=LOCAL_CHOICES,
+        help_text='Posição da bateria no autocarro'
+    )
+    data_troca = models.DateField(help_text='Data em que a troca foi realizada')
+
+    # Opcional: km do autocarro no momento da troca, para previsão por km.
+    km_troca = models.DecimalField(
+        max_digits=14, decimal_places=2, null=True, blank=True,
+        help_text='Km do autocarro no momento da troca (opcional, usado para prever a próxima troca)'
+    )
+
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    # Mesmos critérios usados nos pneus — ajuste aqui se a periodicidade de bateria for diferente.
+    KM_PREVISAO = Decimal('60000.00')
+    MESES_PREVISAO = 10
+
+    class Meta:
+        ordering = ['-data_troca', '-criado_em']
+        verbose_name = 'Troca de Bateria'
+        verbose_name_plural = 'Trocas de Baterias'
+
+    def __str__(self):
+        return f'{self.bateria.referencia} → {self.autocarro.numero} ({self.get_local_display()})'
+
+    @property
+    def km_previsto_proxima_troca(self):
+        if self.km_troca is None:
+            return None
+        return self.km_troca + self.KM_PREVISAO
+
+    @property
+    def data_prevista_proxima_troca(self):
+        if not self.data_troca:
+            return None
+        return self.data_troca + relativedelta(months=self.MESES_PREVISAO)
+
+    @property
+    def esta_atrasada(self):
+        prevista = self.data_prevista_proxima_troca
+        if not prevista:
+            return False
+        return timezone.now().date() >= prevista
+
+
+# ____________________________ Modelo para Categoria de Despesa ________________________________ #
 from django.db import models
 
 class CategoriaDespesa(models.Model):

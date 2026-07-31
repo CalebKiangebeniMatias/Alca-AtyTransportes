@@ -467,6 +467,48 @@ class MovimentacaoForm(forms.ModelForm):
 
         return cleaned_data
 
+# ________________________ BATERIAS __________________________________________ #
+from django import forms
+
+from .models import Autocarro, Bateria, TrocaBateria
+
+
+class BateriaForm(forms.ModelForm):
+    class Meta:
+        model = Bateria
+        fields = ['fornecedor', 'marca', 'referencia', 'data_compra']
+        widgets = {
+            'fornecedor': forms.TextInput(attrs={'placeholder': 'Nome do fornecedor'}),
+            'marca': forms.TextInput(attrs={'placeholder': 'Ex: Bosch, Varta, Moura...'}),
+            'referencia': forms.TextInput(attrs={'placeholder': 'Referência / código do modelo'}),
+            'data_compra': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+
+class BateriaChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return f'{obj.referencia} — {obj.marca}'
+
+
+class AutocarroChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return f'Autocarro {obj.numero}'
+
+
+class TrocaBateriaForm(forms.ModelForm):
+    bateria = BateriaChoiceField(queryset=Bateria.objects.all().order_by('referencia'))
+    autocarro = AutocarroChoiceField(queryset=Autocarro.objects.all().order_by('numero'))
+
+    class Meta:
+        model = TrocaBateria
+        fields = ['bateria', 'autocarro', 'local', 'data_troca', 'km_troca']
+        widgets = {
+            'data_troca': forms.DateInput(attrs={'type': 'date'}),
+            'km_troca': forms.NumberInput(attrs={
+                'placeholder': 'Km do autocarro nesta troca (opcional, para previsão)'
+            }),
+        }
+
 
 # ---- SubCategoriaDespesa ---- #
 from django import forms

@@ -4284,6 +4284,196 @@ def movimentacao_historico(request):
     })
 
 
+# ───────────────────────── BATERIAS ─────────────────────────
+from collections import OrderedDict
+from itertools import groupby
+
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .forms import BateriaForm, TrocaBateriaForm
+from .models import Bateria, TrocaBateria
+
+
+# ───────────────────────── BATERIAS ─────────────────────────
+@login_required
+@acesso_restrito(['admin', 'gestor'])
+def bateria_list(request):
+    qs = Bateria.objects.all().order_by('-data_compra', '-criado_em')
+
+    fornecedor = request.GET.get('fornecedor')
+    if fornecedor:
+        qs = qs.filter(fornecedor__icontains=fornecedor)
+
+    marca = request.GET.get('marca')
+    if marca:
+        qs = qs.filter(marca__icontains=marca)
+
+    referencia = request.GET.get('referencia')
+    if referencia:
+        qs = qs.filter(referencia__icontains=referencia)
+
+    # Agrupamento por data de compra, igual aos pneus.
+    grupos = []
+    for data_compra, itens in groupby(qs, key=lambda b: b.data_compra):
+        grupos.append({'data_compra': data_compra, 'itens': list(itens)})
+
+    total_baterias = sum(len(g['itens']) for g in grupos)
+
+    return render(request, 'baterias/bateria_list.html', {
+        'grupos': grupos,
+        'total_baterias': total_baterias,
+    })
+
+@login_required
+@acesso_restrito(['admin', 'gestor'])
+def bateria_create(request):
+    if request.method == 'POST':
+        form = BateriaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Bateria registada com sucesso.')
+            return redirect('bateria_list')
+    else:
+        form = BateriaForm()
+
+    return render(request, 'baterias/bateria_form.html', {
+        'form': form,
+        'titulo': 'Cadastrar Bateria',
+    })
+
+@login_required
+@acesso_restrito(['admin', 'gestor'])
+def bateria_edit(request, pk):
+    bateria = get_object_or_404(Bateria, pk=pk)
+
+    if request.method == 'POST':
+        form = BateriaForm(request.POST, instance=bateria)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Bateria atualizada com sucesso.')
+            return redirect('bateria_list')
+    else:
+        form = BateriaForm(instance=bateria)
+
+    return render(request, 'baterias/bateria_form.html', {
+        'form': form,
+        'titulo': 'Editar Bateria',
+    })
+
+@login_required
+@acesso_restrito(['admin', 'gestor'])
+def bateria_delete(request, pk):
+    bateria = get_object_or_404(Bateria, pk=pk)
+    if request.method == 'POST':
+        bateria.delete()
+        messages.success(request, 'Bateria eliminada com sucesso.')
+    return redirect('bateria_list')
+
+
+# ─────────────────────── TROCAS DE BATERIA ───────────────────────
+@login_required
+@acesso_restrito(['admin', 'gestor'])
+def trocabateria_create(request):
+    if request.method == 'POST':
+        form = TrocaBateriaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Troca de bateria registada com sucesso.')
+            return redirect('historico_bateria_list')
+    else:
+        form = TrocaBateriaForm()
+
+    return render(request, 'baterias/trocabateria_form.html', {
+        'form': form,
+        'titulo': 'Registar Troca de Bateria',
+    })
+
+@login_required
+@acesso_restrito(['admin', 'gestor'])
+def trocabateria_edit(request, pk):
+    troca = get_object_or_404(TrocaBateria, pk=pk)
+
+    if request.method == 'POST':
+        form = TrocaBateriaForm(request.POST, instance=troca)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Troca de bateria atualizada com sucesso.')
+            return redirect('historico_bateria_list')
+    else:
+        form = TrocaBateriaForm(instance=troca)
+
+    return render(request, 'baterias/trocabateria_form.html', {
+        'form': form,
+        'titulo': 'Editar Troca de Bateria',
+    })
+
+@login_required
+@acesso_restrito(['admin', 'gestor'])
+def trocabateria_delete(request, pk):
+    troca = get_object_or_404(TrocaBateria, pk=pk)
+    if request.method == 'POST':
+        troca.delete()
+        messages.success(request, 'Troca de bateria eliminada com sucesso.')
+    return redirect('historico_bateria_list')
+
+
+# ─────────────────────── INSPEÇÃO (situação atual) ───────────────────────
+@login_required
+@acesso_restrito(['admin', 'gestor'])
+def inspecao_bateria_list(request):
+    """Mostra só a troca MAIS RECENTE de cada combinação autocarro + local
+    (Principal / Auxiliar) — ou seja, a bateria que está instalada agora."""
+    qs = TrocaBateria.objects.select_related('bateria', 'autocarro').all().order_by(
+        'autocarro_id', 'local', '-data_troca', '-criado_em'
+    )
+
+    autocarro_numero = request.GET.get('autocarro')
+    if autocarro_numero:
+        qs = qs.filter(autocarro__numero__icontains=autocarro_numero)
+
+    local = request.GET.get('local')
+    if local:
+        qs = qs.filter(local=local)
+
+    ultimas = OrderedDict()
+    for t in qs:
+        chave = (t.autocarro_id, t.local)
+        if chave not in ultimas:
+            ultimas[chave] = t
+
+    trocas = sorted(ultimas.values(), key=lambda t: (t.autocarro.numero, t.local))
+
+    return render(request, 'baterias/inspecao_bateria_list.html', {
+        'trocas': trocas,
+        'total_trocas': len(trocas),
+        'local_choices': TrocaBateria.LOCAL_CHOICES,
+    })
+
+# ─────────────────────── HISTÓRICO (log completo) ───────────────────────
+@login_required
+@acesso_restrito(['admin', 'gestor'])
+def historico_bateria_list(request):
+    qs = TrocaBateria.objects.select_related('bateria', 'autocarro').all().order_by('-data_troca', '-criado_em')
+
+    referencia = request.GET.get('referencia')
+    if referencia:
+        qs = qs.filter(bateria__referencia__icontains=referencia)
+
+    autocarro_numero = request.GET.get('autocarro')
+    if autocarro_numero:
+        qs = qs.filter(autocarro__numero__icontains=autocarro_numero)
+
+    local = request.GET.get('local')
+    if local:
+        qs = qs.filter(local=local)
+
+    return render(request, 'baterias/historico_bateria_list.html', {
+        'trocas': qs,
+        'total_trocas': qs.count(),
+        'local_choices': TrocaBateria.LOCAL_CHOICES,
+    })
+
 # ---------- Mapa Geral Financeiro View ----------#
 from decimal import Decimal
 from datetime import timedelta

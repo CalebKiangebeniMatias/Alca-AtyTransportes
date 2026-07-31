@@ -159,6 +159,21 @@ urlpatterns = [
     path('trocas/<int:pk>/eliminar/', views.troca_delete, name='troca_delete'),
     path('inspecao/', views.inspecao_list, name='inspecao_list'),
 
+    # Baterias
+    path('baterias/', views.bateria_list, name='bateria_list'),
+    path('baterias/nova/', views.bateria_create, name='bateria_create'),
+    path('baterias/<int:pk>/editar/', views.bateria_edit, name='bateria_edit'),
+    path('baterias/<int:pk>/eliminar/', views.bateria_delete, name='bateria_delete'),
+ 
+    # Trocas de bateria
+    path('trocas-bateria/nova/', views.trocabateria_create, name='trocabateria_create'),
+    path('trocas-bateria/<int:pk>/editar/', views.trocabateria_edit, name='trocabateria_edit'),
+    path('trocas-bateria/<int:pk>/eliminar/', views.trocabateria_delete, name='trocabateria_delete'),
+ 
+    # Inspeção (situação atual) e Histórico (log completo)
+    path('baterias/inspecao/', views.inspecao_bateria_list, name='inspecao_bateria_list'),
+    path('baterias/historico/', views.historico_bateria_list, name='historico_bateria_list'),
+
     # Peças
     path('pecas/', views.peca_list, name='peca_list'),
     path('pecas/nova/', views.peca_create, name='peca_create'),
