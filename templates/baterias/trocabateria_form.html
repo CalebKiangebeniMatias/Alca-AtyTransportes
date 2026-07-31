@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block breadcrumb %}Frota › Baterias › {{ titulo }}{% endblock %}
+
+{% block content %}
+<style>
+  .tb-form-wrapper { animation: tbfIn .5s cubic-bezier(.34, 1.56, .64, 1) both; max-width: 560px; }
+  @keyframes tbfIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .tb-form-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 20px; }
+
+  .tb-form-card {
+    background: rgba(13, 43, 94, .42); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+    backdrop-filter: blur(14px); padding: 24px; box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
+  }
+
+  .tbf-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+  .tbf-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, .5); }
+  .tbf-hint { font-size: .68rem; font-weight: 400; text-transform: none; color: rgba(255, 255, 255, .35); }
+
+  .tb-form-wrapper select,
+  .tb-form-wrapper input[type="date"],
+  .tb-form-wrapper input[type="number"] {
+    width: 100%; background: rgba(4, 30, 66, .55); border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md); color: var(--white); padding: 10px 13px;
+    font-family: 'Barlow', sans-serif; font-size: .9rem; outline: none; -webkit-appearance: none;
+    transition: border-color var(--ease-fast), box-shadow var(--ease-fast);
+  }
+  .tb-form-wrapper select:focus, .tb-form-wrapper input:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79, 195, 247, .15); background: rgba(4, 30, 66, .85);
+  }
+  .tb-form-wrapper select option { background: var(--navy); color: var(--white); }
+
+  .tbf-error { color: #ff8a80; font-size: .75rem; margin-top: 4px; }
+
+  .tbf-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .btn-tbf {
+    display: inline-flex; align-items: center; gap: 7px; padding: 10px 22px; border: none;
+    border-radius: var(--radius-md); font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: .88rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; text-decoration: none;
+    transition: transform var(--ease-spring), box-shadow var(--ease-base);
+  }
+  .btn-tbf-save { background: var(--success); color: var(--white); box-shadow: 0 4px 16px rgba(39, 174, 96, .3); }
+  .btn-tbf-save:hover { transform: translateY(-2px); }
+  .btn-tbf-cancel { background: rgba(255, 255, 255, .06); border: 1px solid var(--glass-border); color: rgba(255, 255, 255, .7); }
+  .btn-tbf-cancel:hover { background: rgba(255, 255, 255, .1); }
+</style>
+
+<div class="tb-form-wrapper">
+  <div class="tb-form-title">{{ titulo }}</div>
+
+  <div class="tb-form-card">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="tbf-group">
+        <label class="tbf-label">Bateria (Referência)</label>
+        {{ form.bateria }}
+        {% if form.bateria.errors %}<div class="tbf-error">{{ form.bateria.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="tbf-group">
+        <label class="tbf-label">Autocarro</label>
+        {{ form.autocarro }}
+        {% if form.autocarro.errors %}<div class="tbf-error">{{ form.autocarro.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="tbf-group">
+        <label class="tbf-label">Local</label>
+        {{ form.local }}
+        {% if form.local.errors %}<div class="tbf-error">{{ form.local.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="tbf-group">
+        <label class="tbf-label">Data da Troca</label>
+        {{ form.data_troca }}
+        {% if form.data_troca.errors %}<div class="tbf-error">{{ form.data_troca.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="tbf-group">
+        <label class="tbf-label">Km na Troca <span class="tbf-hint">(opcional — usado para prever a próxima troca)</span></label>
+        {{ form.km_troca }}
+        {% if form.km_troca.errors %}<div class="tbf-error">{{ form.km_troca.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="tbf-actions">
+        <button type="submit" class="btn-tbf btn-tbf-save"><i class="fas fa-check"></i> Guardar</button>
+        <a href="{% url 'historico_bateria_list' %}" class="btn-tbf btn-tbf-cancel">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

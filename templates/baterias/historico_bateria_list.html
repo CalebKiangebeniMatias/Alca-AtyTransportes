@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% block title %}Histórico de Baterias{% endblock %}
+{% block breadcrumb %}Frota › Baterias › Histórico{% endblock %}
+
+{% block content %}
+<style>
+  .hb-wrapper { animation: hbIn .5s cubic-bezier(.34, 1.56, .64, 1) both; }
+  @keyframes hbIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .hb-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 24px;
+  }
+  .hb-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; line-height: 1; }
+  .hb-title span { color: var(--accent); }
+  .hb-subtitle { font-size: .78rem; color: var(--grey); margin-top: 4px; }
+
+  .btn-hb {
+    display: inline-flex; align-items: center; gap: 7px; padding: 9px 20px; border: none;
+    border-radius: var(--radius-md); font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: .88rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; text-decoration: none;
+    white-space: nowrap; transition: transform var(--ease-spring), box-shadow var(--ease-base);
+  }
+  .btn-hb:hover { transform: translateY(-2px); }
+  .btn-new-hb { background: var(--success); color: var(--white); box-shadow: 0 4px 16px rgba(39, 174, 96, .3); }
+  .btn-new-hb:hover { background: #219150; box-shadow: 0 8px 24px rgba(39, 174, 96, .4); color: var(--white); }
+  .btn-filter-hb { background: var(--grad-btn); color: var(--white); box-shadow: var(--shadow-sm); }
+  .btn-filter-hb:hover { box-shadow: 0 6px 20px rgba(36, 99, 163, .4); color: var(--white); }
+
+  .btn-act {
+    width: 30px; height: 30px; border-radius: var(--radius-sm); border: 1px solid;
+    display: inline-flex; align-items: center; justify-content: center; font-size: .72rem;
+    cursor: pointer; background: transparent; text-decoration: none;
+    transition: background var(--ease-fast), transform var(--ease-spring);
+  }
+  .btn-act:hover { transform: scale(1.12); }
+  .btn-act-edit { border-color: rgba(255, 213, 79, .35); color: #ffd54f; }
+  .btn-act-edit:hover { background: rgba(255, 213, 79, .15); }
+  .btn-act-del { border-color: rgba(231, 76, 60, .35); color: #ff8a80; background: transparent; }
+  .btn-act-del:hover { background: rgba(231, 76, 60, .15); }
+
+  .filter-bar {
+    background: rgba(13, 43, 94, .42); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+    backdrop-filter: blur(14px); padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 12px;
+    align-items: flex-end; margin-bottom: 22px;
+  }
+  .f-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px; }
+  .f-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, .4); }
+
+  .hb-wrapper select, .hb-wrapper input[type="text"] {
+    width: 100%; background: rgba(4, 30, 66, .55) !important; border: 1px solid var(--glass-border) !important;
+    border-radius: var(--radius-md) !important; color: var(--white) !important; padding: 9px 13px !important;
+    font-family: 'Barlow', sans-serif !important; font-size: .88rem !important; outline: none !important;
+    -webkit-appearance: none;
+  }
+  .hb-wrapper select option { background: var(--navy); color: var(--white); }
+  .hb-wrapper input::placeholder { color: rgba(255, 255, 255, .25) !important; }
+
+  .table-card {
+    background: rgba(13, 43, 94, .42); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+    backdrop-filter: blur(14px); overflow: hidden; box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
+  }
+  .table-card-header {
+    display: flex; align-items: center; justify-content: space-between; padding: 13px 20px;
+    background: linear-gradient(90deg, rgba(36, 99, 163, .3), rgba(4, 30, 66, .2));
+    border-bottom: 1px solid var(--glass-border); flex-wrap: wrap; gap: 8px;
+  }
+  .table-card-title {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1rem;
+    letter-spacing: 1.5px; text-transform: uppercase; color: var(--white); display: flex; align-items: center; gap: 8px;
+  }
+  .table-card-title i { color: var(--accent); }
+  .table-count { font-size: .75rem; color: var(--grey); }
+
+  .hb-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .hb-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  .hb-table thead th {
+    background: rgba(4, 30, 66, .7); color: var(--accent); font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: .68rem; letter-spacing: 1.5px; text-transform: uppercase; padding: 11px 12px;
+    border-bottom: 1px solid var(--glass-border); white-space: nowrap; text-align: left;
+  }
+  .hb-table tbody tr { border-bottom: 1px solid rgba(79, 195, 247, .06); transition: background var(--ease-fast); }
+  .hb-table tbody tr:hover { background: rgba(36, 99, 163, .18); }
+  .hb-table tbody td { padding: 10px 12px; color: rgba(255, 255, 255, .72); white-space: nowrap; vertical-align: middle; text-align: left; }
+
+  .ref-chip {
+    display: inline-flex; align-items: center; gap: 5px; background: rgba(255, 213, 79, .06);
+    border: 1px solid rgba(255, 213, 79, .14); border-radius: 30px; padding: 2px 10px;
+    font-size: .72rem; font-weight: 600; color: rgba(255, 213, 79, .75);
+  }
+  .marca-val { font-family: 'Bebas Neue', sans-serif; font-size: .95rem; letter-spacing: .5px; color: var(--white); }
+  .ac-chip {
+    display: inline-flex; align-items: center; gap: 5px; background: rgba(79, 195, 247, .07);
+    border: 1px solid rgba(79, 195, 247, .14); border-radius: 30px; padding: 2px 10px;
+    font-size: .75rem; font-weight: 600; color: rgba(255, 255, 255, .7);
+  }
+  .ac-chip i { color: var(--accent); font-size: .6rem; }
+  .local-badge {
+    display: inline-flex; align-items: center; gap: 4px; border-radius: 30px; padding: 3px 10px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: .7rem;
+    letter-spacing: .8px; text-transform: uppercase; white-space: nowrap;
+    background: rgba(79, 195, 247, .1); border: 1px solid rgba(79, 195, 247, .25); color: var(--accent);
+  }
+  .date-cell { font-size: .75rem; color: var(--grey); display: inline-flex; align-items: center; gap: 5px; }
+  .date-cell i { color: var(--accent); font-size: .6rem; }
+  .prev-val { font-size: .78rem; font-weight: 700; color: rgba(255, 255, 255, .6); }
+  .prev-dash { color: rgba(255, 255, 255, .2); font-size: .8rem; }
+
+  .s-badge {
+    display: inline-flex; align-items: center; gap: 4px; border-radius: 30px; padding: 3px 10px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: .7rem;
+    letter-spacing: .8px; text-transform: uppercase; white-space: nowrap;
+  }
+  .s-atrasada { background: rgba(231, 76, 60, .12); border: 1px solid rgba(231, 76, 60, .28); color: #ff8a80; }
+  .s-em_dia { background: rgba(39, 174, 96, .12); border: 1px solid rgba(39, 174, 96, .3); color: #69f0ae; }
+
+  .table-empty {
+    padding: 52px 20px; text-align: center; display: flex; flex-direction: column;
+    align-items: center; gap: 10px; color: rgba(255, 255, 255, .25);
+  }
+  .table-empty i { font-size: 2.4rem; opacity: .35; }
+
+  @media (max-width: 768px) {
+    .hb-header { flex-direction: column; align-items: flex-start; }
+    .filter-bar { flex-direction: column; }
+    .f-group { min-width: unset; width: 100%; }
+    .btn-filter-hb { width: 100%; justify-content: center; }
+  }
+</style>
+
+<div class="hb-wrapper">
+
+  <div class="hb-header">
+    <div>
+      <div class="hb-title">Histórico de <span>Trocas de Bateria</span></div>
+      <div class="hb-subtitle">Todas as trocas registadas, em ordem</div>
+    </div>
+    <a href="{% url 'trocabateria_create' %}" class="btn-hb btn-new-hb">
+      <i class="fas fa-plus"></i> Registar Troca
+    </a>
+  </div>
+
+  <form method="get">
+    <div class="filter-bar">
+      <div class="f-group">
+        <label class="f-label">Referência da Bateria</label>
+        <input type="text" name="referencia" placeholder="Referência" value="{{ request.GET.referencia }}">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Autocarro</label>
+        <input type="text" name="autocarro" placeholder="Número do autocarro" value="{{ request.GET.autocarro }}">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Local</label>
+        <select name="local">
+          <option value="">Todos os locais</option>
+          {% for valor, rotulo in local_choices %}
+          <option value="{{ valor }}" {% if request.GET.local == valor %}selected{% endif %}>{{ rotulo }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div style="display:flex;align-items:flex-end;flex-shrink:0">
+        <button type="submit" class="btn-hb btn-filter-hb">
+          <i class="fas fa-filter"></i> Filtrar
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="table-card-title"><i class="fas fa-history"></i> Histórico</div>
+      {% if total_trocas %}<span class="table-count">{{ total_trocas }} registo(s)</span>{% endif %}
+    </div>
+
+    <div class="hb-table-wrap">
+      {% if trocas %}
+      <table class="hb-table">
+        <thead>
+          <tr>
+            <th>Bateria (Referência)</th>
+            <th>Marca</th>
+            <th>Autocarro</th>
+            <th>Local</th>
+            <th>Data da Troca</th>
+            <th>Próx. Troca (Km)</th>
+            <th>Próx. Troca (Data)</th>
+            <th>Estado</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in trocas %}
+          <tr>
+            <td><span class="ref-chip">{{ t.bateria.referencia }}</span></td>
+            <td><span class="marca-val">{{ t.bateria.marca }}</span></td>
+            <td><span class="ac-chip"><i class="fas fa-bus"></i> {{ t.autocarro.numero }}</span></td>
+            <td><span class="local-badge">{{ t.get_local_display }}</span></td>
+            <td>
+              <span class="date-cell">
+                <i class="fas fa-calendar-check"></i>
+                {{ t.data_troca|date:"d/m/Y" }}
+              </span>
+            </td>
+            <td>
+              {% if t.km_previsto_proxima_troca %}<span class="prev-val">{{ t.km_previsto_proxima_troca }}</span>
+              {% else %}<span class="prev-dash">—</span>{% endif %}
+            </td>
+            <td>
+              {% if t.data_prevista_proxima_troca %}<span class="prev-val">{{ t.data_prevista_proxima_troca|date:"d/m/Y" }}</span>
+              {% else %}<span class="prev-dash">—</span>{% endif %}
+            </td>
+            <td>
+              {% if t.esta_atrasada %}
+                <span class="s-badge s-atrasada"><i class="fas fa-triangle-exclamation" style="font-size:.55rem"></i> Atrasada</span>
+              {% else %}
+                <span class="s-badge s-em_dia"><i class="fas fa-check" style="font-size:.55rem"></i> Em Dia</span>
+              {% endif %}
+            </td>
+            <td>
+              <div style="display:flex;gap:6px">
+                <a href="{% url 'trocabateria_edit' t.pk %}" class="btn-act btn-act-edit" title="Editar">
+                  <i class="fas fa-pen"></i>
+                </a>
+                <form action="{% url 'trocabateria_delete' t.pk %}" method="post" style="display:inline"
+                  onsubmit="return confirm('Confirma eliminar esta troca?')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-act btn-act-del" title="Eliminar">
+                    <i class="fas fa-trash-can"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="table-empty">
+        <i class="fas fa-history"></i>
+        <span>Nenhuma troca registada.</span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

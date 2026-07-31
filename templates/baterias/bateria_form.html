@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block breadcrumb %}Frota › Baterias › {{ titulo }}{% endblock %}
+
+{% block content %}
+<style>
+  .bat-form-wrapper { animation: bfIn .5s cubic-bezier(.34, 1.56, .64, 1) both; max-width: 560px; }
+  @keyframes bfIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .bat-form-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 20px; }
+
+  .bat-form-card {
+    background: rgba(13, 43, 94, .42); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+    backdrop-filter: blur(14px); padding: 24px; box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
+  }
+
+  .bf-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+  .bf-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, .5); }
+
+  .bat-form-wrapper input[type="text"],
+  .bat-form-wrapper input[type="date"] {
+    width: 100%; background: rgba(4, 30, 66, .55); border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md); color: var(--white); padding: 10px 13px;
+    font-family: 'Barlow', sans-serif; font-size: .9rem; outline: none;
+    transition: border-color var(--ease-fast), box-shadow var(--ease-fast);
+  }
+  .bat-form-wrapper input:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79, 195, 247, .15); background: rgba(4, 30, 66, .85);
+  }
+
+  .bf-error { color: #ff8a80; font-size: .75rem; margin-top: 4px; }
+
+  .bf-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .btn-bf {
+    display: inline-flex; align-items: center; gap: 7px; padding: 10px 22px; border: none;
+    border-radius: var(--radius-md); font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: .88rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; text-decoration: none;
+    transition: transform var(--ease-spring), box-shadow var(--ease-base);
+  }
+  .btn-bf-save { background: var(--success); color: var(--white); box-shadow: 0 4px 16px rgba(39, 174, 96, .3); }
+  .btn-bf-save:hover { transform: translateY(-2px); }
+  .btn-bf-cancel { background: rgba(255, 255, 255, .06); border: 1px solid var(--glass-border); color: rgba(255, 255, 255, .7); }
+  .btn-bf-cancel:hover { background: rgba(255, 255, 255, .1); }
+</style>
+
+<div class="bat-form-wrapper">
+  <div class="bat-form-title">{{ titulo }}</div>
+
+  <div class="bat-form-card">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="bf-group">
+        <label class="bf-label">Fornecedor</label>
+        {{ form.fornecedor }}
+        {% if form.fornecedor.errors %}<div class="bf-error">{{ form.fornecedor.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="bf-group">
+        <label class="bf-label">Marca da Bateria</label>
+        {{ form.marca }}
+        {% if form.marca.errors %}<div class="bf-error">{{ form.marca.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="bf-group">
+        <label class="bf-label">Referência</label>
+        {{ form.referencia }}
+        {% if form.referencia.errors %}<div class="bf-error">{{ form.referencia.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="bf-group">
+        <label class="bf-label">Data da Compra</label>
+        {{ form.data_compra }}
+        {% if form.data_compra.errors %}<div class="bf-error">{{ form.data_compra.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="bf-actions">
+        <button type="submit" class="btn-bf btn-bf-save"><i class="fas fa-check"></i> Guardar</button>
+        <a href="{% url 'bateria_list' %}" class="btn-bf btn-bf-cancel">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
