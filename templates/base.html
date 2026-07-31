@@ -971,29 +971,29 @@
           <span class="nav-text">Controlo de Baterias</span>
           <i class="fas fa-chevron-right nav-chevron"></i>
         </button>
-      
+
         <div class="collapse sidebar-submenu" id="sub-baterias">
-          <a class="sidebar-link" href="#">
+          <a class="sidebar-link" href="{% url 'bateria_list' %}">
             <i class="fas fa-list nav-icon text-info"></i>
             <span class="nav-text">Listar Baterias</span>
           </a>
-      
-          <a class="sidebar-link" href="#">
+
+          <a class="sidebar-link" href="{% url 'bateria_create' %}">
             <i class="fas fa-plus-circle nav-icon text-success"></i>
             <span class="nav-text">Cadastrar Bateria</span>
           </a>
-      
-          <a class="sidebar-link" href="#">
+
+          <a class="sidebar-link" href="{% url 'trocabateria_create' %}">
             <i class="fas fa-sync-alt nav-icon text-primary"></i>
             <span class="nav-text">Trocas de Baterias</span>
           </a>
-      
-          <a class="sidebar-link" href="#">
+
+          <a class="sidebar-link" href="{% url 'inspecao_bateria_list' %}">
             <i class="fas fa-search nav-icon text-secondary"></i>
             <span class="nav-text">Inspeções</span>
           </a>
-      
-          <a class="sidebar-link" href="#">
+
+          <a class="sidebar-link" href="{% url 'historico_bateria_list' %}">
             <i class="fas fa-history nav-icon text-dark"></i>
             <span class="nav-text">Histórico</span>
           </a>
