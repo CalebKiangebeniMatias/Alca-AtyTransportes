@@ -621,3 +621,51 @@ class PlanoContasForm(forms.ModelForm):
         if self.instance.pk:
             excluidos = [self.instance.pk] + [d.pk for d in self.instance.get_descendants()]
             self.fields['parent'].queryset = PlanoContas.objects.exclude(pk__in=excluidos)
+
+
+# BANCO, CAIXA, INSERÇÃO DE REGISTROS E MOVIMENTAÇÕES
+from django import forms
+
+from .models import Autocarro, MovimentoBancario, PlanoContas, Sector
+
+
+class PgcChoiceField(forms.ModelChoiceField):
+    """Mostra 'código — nome' e só lista contas Analíticas (que recebem lançamento)."""
+    def label_from_instance(self, obj):
+        return f'{obj.codigo} — {obj.nome}'
+
+
+class AutocarroChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return f'Autocarro {obj.numero}'
+
+
+class MovimentoBancarioForm(forms.ModelForm):
+    pgc = PgcChoiceField(
+        queryset=PlanoContas.objects.filter(ativo=True, permite_lancamento=True).order_by('codigo'),
+        label='Plano de Contas (PGC)',
+    )
+    sector = forms.ModelChoiceField(queryset=Sector.objects.all(), required=False)
+    autocarro = AutocarroChoiceField(
+        queryset=Autocarro.objects.all().order_by('numero'), required=False, label='Auxiliar (Autocarro)'
+    )
+
+    class Meta:
+        model = MovimentoBancario
+        fields = ['pgc', 'sector', 'autocarro', 'data', 'tipo', 'valor', 'observacao']
+        widgets = {
+            'data': forms.DateInput(attrs={'type': 'date'}),
+            'valor': forms.NumberInput(attrs={'step': '0.01', 'placeholder': '0.00'}),
+            'observacao': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Notas adicionais (opcional)'}),
+        }
+
+    def clean_pgc(self):
+        pgc = self.cleaned_data['pgc']
+        # Segurança extra: mesmo que o queryset já filtre, confirma de novo
+        # (a conta pode ter mudado de tipo entre o carregamento do form e o submit).
+        if not pgc.permite_lancamento:
+            raise forms.ValidationError(
+                'Esta conta é Sintética (agrupadora) e não permite lançamento direto. '
+                'Escolha uma conta Analítica.'
+            )
+        return pgc

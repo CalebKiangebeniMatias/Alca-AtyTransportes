@@ -6131,6 +6131,93 @@ def menu_banco(request):
     """Página com os 9 cards de acesso ao módulo de Banco."""
     return render(request, 'contabilidade/banco.html')
 
+# BANCO, CAIXA, INSERÇÃO DE REGISTROS E MOVIMENTAÇÕES
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .forms import MovimentoBancarioForm
+from .models import MovimentoBancario, Sector
+
+
+def movimento_create(request):
+    if request.method == 'POST':
+        form = MovimentoBancarioForm(request.POST)
+        if form.is_valid():
+            movimento = form.save(commit=False)
+            if request.user.is_authenticated:
+                movimento.responsavel = request.user
+            movimento.save()
+            messages.success(request, 'Registo inserido com sucesso.')
+            return redirect('movimento_list')
+    else:
+        form = MovimentoBancarioForm()
+
+    return render(request, 'contabilidade/movimento_form.html', {
+        'form': form,
+        'titulo': 'Inserir Registos',
+    })
+
+
+def movimento_edit(request, pk):
+    movimento = get_object_or_404(MovimentoBancario, pk=pk)
+
+    if request.method == 'POST':
+        form = MovimentoBancarioForm(request.POST, instance=movimento)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Registo atualizado com sucesso.')
+            return redirect('movimento_list')
+    else:
+        form = MovimentoBancarioForm(instance=movimento)
+
+    return render(request, 'contabilidade/movimento_form.html', {
+        'form': form,
+        'titulo': 'Editar Registo',
+    })
+
+
+def movimento_delete(request, pk):
+    movimento = get_object_or_404(MovimentoBancario, pk=pk)
+    if request.method == 'POST':
+        movimento.delete()
+        messages.success(request, 'Registo eliminado com sucesso.')
+    return redirect('movimento_list')
+
+
+def movimento_list(request):
+    qs = MovimentoBancario.objects.select_related('pgc', 'sector', 'autocarro').all().order_by('-data', '-criado_em')
+
+    pgc_codigo = request.GET.get('pgc')
+    if pgc_codigo:
+        qs = qs.filter(pgc__codigo__icontains=pgc_codigo)
+
+    sector_id = request.GET.get('sector')
+    if sector_id:
+        qs = qs.filter(sector_id=sector_id)
+
+    tipo = request.GET.get('tipo')
+    if tipo:
+        qs = qs.filter(tipo=tipo)
+
+    data_inicio = request.GET.get('data_inicio')
+    if data_inicio:
+        qs = qs.filter(data__gte=data_inicio)
+
+    data_fim = request.GET.get('data_fim')
+    if data_fim:
+        qs = qs.filter(data__lte=data_fim)
+
+    total_debito = sum(m.valor for m in qs if m.tipo == 'debito')
+    total_credito = sum(m.valor for m in qs if m.tipo == 'credito')
+
+    return render(request, 'contabilidade/movimento_list.html', {
+        'movimentos': qs,
+        'total_movimentos': qs.count(),
+        'total_debito': total_debito,
+        'total_credito': total_credito,
+        'tipo_choices': MovimentoBancario.TIPO_CHOICES,
+        'sectores': Sector.objects.all(),
+    })
 
 # ═══════════════════════════════════════════════════════════
 # 3. ADICIONAR AS URLS NO urls.py

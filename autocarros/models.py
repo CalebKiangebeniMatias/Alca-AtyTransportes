@@ -967,3 +967,50 @@ class PlanoContas(MPTTModel):
             if ultima_raiz and ultima_raiz.codigo.isdigit():
                 return str(int(ultima_raiz.codigo) + 1)
             return '1'
+
+# BANCO, CAIXA, INSERÇÃO DE REGISTROS E MOVIMENTAÇÕES
+from django.conf import settings
+from django.db import models
+
+
+class MovimentoBancario(models.Model):
+    TIPO_CHOICES = [
+        ('debito', 'Débito'),
+        ('credito', 'Crédito'),
+    ]
+
+    # PROTECT: não deixa apagar uma conta do Plano de Contas que já tem
+    # movimentos lançados — evita "furo" na contabilidade.
+    pgc = models.ForeignKey(
+        'PlanoContas', on_delete=models.PROTECT, related_name='movimentos_bancarios',
+        verbose_name='Plano de Contas'
+    )
+    sector = models.ForeignKey(
+        'Sector', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='movimentos_bancarios'
+    )
+    autocarro = models.ForeignKey(
+        'Autocarro', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='movimentos_bancarios', verbose_name='Auxiliar'
+    )
+
+    data = models.DateField()
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
+    valor = models.DecimalField(max_digits=14, decimal_places=2)
+
+    observacao = models.TextField(blank=True, null=True)
+    responsavel = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='movimentos_bancarios'
+    )
+
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-data', '-criado_em']
+        verbose_name = 'Movimento Bancário'
+        verbose_name_plural = 'Movimentos Bancários'
+
+    def __str__(self):
+        return f'{self.get_tipo_display()} — {self.pgc.codigo} — {self.valor}'

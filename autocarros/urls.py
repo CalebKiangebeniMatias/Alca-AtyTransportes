@@ -231,7 +231,13 @@ urlpatterns = [
     path('plano-de-contas/carregar-padrao/', views.carregar_plano_padrao, name='carregar_plano_padrao'),
 
     path('caixas/', views.menu_caixas, name='menu_caixas'),
+
+    # BANCO, CAIXA, INSERÇÃO DE REGISTROS E MOVIMENTAÇÕES
     path('banco/', views.menu_banco, name='menu_banco'),
+    path('banco/registos/novo/', views.movimento_create, name='movimento_create'),
+    path('banco/registos/<int:pk>/editar/', views.movimento_edit, name='movimento_edit'),
+    path('banco/registos/<int:pk>/eliminar/', views.movimento_delete, name='movimento_delete'),
+    path('banco/movimentos/', views.movimento_list, name='movimento_list'),
 
 ]
 

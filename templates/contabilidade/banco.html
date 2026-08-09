@@ -16,14 +16,14 @@
 
 <div class="row g-4">
 
-        <!-- CARD 0 — CONTAS BANCÁRIAS -->
+        <!-- CARD 0 — INSERIR REGISTOS -->
         <div class="col-12 col-sm-6 col-lg-3">
-                <a href="#" class="text-decoration-none">
+                <a href="{% url 'movimento_create' %}" class="text-decoration-none">
                         <div class="card h-100">
                                 <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
                                         style="min-height:220px;">
                                         <div class="stat-icon mb-3" style="width:64px;height:64px;font-size:1.8rem;">
-                                                <i class="fas fa-random"></i> <!-- Alternância -->
+                                                <i class="fas fa-random"></i>
                                         </div>
                                         <div class="card-title mb-2">Inserir Registos</div>
                                         <p style="color:var(--grey);font-size:.85rem;margin:0;">
@@ -34,7 +34,7 @@
                 </a>
         </div>
 
-        <!-- CARD 1 — CONTAS BANCÁRIAS -->
+        <!-- CARD 1 — CONTAS BANCÁRIAS (mantido como estava, ainda não construído) -->
         <div class="col-12 col-sm-6 col-lg-3">
                 <a href="#" class="text-decoration-none">
                         <div class="card h-100">
@@ -54,7 +54,7 @@
 
         <!-- CARD 2 — MOVIMENTOS -->
         <div class="col-12 col-sm-6 col-lg-3">
-                <a href="#" class="text-decoration-none">
+                <a href="{% url 'movimento_list' %}" class="text-decoration-none">
                         <div class="card h-100">
                                 <div class="card-body text-center d-flex flex-column align-items-center justify-content-center"
                                         style="min-height:220px;">
@@ -69,7 +69,7 @@
                         </div>
                 </a>
         </div>
-
+        
         <!-- CARD 3 — TRANSFERÊNCIAS -->
         <div class="col-12 col-sm-6 col-lg-3">
                 <a href="#" class="text-decoration-none">
