@@ -196,8 +196,8 @@
                         <div class="mvf-group">
                                 <label class="mvf-label">Observação <span class="mvf-hint">(opcional)</span></label>
                                 {{ form.observacao }}
-                                {% if form.observacao.errors %}<div class="mvf-error">{{ form.observacao.errors|join:",
-                                        " }}</div>{% endif %}
+                                {% if form.observacao.errors %}<div class="mvf-error">{{ form.observacao.errors|join:" " }}</div>
+                                {% endif %}
                         </div>
 
                         <div class="mvf-actions">
