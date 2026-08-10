@@ -3,105 +3,682 @@
 {% block breadcrumb %}Banco › {{ titulo }}{% endblock %}
 
 {% block content %}
+
 <style>
-  .mvf-wrapper { animation: mvfIn .5s cubic-bezier(.34, 1.56, .64, 1) both; max-width: 560px; }
-  @keyframes mvfIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+/* ════════════════════════════════════════════════════
+   FORM MOVIMENTO BANCO
+════════════════════════════════════════════════════ */
 
-  .mvf-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 20px; }
+.mvf-wrapper {
+    max-width: 680px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 12px;
+    animation: mvfIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
 
-  .mvf-card {
-    background: rgba(13, 43, 94, .42); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
-    backdrop-filter: blur(14px); padding: 24px; box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
-  }
+@keyframes mvfIn {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
 
-  .mvf-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
-  .mvf-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, .5); }
-  .mvf-hint { font-size: .68rem; font-weight: 400; text-transform: none; color: rgba(255, 255, 255, .35); }
+/* ── CARD ────────────────────────────────────────── */
 
-  .mvf-wrapper select,
-  .mvf-wrapper input[type="date"],
-  .mvf-wrapper input[type="number"],
-  .mvf-wrapper textarea {
-    width: 100%; background: rgba(4, 30, 66, .55); border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md); color: var(--white); padding: 10px 13px;
-    font-family: 'Barlow', sans-serif; font-size: .9rem; outline: none; -webkit-appearance: none;
-    transition: border-color var(--ease-fast), box-shadow var(--ease-fast);
-  }
-  .mvf-wrapper select:focus, .mvf-wrapper input:focus, .mvf-wrapper textarea:focus {
-    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79, 195, 247, .15); background: rgba(4, 30, 66, .85);
-  }
-  .mvf-wrapper select option { background: var(--navy); color: var(--white); }
-  .mvf-wrapper textarea { resize: vertical; }
+.mvf-card {
+    width: 100%;
+    background: rgba(13,43,94,.42);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    overflow: hidden;
+    box-shadow: 0 16px 48px rgba(4,30,66,.32);
+    position: relative;
+}
 
-  .mvf-error { color: #ff8a80; font-size: .75rem; margin-top: 4px; }
+.mvf-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--accent),
+        transparent
+    );
+    pointer-events: none;
+}
 
-  .mvf-actions { display: flex; gap: 10px; margin-top: 22px; }
-  .btn-mvf {
-    display: inline-flex; align-items: center; gap: 7px; padding: 10px 22px; border: none;
-    border-radius: var(--radius-md); font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-    font-size: .88rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; text-decoration: none;
-    transition: transform var(--ease-spring), box-shadow var(--ease-base);
-  }
-  .btn-mvf-save { background: var(--success); color: var(--white); box-shadow: 0 4px 16px rgba(39, 174, 96, .3); }
-  .btn-mvf-save:hover { transform: translateY(-2px); }
-  .btn-mvf-cancel { background: rgba(255, 255, 255, .06); border: 1px solid var(--glass-border); color: rgba(255, 255, 255, .7); }
-  .btn-mvf-cancel:hover { background: rgba(255, 255, 255, .1); }
+/* ── HEADER ──────────────────────────────────────── */
+
+.mvf-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 24px;
+    background: linear-gradient(
+        90deg,
+        rgba(36,99,163,.30),
+        rgba(4,30,66,.20)
+    );
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.mvf-header-icon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+
+    background: rgba(79,195,247,.10);
+    border: 1px solid rgba(79,195,247,.20);
+    border-radius: var(--radius-md);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 1.1rem;
+    color: var(--accent);
+}
+
+.mvf-header-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.45rem;
+    letter-spacing: 2px;
+    line-height: 1;
+    color: var(--white);
+}
+
+.mvf-header-sub {
+    font-size: .72rem;
+    color: var(--grey);
+    margin-top: 4px;
+}
+
+/* ── BODY ────────────────────────────────────────── */
+
+.mvf-body {
+    padding: 24px;
+}
+
+/* ── SECTIONS ────────────────────────────────────── */
+
+.mvf-section {
+    margin-bottom: 22px;
+}
+
+.mvf-section:last-child {
+    margin-bottom: 0;
+}
+
+.mvf-section-lbl {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: .72rem;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--grey);
+
+    margin-bottom: 12px;
+    padding-left: 9px;
+
+    border-left: 2px solid var(--accent);
+
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.mvf-section-lbl i {
+    color: var(--accent);
+}
+
+/* ── ROWS ────────────────────────────────────────── */
+
+.mvf-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.mvf-row-2:last-child {
+    margin-bottom: 0;
+}
+
+.mvf-row-1 {
+    margin-bottom: 14px;
+}
+
+.mvf-row-1:last-child {
+    margin-bottom: 0;
+}
+
+/* ── GROUP ───────────────────────────────────────── */
+
+.mvf-group {
+    min-width: 0;
+}
+
+.mvf-label {
+    display: block;
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+    color: rgba(255,255,255,.42);
+    margin-bottom: 6px;
+}
+
+.mvf-hint {
+    color: var(--accent);
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* ── INPUTS ──────────────────────────────────────── */
+
+.mvf-wrapper input[type="text"],
+.mvf-wrapper input[type="number"],
+.mvf-wrapper input[type="date"],
+.mvf-wrapper select,
+.mvf-wrapper textarea {
+
+    width: 100%;
+    max-width: 100%;
+
+    background: rgba(4,30,66,.55) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: var(--radius-md) !important;
+
+    color: var(--white) !important;
+
+    padding: 11px 13px !important;
+
+    font-family: 'Barlow', sans-serif !important;
+    font-size: .9rem !important;
+
+    outline: none !important;
+
+    -webkit-appearance: none;
+
+    transition:
+        border-color var(--ease-fast),
+        box-shadow var(--ease-fast),
+        background var(--ease-fast) !important;
+}
+
+.mvf-wrapper input:focus,
+.mvf-wrapper select:focus,
+.mvf-wrapper textarea:focus {
+
+    border-color: var(--accent) !important;
+
+    background: rgba(4,30,66,.85) !important;
+
+    box-shadow:
+        0 0 0 3px rgba(79,195,247,.15) !important;
+}
+
+.mvf-wrapper input::placeholder,
+.mvf-wrapper textarea::placeholder {
+    color: rgba(255,255,255,.25) !important;
+}
+
+.mvf-wrapper select option {
+    background: var(--navy);
+    color: var(--white);
+}
+
+.mvf-wrapper textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* ── VALOR ───────────────────────────────────────── */
+
+.mvf-value {
+    position: relative;
+}
+
+.mvf-value input {
+    padding-right: 42px !important;
+    text-align: right;
+}
+
+.mvf-currency {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    font-size: .7rem;
+    font-weight: 700;
+    color: var(--accent);
+
+    pointer-events: none;
+}
+
+/* ── ERRORS ──────────────────────────────────────── */
+
+.mvf-error {
+    margin-top: 5px;
+    color: #ff8a80;
+    font-size: .7rem;
+    line-height: 1.3;
+}
+
+/* ── FOOTER ──────────────────────────────────────── */
+
+.mvf-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+
+    padding: 16px 24px;
+
+    border-top: 1px solid var(--glass-border);
+    background: rgba(4,30,66,.30);
+}
+
+/* ── BUTTONS ─────────────────────────────────────── */
+
+.btn-mvf {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 11px 26px;
+
+    border: none;
+    border-radius: var(--radius-md);
+
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 2px;
+
+    cursor: pointer;
+    text-decoration: none;
+
+    white-space: nowrap;
+
+    transition:
+        transform var(--ease-spring),
+        box-shadow var(--ease-base),
+        background var(--ease-fast);
+
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-mvf:hover {
+    transform: translateY(-2px);
+}
+
+.btn-mvf:active {
+    transform: scale(.97);
+}
+
+.btn-mvf-save {
+    background: var(--grad-btn);
+    color: var(--white);
+    box-shadow: 0 4px 18px rgba(36,99,163,.35);
+}
+
+.btn-mvf-save:hover {
+    box-shadow: 0 8px 26px rgba(36,99,163,.50);
+    color: var(--white);
+}
+
+.btn-mvf-cancel {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: rgba(255,255,255,.55);
+}
+
+.btn-mvf-cancel:hover {
+    background: rgba(255,255,255,.07);
+    color: var(--white);
+}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+
+@media (max-width: 700px) {
+
+    .mvf-wrapper {
+        max-width: 100%;
+        padding: 0 8px;
+    }
+
+    .mvf-body {
+        padding: 18px;
+    }
+
+    .mvf-row-2 {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .mvf-actions {
+        padding: 14px 18px;
+        flex-direction: column-reverse;
+    }
+
+    .btn-mvf {
+        width: 100%;
+    }
+}
+
+@media (max-width: 420px) {
+
+    .mvf-header {
+        padding: 15px 17px;
+    }
+
+    .mvf-header-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .mvf-header-title {
+        font-size: 1.15rem;
+    }
+
+    .mvf-body {
+        padding: 15px;
+    }
+}
 </style>
 
 <div class="mvf-wrapper">
-  <div class="mvf-title">{{ titulo }}</div>
 
-  <div class="mvf-card">
-    <form method="post">
-      {% csrf_token %}
+```
+<div class="mvf-card">
 
-      <div class="mvf-group">
-        <label class="mvf-label">Plano de Contas (PGC)</label>
-        {{ form.pgc }}
-        {% if form.pgc.errors %}<div class="mvf-error">{{ form.pgc.errors|join:", " }}</div>{% endif %}
-      </div>
+    <!-- HEADER -->
+    <div class="mvf-header">
 
-      <div class="mvf-group">
-        <label class="mvf-label">Sector <span class="mvf-hint">(opcional)</span></label>
-        {{ form.sector }}
-        {% if form.sector.errors %}<div class="mvf-error">{{ form.sector.errors|join:", " }}</div>{% endif %}
-      </div>
+        <div class="mvf-header-icon">
+            <i class="fas fa-university"></i>
+        </div>
 
-      <div class="mvf-group">
-        <label class="mvf-label">Auxiliar (Autocarro) <span class="mvf-hint">(opcional)</span></label>
-        {{ form.autocarro }}
-        {% if form.autocarro.errors %}<div class="mvf-error">{{ form.autocarro.errors|join:", " }}</div>{% endif %}
-      </div>
+        <div>
+            <div class="mvf-header-title">
+                {{ titulo }}
+            </div>
 
-      <div class="mvf-group">
-        <label class="mvf-label">Data</label>
-        {{ form.data }}
-        {% if form.data.errors %}<div class="mvf-error">{{ form.data.errors|join:", " }}</div>{% endif %}
-      </div>
+            <div class="mvf-header-sub">
+                Registe uma nova movimentação bancária
+            </div>
+        </div>
 
-      <div class="mvf-group">
-        <label class="mvf-label">Tipo</label>
-        {{ form.tipo }}
-        {% if form.tipo.errors %}<div class="mvf-error">{{ form.tipo.errors|join:", " }}</div>{% endif %}
-      </div>
+    </div>
 
-      <div class="mvf-group">
-        <label class="mvf-label">Valor</label>
-        {{ form.valor }}
-        {% if form.valor.errors %}<div class="mvf-error">{{ form.valor.errors|join:", " }}</div>{% endif %}
-      </div>
 
-      <div class="mvf-group">
-        <label class="mvf-label">Observação <span class="mvf-hint">(opcional)</span></label>
-        {{ form.observacao }}
-        {% if form.observacao.errors %}<div class="mvf-error">{{ form.observacao.errors|join:", " }}</div>{% endif %}
-      </div>
+    <!-- BODY -->
+    <div class="mvf-body">
 
-      <div class="mvf-actions">
-        <button type="submit" class="btn-mvf btn-mvf-save"><i class="fas fa-check"></i> Guardar</button>
-        <a href="{% url 'movimento_list' %}" class="btn-mvf btn-mvf-cancel">Cancelar</a>
-      </div>
-    </form>
-  </div>
+        <form method="post" novalidate id="formMovimento">
+
+            {% csrf_token %}
+
+            <!-- IDENTIFICAÇÃO -->
+            <div class="mvf-section">
+
+                <div class="mvf-section-lbl">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    Classificação
+                </div>
+
+                <div class="mvf-row-1">
+
+                    <div class="mvf-group">
+
+                        <label class="mvf-label">
+                            Plano de Contas (PGC)
+                        </label>
+
+                        {{ form.pgc }}
+
+                        {% if form.pgc.errors %}
+                            <div class="mvf-error">
+                                {{ form.pgc.errors|join:", " }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <div class="mvf-row-2">
+
+                    <div class="mvf-group">
+
+                        <label class="mvf-label">
+                            Sector
+                            <span class="mvf-hint">(opcional)</span>
+                        </label>
+
+                        {{ form.sector }}
+
+                        {% if form.sector.errors %}
+                            <div class="mvf-error">
+                                {{ form.sector.errors|join:", " }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="mvf-group">
+
+                        <label class="mvf-label">
+                            Auxiliar (Autocarro)
+                            <span class="mvf-hint">(opcional)</span>
+                        </label>
+
+                        {{ form.autocarro }}
+
+                        {% if form.autocarro.errors %}
+                            <div class="mvf-error">
+                                {{ form.autocarro.errors|join:", " }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- MOVIMENTO -->
+            <div class="mvf-section">
+
+                <div class="mvf-section-lbl">
+                    <i class="fas fa-money-bill-transfer"></i>
+                    Movimento
+                </div>
+
+                <div class="mvf-row-2">
+
+                    <div class="mvf-group">
+
+                        <label class="mvf-label">
+                            Data
+                        </label>
+
+                        {{ form.data }}
+
+                        {% if form.data.errors %}
+                            <div class="mvf-error">
+                                {{ form.data.errors|join:", " }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="mvf-group">
+
+                        <label class="mvf-label">
+                            Tipo
+                        </label>
+
+                        {{ form.tipo }}
+
+                        {% if form.tipo.errors %}
+                            <div class="mvf-error">
+                                {{ form.tipo.errors|join:", " }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <div class="mvf-row-1">
+
+                    <div class="mvf-group">
+
+                        <label class="mvf-label">
+                            Valor
+                        </label>
+
+                        <div class="mvf-value">
+
+                            {{ form.valor }}
+
+                            <span class="mvf-currency">
+                                Kz
+                            </span>
+
+                        </div>
+
+                        {% if form.valor.errors %}
+                            <div class="mvf-error">
+                                {{ form.valor.errors|join:", " }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- OBSERVAÇÃO -->
+            <div class="mvf-section">
+
+                <div class="mvf-section-lbl">
+                    <i class="fas fa-clipboard-list"></i>
+                    Observação
+                </div>
+
+                <div class="mvf-row-1">
+
+                    <div class="mvf-group">
+
+                        <label class="mvf-label">
+                            Observação
+                            <span class="mvf-hint">(opcional)</span>
+                        </label>
+
+                        {{ form.observacao }}
+
+                        {% if form.observacao.errors %}
+                            <div class="mvf-error">
+                                {{ form.observacao.errors|join:", " }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- FOOTER -->
+    <div class="mvf-actions">
+
+        <a href="{% url 'movimento_list' %}"
+           class="btn-mvf btn-mvf-cancel">
+
+            <i class="fas fa-arrow-left"></i>
+            Cancelar
+
+        </a>
+
+
+        <button type="submit"
+                form="formMovimento"
+                class="btn-mvf btn-mvf-save">
+
+            <i class="fas fa-floppy-disk"></i>
+            Guardar
+
+        </button>
+
+    </div>
+
 </div>
+```
+
+</div>
+
+<script>
+(function () {
+
+    /* Remove classes Bootstrap que possam interferir no design */
+    document.querySelectorAll(
+        '.mvf-wrapper input, .mvf-wrapper select, .mvf-wrapper textarea'
+    ).forEach(function (el) {
+
+        el.classList.remove(
+            'form-control',
+            'form-select',
+            'fw-semibold'
+        );
+
+    });
+
+    /* Estado de carregamento do botão */
+    var form = document.getElementById('formMovimento');
+    var btn = document.querySelector('.btn-mvf-save');
+
+    if (form && btn) {
+
+        form.addEventListener('submit', function () {
+
+            btn.disabled = true;
+            btn.style.opacity = '.7';
+
+        });
+
+    }
+
+})();
+</script>
+
 {% endblock %}
