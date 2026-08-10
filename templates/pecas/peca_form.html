@@ -3,110 +3,788 @@
 {% block breadcrumb %}Frota › Peças › {{ titulo }}{% endblock %}
 
 {% block content %}
+
 <style>
-  .peca-form-wrapper { animation: pfIn .5s cubic-bezier(.34, 1.56, .64, 1) both; max-width: 560px; }
-  @keyframes pfIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+/* ════════════════════════════════════════════════════
+   FORM PEÇAS
+════════════════════════════════════════════════════ */
 
-  .peca-form-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 20px; }
+.pf-wrapper {
+    max-width: 680px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 12px;
+    animation: pfIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
 
-  .peca-form-card {
-    background: rgba(13, 43, 94, .42); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
-    backdrop-filter: blur(14px); padding: 24px; box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
-  }
+@keyframes pfIn {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(.97);
+    }
 
-  .pf-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
-  .pf-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, .5); }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
 
-  .peca-form-wrapper input[type="text"],
-  .peca-form-wrapper input[type="number"],
-  .peca-form-wrapper select,
-  .peca-form-wrapper textarea {
-    width: 100%; background: rgba(4, 30, 66, .55); border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md); color: var(--white); padding: 10px 13px;
-    font-family: 'Barlow', sans-serif; font-size: .9rem; outline: none; -webkit-appearance: none;
-    transition: border-color var(--ease-fast), box-shadow var(--ease-fast);
-  }
-  .peca-form-wrapper input:focus, .peca-form-wrapper select:focus, .peca-form-wrapper textarea:focus {
-    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79, 195, 247, .15); background: rgba(4, 30, 66, .85);
-  }
-  .peca-form-wrapper select option { background: var(--navy); color: var(--white); }
-  .peca-form-wrapper textarea { resize: vertical; }
 
-  .pf-error { color: #ff8a80; font-size: .75rem; margin-top: 4px; }
+/* ── CARD ────────────────────────────────────────── */
 
-  .pf-actions { display: flex; gap: 10px; margin-top: 22px; }
-  .btn-pf {
-    display: inline-flex; align-items: center; gap: 7px; padding: 10px 22px; border: none;
-    border-radius: var(--radius-md); font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-    font-size: .88rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; text-decoration: none;
-    transition: transform var(--ease-spring), box-shadow var(--ease-base);
-  }
-  .btn-pf-save { background: var(--success); color: var(--white); box-shadow: 0 4px 16px rgba(39, 174, 96, .3); }
-  .btn-pf-save:hover { transform: translateY(-2px); }
-  .btn-pf-cancel { background: rgba(255, 255, 255, .06); border: 1px solid var(--glass-border); color: rgba(255, 255, 255, .7); }
-  .btn-pf-cancel:hover { background: rgba(255, 255, 255, .1); }
+.pf-card {
+    width: 100%;
+    background: rgba(13,43,94,.42);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    overflow: hidden;
+    box-shadow: 0 16px 48px rgba(4,30,66,.32);
+    position: relative;
+}
+
+.pf-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--accent),
+        transparent
+    );
+
+    pointer-events: none;
+}
+
+
+/* ── HEADER ──────────────────────────────────────── */
+
+.pf-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    padding: 18px 24px;
+
+    background: linear-gradient(
+        90deg,
+        rgba(36,99,163,.30),
+        rgba(4,30,66,.20)
+    );
+
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.pf-header-icon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+
+    background: rgba(79,195,247,.10);
+    border: 1px solid rgba(79,195,247,.20);
+    border-radius: var(--radius-md);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 1.1rem;
+    color: var(--accent);
+}
+
+.pf-header-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.45rem;
+    letter-spacing: 2px;
+    line-height: 1;
+
+    color: var(--white);
+}
+
+.pf-header-sub {
+    font-size: .72rem;
+    color: var(--grey);
+    margin-top: 4px;
+}
+
+
+/* ── BODY ────────────────────────────────────────── */
+
+.pf-body {
+    padding: 24px;
+}
+
+
+/* ── SECTION ─────────────────────────────────────── */
+
+.pf-section {
+    margin-bottom: 22px;
+}
+
+.pf-section:last-child {
+    margin-bottom: 0;
+}
+
+.pf-section-lbl {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+
+    font-size: .72rem;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+
+    color: var(--grey);
+
+    margin-bottom: 12px;
+    padding-left: 9px;
+
+    border-left: 2px solid var(--accent);
+
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.pf-section-lbl i {
+    color: var(--accent);
+}
+
+
+/* ── ROWS ────────────────────────────────────────── */
+
+.pf-row-2 {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 14px;
+
+    margin-bottom: 14px;
+}
+
+.pf-row-2:last-child {
+    margin-bottom: 0;
+}
+
+.pf-row-1 {
+    margin-bottom: 14px;
+}
+
+.pf-row-1:last-child {
+    margin-bottom: 0;
+}
+
+
+/* ── GROUP ───────────────────────────────────────── */
+
+.pf-group {
+    min-width: 0;
+}
+
+.pf-label {
+    display: block;
+
+    font-size: .68rem;
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+    color: rgba(255,255,255,.42);
+
+    margin-bottom: 6px;
+}
+
+
+/* ── INPUTS ──────────────────────────────────────── */
+
+.pf-wrapper input[type="text"],
+.pf-wrapper input[type="number"],
+.pf-wrapper input[type="date"],
+.pf-wrapper select,
+.pf-wrapper textarea {
+
+    width: 100%;
+    max-width: 100%;
+
+    background: rgba(4,30,66,.55) !important;
+
+    border: 1px solid var(--glass-border) !important;
+
+    border-radius: var(--radius-md) !important;
+
+    color: var(--white) !important;
+
+    padding: 11px 13px !important;
+
+    font-family: 'Barlow', sans-serif !important;
+
+    font-size: .9rem !important;
+
+    outline: none !important;
+
+    -webkit-appearance: none;
+
+    transition:
+        border-color var(--ease-fast),
+        box-shadow var(--ease-fast),
+        background var(--ease-fast) !important;
+}
+
+.pf-wrapper input:focus,
+.pf-wrapper select:focus,
+.pf-wrapper textarea:focus {
+
+    border-color: var(--accent) !important;
+
+    background: rgba(4,30,66,.85) !important;
+
+    box-shadow:
+        0 0 0 3px rgba(79,195,247,.15) !important;
+}
+
+.pf-wrapper input::placeholder,
+.pf-wrapper textarea::placeholder {
+    color: rgba(255,255,255,.25) !important;
+}
+
+.pf-wrapper select option {
+    background: var(--navy);
+    color: var(--white);
+}
+
+.pf-wrapper textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+
+/* ── VALORES MONETÁRIOS ─────────────────────────── */
+
+.pf-value {
+    position: relative;
+}
+
+.pf-value input {
+    padding-right: 42px !important;
+    text-align: right;
+}
+
+.pf-currency {
+    position: absolute;
+
+    right: 12px;
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    font-size: .7rem;
+    font-weight: 700;
+
+    color: var(--accent);
+
+    pointer-events: none;
+}
+
+
+/* ── ERROS ──────────────────────────────────────── */
+
+.pf-error {
+    margin-top: 5px;
+
+    color: #ff8a80;
+
+    font-size: .7rem;
+
+    line-height: 1.3;
+}
+
+
+/* ── FOOTER ─────────────────────────────────────── */
+
+.pf-actions {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    padding: 16px 24px;
+
+    border-top: 1px solid var(--glass-border);
+
+    background: rgba(4,30,66,.30);
+}
+
+
+/* ── BUTTONS ─────────────────────────────────────── */
+
+.btn-pf {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 11px 26px;
+
+    border: none;
+
+    border-radius: var(--radius-md);
+
+    font-family: 'Bebas Neue', sans-serif;
+
+    font-size: 1rem;
+
+    letter-spacing: 2px;
+
+    cursor: pointer;
+
+    text-decoration: none;
+
+    white-space: nowrap;
+
+    transition:
+        transform var(--ease-spring),
+        box-shadow var(--ease-base),
+        background var(--ease-fast);
+
+    position: relative;
+
+    overflow: hidden;
+}
+
+.btn-pf:hover {
+    transform: translateY(-2px);
+}
+
+.btn-pf:active {
+    transform: scale(.97);
+}
+
+
+.btn-pf-save {
+
+    background: var(--grad-btn);
+
+    color: var(--white);
+
+    box-shadow:
+        0 4px 18px rgba(36,99,163,.35);
+}
+
+.btn-pf-save:hover {
+
+    box-shadow:
+        0 8px 26px rgba(36,99,163,.50);
+
+    color: var(--white);
+}
+
+
+.btn-pf-cancel {
+
+    background: transparent;
+
+    border: 1px solid var(--glass-border);
+
+    color: rgba(255,255,255,.55);
+}
+
+.btn-pf-cancel:hover {
+
+    background: rgba(255,255,255,.07);
+
+    color: var(--white);
+}
+
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+
+@media (max-width: 700px) {
+
+    .pf-wrapper {
+        max-width: 100%;
+        padding: 0 8px;
+    }
+
+    .pf-body {
+        padding: 18px;
+    }
+
+    .pf-row-2 {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .pf-actions {
+
+        padding: 14px 18px;
+
+        flex-direction: column-reverse;
+    }
+
+    .btn-pf {
+        width: 100%;
+    }
+}
+
+
+@media (max-width: 420px) {
+
+    .pf-header {
+        padding: 15px 17px;
+    }
+
+    .pf-header-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .pf-header-title {
+        font-size: 1.15rem;
+    }
+
+    .pf-body {
+        padding: 15px;
+    }
+}
 </style>
 
-<div class="peca-form-wrapper">
-  <div class="peca-form-title">{{ titulo }}</div>
+<div class="pf-wrapper">
 
-  <div class="peca-form-card">
-    <form method="post">
-      {% csrf_token %}
+```
+<div class="pf-card">
 
-      <div class="pf-group">
-        <label class="pf-label">Nome</label>
-        {{ form.nome }}
-        {% if form.nome.errors %}<div class="pf-error">{{ form.nome.errors|join:", " }}</div>{% endif %}
-      </div>
 
-      <div class="pf-group">
-        <label class="pf-label">Referência</label>
-        {{ form.referencia }}
-        {% if form.referencia.errors %}<div class="pf-error">{{ form.referencia.errors|join:", " }}</div>{% endif %}
-      </div>
+    <!-- HEADER -->
 
-      <div class="pf-group">
-        <label class="pf-label">Categoria</label>
-        {{ form.categoria }}
-        {% if form.categoria.errors %}<div class="pf-error">{{ form.categoria.errors|join:", " }}</div>{% endif %}
-      </div>
+    <div class="pf-header">
 
-      <div class="pf-group">
-        <label class="pf-label">Fornecedor</label>
-        {{ form.fornecedor }}
-        {% if form.fornecedor.errors %}<div class="pf-error">{{ form.fornecedor.errors|join:", " }}</div>{% endif %}
-      </div>
+        <div class="pf-header-icon">
+            <i class="fas fa-cogs"></i>
+        </div>
 
-      <div class="pf-group">
-        <label class="pf-label">Unidade de Medida</label>
-        {{ form.unidade_medida }}
-        {% if form.unidade_medida.errors %}<div class="pf-error">{{ form.unidade_medida.errors|join:", " }}</div>{% endif %}
-      </div>
+        <div>
 
-      <div class="pf-group">
-        <label class="pf-label">Preço Unitário</label>
-        {{ form.preco_unitario }}
-        {% if form.preco_unitario.errors %}<div class="pf-error">{{ form.preco_unitario.errors|join:", " }}</div>{% endif %}
-      </div>
+            <div class="pf-header-title">
+                {{ titulo }}
+            </div>
 
-      <div class="pf-group">
-        <label class="pf-label">Quantidade em Estoque</label>
-        {{ form.quantidade_estoque }}
-        {% if form.quantidade_estoque.errors %}<div class="pf-error">{{ form.quantidade_estoque.errors|join:", " }}</div>{% endif %}
-      </div>
+            <div class="pf-header-sub">
+                Registe uma nova peça para a gestão da frota
+            </div>
 
-      <div class="pf-group">
-        <label class="pf-label">Observação</label>
-        {{ form.observacao }}
-        {% if form.observacao.errors %}<div class="pf-error">{{ form.observacao.errors|join:", " }}</div>{% endif %}
-      </div>
+        </div>
 
-      <div class="pf-actions">
-        <button type="submit" class="btn-pf btn-pf-save"><i class="fas fa-check"></i> Guardar</button>
-        <a href="{% url 'peca_list' %}" class="btn-pf btn-pf-cancel">Cancelar</a>
-      </div>
-    </form>
-  </div>
+    </div>
+
+
+    <!-- BODY -->
+
+    <div class="pf-body">
+
+        <form method="post" novalidate id="formPeca">
+
+            {% csrf_token %}
+
+
+            <!-- IDENTIFICAÇÃO -->
+
+            <div class="pf-section">
+
+                <div class="pf-section-lbl">
+
+                    <i class="fas fa-tag"></i>
+
+                    Identificação da Peça
+
+                </div>
+
+
+                <div class="pf-row-2">
+
+                    <div class="pf-group">
+
+                        <label class="pf-label">
+                            Nome
+                        </label>
+
+                        {{ form.nome }}
+
+                        {% if form.nome.errors %}
+                            <div class="pf-error">
+                                {{ form.nome.errors|join:", " }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="pf-group">
+
+                        <label class="pf-label">
+                            Referência
+                        </label>
+
+                        {{ form.referencia }}
+
+                        {% if form.referencia.errors %}
+                            <div class="pf-error">
+                                {{ form.referencia.errors|join:", " }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <div class="pf-row-2">
+
+                    <div class="pf-group">
+
+                        <label class="pf-label">
+                            Categoria
+                        </label>
+
+                        {{ form.categoria }}
+
+                        {% if form.categoria.errors %}
+                            <div class="pf-error">
+                                {{ form.categoria.errors|join:", " }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="pf-group">
+
+                        <label class="pf-label">
+                            Fornecedor
+                        </label>
+
+                        {{ form.fornecedor }}
+
+                        {% if form.fornecedor.errors %}
+                            <div class="pf-error">
+                                {{ form.fornecedor.errors|join:", " }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ESTOQUE -->
+
+            <div class="pf-section">
+
+                <div class="pf-section-lbl">
+
+                    <i class="fas fa-boxes-stacked"></i>
+
+                    Stock
+
+                </div>
+
+
+                <div class="pf-row-2">
+
+                    <div class="pf-group">
+
+                        <label class="pf-label">
+                            Unidade de Medida
+                        </label>
+
+                        {{ form.unidade_medida }}
+
+                        {% if form.unidade_medida.errors %}
+                            <div class="pf-error">
+                                {{ form.unidade_medida.errors|join:", " }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="pf-group">
+
+                        <label class="pf-label">
+                            Quantidade em Estoque
+                        </label>
+
+                        {{ form.quantidade_estoque }}
+
+                        {% if form.quantidade_estoque.errors %}
+                            <div class="pf-error">
+                                {{ form.quantidade_estoque.errors|join:", " }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <div class="pf-row-1">
+
+                    <div class="pf-group">
+
+                        <label class="pf-label">
+                            Preço Unitário
+                        </label>
+
+                        <div class="pf-value">
+
+                            {{ form.preco_unitario }}
+
+                            <span class="pf-currency">
+                                Kz
+                            </span>
+
+                        </div>
+
+                        {% if form.preco_unitario.errors %}
+                            <div class="pf-error">
+                                {{ form.preco_unitario.errors|join:", " }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- OBSERVAÇÃO -->
+
+            <div class="pf-section">
+
+                <div class="pf-section-lbl">
+
+                    <i class="fas fa-clipboard-list"></i>
+
+                    Observação
+
+                </div>
+
+
+                <div class="pf-row-1">
+
+                    <div class="pf-group">
+
+                        <label class="pf-label">
+                            Observação
+                        </label>
+
+                        {{ form.observacao }}
+
+                        {% if form.observacao.errors %}
+                            <div class="pf-error">
+                                {{ form.observacao.errors|join:", " }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </form>
+
+    </div>
+
+
+    <!-- FOOTER -->
+
+    <div class="pf-actions">
+
+        <a href="{% url 'peca_list' %}"
+           class="btn-pf btn-pf-cancel">
+
+            <i class="fas fa-arrow-left"></i>
+
+            Cancelar
+
+        </a>
+
+
+        <button type="submit"
+                form="formPeca"
+                class="btn-pf btn-pf-save">
+
+            <i class="fas fa-floppy-disk"></i>
+
+            Guardar
+
+        </button>
+
+    </div>
+
+
 </div>
+```
+
+</div>
+
+<script>
+(function () {
+
+    /* Remove classes Bootstrap que possam interferir no design */
+
+    document.querySelectorAll(
+        '.pf-wrapper input, .pf-wrapper select, .pf-wrapper textarea'
+    ).forEach(function (el) {
+
+        el.classList.remove(
+            'form-control',
+            'form-select',
+            'fw-semibold'
+        );
+
+    });
+
+
+    /* Estado de carregamento do botão */
+
+    var form = document.getElementById('formPeca');
+
+    var btn = document.querySelector('.btn-pf-save');
+
+
+    if (form && btn) {
+
+        form.addEventListener('submit', function () {
+
+            btn.disabled = true;
+
+            btn.style.opacity = '.7';
+
+        });
+
+    }
+
+})();
+</script>
+
 {% endblock %}
