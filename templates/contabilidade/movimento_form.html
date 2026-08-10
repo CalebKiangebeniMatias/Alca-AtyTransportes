@@ -4,208 +4,104 @@
 
 {% block content %}
 <style>
-        .mvf-wrapper {
-                animation: mvfIn .5s cubic-bezier(.34, 1.56, .64, 1) both;
-                max-width: 560px;
-        }
+  .mvf-wrapper { animation: mvfIn .5s cubic-bezier(.34, 1.56, .64, 1) both; max-width: 560px; }
+  @keyframes mvfIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
-        @keyframes mvfIn {
-                from {
-                        opacity: 0;
-                        transform: translateY(16px);
-                }
+  .mvf-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 20px; }
 
-                to {
-                        opacity: 1;
-                        transform: translateY(0);
-                }
-        }
+  .mvf-card {
+    background: rgba(13, 43, 94, .42); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+    backdrop-filter: blur(14px); padding: 24px; box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
+  }
 
-        .mvf-title {
-                font-family: 'Bebas Neue', sans-serif;
-                font-size: 1.8rem;
-                letter-spacing: 2px;
-                margin-bottom: 20px;
-        }
+  .mvf-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+  .mvf-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, .5); }
+  .mvf-hint { font-size: .68rem; font-weight: 400; text-transform: none; color: rgba(255, 255, 255, .35); }
 
-        .mvf-card {
-                background: rgba(13, 43, 94, .42);
-                border: 1px solid var(--glass-border);
-                border-radius: var(--radius-lg);
-                backdrop-filter: blur(14px);
-                padding: 24px;
-                box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
-        }
+  .mvf-wrapper select,
+  .mvf-wrapper input[type="date"],
+  .mvf-wrapper input[type="number"],
+  .mvf-wrapper textarea {
+    width: 100%; background: rgba(4, 30, 66, .55); border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md); color: var(--white); padding: 10px 13px;
+    font-family: 'Barlow', sans-serif; font-size: .9rem; outline: none; -webkit-appearance: none;
+    transition: border-color var(--ease-fast), box-shadow var(--ease-fast);
+  }
+  .mvf-wrapper select:focus, .mvf-wrapper input:focus, .mvf-wrapper textarea:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79, 195, 247, .15); background: rgba(4, 30, 66, .85);
+  }
+  .mvf-wrapper select option { background: var(--navy); color: var(--white); }
+  .mvf-wrapper textarea { resize: vertical; }
 
-        .mvf-group {
-                display: flex;
-                flex-direction: column;
-                gap: 6px;
-                margin-bottom: 18px;
-        }
+  .mvf-error { color: #ff8a80; font-size: .75rem; margin-top: 4px; }
 
-        .mvf-label {
-                font-size: .68rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                color: rgba(255, 255, 255, .5);
-        }
-
-        .mvf-hint {
-                font-size: .68rem;
-                font-weight: 400;
-                text-transform: none;
-                color: rgba(255, 255, 255, .35);
-        }
-
-        .mvf-wrapper select,
-        .mvf-wrapper input[type="date"],
-        .mvf-wrapper input[type="number"],
-        .mvf-wrapper textarea {
-                width: 100%;
-                background: rgba(4, 30, 66, .55);
-                border: 1px solid var(--glass-border);
-                border-radius: var(--radius-md);
-                color: var(--white);
-                padding: 10px 13px;
-                font-family: 'Barlow', sans-serif;
-                font-size: .9rem;
-                outline: none;
-                -webkit-appearance: none;
-                transition: border-color var(--ease-fast), box-shadow var(--ease-fast);
-        }
-
-        .mvf-wrapper select:focus,
-        .mvf-wrapper input:focus,
-        .mvf-wrapper textarea:focus {
-                border-color: var(--accent);
-                box-shadow: 0 0 0 3px rgba(79, 195, 247, .15);
-                background: rgba(4, 30, 66, .85);
-        }
-
-        .mvf-wrapper select option {
-                background: var(--navy);
-                color: var(--white);
-        }
-
-        .mvf-wrapper textarea {
-                resize: vertical;
-        }
-
-        .mvf-error {
-                color: #ff8a80;
-                font-size: .75rem;
-                margin-top: 4px;
-        }
-
-        .mvf-actions {
-                display: flex;
-                gap: 10px;
-                margin-top: 22px;
-        }
-
-        .btn-mvf {
-                display: inline-flex;
-                align-items: center;
-                gap: 7px;
-                padding: 10px 22px;
-                border: none;
-                border-radius: var(--radius-md);
-                font-family: 'Barlow Condensed', sans-serif;
-                font-weight: 700;
-                font-size: .88rem;
-                letter-spacing: 1px;
-                text-transform: uppercase;
-                cursor: pointer;
-                text-decoration: none;
-                transition: transform var(--ease-spring), box-shadow var(--ease-base);
-        }
-
-        .btn-mvf-save {
-                background: var(--success);
-                color: var(--white);
-                box-shadow: 0 4px 16px rgba(39, 174, 96, .3);
-        }
-
-        .btn-mvf-save:hover {
-                transform: translateY(-2px);
-        }
-
-        .btn-mvf-cancel {
-                background: rgba(255, 255, 255, .06);
-                border: 1px solid var(--glass-border);
-                color: rgba(255, 255, 255, .7);
-        }
-
-        .btn-mvf-cancel:hover {
-                background: rgba(255, 255, 255, .1);
-        }
+  .mvf-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .btn-mvf {
+    display: inline-flex; align-items: center; gap: 7px; padding: 10px 22px; border: none;
+    border-radius: var(--radius-md); font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: .88rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; text-decoration: none;
+    transition: transform var(--ease-spring), box-shadow var(--ease-base);
+  }
+  .btn-mvf-save { background: var(--success); color: var(--white); box-shadow: 0 4px 16px rgba(39, 174, 96, .3); }
+  .btn-mvf-save:hover { transform: translateY(-2px); }
+  .btn-mvf-cancel { background: rgba(255, 255, 255, .06); border: 1px solid var(--glass-border); color: rgba(255, 255, 255, .7); }
+  .btn-mvf-cancel:hover { background: rgba(255, 255, 255, .1); }
 </style>
 
 <div class="mvf-wrapper">
-        <div class="mvf-title">{{ titulo }}</div>
+  <div class="mvf-title">{{ titulo }}</div>
 
-        <div class="mvf-card">
-                <form method="post">
-                        {% csrf_token %}
+  <div class="mvf-card">
+    <form method="post">
+      {% csrf_token %}
 
-                        <div class="mvf-group">
-                                <label class="mvf-label">Plano de Contas (PGC)</label>
-                                {{ form.pgc }}
-                                {% if form.pgc.errors %}<div class="mvf-error">{{ form.pgc.errors|join:", " }}</div>{%
-                                endif %}
-                        </div>
+      <div class="mvf-group">
+        <label class="mvf-label">Plano de Contas (PGC)</label>
+        {{ form.pgc }}
+        {% if form.pgc.errors %}<div class="mvf-error">{{ form.pgc.errors|join:", " }}</div>{% endif %}
+      </div>
 
-                        <div class="mvf-group">
-                                <label class="mvf-label">Sector <span class="mvf-hint">(opcional)</span></label>
-                                {{ form.sector }}
-                                {% if form.sector.errors %}<div class="mvf-error">{{ form.sector.errors|join:", " }}
-                                </div>{% endif %}
-                        </div>
+      <div class="mvf-group">
+        <label class="mvf-label">Sector <span class="mvf-hint">(opcional)</span></label>
+        {{ form.sector }}
+        {% if form.sector.errors %}<div class="mvf-error">{{ form.sector.errors|join:", " }}</div>{% endif %}
+      </div>
 
-                        <div class="mvf-group">
-                                <label class="mvf-label">Auxiliar (Autocarro) <span
-                                                class="mvf-hint">(opcional)</span></label>
-                                {{ form.autocarro }}
-                                {% if form.autocarro.errors %}<div class="mvf-error">{{ form.autocarro.errors|join:", "
-                                        }}</div>{% endif %}
-                        </div>
+      <div class="mvf-group">
+        <label class="mvf-label">Auxiliar (Autocarro) <span class="mvf-hint">(opcional)</span></label>
+        {{ form.autocarro }}
+        {% if form.autocarro.errors %}<div class="mvf-error">{{ form.autocarro.errors|join:", " }}</div>{% endif %}
+      </div>
 
-                        <div class="mvf-group">
-                                <label class="mvf-label">Data</label>
-                                {{ form.data }}
-                                {% if form.data.errors %}<div class="mvf-error">{{ form.data.errors|join:", " }}</div>{%
-                                endif %}
-                        </div>
+      <div class="mvf-group">
+        <label class="mvf-label">Data</label>
+        {{ form.data }}
+        {% if form.data.errors %}<div class="mvf-error">{{ form.data.errors|join:", " }}</div>{% endif %}
+      </div>
 
-                        <div class="mvf-group">
-                                <label class="mvf-label">Tipo</label>
-                                {{ form.tipo }}
-                                {% if form.tipo.errors %}<div class="mvf-error">{{ form.tipo.errors|join:", " }}</div>{%
-                                endif %}
-                        </div>
+      <div class="mvf-group">
+        <label class="mvf-label">Tipo</label>
+        {{ form.tipo }}
+        {% if form.tipo.errors %}<div class="mvf-error">{{ form.tipo.errors|join:", " }}</div>{% endif %}
+      </div>
 
-                        <div class="mvf-group">
-                                <label class="mvf-label">Valor</label>
-                                {{ form.valor }}
-                                {% if form.valor.errors %}<div class="mvf-error">{{ form.valor.errors|join:", " }}</div>
-                                {% endif %}
-                        </div>
+      <div class="mvf-group">
+        <label class="mvf-label">Valor</label>
+        {{ form.valor }}
+        {% if form.valor.errors %}<div class="mvf-error">{{ form.valor.errors|join:", " }}</div>{% endif %}
+      </div>
 
-                        <div class="mvf-group">
-                                <label class="mvf-label">Observação <span class="mvf-hint">(opcional)</span></label>
-                                {{ form.observacao }}
-                                {% if form.observacao.errors %}<div class="mvf-error">{{ form.observacao.errors|join:" " }}</div>
-                                {% endif %}
-                        </div>
+      <div class="mvf-group">
+        <label class="mvf-label">Observação <span class="mvf-hint">(opcional)</span></label>
+        {{ form.observacao }}
+        {% if form.observacao.errors %}<div class="mvf-error">{{ form.observacao.errors|join:", " }}</div>{% endif %}
+      </div>
 
-                        <div class="mvf-actions">
-                                <button type="submit" class="btn-mvf btn-mvf-save"><i class="fas fa-check"></i>
-                                        Guardar</button>
-                                <a href="{% url 'movimento_list' %}" class="btn-mvf btn-mvf-cancel">Cancelar</a>
-                        </div>
-                </form>
-        </div>
+      <div class="mvf-actions">
+        <button type="submit" class="btn-mvf btn-mvf-save"><i class="fas fa-check"></i> Guardar</button>
+        <a href="{% url 'movimento_list' %}" class="btn-mvf btn-mvf-cancel">Cancelar</a>
+      </div>
+    </form>
+  </div>
 </div>
 {% endblock %}

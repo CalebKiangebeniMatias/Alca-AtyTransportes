@@ -4,576 +4,271 @@
 
 {% block content %}
 <style>
-        .mv-wrapper {
-                animation: mvIn .5s cubic-bezier(.34, 1.56, .64, 1) both;
-        }
+  .mv-wrapper { animation: mvIn .5s cubic-bezier(.34, 1.56, .64, 1) both; }
+  @keyframes mvIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
-        @keyframes mvIn {
-                from {
-                        opacity: 0;
-                        transform: translateY(16px);
-                }
+  .mv-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 24px;
+  }
+  .mv-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; line-height: 1; }
+  .mv-title span { color: var(--accent); }
+  .mv-subtitle { font-size: .78rem; color: var(--grey); margin-top: 4px; }
 
-                to {
-                        opacity: 1;
-                        transform: translateY(0);
-                }
-        }
+  .btn-mv {
+    display: inline-flex; align-items: center; gap: 7px; padding: 9px 20px; border: none;
+    border-radius: var(--radius-md); font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: .88rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; text-decoration: none;
+    white-space: nowrap; transition: transform var(--ease-spring), box-shadow var(--ease-base);
+  }
+  .btn-mv:hover { transform: translateY(-2px); }
+  .btn-new-mv { background: var(--success); color: var(--white); box-shadow: 0 4px 16px rgba(39, 174, 96, .3); }
+  .btn-new-mv:hover { background: #219150; box-shadow: 0 8px 24px rgba(39, 174, 96, .4); color: var(--white); }
+  .btn-filter-mv { background: var(--grad-btn); color: var(--white); box-shadow: var(--shadow-sm); }
+  .btn-filter-mv:hover { box-shadow: 0 6px 20px rgba(36, 99, 163, .4); color: var(--white); }
 
-        .mv-header {
-                display: flex;
-                align-items: flex-end;
-                justify-content: space-between;
-                flex-wrap: wrap;
-                gap: 12px;
-                margin-bottom: 24px;
-        }
+  .btn-act {
+    width: 30px; height: 30px; border-radius: var(--radius-sm); border: 1px solid;
+    display: inline-flex; align-items: center; justify-content: center; font-size: .72rem;
+    cursor: pointer; background: transparent; text-decoration: none;
+    transition: background var(--ease-fast), transform var(--ease-spring);
+  }
+  .btn-act:hover { transform: scale(1.12); }
+  .btn-act-edit { border-color: rgba(255, 213, 79, .35); color: #ffd54f; }
+  .btn-act-edit:hover { background: rgba(255, 213, 79, .15); }
+  .btn-act-del { border-color: rgba(231, 76, 60, .35); color: #ff8a80; background: transparent; }
+  .btn-act-del:hover { background: rgba(231, 76, 60, .15); }
 
-        .mv-title {
-                font-family: 'Bebas Neue', sans-serif;
-                font-size: 1.8rem;
-                letter-spacing: 2px;
-                line-height: 1;
-        }
+  /* ── RESUMO ──────────────────────────────────────── */
+  .resumo-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 22px; }
+  .resumo-card {
+    flex: 1; min-width: 180px;
+    background: rgba(13, 43, 94, .42); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+    backdrop-filter: blur(14px); padding: 16px 20px;
+  }
+  .resumo-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, .4); margin-bottom: 6px; }
+  .resumo-valor { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: .5px; }
+  .resumo-debito .resumo-valor { color: #ff8a80; }
+  .resumo-credito .resumo-valor { color: #69f0ae; }
+  .resumo-saldo .resumo-valor { color: var(--accent); }
 
-        .mv-title span {
-                color: var(--accent);
-        }
+  .filter-bar {
+    background: rgba(13, 43, 94, .42); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+    backdrop-filter: blur(14px); padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 12px;
+    align-items: flex-end; margin-bottom: 22px;
+  }
+  .f-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px; }
+  .f-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, .4); }
 
-        .mv-subtitle {
-                font-size: .78rem;
-                color: var(--grey);
-                margin-top: 4px;
-        }
+  .mv-wrapper select, .mv-wrapper input[type="text"], .mv-wrapper input[type="date"] {
+    width: 100%; background: rgba(4, 30, 66, .55) !important; border: 1px solid var(--glass-border) !important;
+    border-radius: var(--radius-md) !important; color: var(--white) !important; padding: 9px 13px !important;
+    font-family: 'Barlow', sans-serif !important; font-size: .88rem !important; outline: none !important;
+    -webkit-appearance: none;
+  }
+  .mv-wrapper select option { background: var(--navy); color: var(--white); }
+  .mv-wrapper input::placeholder { color: rgba(255, 255, 255, .25) !important; }
 
-        .btn-mv {
-                display: inline-flex;
-                align-items: center;
-                gap: 7px;
-                padding: 9px 20px;
-                border: none;
-                border-radius: var(--radius-md);
-                font-family: 'Barlow Condensed', sans-serif;
-                font-weight: 700;
-                font-size: .88rem;
-                letter-spacing: 1px;
-                text-transform: uppercase;
-                cursor: pointer;
-                text-decoration: none;
-                white-space: nowrap;
-                transition: transform var(--ease-spring), box-shadow var(--ease-base);
-        }
+  .table-card {
+    background: rgba(13, 43, 94, .42); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+    backdrop-filter: blur(14px); overflow: hidden; box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
+  }
+  .table-card-header {
+    display: flex; align-items: center; justify-content: space-between; padding: 13px 20px;
+    background: linear-gradient(90deg, rgba(36, 99, 163, .3), rgba(4, 30, 66, .2));
+    border-bottom: 1px solid var(--glass-border); flex-wrap: wrap; gap: 8px;
+  }
+  .table-card-title {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1rem;
+    letter-spacing: 1.5px; text-transform: uppercase; color: var(--white); display: flex; align-items: center; gap: 8px;
+  }
+  .table-card-title i { color: var(--accent); }
+  .table-count { font-size: .75rem; color: var(--grey); }
 
-        .btn-mv:hover {
-                transform: translateY(-2px);
-        }
+  .mv-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .mv-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  .mv-table thead th {
+    background: rgba(4, 30, 66, .7); color: var(--accent); font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: .68rem; letter-spacing: 1.5px; text-transform: uppercase; padding: 11px 12px;
+    border-bottom: 1px solid var(--glass-border); white-space: nowrap; text-align: left;
+  }
+  .mv-table tbody tr { border-bottom: 1px solid rgba(79, 195, 247, .06); transition: background var(--ease-fast); }
+  .mv-table tbody tr:hover { background: rgba(36, 99, 163, .18); }
+  .mv-table tbody td { padding: 10px 12px; color: rgba(255, 255, 255, .72); white-space: nowrap; vertical-align: middle; text-align: left; }
 
-        .btn-new-mv {
-                background: var(--success);
-                color: var(--white);
-                box-shadow: 0 4px 16px rgba(39, 174, 96, .3);
-        }
+  .date-cell { font-size: .75rem; color: var(--grey); display: inline-flex; align-items: center; gap: 5px; }
+  .date-cell i { color: var(--accent); font-size: .6rem; }
 
-        .btn-new-mv:hover {
-                background: #219150;
-                box-shadow: 0 8px 24px rgba(39, 174, 96, .4);
-                color: var(--white);
-        }
+  .pgc-chip {
+    display: inline-flex; align-items: center; gap: 5px; background: rgba(255, 213, 79, .06);
+    border: 1px solid rgba(255, 213, 79, .14); border-radius: 30px; padding: 2px 10px;
+    font-size: .72rem; font-weight: 600; color: rgba(255, 213, 79, .75);
+  }
+  .ac-chip {
+    display: inline-flex; align-items: center; gap: 5px; background: rgba(79, 195, 247, .07);
+    border: 1px solid rgba(79, 195, 247, .14); border-radius: 30px; padding: 2px 10px;
+    font-size: .75rem; font-weight: 600; color: rgba(255, 255, 255, .7);
+  }
+  .ac-chip i { color: var(--accent); font-size: .6rem; }
+  .valor-val { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: .5px; }
+  .qtd-dash { color: rgba(255, 255, 255, .2); font-size: .8rem; }
 
-        .btn-filter-mv {
-                background: var(--grad-btn);
-                color: var(--white);
-                box-shadow: var(--shadow-sm);
-        }
+  .s-badge {
+    display: inline-flex; align-items: center; gap: 4px; border-radius: 30px; padding: 3px 10px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: .7rem;
+    letter-spacing: .8px; text-transform: uppercase; white-space: nowrap;
+  }
+  .s-debito { background: rgba(231, 76, 60, .12); border: 1px solid rgba(231, 76, 60, .28); color: #ff8a80; }
+  .s-credito { background: rgba(39, 174, 96, .12); border: 1px solid rgba(39, 174, 96, .3); color: #69f0ae; }
 
-        .btn-filter-mv:hover {
-                box-shadow: 0 6px 20px rgba(36, 99, 163, .4);
-                color: var(--white);
-        }
+  .table-empty {
+    padding: 52px 20px; text-align: center; display: flex; flex-direction: column;
+    align-items: center; gap: 10px; color: rgba(255, 255, 255, .25);
+  }
+  .table-empty i { font-size: 2.4rem; opacity: .35; }
 
-        .btn-act {
-                width: 30px;
-                height: 30px;
-                border-radius: var(--radius-sm);
-                border: 1px solid;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                font-size: .72rem;
-                cursor: pointer;
-                background: transparent;
-                text-decoration: none;
-                transition: background var(--ease-fast), transform var(--ease-spring);
-        }
-
-        .btn-act:hover {
-                transform: scale(1.12);
-        }
-
-        .btn-act-edit {
-                border-color: rgba(255, 213, 79, .35);
-                color: #ffd54f;
-        }
-
-        .btn-act-edit:hover {
-                background: rgba(255, 213, 79, .15);
-        }
-
-        .btn-act-del {
-                border-color: rgba(231, 76, 60, .35);
-                color: #ff8a80;
-                background: transparent;
-        }
-
-        .btn-act-del:hover {
-                background: rgba(231, 76, 60, .15);
-        }
-
-        /* ── RESUMO ──────────────────────────────────────── */
-        .resumo-row {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 14px;
-                margin-bottom: 22px;
-        }
-
-        .resumo-card {
-                flex: 1;
-                min-width: 180px;
-                background: rgba(13, 43, 94, .42);
-                border: 1px solid var(--glass-border);
-                border-radius: var(--radius-lg);
-                backdrop-filter: blur(14px);
-                padding: 16px 20px;
-        }
-
-        .resumo-label {
-                font-size: .68rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                color: rgba(255, 255, 255, .4);
-                margin-bottom: 6px;
-        }
-
-        .resumo-valor {
-                font-family: 'Bebas Neue', sans-serif;
-                font-size: 1.6rem;
-                letter-spacing: .5px;
-        }
-
-        .resumo-debito .resumo-valor {
-                color: #ff8a80;
-        }
-
-        .resumo-credito .resumo-valor {
-                color: #69f0ae;
-        }
-
-        .resumo-saldo .resumo-valor {
-                color: var(--accent);
-        }
-
-        .filter-bar {
-                background: rgba(13, 43, 94, .42);
-                border: 1px solid var(--glass-border);
-                border-radius: var(--radius-lg);
-                backdrop-filter: blur(14px);
-                padding: 14px 18px;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 12px;
-                align-items: flex-end;
-                margin-bottom: 22px;
-        }
-
-        .f-group {
-                display: flex;
-                flex-direction: column;
-                gap: 5px;
-                flex: 1;
-                min-width: 140px;
-        }
-
-        .f-label {
-                font-size: .68rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                color: rgba(255, 255, 255, .4);
-        }
-
-        .mv-wrapper select,
-        .mv-wrapper input[type="text"],
-        .mv-wrapper input[type="date"] {
-                width: 100%;
-                background: rgba(4, 30, 66, .55) !important;
-                border: 1px solid var(--glass-border) !important;
-                border-radius: var(--radius-md) !important;
-                color: var(--white) !important;
-                padding: 9px 13px !important;
-                font-family: 'Barlow', sans-serif !important;
-                font-size: .88rem !important;
-                outline: none !important;
-                -webkit-appearance: none;
-        }
-
-        .mv-wrapper select option {
-                background: var(--navy);
-                color: var(--white);
-        }
-
-        .mv-wrapper input::placeholder {
-                color: rgba(255, 255, 255, .25) !important;
-        }
-
-        .table-card {
-                background: rgba(13, 43, 94, .42);
-                border: 1px solid var(--glass-border);
-                border-radius: var(--radius-lg);
-                backdrop-filter: blur(14px);
-                overflow: hidden;
-                box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
-        }
-
-        .table-card-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 13px 20px;
-                background: linear-gradient(90deg, rgba(36, 99, 163, .3), rgba(4, 30, 66, .2));
-                border-bottom: 1px solid var(--glass-border);
-                flex-wrap: wrap;
-                gap: 8px;
-        }
-
-        .table-card-title {
-                font-family: 'Barlow Condensed', sans-serif;
-                font-weight: 700;
-                font-size: 1rem;
-                letter-spacing: 1.5px;
-                text-transform: uppercase;
-                color: var(--white);
-                display: flex;
-                align-items: center;
-                gap: 8px;
-        }
-
-        .table-card-title i {
-                color: var(--accent);
-        }
-
-        .table-count {
-                font-size: .75rem;
-                color: var(--grey);
-        }
-
-        .mv-table-wrap {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-        }
-
-        .mv-table {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: .82rem;
-        }
-
-        .mv-table thead th {
-                background: rgba(4, 30, 66, .7);
-                color: var(--accent);
-                font-family: 'Barlow Condensed', sans-serif;
-                font-weight: 700;
-                font-size: .68rem;
-                letter-spacing: 1.5px;
-                text-transform: uppercase;
-                padding: 11px 12px;
-                border-bottom: 1px solid var(--glass-border);
-                white-space: nowrap;
-                text-align: left;
-        }
-
-        .mv-table tbody tr {
-                border-bottom: 1px solid rgba(79, 195, 247, .06);
-                transition: background var(--ease-fast);
-        }
-
-        .mv-table tbody tr:hover {
-                background: rgba(36, 99, 163, .18);
-        }
-
-        .mv-table tbody td {
-                padding: 10px 12px;
-                color: rgba(255, 255, 255, .72);
-                white-space: nowrap;
-                vertical-align: middle;
-                text-align: left;
-        }
-
-        .date-cell {
-                font-size: .75rem;
-                color: var(--grey);
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-        }
-
-        .date-cell i {
-                color: var(--accent);
-                font-size: .6rem;
-        }
-
-        .pgc-chip {
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-                background: rgba(255, 213, 79, .06);
-                border: 1px solid rgba(255, 213, 79, .14);
-                border-radius: 30px;
-                padding: 2px 10px;
-                font-size: .72rem;
-                font-weight: 600;
-                color: rgba(255, 213, 79, .75);
-        }
-
-        .ac-chip {
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-                background: rgba(79, 195, 247, .07);
-                border: 1px solid rgba(79, 195, 247, .14);
-                border-radius: 30px;
-                padding: 2px 10px;
-                font-size: .75rem;
-                font-weight: 600;
-                color: rgba(255, 255, 255, .7);
-        }
-
-        .ac-chip i {
-                color: var(--accent);
-                font-size: .6rem;
-        }
-
-        .valor-val {
-                font-family: 'Bebas Neue', sans-serif;
-                font-size: 1rem;
-                letter-spacing: .5px;
-        }
-
-        .qtd-dash {
-                color: rgba(255, 255, 255, .2);
-                font-size: .8rem;
-        }
-
-        .s-badge {
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-                border-radius: 30px;
-                padding: 3px 10px;
-                font-family: 'Barlow Condensed', sans-serif;
-                font-weight: 700;
-                font-size: .7rem;
-                letter-spacing: .8px;
-                text-transform: uppercase;
-                white-space: nowrap;
-        }
-
-        .s-debito {
-                background: rgba(231, 76, 60, .12);
-                border: 1px solid rgba(231, 76, 60, .28);
-                color: #ff8a80;
-        }
-
-        .s-credito {
-                background: rgba(39, 174, 96, .12);
-                border: 1px solid rgba(39, 174, 96, .3);
-                color: #69f0ae;
-        }
-
-        .table-empty {
-                padding: 52px 20px;
-                text-align: center;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 10px;
-                color: rgba(255, 255, 255, .25);
-        }
-
-        .table-empty i {
-                font-size: 2.4rem;
-                opacity: .35;
-        }
-
-        @media (max-width: 768px) {
-                .mv-header {
-                        flex-direction: column;
-                        align-items: flex-start;
-                }
-
-                .filter-bar {
-                        flex-direction: column;
-                }
-
-                .f-group {
-                        min-width: unset;
-                        width: 100%;
-                }
-
-                .btn-filter-mv {
-                        width: 100%;
-                        justify-content: center;
-                }
-        }
+  @media (max-width: 768px) {
+    .mv-header { flex-direction: column; align-items: flex-start; }
+    .filter-bar { flex-direction: column; }
+    .f-group { min-width: unset; width: 100%; }
+    .btn-filter-mv { width: 100%; justify-content: center; }
+  }
 </style>
 
 <div class="mv-wrapper">
 
-        <div class="mv-header">
-                <div>
-                        <div class="mv-title">Movimentos <span>Bancários</span></div>
-                        <div class="mv-subtitle">Consulta de entradas e saídas registadas</div>
-                </div>
-                <a href="{% url 'movimento_create' %}" class="btn-mv btn-new-mv">
-                        <i class="fas fa-plus"></i> Inserir Registo
+  <div class="mv-header">
+    <div>
+      <div class="mv-title">Movimentos <span>Bancários</span></div>
+      <div class="mv-subtitle">Consulta de entradas e saídas registadas</div>
+    </div>
+    <a href="{% url 'movimento_create' %}" class="btn-mv btn-new-mv">
+      <i class="fas fa-plus"></i> Inserir Registo
+    </a>
+  </div>
+
+  <div class="resumo-row">
+    <div class="resumo-card resumo-debito">
+      <div class="resumo-label">Total Débito</div>
+      <div class="resumo-valor">{{ total_debito }}</div>
+    </div>
+    <div class="resumo-card resumo-credito">
+      <div class="resumo-label">Total Crédito</div>
+      <div class="resumo-valor">{{ total_credito }}</div>
+    </div>
+  </div>
+
+  <form method="get">
+    <div class="filter-bar">
+      <div class="f-group">
+        <label class="f-label">PGC (Código)</label>
+        <input type="text" name="pgc" placeholder="Código da conta" value="{{ request.GET.pgc }}">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Sector</label>
+        <select name="sector">
+          <option value="">Todos os sectores</option>
+          {% for s in sectores %}
+          <option value="{{ s.id }}" {% if request.GET.sector == s.id|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="f-group">
+        <label class="f-label">Tipo</label>
+        <select name="tipo">
+          <option value="">Todos</option>
+          {% for valor, rotulo in tipo_choices %}
+          <option value="{{ valor }}" {% if request.GET.tipo == valor %}selected{% endif %}>{{ rotulo }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="f-group">
+        <label class="f-label">Data Início</label>
+        <input type="date" name="data_inicio" value="{{ request.GET.data_inicio }}">
+      </div>
+      <div class="f-group">
+        <label class="f-label">Data Fim</label>
+        <input type="date" name="data_fim" value="{{ request.GET.data_fim }}">
+      </div>
+      <div style="display:flex;align-items:flex-end;flex-shrink:0">
+        <button type="submit" class="btn-mv btn-filter-mv">
+          <i class="fas fa-filter"></i> Filtrar
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="table-card-title"><i class="fas fa-money-bill-wave"></i> Movimentos</div>
+      {% if total_movimentos %}<span class="table-count">{{ total_movimentos }} registo(s)</span>{% endif %}
+    </div>
+
+    <div class="mv-table-wrap">
+      {% if movimentos %}
+      <table class="mv-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>PGC</th>
+            <th>Sector</th>
+            <th>Auxiliar</th>
+            <th>Tipo</th>
+            <th>Valor</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in movimentos %}
+          <tr>
+            <td>
+              <span class="date-cell">
+                <i class="fas fa-calendar-day"></i>
+                {{ m.data|date:"d/m/Y" }}
+              </span>
+            </td>
+            <td><span class="pgc-chip">{{ m.pgc.codigo }} — {{ m.pgc.nome }}</span></td>
+            <td>{{ m.sector.nome|default:"—" }}</td>
+            <td>
+              {% if m.autocarro %}
+                <span class="ac-chip"><i class="fas fa-bus"></i> {{ m.autocarro.numero }}</span>
+              {% else %}<span class="qtd-dash">—</span>{% endif %}
+            </td>
+            <td>
+              {% if m.tipo == 'debito' %}
+                <span class="s-badge s-debito"><i class="fas fa-arrow-down" style="font-size:.55rem"></i> Débito</span>
+              {% else %}
+                <span class="s-badge s-credito"><i class="fas fa-arrow-up" style="font-size:.55rem"></i> Crédito</span>
+              {% endif %}
+            </td>
+            <td><span class="valor-val">{{ m.valor }}</span></td>
+            <td>
+              <div style="display:flex;gap:6px">
+                <a href="{% url 'movimento_edit' m.pk %}" class="btn-act btn-act-edit" title="Editar">
+                  <i class="fas fa-pen"></i>
                 </a>
-        </div>
-
-        <div class="resumo-row">
-                <div class="resumo-card resumo-debito">
-                        <div class="resumo-label">Total Débito</div>
-                        <div class="resumo-valor">{{ total_debito }}</div>
-                </div>
-                <div class="resumo-card resumo-credito">
-                        <div class="resumo-label">Total Crédito</div>
-                        <div class="resumo-valor">{{ total_credito }}</div>
-                </div>
-        </div>
-
-        <form method="get">
-                <div class="filter-bar">
-                        <div class="f-group">
-                                <label class="f-label">PGC (Código)</label>
-                                <input type="text" name="pgc" placeholder="Código da conta"
-                                        value="{{ request.GET.pgc }}">
-                        </div>
-                        <div class="f-group">
-                                <label class="f-label">Sector</label>
-                                <select name="sector">
-                                        <option value="">Todos os sectores</option>
-                                        {% for s in sectores %}
-                                        <option value="{{ s.id }}" {% if request.GET.sector==s.id|stringformat:"s"
-                                                %}selected{% endif %}>{{ s.nome }}</option>
-                                        {% endfor %}
-                                </select>
-                        </div>
-                        <div class="f-group">
-                                <label class="f-label">Tipo</label>
-                                <select name="tipo">
-                                        <option value="">Todos</option>
-                                        {% for valor, rotulo in tipo_choices %}
-                                        <option value="{{ valor }}" {% if request.GET.tipo==valor %}selected{% endif %}>
-                                                {{ rotulo }}</option>
-                                        {% endfor %}
-                                </select>
-                        </div>
-                        <div class="f-group">
-                                <label class="f-label">Data Início</label>
-                                <input type="date" name="data_inicio" value="{{ request.GET.data_inicio }}">
-                        </div>
-                        <div class="f-group">
-                                <label class="f-label">Data Fim</label>
-                                <input type="date" name="data_fim" value="{{ request.GET.data_fim }}">
-                        </div>
-                        <div style="display:flex;align-items:flex-end;flex-shrink:0">
-                                <button type="submit" class="btn-mv btn-filter-mv">
-                                        <i class="fas fa-filter"></i> Filtrar
-                                </button>
-                        </div>
-                </div>
-        </form>
-
-        <div class="table-card">
-                <div class="table-card-header">
-                        <div class="table-card-title"><i class="fas fa-money-bill-wave"></i> Movimentos</div>
-                        {% if total_movimentos %}<span class="table-count">{{ total_movimentos }} registo(s)</span>{%
-                        endif %}
-                </div>
-
-                <div class="mv-table-wrap">
-                        {% if movimentos %}
-                        <table class="mv-table">
-                                <thead>
-                                        <tr>
-                                                <th>Data</th>
-                                                <th>PGC</th>
-                                                <th>Sector</th>
-                                                <th>Auxiliar</th>
-                                                <th>Tipo</th>
-                                                <th>Valor</th>
-                                                <th>Ações</th>
-                                        </tr>
-                                </thead>
-                                <tbody>
-                                        {% for m in movimentos %}
-                                        <tr>
-                                                <td>
-                                                        <span class="date-cell">
-                                                                <i class="fas fa-calendar-day"></i>
-                                                                {{ m.data|date:"d/m/Y" }}
-                                                        </span>
-                                                </td>
-                                                <td><span class="pgc-chip">{{ m.pgc.codigo }} — {{ m.pgc.nome }}</span>
-                                                </td>
-                                                <td>{{ m.sector.nome|default:"—" }}</td>
-                                                <td>
-                                                        {% if m.autocarro %}
-                                                        <span class="ac-chip"><i class="fas fa-bus"></i> {{
-                                                                m.autocarro.numero }}</span>
-                                                        {% else %}<span class="qtd-dash">—</span>{% endif %}
-                                                </td>
-                                                <td>
-                                                        {% if m.tipo == 'debito' %}
-                                                        <span class="s-badge s-debito"><i class="fas fa-arrow-down"
-                                                                        style="font-size:.55rem"></i> Débito</span>
-                                                        {% else %}
-                                                        <span class="s-badge s-credito"><i class="fas fa-arrow-up"
-                                                                        style="font-size:.55rem"></i> Crédito</span>
-                                                        {% endif %}
-                                                </td>
-                                                <td><span class="valor-val">{{ m.valor }}</span></td>
-                                                <td>
-                                                        <div style="display:flex;gap:6px">
-                                                                <a href="{% url 'movimento_edit' m.pk %}"
-                                                                        class="btn-act btn-act-edit" title="Editar">
-                                                                        <i class="fas fa-pen"></i>
-                                                                </a>
-                                                                <form action="{% url 'movimento_delete' m.pk %}"
-                                                                        method="post" style="display:inline"
-                                                                        onsubmit="return confirm('Confirma eliminar este registo?')">
-                                                                        {% csrf_token %}
-                                                                        <button type="submit"
-                                                                                class="btn-act btn-act-del"
-                                                                                title="Eliminar">
-                                                                                <i class="fas fa-trash-can"></i>
-                                                                        </button>
-                                                                </form>
-                                                        </div>
-                                                </td>
-                                        </tr>
-                                        {% endfor %}
-                                </tbody>
-                        </table>
-                        {% else %}
-                        <div class="table-empty">
-                                <i class="fas fa-money-bill-wave"></i>
-                                <span>Nenhum movimento encontrado.</span>
-                                <small>Tente ajustar os filtros ou insira um novo registo.</small>
-                        </div>
-                        {% endif %}
-                </div>
-        </div>
+                <form action="{% url 'movimento_delete' m.pk %}" method="post" style="display:inline"
+                  onsubmit="return confirm('Confirma eliminar este registo?')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-act btn-act-del" title="Eliminar">
+                    <i class="fas fa-trash-can"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="table-empty">
+        <i class="fas fa-money-bill-wave"></i>
+        <span>Nenhum movimento encontrado.</span>
+        <small>Tente ajustar os filtros ou insira um novo registo.</small>
+      </div>
+      {% endif %}
+    </div>
+  </div>
 
 </div>
 {% endblock %}
