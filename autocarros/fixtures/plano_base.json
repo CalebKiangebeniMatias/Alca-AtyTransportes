@@ -1,36 +1,3711 @@
-[
-  {"codigo": "1", "nome": "Meios Financeiros Líquidos", "tipo": "S", "natureza": "D", "parent_codigo": null},
-  {"codigo": "1.1", "nome": "Caixa", "tipo": "A", "natureza": "D", "parent_codigo": "1"},
-  {"codigo": "1.2", "nome": "Depósitos em Instituições Financeiras", "tipo": "A", "natureza": "D", "parent_codigo": "1"},
-
-  {"codigo": "2", "nome": "Contas a Receber e a Pagar", "tipo": "S", "natureza": "D", "parent_codigo": null},
-  {"codigo": "2.1", "nome": "Clientes", "tipo": "A", "natureza": "D", "parent_codigo": "2"},
-  {"codigo": "2.2", "nome": "Fornecedores", "tipo": "A", "natureza": "C", "parent_codigo": "2"},
-  {"codigo": "2.3", "nome": "Estado e Outros Entes Públicos", "tipo": "A", "natureza": "C", "parent_codigo": "2"},
-
-  {"codigo": "3", "nome": "Inventários e Ativos Biológicos", "tipo": "S", "natureza": "D", "parent_codigo": null},
-  {"codigo": "3.1", "nome": "Mercadorias", "tipo": "A", "natureza": "D", "parent_codigo": "3"},
-  {"codigo": "3.2", "nome": "Matérias-primas, Subsidiárias e de Consumo", "tipo": "A", "natureza": "D", "parent_codigo": "3"},
-
-  {"codigo": "4", "nome": "Investimentos", "tipo": "S", "natureza": "D", "parent_codigo": null},
-  {"codigo": "4.1", "nome": "Ativos Fixos Tangíveis", "tipo": "A", "natureza": "D", "parent_codigo": "4"},
-  {"codigo": "4.2", "nome": "Ativos Intangíveis", "tipo": "A", "natureza": "D", "parent_codigo": "4"},
-
-  {"codigo": "5", "nome": "Capital, Reservas e Resultados Transitados", "tipo": "S", "natureza": "C", "parent_codigo": null},
-  {"codigo": "5.1", "nome": "Capital", "tipo": "A", "natureza": "C", "parent_codigo": "5"},
-  {"codigo": "5.2", "nome": "Reservas", "tipo": "A", "natureza": "C", "parent_codigo": "5"},
-  {"codigo": "5.3", "nome": "Resultados Transitados", "tipo": "A", "natureza": "C", "parent_codigo": "5"},
-
-  {"codigo": "6", "nome": "Gastos", "tipo": "S", "natureza": "D", "parent_codigo": null},
-  {"codigo": "6.1", "nome": "Custo das Mercadorias Vendidas", "tipo": "A", "natureza": "D", "parent_codigo": "6"},
-  {"codigo": "6.2", "nome": "Fornecimentos e Serviços Externos", "tipo": "A", "natureza": "D", "parent_codigo": "6"},
-  {"codigo": "6.3", "nome": "Gastos com o Pessoal", "tipo": "A", "natureza": "D", "parent_codigo": "6"},
-  {"codigo": "6.4", "nome": "Gastos com Combustíveis e Manutenção", "tipo": "A", "natureza": "D", "parent_codigo": "6"},
-
-  {"codigo": "7", "nome": "Rendimentos", "tipo": "S", "natureza": "C", "parent_codigo": null},
-  {"codigo": "7.1", "nome": "Vendas e Serviços Prestados", "tipo": "A", "natureza": "C", "parent_codigo": "7"},
-  {"codigo": "7.2", "nome": "Outros Rendimentos", "tipo": "A", "natureza": "C", "parent_codigo": "7"},
-
-  {"codigo": "8", "nome": "Resultados", "tipo": "S", "natureza": "C", "parent_codigo": null},
-  {"codigo": "8.1", "nome": "Resultado Líquido do Período", "tipo": "A", "natureza": "C", "parent_codigo": "8"}
-]
+{
+  "titulo": "Plano Geral de Contabilidade Angolano",
+  "diploma": "Decreto n.º 82/01, de 16 de Novembro",
+  "moeda_relato": "Kwanza (Kz)",
+  "classes": [
+    {
+      "classe": "0",
+      "nome": "Contas de Ordem",
+      "uso": "facultativo",
+      "observacao": "Sugere-se o seu uso para controlo de direitos e responsabilidades da entidade para com terceiros e de terceiros para com a entidade, que de momento não afectam o seu património mas que no futuro o podem afectar.",
+      "contas": []
+    },
+    {
+      "classe": "1",
+      "nome": "Meios Fixos e Investimentos",
+      "contas": [
+        {
+          "codigo": "11",
+          "nome": "Imobilizações Corpóreas",
+          "subcontas": [
+            {
+              "codigo": "11.1",
+              "nome": "Terrenos e recursos naturais",
+              "subcontas": [
+                {
+                  "codigo": "11.1.1",
+                  "nome": "Terrenos em bruto"
+                },
+                {
+                  "codigo": "11.1.2",
+                  "nome": "Terrenos com arranjos"
+                },
+                {
+                  "codigo": "11.1.3",
+                  "nome": "Subsolos"
+                },
+                {
+                  "codigo": "11.1.4",
+                  "nome": "Terrenos com edifícios",
+                  "subcontas": [
+                    {
+                      "codigo": "11.1.4.1",
+                      "nome": "Relativos a edifícios industriais"
+                    },
+                    {
+                      "codigo": "11.1.4.2",
+                      "nome": "Relativos a edifícios administrativos e comerciais"
+                    },
+                    {
+                      "codigo": "11.1.4.3",
+                      "nome": "Relativos a outros edifícios"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "codigo": "11.2",
+              "nome": "Edifícios e outras construções",
+              "subcontas": [
+                {
+                  "codigo": "11.2.1",
+                  "nome": "Edifícios",
+                  "subcontas": [
+                    {
+                      "codigo": "11.2.1.1",
+                      "nome": "Integrados em conjuntos industriais"
+                    },
+                    {
+                      "codigo": "11.2.1.2",
+                      "nome": "Integrados em conjuntos administrativos e comerciais"
+                    },
+                    {
+                      "codigo": "11.2.1.3",
+                      "nome": "Outros conjuntos industriais"
+                    },
+                    {
+                      "codigo": "11.2.1.4",
+                      "nome": "Implantados em propriedade alheia"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "11.2.2",
+                  "nome": "Outras construções"
+                },
+                {
+                  "codigo": "11.2.3",
+                  "nome": "Instalações"
+                }
+              ]
+            },
+            {
+              "codigo": "11.3",
+              "nome": "Equipamento básico",
+              "subcontas": [
+                {
+                  "codigo": "11.3.1",
+                  "nome": "Material industrial"
+                },
+                {
+                  "codigo": "11.3.2",
+                  "nome": "Ferramentas industriais"
+                },
+                {
+                  "codigo": "11.3.3",
+                  "nome": "Melhoramentos em equipamentos básicos"
+                }
+              ]
+            },
+            {
+              "codigo": "11.4",
+              "nome": "Equipamento de carga e transporte"
+            },
+            {
+              "codigo": "11.5",
+              "nome": "Equipamento administrativo"
+            },
+            {
+              "codigo": "11.6",
+              "nome": "Taras e vasilhame"
+            },
+            {
+              "codigo": "11.9",
+              "nome": "Outras imobilizações corpóreas"
+            }
+          ]
+        },
+        {
+          "codigo": "12",
+          "nome": "Imobilizações Incorpóreas",
+          "subcontas": [
+            {
+              "codigo": "12.1",
+              "nome": "Trespasses"
+            },
+            {
+              "codigo": "12.2",
+              "nome": "Despesas de investigação e desenvolvimento"
+            },
+            {
+              "codigo": "12.3",
+              "nome": "Propriedade industrial e outros direitos e contratos"
+            },
+            {
+              "codigo": "12.4",
+              "nome": "Despesas de constituição"
+            },
+            {
+              "codigo": "12.9",
+              "nome": "Outras imobilizações incorpóreas"
+            }
+          ]
+        },
+        {
+          "codigo": "13",
+          "nome": "Investimentos Financeiros",
+          "subcontas": [
+            {
+              "codigo": "13.1",
+              "nome": "Empresas subsidiárias",
+              "subcontas": [
+                {
+                  "codigo": "13.1.1",
+                  "nome": "Partes de capital"
+                },
+                {
+                  "codigo": "13.1.2",
+                  "nome": "Obrigações e títulos de participação"
+                },
+                {
+                  "codigo": "13.1.3",
+                  "nome": "Empréstimos"
+                },
+                {
+                  "codigo": "13.1.4",
+                  "nome": "Adiantamentos por conta"
+                }
+              ]
+            },
+            {
+              "codigo": "13.2",
+              "nome": "Empresas associadas",
+              "subcontas": [
+                {
+                  "codigo": "13.2.1",
+                  "nome": "Partes de capital"
+                },
+                {
+                  "codigo": "13.2.2",
+                  "nome": "Obrigações e títulos de participação"
+                },
+                {
+                  "codigo": "13.2.3",
+                  "nome": "Empréstimos"
+                },
+                {
+                  "codigo": "13.2.4",
+                  "nome": "Adiantamentos por conta"
+                }
+              ]
+            },
+            {
+              "codigo": "13.3",
+              "nome": "Outras empresas",
+              "subcontas": [
+                {
+                  "codigo": "13.3.1",
+                  "nome": "Partes de capital"
+                },
+                {
+                  "codigo": "13.3.2",
+                  "nome": "Obrigações e títulos de participação"
+                },
+                {
+                  "codigo": "13.3.3",
+                  "nome": "Empréstimos"
+                }
+              ]
+            },
+            {
+              "codigo": "13.4",
+              "nome": "Investimentos em imóveis"
+            },
+            {
+              "codigo": "13.5",
+              "nome": "Fundos"
+            },
+            {
+              "codigo": "13.9",
+              "nome": "Outros investimentos Financeiros",
+              "subcontas": [
+                {
+                  "codigo": "13.9.1",
+                  "nome": "Diamantes"
+                },
+                {
+                  "codigo": "13.9.2",
+                  "nome": "Ouro"
+                },
+                {
+                  "codigo": "13.9.3",
+                  "nome": "Depósitos bancários"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "14",
+          "nome": "Imobilizações em Curso",
+          "subcontas": [
+            {
+              "codigo": "14.1",
+              "nome": "Obra em curso"
+            },
+            {
+              "codigo": "14.2",
+              "nome": "Obra em curso"
+            },
+            {
+              "codigo": "14.7",
+              "nome": "Adiantamentos por conta de imobilizado corpóreo"
+            },
+            {
+              "codigo": "14.8",
+              "nome": "Adiantamentos por conta de imobilizado incorpóreo"
+            },
+            {
+              "codigo": "14.9",
+              "nome": "Adiantamentos por conta de investimentos financeiros"
+            }
+          ]
+        },
+        {
+          "codigo": "18",
+          "nome": "Amortizações Acumuladas",
+          "subcontas": [
+            {
+              "codigo": "18.1",
+              "nome": "Imobilizações corpóreas",
+              "subcontas": [
+                {
+                  "codigo": "18.1.1",
+                  "nome": "Terrenos e recursos naturais"
+                },
+                {
+                  "codigo": "18.1.2",
+                  "nome": "Edifícios e outras construções"
+                },
+                {
+                  "codigo": "18.1.3",
+                  "nome": "Equipamento básico"
+                },
+                {
+                  "codigo": "18.1.4",
+                  "nome": "Equipamento de carga e transporte"
+                },
+                {
+                  "codigo": "18.1.5",
+                  "nome": "Equipamento administrativo"
+                },
+                {
+                  "codigo": "18.1.6",
+                  "nome": "Taras e vasilhame"
+                },
+                {
+                  "codigo": "18.1.9",
+                  "nome": "Outras imobilizações corpóreas"
+                }
+              ]
+            },
+            {
+              "codigo": "18.2",
+              "nome": "Imobilizações incorpóreas",
+              "subcontas": [
+                {
+                  "codigo": "18.2.1",
+                  "nome": "Trespasses"
+                },
+                {
+                  "codigo": "18.2.2",
+                  "nome": "Despesas de investigação e desenvolvimento"
+                },
+                {
+                  "codigo": "18.2.3",
+                  "nome": "Propriedade industrial e outros direitos e contratos"
+                },
+                {
+                  "codigo": "18.2.4",
+                  "nome": "Despesas de constituição"
+                },
+                {
+                  "codigo": "18.2.9",
+                  "nome": "Outras imobilizações incorpóreas"
+                }
+              ]
+            },
+            {
+              "codigo": "18.3",
+              "nome": "Investimentos financeiros em imóveis",
+              "subcontas": [
+                {
+                  "codigo": "18.3.1",
+                  "nome": "Terrenos e recursos naturais"
+                },
+                {
+                  "codigo": "18.3.2",
+                  "nome": "Edifícios e outras construções"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "19",
+          "nome": "Provisões para investimentos financeiros",
+          "subcontas": [
+            {
+              "codigo": "19.1",
+              "nome": "Empresas subsidiárias",
+              "subcontas": [
+                {
+                  "codigo": "19.1.1",
+                  "nome": "Partes de capital"
+                },
+                {
+                  "codigo": "19.1.2",
+                  "nome": "Obrigações e títulos de participação"
+                },
+                {
+                  "codigo": "19.1.3",
+                  "nome": "Empréstimos"
+                }
+              ]
+            },
+            {
+              "codigo": "19.2",
+              "nome": "Empresas associadas",
+              "subcontas": [
+                {
+                  "codigo": "19.2.1",
+                  "nome": "Partes de capital"
+                },
+                {
+                  "codigo": "19.2.2",
+                  "nome": "Obrigações e títulos de participação"
+                },
+                {
+                  "codigo": "19.2.3",
+                  "nome": "Empréstimos"
+                }
+              ]
+            },
+            {
+              "codigo": "19.3",
+              "nome": "Outras empresas",
+              "subcontas": [
+                {
+                  "codigo": "19.3.1",
+                  "nome": "Partes de capital"
+                },
+                {
+                  "codigo": "19.3.2",
+                  "nome": "Obrigações e títulos de participação"
+                },
+                {
+                  "codigo": "19.3.3",
+                  "nome": "Empréstimos"
+                }
+              ]
+            },
+            {
+              "codigo": "19.4",
+              "nome": "Fundos",
+              "subcontas": [
+                {
+                  "codigo": "19.4.1",
+                  "nome": "Partes de capital"
+                }
+              ]
+            },
+            {
+              "codigo": "19.9",
+              "nome": "Outros investimentos financeiros",
+              "subcontas": [
+                {
+                  "codigo": "19.9.1",
+                  "nome": "Diamantes"
+                },
+                {
+                  "codigo": "19.9.2",
+                  "nome": "Ouro"
+                },
+                {
+                  "codigo": "19.9.3",
+                  "nome": "Depósitos bancários"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "classe": "2",
+      "nome": "Existências",
+      "contas": [
+        {
+          "codigo": "21",
+          "nome": "Compras",
+          "subcontas": [
+            {
+              "codigo": "21.1",
+              "nome": "Matérias-primas, subsidiárias e de consumo"
+            },
+            {
+              "codigo": "21.2",
+              "nome": "Mercadorias"
+            },
+            {
+              "codigo": "21.7",
+              "nome": "Devoluções de compras"
+            },
+            {
+              "codigo": "21.8",
+              "nome": "Descontos e abatimentos em compras"
+            }
+          ]
+        },
+        {
+          "codigo": "22",
+          "nome": "Matérias-primas subsidiárias e de consumo",
+          "subcontas": [
+            {
+              "codigo": "22.1",
+              "nome": "Matérias-primas"
+            },
+            {
+              "codigo": "22.2",
+              "nome": "Matérias subsidiárias"
+            },
+            {
+              "codigo": "22.3",
+              "nome": "Materiais diversos"
+            },
+            {
+              "codigo": "22.4",
+              "nome": "Embalagens de consumo"
+            },
+            {
+              "codigo": "22.5",
+              "nome": "Outros materiais"
+            }
+          ]
+        },
+        {
+          "codigo": "23",
+          "nome": "Produtos e trabalhos em curso"
+        },
+        {
+          "codigo": "24",
+          "nome": "Produtos acabados e intermédios",
+          "subcontas": [
+            {
+              "codigo": "24.1",
+              "nome": "Produtos acabados"
+            },
+            {
+              "codigo": "24.2",
+              "nome": "Produtos intermédios"
+            },
+            {
+              "codigo": "24.9",
+              "nome": "Em poder de terceiros"
+            }
+          ]
+        },
+        {
+          "codigo": "25",
+          "nome": "Sub-produtos, desperdícios, resíduos e refugos",
+          "subcontas": [
+            {
+              "codigo": "25.1",
+              "nome": "Sub-produtos"
+            },
+            {
+              "codigo": "25.2",
+              "nome": "Desperdícios, resíduos e refugos"
+            }
+          ]
+        },
+        {
+          "codigo": "26",
+          "nome": "Mercadorias",
+          "subcontas": [
+            {
+              "codigo": "26.9",
+              "nome": "Em poder de terceiros"
+            }
+          ]
+        },
+        {
+          "codigo": "27",
+          "nome": "Matérias-primas, mercadorias e outros materiais em trânsito",
+          "subcontas": [
+            {
+              "codigo": "27.1",
+              "nome": "Matérias-primas"
+            },
+            {
+              "codigo": "27.2",
+              "nome": "Outros materiais"
+            },
+            {
+              "codigo": "27.3",
+              "nome": "Mercadorias"
+            }
+          ]
+        },
+        {
+          "codigo": "28",
+          "nome": "Adiantamentos por conta de compras",
+          "subcontas": [
+            {
+              "codigo": "28.1",
+              "nome": "Matérias-primas e outros materiais"
+            },
+            {
+              "codigo": "28.2",
+              "nome": "Mercadorias"
+            }
+          ]
+        },
+        {
+          "codigo": "29",
+          "nome": "Provisão para depreciação de existências",
+          "subcontas": [
+            {
+              "codigo": "29.2",
+              "nome": "Matérias-primas subsidiárias e de consumo"
+            },
+            {
+              "codigo": "29.3",
+              "nome": "Produtos e trabalhos em curso"
+            },
+            {
+              "codigo": "29.4",
+              "nome": "Produtos acabados e intermédios"
+            },
+            {
+              "codigo": "29.5",
+              "nome": "Sub-produtos, desperdícios, resíduos e refugos"
+            },
+            {
+              "codigo": "29.6",
+              "nome": "Mercadorias"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "classe": "3",
+      "nome": "Terceiros",
+      "contas": [
+        {
+          "codigo": "31",
+          "nome": "Clientes",
+          "subcontas": [
+            {
+              "codigo": "31.1",
+              "nome": "Clientes – correntes",
+              "subcontas": [
+                {
+                  "codigo": "31.1.1",
+                  "nome": "Grupo",
+                  "subcontas": [
+                    {
+                      "codigo": "31.1.1.1",
+                      "nome": "Subsidiárias"
+                    },
+                    {
+                      "codigo": "31.1.1.2",
+                      "nome": "Associadas"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "31.1.2",
+                  "nome": "Não grupo",
+                  "subcontas": [
+                    {
+                      "codigo": "31.1.2.1",
+                      "nome": "Nacionais"
+                    },
+                    {
+                      "codigo": "31.1.2.2",
+                      "nome": "Estrangeiros"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "codigo": "31.2",
+              "nome": "Clientes – títulos a receber",
+              "subcontas": [
+                {
+                  "codigo": "31.2.1",
+                  "nome": "Grupo",
+                  "subcontas": [
+                    {
+                      "codigo": "31.2.1.1",
+                      "nome": "Subsidiárias"
+                    },
+                    {
+                      "codigo": "31.2.1.2",
+                      "nome": "Associadas"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "31.2.2",
+                  "nome": "Não grupo",
+                  "subcontas": [
+                    {
+                      "codigo": "31.2.2.1",
+                      "nome": "Nacionais"
+                    },
+                    {
+                      "codigo": "31.2.2.2",
+                      "nome": "Estrangeiros"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "codigo": "31.3",
+              "nome": "Clientes – títulos descontados",
+              "natureza": "credora",
+              "subcontas": [
+                {
+                  "codigo": "31.3.1",
+                  "nome": "Grupo",
+                  "subcontas": [
+                    {
+                      "codigo": "31.3.1.1",
+                      "nome": "Subsidiárias"
+                    },
+                    {
+                      "codigo": "31.3.1.2",
+                      "nome": "Associadas"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "31.3.2",
+                  "nome": "Não grupo",
+                  "subcontas": [
+                    {
+                      "codigo": "31.3.2.1",
+                      "nome": "Nacionais"
+                    },
+                    {
+                      "codigo": "31.3.2.2",
+                      "nome": "Estrangeiros"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "codigo": "31.8",
+              "nome": "Clientes de cobrança duvidosa",
+              "subcontas": [
+                {
+                  "codigo": "31.8.1",
+                  "nome": "Clientes – correntes"
+                },
+                {
+                  "codigo": "31.8.2",
+                  "nome": "Clientes – títulos"
+                }
+              ]
+            },
+            {
+              "codigo": "31.9",
+              "nome": "Clientes - saldos credores",
+              "subcontas": [
+                {
+                  "codigo": "31.9.1",
+                  "nome": "Adiantamentos"
+                },
+                {
+                  "codigo": "31.9.2",
+                  "nome": "Embalagens a devolver"
+                },
+                {
+                  "codigo": "31.9.3",
+                  "nome": "Material à consignação"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "32",
+          "nome": "Fornecedores",
+          "subcontas": [
+            {
+              "codigo": "32.1",
+              "nome": "Fornecedores – correntes",
+              "subcontas": [
+                {
+                  "codigo": "32.1.1",
+                  "nome": "Grupo",
+                  "subcontas": [
+                    {
+                      "codigo": "32.1.1.1",
+                      "nome": "Subsidiárias"
+                    },
+                    {
+                      "codigo": "32.1.1.2",
+                      "nome": "Associadas"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "32.1.2",
+                  "nome": "Não grupo",
+                  "subcontas": [
+                    {
+                      "codigo": "32.1.2.1",
+                      "nome": "Nacionais"
+                    },
+                    {
+                      "codigo": "32.1.2.2",
+                      "nome": "Estrangeiros"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "codigo": "32.2",
+              "nome": "Fornecedores – títulos a pagar",
+              "subcontas": [
+                {
+                  "codigo": "32.2.1",
+                  "nome": "Grupo",
+                  "subcontas": [
+                    {
+                      "codigo": "32.2.1.1",
+                      "nome": "Subsidiárias"
+                    },
+                    {
+                      "codigo": "32.2.1.2",
+                      "nome": "Associadas"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "32.2.2",
+                  "nome": "Não grupo",
+                  "subcontas": [
+                    {
+                      "codigo": "32.2.2.1",
+                      "nome": "Nacionais"
+                    },
+                    {
+                      "codigo": "32.2.2.2",
+                      "nome": "Estrangeiros"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "codigo": "32.8",
+              "nome": "Fornecedores – facturas em recepção e conferência"
+            },
+            {
+              "codigo": "32.9",
+              "nome": "Fornecedores – saldos devedores",
+              "subcontas": [
+                {
+                  "codigo": "32.9.1",
+                  "nome": "Adiantamentos"
+                },
+                {
+                  "codigo": "32.9.2",
+                  "nome": "Embalagens a devolver"
+                },
+                {
+                  "codigo": "32.9.3",
+                  "nome": "Material à consignação"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "33",
+          "nome": "Empréstimos",
+          "subcontas": [
+            {
+              "codigo": "33.1",
+              "nome": "Empréstimos bancários",
+              "subcontas": [
+                {
+                  "codigo": "33.1.1",
+                  "nome": "Moeda nacional",
+                  "subcontas": [
+                    {
+                      "codigo": "33.1.1.1",
+                      "nome": "Banco ___"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "33.1.2",
+                  "nome": "Moeda estrangeira",
+                  "subcontas": [
+                    {
+                      "codigo": "33.1.2.1",
+                      "nome": "Banco ___"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "codigo": "33.2",
+              "nome": "Empréstimos por obrigações",
+              "subcontas": [
+                {
+                  "codigo": "33.2.1",
+                  "nome": "Convertíveis",
+                  "subcontas": [
+                    {
+                      "codigo": "33.2.1.1",
+                      "nome": "Entidade ___"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "33.2.2",
+                  "nome": "Não convertíveis",
+                  "subcontas": [
+                    {
+                      "codigo": "33.2.2.1",
+                      "nome": "Entidade ___"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "codigo": "33.3",
+              "nome": "Empréstimos por títulos de participação",
+              "subcontas": [
+                {
+                  "codigo": "33.3.1",
+                  "nome": "Entidade ___"
+                }
+              ]
+            },
+            {
+              "codigo": "33.9",
+              "nome": "Outros empréstimos obtidos",
+              "subcontas": [
+                {
+                  "codigo": "33.9.1",
+                  "nome": "Entidade ___"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "34",
+          "nome": "Estado",
+          "subcontas": [
+            {
+              "codigo": "34.1",
+              "nome": "Imposto sobre os lucros"
+            },
+            {
+              "codigo": "34.2",
+              "nome": "Imposto de produção e consumo",
+              "natureza": "substituído pelo IVA (nota do editor)"
+            },
+            {
+              "codigo": "34.3",
+              "nome": "Imposto de rendimento de trabalho",
+              "natureza": "credora"
+            },
+            {
+              "codigo": "34.4",
+              "nome": "Imposto de circulação"
+            },
+            {
+              "codigo": "34.5",
+              "nome": "IVA",
+              "subcontas": [
+                {
+                  "codigo": "34.5.1",
+                  "nome": "IVA suportado",
+                  "natureza": "devedora",
+                  "subcontas": [
+                    {
+                      "codigo": "34.5.1.1",
+                      "nome": "Existências"
+                    },
+                    {
+                      "codigo": "34.5.1.2",
+                      "nome": "Meios fixos e investimentos"
+                    },
+                    {
+                      "codigo": "34.5.1.3",
+                      "nome": "Outros bens e serviços"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "34.5.2",
+                  "nome": "IVA dedutível",
+                  "natureza": "devedora",
+                  "subcontas": [
+                    {
+                      "codigo": "34.5.2.1",
+                      "nome": "Existências"
+                    },
+                    {
+                      "codigo": "34.5.2.2",
+                      "nome": "Meios fixos e investimentos"
+                    },
+                    {
+                      "codigo": "34.5.2.3",
+                      "nome": "Outros bens e serviços"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "34.5.3",
+                  "nome": "IVA liquidado",
+                  "natureza": "credora",
+                  "subcontas": [
+                    {
+                      "codigo": "34.5.3.1",
+                      "nome": "Operações gerais"
+                    },
+                    {
+                      "codigo": "34.5.3.2",
+                      "nome": "Operações abrangidas pelo regime de IVA de caixa"
+                    },
+                    {
+                      "codigo": "34.5.3.3",
+                      "nome": "Autoconsumo e operações gratuitas"
+                    },
+                    {
+                      "codigo": "34.5.3.4",
+                      "nome": "Operações especiais"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "34.5.4",
+                  "nome": "IVA regularizações",
+                  "subcontas": [
+                    {
+                      "codigo": "34.5.4.1",
+                      "nome": "Mensais a favor do sujeito passivo"
+                    },
+                    {
+                      "codigo": "34.5.4.2",
+                      "nome": "Mensais a favor do Estado"
+                    },
+                    {
+                      "codigo": "34.5.4.3",
+                      "nome": "Anual por cálculo do pró rata definitivo"
+                    },
+                    {
+                      "codigo": "34.5.4.4",
+                      "nome": "Outras regularizações anuais"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "34.5.5",
+                  "nome": "IVA apuramento",
+                  "subcontas": [
+                    {
+                      "codigo": "34.5.5.1",
+                      "nome": "Apuramento do regime de IVA normal"
+                    },
+                    {
+                      "codigo": "34.5.5.2",
+                      "nome": "Apuramento do regime de IVA de caixa"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "34.5.6",
+                  "nome": "IVA a pagar",
+                  "natureza": "credora",
+                  "subcontas": [
+                    {
+                      "codigo": "34.5.6.1",
+                      "nome": "IVA a pagar de apuramento"
+                    },
+                    {
+                      "codigo": "34.5.6.2",
+                      "nome": "IVA a pagar de cativo"
+                    },
+                    {
+                      "codigo": "34.5.6.3",
+                      "nome": "IVA a pagar de liquidações oficiosas"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "34.5.7",
+                  "nome": "IVA a recuperar",
+                  "natureza": "devedora",
+                  "subcontas": [
+                    {
+                      "codigo": "34.5.7.1",
+                      "nome": "IVA a recuperar de apuramentos"
+                    },
+                    {
+                      "codigo": "34.5.7.2",
+                      "nome": "IVA a recuperar de cativo"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "34.5.8",
+                  "nome": "IVA reembolsos pedidos",
+                  "natureza": "devedora",
+                  "subcontas": [
+                    {
+                      "codigo": "34.5.8.1",
+                      "nome": "Reembolsos pedidos"
+                    },
+                    {
+                      "codigo": "34.5.8.2",
+                      "nome": "Reembolsos deferidos"
+                    },
+                    {
+                      "codigo": "34.5.8.3",
+                      "nome": "Reembolsos indeferidos"
+                    },
+                    {
+                      "codigo": "34.5.8.4",
+                      "nome": "Reembolsos reclamados, recorridos ou impugnados"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "34.5.9",
+                  "nome": "IVA Liquidações oficiosas",
+                  "natureza": "devedora"
+                }
+              ]
+            },
+            {
+              "codigo": "34.6",
+              "nome": "Certificado de crédito fiscal a compensar",
+              "natureza": "devedora"
+            },
+            {
+              "codigo": "34.8",
+              "nome": "Subsídios a preços",
+              "natureza": "devedora"
+            },
+            {
+              "codigo": "34.9",
+              "nome": "Outros impostos"
+            }
+          ]
+        },
+        {
+          "codigo": "35",
+          "nome": "Entidades participantes e participadas",
+          "subcontas": [
+            {
+              "codigo": "35.1",
+              "nome": "Entidades participantes",
+              "subcontas": [
+                {
+                  "codigo": "35.1.1",
+                  "nome": "Estado",
+                  "subcontas": [
+                    {
+                      "codigo": "35.1.1.1",
+                      "nome": "c/subscrição",
+                      "natureza": "devedora"
+                    },
+                    {
+                      "codigo": "35.1.1.2",
+                      "nome": "c/adiantamentos sobre lucros",
+                      "natureza": "devedora"
+                    },
+                    {
+                      "codigo": "35.1.1.3",
+                      "nome": "c/lucros"
+                    },
+                    {
+                      "codigo": "35.1.1.4",
+                      "nome": "Empréstimos"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "35.1.2",
+                  "nome": "Empresas do grupo – subsidiárias",
+                  "subcontas": [
+                    {
+                      "codigo": "35.1.2.1",
+                      "nome": "c/subscrição",
+                      "natureza": "devedora"
+                    },
+                    {
+                      "codigo": "35.1.2.2",
+                      "nome": "c/adiantamentos sobre lucros",
+                      "natureza": "devedora"
+                    },
+                    {
+                      "codigo": "35.1.2.3",
+                      "nome": "c/lucros"
+                    },
+                    {
+                      "codigo": "35.1.2.4",
+                      "nome": "Empréstimos"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "35.1.3",
+                  "nome": "Empresas do grupo – associadas",
+                  "subcontas": [
+                    {
+                      "codigo": "35.1.3.1",
+                      "nome": "c/subscrição",
+                      "natureza": "devedora"
+                    },
+                    {
+                      "codigo": "35.1.3.2",
+                      "nome": "c/adiantamentos sobre lucros",
+                      "natureza": "devedora"
+                    },
+                    {
+                      "codigo": "35.1.3.3",
+                      "nome": "c/lucros"
+                    },
+                    {
+                      "codigo": "35.1.3.4",
+                      "nome": "Empréstimos"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "35.1.4",
+                  "nome": "Outros",
+                  "subcontas": [
+                    {
+                      "codigo": "35.1.4.1",
+                      "nome": "c/subscrição",
+                      "natureza": "devedora"
+                    },
+                    {
+                      "codigo": "35.1.4.2",
+                      "nome": "c/adiantamentos sobre lucros",
+                      "natureza": "devedora"
+                    },
+                    {
+                      "codigo": "35.1.4.3",
+                      "nome": "c/lucros"
+                    },
+                    {
+                      "codigo": "35.1.4.4",
+                      "nome": "Empréstimos"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "codigo": "35.2",
+              "nome": "Entidades participadas",
+              "subcontas": [
+                {
+                  "codigo": "35.2.1",
+                  "nome": "Estado",
+                  "subcontas": [
+                    {
+                      "codigo": "35.2.1.1",
+                      "nome": "c/subscrição",
+                      "natureza": "credora"
+                    },
+                    {
+                      "codigo": "35.2.1.2",
+                      "nome": "c/adiantamentos sobre lucros",
+                      "natureza": "credora"
+                    },
+                    {
+                      "codigo": "35.2.1.3",
+                      "nome": "c/lucros"
+                    },
+                    {
+                      "codigo": "35.2.1.4",
+                      "nome": "Empréstimos"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "35.2.2",
+                  "nome": "Empresas do grupo – subsidiárias",
+                  "subcontas": [
+                    {
+                      "codigo": "35.2.2.1",
+                      "nome": "c/subscrição",
+                      "natureza": "credora"
+                    },
+                    {
+                      "codigo": "35.2.2.2",
+                      "nome": "c/adiantamentos sobre lucros",
+                      "natureza": "credora"
+                    },
+                    {
+                      "codigo": "35.2.2.3",
+                      "nome": "c/lucros"
+                    },
+                    {
+                      "codigo": "35.2.2.4",
+                      "nome": "Empréstimos"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "35.2.3",
+                  "nome": "Empresas do grupo – associadas",
+                  "subcontas": [
+                    {
+                      "codigo": "35.2.3.1",
+                      "nome": "c/subscrição",
+                      "natureza": "credora"
+                    },
+                    {
+                      "codigo": "35.2.3.2",
+                      "nome": "c/adiantamentos sobre lucros",
+                      "natureza": "credora"
+                    },
+                    {
+                      "codigo": "35.2.3.3",
+                      "nome": "c/lucros"
+                    },
+                    {
+                      "codigo": "35.2.3.4",
+                      "nome": "Empréstimos"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "35.2.4",
+                  "nome": "Outros",
+                  "subcontas": [
+                    {
+                      "codigo": "35.2.4.1",
+                      "nome": "c/subscrição",
+                      "natureza": "credora"
+                    },
+                    {
+                      "codigo": "35.2.4.2",
+                      "nome": "c/adiantamentos sobre lucros",
+                      "natureza": "credora"
+                    },
+                    {
+                      "codigo": "35.2.4.3",
+                      "nome": "c/lucros"
+                    },
+                    {
+                      "codigo": "35.2.4.4",
+                      "nome": "Empréstimos"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "36",
+          "nome": "Pessoal",
+          "subcontas": [
+            {
+              "codigo": "36.1",
+              "nome": "Pessoal – remunerações",
+              "natureza": "credora",
+              "subcontas": [
+                {
+                  "codigo": "36.1.1",
+                  "nome": "Órgãos sociais"
+                },
+                {
+                  "codigo": "36.1.2",
+                  "nome": "Empregados"
+                }
+              ]
+            },
+            {
+              "codigo": "36.2",
+              "nome": "Pessoal – participação nos resultados",
+              "natureza": "credora",
+              "subcontas": [
+                {
+                  "codigo": "36.2.1",
+                  "nome": "Órgãos sociais"
+                },
+                {
+                  "codigo": "36.2.2",
+                  "nome": "Empregados"
+                }
+              ]
+            },
+            {
+              "codigo": "36.3",
+              "nome": "Pessoal – adiantamentos",
+              "natureza": "devedora"
+            },
+            {
+              "codigo": "36.9",
+              "nome": "Pessoal – outros"
+            }
+          ]
+        },
+        {
+          "codigo": "37",
+          "nome": "Outros valores a receber e a pagar",
+          "subcontas": [
+            {
+              "codigo": "37.1",
+              "nome": "Compras de imobilizado",
+              "natureza": "credora",
+              "subcontas": [
+                {
+                  "codigo": "37.1.1",
+                  "nome": "Corpóreo"
+                },
+                {
+                  "codigo": "37.1.2",
+                  "nome": "Incorpóreo"
+                },
+                {
+                  "codigo": "37.1.3",
+                  "nome": "Financeiro"
+                }
+              ]
+            },
+            {
+              "codigo": "37.2",
+              "nome": "Vendas de imobilizado",
+              "natureza": "devedora",
+              "subcontas": [
+                {
+                  "codigo": "37.2.1",
+                  "nome": "Corpóreo"
+                },
+                {
+                  "codigo": "37.2.2",
+                  "nome": "Incorpóreo"
+                },
+                {
+                  "codigo": "37.2.3",
+                  "nome": "Financeiro"
+                }
+              ]
+            },
+            {
+              "codigo": "37.3",
+              "nome": "Proveitos a facturar",
+              "natureza": "devedora",
+              "subcontas": [
+                {
+                  "codigo": "37.3.1",
+                  "nome": "Vendas"
+                },
+                {
+                  "codigo": "37.3.2",
+                  "nome": "Prestações de serviço"
+                },
+                {
+                  "codigo": "37.3.3",
+                  "nome": "Juros"
+                }
+              ]
+            },
+            {
+              "codigo": "37.4",
+              "nome": "Encargos a repartir por períodos futuros",
+              "natureza": "devedora",
+              "subcontas": [
+                {
+                  "codigo": "37.4.1",
+                  "nome": "Descontos de emissão de obrigações"
+                },
+                {
+                  "codigo": "37.4.2",
+                  "nome": "Descontos de emissão de títulos de participação"
+                }
+              ]
+            },
+            {
+              "codigo": "37.5",
+              "nome": "Encargos a pagar",
+              "natureza": "credora",
+              "subcontas": [
+                {
+                  "codigo": "37.5.1",
+                  "nome": "Remunerações"
+                },
+                {
+                  "codigo": "37.5.2",
+                  "nome": "Juros"
+                }
+              ]
+            },
+            {
+              "codigo": "37.6",
+              "nome": "Proveitos a repartir por períodos futuros",
+              "natureza": "credora",
+              "subcontas": [
+                {
+                  "codigo": "37.6.1",
+                  "nome": "Prémios de emissão de obrigações"
+                },
+                {
+                  "codigo": "37.6.2",
+                  "nome": "Prémios de emissão de títulos de participação"
+                },
+                {
+                  "codigo": "37.6.3",
+                  "nome": "Subsídios para investimento"
+                },
+                {
+                  "codigo": "37.6.4",
+                  "nome": "Diferenças de câmbio favoráveis reversíveis"
+                }
+              ]
+            },
+            {
+              "codigo": "37.7",
+              "nome": "Contas transitórias",
+              "subcontas": [
+                {
+                  "codigo": "37.7.1",
+                  "nome": "Transacções entre a sede e as dependências da empresa"
+                }
+              ]
+            },
+            {
+              "codigo": "37.9",
+              "nome": "Outros valores a receber e a pagar"
+            }
+          ]
+        },
+        {
+          "codigo": "38",
+          "nome": "Provisões para cobranças duvidosas",
+          "natureza": "credora",
+          "subcontas": [
+            {
+              "codigo": "38.1",
+              "nome": "Provisões para clientes",
+              "subcontas": [
+                {
+                  "codigo": "38.1.1",
+                  "nome": "Clientes – correntes",
+                  "subcontas": [
+                    {
+                      "codigo": "38.1.1.1",
+                      "nome": "Grupo"
+                    },
+                    {
+                      "codigo": "38.1.1.2",
+                      "nome": "Não grupo"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "38.1.2",
+                  "nome": "Cliente – títulos a receber",
+                  "subcontas": [
+                    {
+                      "codigo": "38.1.2.1",
+                      "nome": "Grupo"
+                    },
+                    {
+                      "codigo": "38.1.2.2",
+                      "nome": "Não grupo"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "38.1.3",
+                  "nome": "Clientes – cobrança duvidosa",
+                  "subcontas": [
+                    {
+                      "codigo": "38.1.3.1",
+                      "nome": "Grupo"
+                    },
+                    {
+                      "codigo": "38.1.3.2",
+                      "nome": "Não grupo"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "codigo": "38.2",
+              "nome": "Provisões para saldos devedores de fornecedores"
+            },
+            {
+              "codigo": "38.3",
+              "nome": "Provisões p/participantes e participadas",
+              "subcontas": [
+                {
+                  "codigo": "38.3.1",
+                  "nome": "Participantes"
+                },
+                {
+                  "codigo": "38.3.2",
+                  "nome": "Participadas"
+                }
+              ]
+            },
+            {
+              "codigo": "38.4",
+              "nome": "Provisões p/dívidas do pessoal"
+            },
+            {
+              "codigo": "38.9",
+              "nome": "Provisões para outros saldos a receber",
+              "subcontas": [
+                {
+                  "codigo": "38.9.1",
+                  "nome": "Vendas imobilizado"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "39",
+          "nome": "Provisões para outros riscos e encargos",
+          "natureza": "credora",
+          "subcontas": [
+            {
+              "codigo": "39.1",
+              "nome": "Provisões para pensões"
+            },
+            {
+              "codigo": "39.2",
+              "nome": "Provisões para processos judiciais em curso"
+            },
+            {
+              "codigo": "39.3",
+              "nome": "Provisões para acidentes de trabalho"
+            },
+            {
+              "codigo": "39.4",
+              "nome": "Provisões para garantias dadas a clientes"
+            },
+            {
+              "codigo": "39.9",
+              "nome": "Provisões para outros riscos e encargos"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "classe": "4",
+      "nome": "Meios Monetários",
+      "contas": [
+        {
+          "codigo": "41",
+          "nome": "Títulos negociáveis",
+          "subcontas": [
+            {
+              "codigo": "41.1",
+              "nome": "Acções",
+              "subcontas": [
+                {
+                  "codigo": "41.1.1",
+                  "nome": "Empresas do grupo"
+                },
+                {
+                  "codigo": "41.1.2",
+                  "nome": "Associadas"
+                },
+                {
+                  "codigo": "41.1.3",
+                  "nome": "Outras empresas"
+                }
+              ]
+            },
+            {
+              "codigo": "41.2",
+              "nome": "Obrigações",
+              "subcontas": [
+                {
+                  "codigo": "41.2.1",
+                  "nome": "Empresas do grupo"
+                },
+                {
+                  "codigo": "41.2.2",
+                  "nome": "Associadas"
+                },
+                {
+                  "codigo": "41.2.3",
+                  "nome": "Outras empresas"
+                }
+              ]
+            },
+            {
+              "codigo": "41.3",
+              "nome": "Títulos da dívida pública"
+            }
+          ]
+        },
+        {
+          "codigo": "42",
+          "nome": "Depósitos a prazo",
+          "subcontas": [
+            {
+              "codigo": "42.1",
+              "nome": "Moeda nacional",
+              "subcontas": [
+                {
+                  "codigo": "42.1.1",
+                  "nome": "Banco ___"
+                },
+                {
+                  "codigo": "42.1.2",
+                  "nome": "Banco ___"
+                }
+              ]
+            },
+            {
+              "codigo": "42.2",
+              "nome": "Moeda estrangeira",
+              "subcontas": [
+                {
+                  "codigo": "42.2.1",
+                  "nome": "Banco ___"
+                },
+                {
+                  "codigo": "42.2.2",
+                  "nome": "Banco ___"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "43",
+          "nome": "Depósitos à ordem",
+          "subcontas": [
+            {
+              "codigo": "43.1",
+              "nome": "Moeda nacional",
+              "subcontas": [
+                {
+                  "codigo": "43.1.1",
+                  "nome": "Banco ___"
+                },
+                {
+                  "codigo": "43.1.2",
+                  "nome": "Banco ___"
+                }
+              ]
+            },
+            {
+              "codigo": "43.2",
+              "nome": "Moeda estrangeira",
+              "subcontas": [
+                {
+                  "codigo": "43.2.1",
+                  "nome": "Banco ___"
+                },
+                {
+                  "codigo": "43.2.2",
+                  "nome": "Banco ___"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "44",
+          "nome": "Outros depósitos",
+          "subcontas": [
+            {
+              "codigo": "44.1",
+              "nome": "Moeda nacional",
+              "subcontas": [
+                {
+                  "codigo": "44.1.1",
+                  "nome": "Banco ___"
+                },
+                {
+                  "codigo": "44.1.2",
+                  "nome": "Banco ___"
+                }
+              ]
+            },
+            {
+              "codigo": "44.2",
+              "nome": "Moeda estrangeira",
+              "subcontas": [
+                {
+                  "codigo": "44.2.1",
+                  "nome": "Banco ___"
+                },
+                {
+                  "codigo": "44.2.2",
+                  "nome": "Banco ___"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "45",
+          "nome": "Caixa",
+          "subcontas": [
+            {
+              "codigo": "45.1",
+              "nome": "Fundo fixo",
+              "subcontas": [
+                {
+                  "codigo": "45.1.1",
+                  "nome": "Caixa ___"
+                },
+                {
+                  "codigo": "45.1.2",
+                  "nome": "Caixa ___"
+                }
+              ]
+            },
+            {
+              "codigo": "45.2",
+              "nome": "Valores para depositar"
+            },
+            {
+              "codigo": "45.3",
+              "nome": "Valores destinados a pagamentos específicos",
+              "subcontas": [
+                {
+                  "codigo": "45.3.1",
+                  "nome": "Salários"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "46",
+          "nome": "(livre)"
+        },
+        {
+          "codigo": "47",
+          "nome": "(livre)"
+        },
+        {
+          "codigo": "48",
+          "nome": "Conta transitória",
+          "subcontas": [
+            {
+              "codigo": "48.1",
+              "nome": "Banco ___"
+            },
+            {
+              "codigo": "48.2",
+              "nome": "Banco ___"
+            }
+          ]
+        },
+        {
+          "codigo": "49",
+          "nome": "Provisões para aplicações de tesouraria",
+          "subcontas": [
+            {
+              "codigo": "49.1",
+              "nome": "Títulos negociáveis",
+              "subcontas": [
+                {
+                  "codigo": "49.1.1",
+                  "nome": "Acções"
+                },
+                {
+                  "codigo": "49.1.2",
+                  "nome": "Obrigações"
+                },
+                {
+                  "codigo": "49.1.3",
+                  "nome": "Títulos da dívida pública"
+                }
+              ]
+            },
+            {
+              "codigo": "49.2",
+              "nome": "Outras aplicações de tesouraria"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "classe": "5",
+      "nome": "Capital e Reservas",
+      "contas": [
+        {
+          "codigo": "51",
+          "nome": "Capital"
+        },
+        {
+          "codigo": "52",
+          "nome": "Acções/quotas próprias",
+          "subcontas": [
+            {
+              "codigo": "52.1",
+              "nome": "Valor nominal"
+            },
+            {
+              "codigo": "52.2",
+              "nome": "Descontos"
+            },
+            {
+              "codigo": "52.3",
+              "nome": "Prémios"
+            }
+          ]
+        },
+        {
+          "codigo": "53",
+          "nome": "Prémios de emissão"
+        },
+        {
+          "codigo": "54",
+          "nome": "Prestações suplementares"
+        },
+        {
+          "codigo": "55",
+          "nome": "Reservas legais"
+        },
+        {
+          "codigo": "56",
+          "nome": "Reservas de reavaliação",
+          "subcontas": [
+            {
+              "codigo": "56.1",
+              "nome": "Legais",
+              "subcontas": [
+                {
+                  "codigo": "56.1.1",
+                  "nome": "Decreto-Lei n.º ___"
+                },
+                {
+                  "codigo": "56.1.2",
+                  "nome": "Decreto-Lei n.º ___"
+                }
+              ]
+            },
+            {
+              "codigo": "56.2",
+              "nome": "Autónomas",
+              "subcontas": [
+                {
+                  "codigo": "56.2.1",
+                  "nome": "Avaliação",
+                  "natureza": "devedora"
+                },
+                {
+                  "codigo": "56.2.2",
+                  "nome": "Realização",
+                  "natureza": "devedora"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "57",
+          "nome": "Reservas com fins especiais"
+        },
+        {
+          "codigo": "58",
+          "nome": "Reservas livres"
+        },
+        {
+          "codigo": "59",
+          "nome": "(livre)"
+        }
+      ]
+    },
+    {
+      "classe": "6",
+      "nome": "Proveitos e Ganhos por Natureza",
+      "contas": [
+        {
+          "codigo": "61",
+          "nome": "Vendas",
+          "subcontas": [
+            {
+              "codigo": "61.1",
+              "nome": "Produtos acabados e intermédios",
+              "subcontas": [
+                {
+                  "codigo": "61.1.1",
+                  "nome": "Mercado nacional"
+                },
+                {
+                  "codigo": "61.1.2",
+                  "nome": "Mercado estrangeiro"
+                }
+              ]
+            },
+            {
+              "codigo": "61.2",
+              "nome": "Sub-produtos, desperdícios, resíduos e refugos",
+              "subcontas": [
+                {
+                  "codigo": "61.2.1",
+                  "nome": "Mercado nacional"
+                },
+                {
+                  "codigo": "61.2.2",
+                  "nome": "Mercado estrangeiro"
+                }
+              ]
+            },
+            {
+              "codigo": "61.3",
+              "nome": "Mercadorias",
+              "subcontas": [
+                {
+                  "codigo": "61.3.1",
+                  "nome": "Mercado nacional"
+                },
+                {
+                  "codigo": "61.3.2",
+                  "nome": "Mercado estrangeiro"
+                }
+              ]
+            },
+            {
+              "codigo": "61.4",
+              "nome": "Embalagens de consumo",
+              "subcontas": [
+                {
+                  "codigo": "61.4.1",
+                  "nome": "Mercado nacional"
+                },
+                {
+                  "codigo": "61.4.2",
+                  "nome": "Mercado estrangeiro"
+                }
+              ]
+            },
+            {
+              "codigo": "61.5",
+              "nome": "Subsídios a preços"
+            },
+            {
+              "codigo": "61.7",
+              "nome": "Devoluções",
+              "subcontas": [
+                {
+                  "codigo": "61.7.1",
+                  "nome": "Mercado nacional"
+                },
+                {
+                  "codigo": "61.7.2",
+                  "nome": "Mercado estrangeiro"
+                }
+              ]
+            },
+            {
+              "codigo": "61.8",
+              "nome": "Descontos e abatimentos",
+              "subcontas": [
+                {
+                  "codigo": "61.8.1",
+                  "nome": "Mercado nacional"
+                },
+                {
+                  "codigo": "61.8.2",
+                  "nome": "Mercado estrangeiro"
+                }
+              ]
+            },
+            {
+              "codigo": "61.9",
+              "nome": "Transferência para resultados operacionais"
+            }
+          ]
+        },
+        {
+          "codigo": "62",
+          "nome": "Prestações de serviços",
+          "subcontas": [
+            {
+              "codigo": "62.1",
+              "nome": "Serviços principais",
+              "subcontas": [
+                {
+                  "codigo": "62.1.1",
+                  "nome": "Mercado nacional"
+                },
+                {
+                  "codigo": "62.1.2",
+                  "nome": "Mercado estrangeiro"
+                }
+              ]
+            },
+            {
+              "codigo": "62.2",
+              "nome": "Serviços secundários",
+              "subcontas": [
+                {
+                  "codigo": "62.2.1",
+                  "nome": "Mercado nacional"
+                },
+                {
+                  "codigo": "62.2.2",
+                  "nome": "Mercado estrangeiro"
+                }
+              ]
+            },
+            {
+              "codigo": "62.8",
+              "nome": "Descontos e abatimentos",
+              "subcontas": [
+                {
+                  "codigo": "62.8.1",
+                  "nome": "Mercado nacional"
+                },
+                {
+                  "codigo": "62.8.2",
+                  "nome": "Mercado estrangeiro"
+                }
+              ]
+            },
+            {
+              "codigo": "62.9",
+              "nome": "Transferência para resultados operacionais"
+            }
+          ]
+        },
+        {
+          "codigo": "63",
+          "nome": "Outros proveitos operacionais",
+          "subcontas": [
+            {
+              "codigo": "63.1",
+              "nome": "Serviços suplementares",
+              "subcontas": [
+                {
+                  "codigo": "63.1.1",
+                  "nome": "Aluguer de equipamento"
+                },
+                {
+                  "codigo": "63.1.2",
+                  "nome": "Cedência de pessoal"
+                },
+                {
+                  "codigo": "63.1.3",
+                  "nome": "Cedência de energia"
+                },
+                {
+                  "codigo": "63.1.4",
+                  "nome": "Estudos, projectos e assistência técnica"
+                }
+              ]
+            },
+            {
+              "codigo": "63.2",
+              "nome": "Royalties"
+            },
+            {
+              "codigo": "63.3",
+              "nome": "Subsídios à exploração"
+            },
+            {
+              "codigo": "63.4",
+              "nome": "Subsídios a investimento"
+            },
+            {
+              "codigo": "63.5",
+              "nome": "IVA"
+            },
+            {
+              "codigo": "63.8",
+              "nome": "Outros proveitos e ganhos operacionais"
+            },
+            {
+              "codigo": "63.9",
+              "nome": "Transferência para resultados operacionais"
+            }
+          ]
+        },
+        {
+          "codigo": "64",
+          "nome": "Variação nos inventários de produtos acabados e de produção em curso",
+          "subcontas": [
+            {
+              "codigo": "64.1",
+              "nome": "Produtos e trabalhos em curso"
+            },
+            {
+              "codigo": "64.2",
+              "nome": "Produtos acabados"
+            },
+            {
+              "codigo": "64.3",
+              "nome": "Produtos intermédios"
+            },
+            {
+              "codigo": "64.9",
+              "nome": "Transferência para resultados operacionais"
+            }
+          ]
+        },
+        {
+          "codigo": "65",
+          "nome": "Trabalhos para a própria empresa",
+          "subcontas": [
+            {
+              "codigo": "65.1",
+              "nome": "Para imobilizado",
+              "subcontas": [
+                {
+                  "codigo": "65.1.1",
+                  "nome": "Corpóreo"
+                },
+                {
+                  "codigo": "65.1.2",
+                  "nome": "Incorpóreo"
+                },
+                {
+                  "codigo": "65.1.3",
+                  "nome": "Financeiro"
+                },
+                {
+                  "codigo": "65.1.4",
+                  "nome": "Em curso"
+                }
+              ]
+            },
+            {
+              "codigo": "65.2",
+              "nome": "Para encargos a repartir por exercícios futuros"
+            },
+            {
+              "codigo": "65.9",
+              "nome": "Transferência para resultados operacionais"
+            }
+          ]
+        },
+        {
+          "codigo": "66",
+          "nome": "Proveitos e ganhos financeiros gerais",
+          "subcontas": [
+            {
+              "codigo": "66.1",
+              "nome": "Juros",
+              "subcontas": [
+                {
+                  "codigo": "66.1.1",
+                  "nome": "De investimentos financeiros",
+                  "subcontas": [
+                    {
+                      "codigo": "66.1.1.1",
+                      "nome": "Obrigações"
+                    },
+                    {
+                      "codigo": "66.1.1.3",
+                      "nome": "Títulos de participação"
+                    },
+                    {
+                      "codigo": "66.1.1.4",
+                      "nome": "Empréstimos"
+                    },
+                    {
+                      "codigo": "66.1.1.9",
+                      "nome": "Outros"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "66.1.2",
+                  "nome": "De mora relativos a dívidas de terceiros",
+                  "subcontas": [
+                    {
+                      "codigo": "66.1.2.1",
+                      "nome": "Dívidas recebidas a prestações"
+                    },
+                    {
+                      "codigo": "66.1.2.2",
+                      "nome": "De empréstimos a terceiros"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "66.1.5",
+                  "nome": "De aplicações de tesouraria"
+                },
+                {
+                  "codigo": "66.1.4",
+                  "nome": "Desconto de títulos"
+                }
+              ]
+            },
+            {
+              "codigo": "66.2",
+              "nome": "Diferenças de câmbio favoráveis",
+              "subcontas": [
+                {
+                  "codigo": "66.2.1",
+                  "nome": "Realizadas"
+                },
+                {
+                  "codigo": "66.2.2",
+                  "nome": "Não realizadas"
+                }
+              ]
+            },
+            {
+              "codigo": "66.3",
+              "nome": "Descontos de pronto pagamento obtidos"
+            },
+            {
+              "codigo": "66.4",
+              "nome": "Rendimentos de investimentos em imóveis"
+            },
+            {
+              "codigo": "66.5",
+              "nome": "Rendimento de participações de capital",
+              "subcontas": [
+                {
+                  "codigo": "66.5.1",
+                  "nome": "Acções, quotas em outras empresas"
+                },
+                {
+                  "codigo": "66.5.2",
+                  "nome": "Acções, quotas incluídas nos fundos"
+                },
+                {
+                  "codigo": "66.5.3",
+                  "nome": "Acções, quotas incluídas nos títulos negociáveis"
+                }
+              ]
+            },
+            {
+              "codigo": "66.6",
+              "nome": "Ganhos na alienação de aplicações financeiras",
+              "subcontas": [
+                {
+                  "codigo": "66.6.1",
+                  "nome": "Investimentos financeiros",
+                  "subcontas": [
+                    {
+                      "codigo": "66.6.1.1",
+                      "nome": "Subsidiárias"
+                    },
+                    {
+                      "codigo": "66.6.1.2",
+                      "nome": "Associadas"
+                    },
+                    {
+                      "codigo": "66.6.1.3",
+                      "nome": "Outras empresas"
+                    },
+                    {
+                      "codigo": "66.6.1.4",
+                      "nome": "Imóveis"
+                    },
+                    {
+                      "codigo": "66.6.1.5",
+                      "nome": "Fundos"
+                    },
+                    {
+                      "codigo": "66.6.1.9",
+                      "nome": "Outros investimentos"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "66.6.2",
+                  "nome": "Títulos negociáveis"
+                }
+              ]
+            },
+            {
+              "codigo": "66.7",
+              "nome": "Reposição de provisões",
+              "subcontas": [
+                {
+                  "codigo": "66.7.1",
+                  "nome": "Investimentos financeiros",
+                  "subcontas": [
+                    {
+                      "codigo": "66.7.1.1",
+                      "nome": "Subsidiárias"
+                    },
+                    {
+                      "codigo": "66.7.1.2",
+                      "nome": "Associadas"
+                    },
+                    {
+                      "codigo": "66.7.1.3",
+                      "nome": "Outras empresas"
+                    },
+                    {
+                      "codigo": "66.7.1.4",
+                      "nome": "Fundos"
+                    },
+                    {
+                      "codigo": "66.7.1.9",
+                      "nome": "Outros investimentos"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "66.7.2",
+                  "nome": "Aplicações de tesouraria",
+                  "subcontas": [
+                    {
+                      "codigo": "66.7.2.1",
+                      "nome": "Títulos negociáveis"
+                    },
+                    {
+                      "codigo": "66.7.2.2",
+                      "nome": "Depósitos a prazo"
+                    },
+                    {
+                      "codigo": "66.7.2.3",
+                      "nome": "Outros depósitos"
+                    },
+                    {
+                      "codigo": "66.7.2.9",
+                      "nome": "Outros investimentos"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "codigo": "66.9",
+              "nome": "Transferência para resultados financeiros"
+            }
+          ]
+        },
+        {
+          "codigo": "67",
+          "nome": "Proveitos e ganhos financeiros em filiais e associadas",
+          "subcontas": [
+            {
+              "codigo": "67.1",
+              "nome": "Rendimento de participações de capital",
+              "subcontas": [
+                {
+                  "codigo": "67.1.1",
+                  "nome": "Subsidiárias"
+                },
+                {
+                  "codigo": "67.1.2",
+                  "nome": "Associadas"
+                }
+              ]
+            },
+            {
+              "codigo": "67.9",
+              "nome": "Transferência para resultados em filiais e associadas"
+            }
+          ]
+        },
+        {
+          "codigo": "68",
+          "nome": "Outros proveitos e ganhos não operacionais",
+          "subcontas": [
+            {
+              "codigo": "68.1",
+              "nome": "Reposição de provisões",
+              "subcontas": [
+                {
+                  "codigo": "68.1.1",
+                  "nome": "Existências",
+                  "subcontas": [
+                    {
+                      "codigo": "68.1.1.1",
+                      "nome": "Matérias-primas subsidiárias e de consumo"
+                    },
+                    {
+                      "codigo": "68.1.1.2",
+                      "nome": "Produtos e trabalhos em curso"
+                    },
+                    {
+                      "codigo": "68.1.1.3",
+                      "nome": "Produtos acabados e intermédios"
+                    },
+                    {
+                      "codigo": "68.1.1.4",
+                      "nome": "Sub-produtos, desperdícios, resíduos e refugos"
+                    },
+                    {
+                      "codigo": "68.1.1.5",
+                      "nome": "Mercadorias"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "68.1.2",
+                  "nome": "Cobranças duvidosas",
+                  "subcontas": [
+                    {
+                      "codigo": "68.1.2.1",
+                      "nome": "Clientes"
+                    },
+                    {
+                      "codigo": "68.1.2.2",
+                      "nome": "Clientes – títulos a receber"
+                    },
+                    {
+                      "codigo": "68.1.2.3",
+                      "nome": "Clientes – cobrança duvidosa"
+                    },
+                    {
+                      "codigo": "68.1.2.4",
+                      "nome": "Saldos devedores de fornecedores"
+                    },
+                    {
+                      "codigo": "68.1.2.5",
+                      "nome": "Participantes e participadas"
+                    },
+                    {
+                      "codigo": "68.1.2.6",
+                      "nome": "Dívidas do Pessoal"
+                    },
+                    {
+                      "codigo": "68.1.2.9",
+                      "nome": "Outros saldos a receber"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "68.1.3",
+                  "nome": "Riscos e encargos",
+                  "subcontas": [
+                    {
+                      "codigo": "68.1.3.1",
+                      "nome": "Pensões"
+                    },
+                    {
+                      "codigo": "68.1.3.2",
+                      "nome": "Processos judiciais em curso"
+                    },
+                    {
+                      "codigo": "68.1.3.3",
+                      "nome": "Acidentes de trabalho"
+                    },
+                    {
+                      "codigo": "68.1.3.4",
+                      "nome": "Garantias dadas a clientes"
+                    },
+                    {
+                      "codigo": "68.1.3.9",
+                      "nome": "Outros riscos e encargos"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "codigo": "68.2",
+              "nome": "Anulação de amortizações extraordinárias",
+              "subcontas": [
+                {
+                  "codigo": "68.2.1",
+                  "nome": "Imobilizações corpóreas"
+                },
+                {
+                  "codigo": "68.2.2",
+                  "nome": "Imobilizações incorpóreas"
+                }
+              ]
+            },
+            {
+              "codigo": "68.3",
+              "nome": "Ganhos em imobilizações",
+              "subcontas": [
+                {
+                  "codigo": "68.3.1",
+                  "nome": "Venda de imobilizações corpóreas"
+                },
+                {
+                  "codigo": "68.3.2",
+                  "nome": "Venda de imobilizações incorpóreas"
+                }
+              ]
+            },
+            {
+              "codigo": "68.4",
+              "nome": "Ganhos em existências",
+              "subcontas": [
+                {
+                  "codigo": "68.4.1",
+                  "nome": "Sobras"
+                }
+              ]
+            },
+            {
+              "codigo": "68.5",
+              "nome": "Recuperação de dívidas"
+            },
+            {
+              "codigo": "68.6",
+              "nome": "Benefícios de penalidades contratuais"
+            },
+            {
+              "codigo": "68.8",
+              "nome": "Descontinuidade de operações"
+            },
+            {
+              "codigo": "68.9",
+              "nome": "Alterações de políticas contabilísticas"
+            },
+            {
+              "codigo": "68.10",
+              "nome": "Correcções relativas a exercícios anteriores",
+              "subcontas": [
+                {
+                  "codigo": "68.10.1",
+                  "nome": "Estimativa impostos"
+                },
+                {
+                  "codigo": "68.10.2",
+                  "nome": "Restituição de impostos"
+                }
+              ]
+            },
+            {
+              "codigo": "68.11",
+              "nome": "Outros ganhos e perdas não operacionais",
+              "subcontas": [
+                {
+                  "codigo": "68.11.1",
+                  "nome": "Donativos"
+                }
+              ]
+            },
+            {
+              "codigo": "68.19",
+              "nome": "Transferência para resultados não operacionais"
+            }
+          ]
+        },
+        {
+          "codigo": "69",
+          "nome": "Proveitos e ganhos extraordinários",
+          "subcontas": [
+            {
+              "codigo": "69.1",
+              "nome": "Ganhos resultantes de catástrofes naturais"
+            },
+            {
+              "codigo": "69.2",
+              "nome": "Ganhos resultantes de convulsões políticas"
+            },
+            {
+              "codigo": "69.3",
+              "nome": "Ganhos resultantes de expropriações"
+            },
+            {
+              "codigo": "69.4",
+              "nome": "Ganhos resultantes de sinistros"
+            },
+            {
+              "codigo": "69.5",
+              "nome": "Subsídios"
+            },
+            {
+              "codigo": "69.6",
+              "nome": "Anulação de passivos não exigíveis"
+            },
+            {
+              "codigo": "69.9",
+              "nome": "Transferência para resultados extraordinários"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "classe": "7",
+      "nome": "Custos e Perdas por Natureza",
+      "contas": [
+        {
+          "codigo": "71",
+          "nome": "Custo das mercadorias vendidas e das matérias consumidas",
+          "subcontas": [
+            {
+              "codigo": "71.1",
+              "nome": "Matérias-primas"
+            },
+            {
+              "codigo": "71.2",
+              "nome": "Matérias subsidiárias"
+            },
+            {
+              "codigo": "71.3",
+              "nome": "Materiais diversos"
+            },
+            {
+              "codigo": "71.4",
+              "nome": "Embalagens de consumo"
+            },
+            {
+              "codigo": "71.5",
+              "nome": "Outros materiais"
+            },
+            {
+              "codigo": "71.9",
+              "nome": "Transferência para resultados operacionais"
+            }
+          ]
+        },
+        {
+          "codigo": "72",
+          "nome": "Custos com o pessoal",
+          "subcontas": [
+            {
+              "codigo": "72.1",
+              "nome": "Remunerações – Órgãos sociais"
+            },
+            {
+              "codigo": "72.2",
+              "nome": "Remunerações – Pessoal"
+            },
+            {
+              "codigo": "72.3",
+              "nome": "Pensões",
+              "subcontas": [
+                {
+                  "codigo": "72.3.1",
+                  "nome": "Órgãos sociais"
+                },
+                {
+                  "codigo": "72.3.2",
+                  "nome": "Pessoal"
+                }
+              ]
+            },
+            {
+              "codigo": "72.4",
+              "nome": "Prémios para pensões",
+              "subcontas": [
+                {
+                  "codigo": "72.4.1",
+                  "nome": "Órgãos sociais"
+                },
+                {
+                  "codigo": "72.4.2",
+                  "nome": "Pessoal"
+                }
+              ]
+            },
+            {
+              "codigo": "72.5",
+              "nome": "Encargos sobre remunerações",
+              "subcontas": [
+                {
+                  "codigo": "72.5.1",
+                  "nome": "Órgãos sociais"
+                },
+                {
+                  "codigo": "72.5.2",
+                  "nome": "Pessoal"
+                }
+              ]
+            },
+            {
+              "codigo": "72.6",
+              "nome": "Seguros de acidentes de trabalho e doenças profissionais",
+              "subcontas": [
+                {
+                  "codigo": "72.6.1",
+                  "nome": "Órgãos sociais"
+                },
+                {
+                  "codigo": "72.6.2",
+                  "nome": "Pessoal"
+                }
+              ]
+            },
+            {
+              "codigo": "72.7",
+              "nome": "Formação",
+              "subcontas": [
+                {
+                  "codigo": "72.7.1",
+                  "nome": "Órgãos sociais"
+                },
+                {
+                  "codigo": "72.7.2",
+                  "nome": "Pessoal"
+                }
+              ]
+            },
+            {
+              "codigo": "72.8",
+              "nome": "Outras despesas com o pessoal",
+              "subcontas": [
+                {
+                  "codigo": "72.8.1",
+                  "nome": "Órgãos sociais"
+                },
+                {
+                  "codigo": "72.8.2",
+                  "nome": "Pessoal"
+                }
+              ]
+            },
+            {
+              "codigo": "72.9",
+              "nome": "Transferência para resultados operacionais"
+            }
+          ]
+        },
+        {
+          "codigo": "73",
+          "nome": "Amortizações do exercício",
+          "subcontas": [
+            {
+              "codigo": "73.1",
+              "nome": "Imobilizações corpóreas",
+              "subcontas": [
+                {
+                  "codigo": "73.1.2",
+                  "nome": "Edifícios e outras construções"
+                },
+                {
+                  "codigo": "73.1.3",
+                  "nome": "Equipamento básico"
+                },
+                {
+                  "codigo": "73.1.4",
+                  "nome": "Equipamento de carga e transporte"
+                },
+                {
+                  "codigo": "73.1.5",
+                  "nome": "Equipamento administrativo"
+                },
+                {
+                  "codigo": "73.1.6",
+                  "nome": "Taras e vasilhame"
+                },
+                {
+                  "codigo": "73.1.9",
+                  "nome": "Outras imobilizações corpóreas"
+                }
+              ]
+            },
+            {
+              "codigo": "73.2",
+              "nome": "Imobilizações incorpóreas",
+              "subcontas": [
+                {
+                  "codigo": "73.2.1",
+                  "nome": "Trespasses"
+                },
+                {
+                  "codigo": "73.2.2",
+                  "nome": "Despesas de investigação e desenvolvimento"
+                },
+                {
+                  "codigo": "73.2.3",
+                  "nome": "Propriedade industrial e outros direitos e contratos"
+                },
+                {
+                  "codigo": "73.2.4",
+                  "nome": "Despesas de constituição"
+                },
+                {
+                  "codigo": "73.2.9",
+                  "nome": "Outras imobilizações incorpóreas"
+                }
+              ]
+            },
+            {
+              "codigo": "73.9",
+              "nome": "Transferência para resultados operacionais"
+            }
+          ]
+        },
+        {
+          "codigo": "74",
+          "nome": "(livre)"
+        },
+        {
+          "codigo": "75",
+          "nome": "Outros custos e perdas operacionais",
+          "subcontas": [
+            {
+              "codigo": "75.1",
+              "nome": "Sub-contratos"
+            },
+            {
+              "codigo": "75.2",
+              "nome": "Fornecimentos e serviços de terceiros",
+              "subcontas": [
+                {
+                  "codigo": "75.2.11",
+                  "nome": "Água"
+                },
+                {
+                  "codigo": "75.2.12",
+                  "nome": "Electricidade"
+                },
+                {
+                  "codigo": "75.2.13",
+                  "nome": "Combustíveis e outros fluídos"
+                },
+                {
+                  "codigo": "75.2.14",
+                  "nome": "Conservação e reparação"
+                },
+                {
+                  "codigo": "75.2.15",
+                  "nome": "Material de protecção segurança e conforto"
+                },
+                {
+                  "codigo": "75.2.16",
+                  "nome": "Ferramentas e utensílios de desgaste rápido"
+                },
+                {
+                  "codigo": "75.2.17",
+                  "nome": "Material de escritório"
+                },
+                {
+                  "codigo": "75.2.18",
+                  "nome": "Livros e documentação técnica"
+                },
+                {
+                  "codigo": "75.2.19",
+                  "nome": "Outros fornecimentos"
+                },
+                {
+                  "codigo": "75.2.20",
+                  "nome": "Comunicação"
+                },
+                {
+                  "codigo": "75.2.21",
+                  "nome": "Rendas e alugueres"
+                },
+                {
+                  "codigo": "75.2.22",
+                  "nome": "Seguros"
+                },
+                {
+                  "codigo": "75.2.23",
+                  "nome": "Deslocações e estadas"
+                },
+                {
+                  "codigo": "75.2.24",
+                  "nome": "Despesas de representação"
+                },
+                {
+                  "codigo": "75.2.26",
+                  "nome": "Conservação e reparação"
+                },
+                {
+                  "codigo": "75.2.27",
+                  "nome": "Vigilância e segurança"
+                },
+                {
+                  "codigo": "75.2.28",
+                  "nome": "Limpeza, higiene e conforto"
+                },
+                {
+                  "codigo": "75.2.29",
+                  "nome": "Publicidade e propaganda"
+                },
+                {
+                  "codigo": "75.2.30",
+                  "nome": "Contencioso e notariado"
+                },
+                {
+                  "codigo": "75.2.31",
+                  "nome": "Comissões a intermediários"
+                },
+                {
+                  "codigo": "75.2.32",
+                  "nome": "Assistência técnica",
+                  "subcontas": [
+                    {
+                      "codigo": "75.2.32.1",
+                      "nome": "Estrangeira"
+                    },
+                    {
+                      "codigo": "75.2.32.2",
+                      "nome": "Nacional"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "75.2.33",
+                  "nome": "Trabalhos executados no exterior"
+                },
+                {
+                  "codigo": "75.2.34",
+                  "nome": "Honorários e avenças"
+                },
+                {
+                  "codigo": "75.2.35",
+                  "nome": "Royalties"
+                },
+                {
+                  "codigo": "75.2.39",
+                  "nome": "Outros serviços"
+                }
+              ]
+            },
+            {
+              "codigo": "75.3",
+              "nome": "Impostos",
+              "subcontas": [
+                {
+                  "codigo": "75.3.1",
+                  "nome": "Indirectos",
+                  "subcontas": [
+                    {
+                      "codigo": "75.3.1.1",
+                      "nome": "Imposto de selo"
+                    },
+                    {
+                      "codigo": "75.3.1.2",
+                      "nome": "IVA"
+                    },
+                    {
+                      "codigo": "75.3.1.9",
+                      "nome": "Outros impostos"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "75.3.2",
+                  "nome": "Directos",
+                  "subcontas": [
+                    {
+                      "codigo": "75.3.2.1",
+                      "nome": "Imposto de capitais"
+                    },
+                    {
+                      "codigo": "75.3.2.2",
+                      "nome": "Contribuição predial"
+                    },
+                    {
+                      "codigo": "75.3.2.9",
+                      "nome": "Outros impostos"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "codigo": "75.4",
+              "nome": "Despesas confidenciais"
+            },
+            {
+              "codigo": "75.5",
+              "nome": "Quotizações"
+            },
+            {
+              "codigo": "75.6",
+              "nome": "Ofertas e Amostras de existências"
+            },
+            {
+              "codigo": "75.8",
+              "nome": "Outros custos e perdas operacionais"
+            },
+            {
+              "codigo": "75.9",
+              "nome": "Transferências para resultados operacionais"
+            }
+          ]
+        },
+        {
+          "codigo": "76",
+          "nome": "Custos e perdas financeiros gerais",
+          "subcontas": [
+            {
+              "codigo": "76.1",
+              "nome": "Juros",
+              "subcontas": [
+                {
+                  "codigo": "76.1.1",
+                  "nome": "De empréstimos",
+                  "subcontas": [
+                    {
+                      "codigo": "76.1.1.1",
+                      "nome": "Bancários"
+                    },
+                    {
+                      "codigo": "76.1.1.2",
+                      "nome": "Obrigações"
+                    },
+                    {
+                      "codigo": "76.1.1.3",
+                      "nome": "Títulos de participação"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "76.1.2",
+                  "nome": "De descobertos bancários"
+                },
+                {
+                  "codigo": "76.1.3",
+                  "nome": "De mora relativos a dívidas a terceiros"
+                },
+                {
+                  "codigo": "76.1.4",
+                  "nome": "De desconto de títulos"
+                }
+              ]
+            },
+            {
+              "codigo": "76.2",
+              "nome": "Diferenças de câmbio desfavoráveis",
+              "subcontas": [
+                {
+                  "codigo": "76.2.1",
+                  "nome": "Realizadas"
+                },
+                {
+                  "codigo": "76.2.2",
+                  "nome": "Não realizadas"
+                }
+              ]
+            },
+            {
+              "codigo": "76.3",
+              "nome": "Descontos de pronto pagamento concedidos"
+            },
+            {
+              "codigo": "76.4",
+              "nome": "Amortizações de investimentos em imóveis"
+            },
+            {
+              "codigo": "76.5",
+              "nome": "Provisões para aplicações financeiras",
+              "subcontas": [
+                {
+                  "codigo": "76.5.1",
+                  "nome": "Investimentos financeiros",
+                  "subcontas": [
+                    {
+                      "codigo": "76.5.1.1",
+                      "nome": "Subsidiárias"
+                    },
+                    {
+                      "codigo": "76.5.1.2",
+                      "nome": "Associadas"
+                    },
+                    {
+                      "codigo": "76.5.1.3",
+                      "nome": "Outras empresas"
+                    },
+                    {
+                      "codigo": "76.5.1.4",
+                      "nome": "Fundos"
+                    },
+                    {
+                      "codigo": "76.5.1.9",
+                      "nome": "Outros investimentos"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "76.5.2",
+                  "nome": "Aplicações de tesouraria",
+                  "subcontas": [
+                    {
+                      "codigo": "76.5.2.1",
+                      "nome": "Títulos negociáveis"
+                    },
+                    {
+                      "codigo": "76.5.2.2",
+                      "nome": "Depósitos a prazo"
+                    },
+                    {
+                      "codigo": "76.5.2.3",
+                      "nome": "Outros depósitos"
+                    },
+                    {
+                      "codigo": "76.5.2.9",
+                      "nome": "Outros"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "codigo": "76.6",
+              "nome": "Perdas na alienação de aplicações financeiras",
+              "subcontas": [
+                {
+                  "codigo": "76.6.1",
+                  "nome": "Investimentos financeiros",
+                  "subcontas": [
+                    {
+                      "codigo": "76.6.1.1",
+                      "nome": "Subsidiárias"
+                    },
+                    {
+                      "codigo": "76.6.1.2",
+                      "nome": "Associadas"
+                    },
+                    {
+                      "codigo": "76.6.1.3",
+                      "nome": "Outras empresas"
+                    },
+                    {
+                      "codigo": "76.6.1.4",
+                      "nome": "Fundos"
+                    },
+                    {
+                      "codigo": "76.6.1.9",
+                      "nome": "Outros investimentos"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "76.6.2",
+                  "nome": "Aplicações de títulos negociáveis"
+                }
+              ]
+            },
+            {
+              "codigo": "76.7",
+              "nome": "Serviços bancários"
+            },
+            {
+              "codigo": "76.9",
+              "nome": "Transferência para resultados financeiros"
+            }
+          ]
+        },
+        {
+          "codigo": "77",
+          "nome": "Custos e perdas financeiros em filiais e associadas",
+          "subcontas": [
+            {
+              "codigo": "77.9",
+              "nome": "Transferência para resultados financeiros"
+            }
+          ]
+        },
+        {
+          "codigo": "78",
+          "nome": "Outros custos e perdas não operacionais",
+          "subcontas": [
+            {
+              "codigo": "78.1",
+              "nome": "Provisões do exercício",
+              "subcontas": [
+                {
+                  "codigo": "78.1.1",
+                  "nome": "Existências",
+                  "subcontas": [
+                    {
+                      "codigo": "78.1.1.1",
+                      "nome": "Matérias-primas subsidiárias e de consumo"
+                    },
+                    {
+                      "codigo": "78.1.1.2",
+                      "nome": "Produtos e trabalhos em curso"
+                    },
+                    {
+                      "codigo": "78.1.1.3",
+                      "nome": "Produtos acabados e intermédios"
+                    },
+                    {
+                      "codigo": "78.1.1.4",
+                      "nome": "Sub-produtos, desperdícios, resíduos e refugos"
+                    },
+                    {
+                      "codigo": "78.1.1.5",
+                      "nome": "Mercadorias"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "78.1.2",
+                  "nome": "Cobranças Duvidosas",
+                  "subcontas": [
+                    {
+                      "codigo": "78.1.2.1",
+                      "nome": "Clientes"
+                    },
+                    {
+                      "codigo": "78.1.2.2",
+                      "nome": "Clientes – títulos a receber"
+                    },
+                    {
+                      "codigo": "78.1.2.3",
+                      "nome": "Clientes – cobrança duvidosa"
+                    },
+                    {
+                      "codigo": "78.1.2.4",
+                      "nome": "Saldos devedores de fornecedores"
+                    },
+                    {
+                      "codigo": "78.1.2.5",
+                      "nome": "Participantes e participadas"
+                    },
+                    {
+                      "codigo": "78.1.2.6",
+                      "nome": "Dívidas do pessoal"
+                    },
+                    {
+                      "codigo": "78.1.2.9",
+                      "nome": "Outros saldos a receber"
+                    }
+                  ]
+                },
+                {
+                  "codigo": "78.1.3",
+                  "nome": "Riscos e encargos",
+                  "subcontas": [
+                    {
+                      "codigo": "78.1.3.1",
+                      "nome": "Pensões"
+                    },
+                    {
+                      "codigo": "78.1.3.2",
+                      "nome": "Processos judiciais em curso"
+                    },
+                    {
+                      "codigo": "78.1.3.3",
+                      "nome": "Acidentes de trabalho"
+                    },
+                    {
+                      "codigo": "78.1.3.4",
+                      "nome": "Garantias dadas a clientes"
+                    },
+                    {
+                      "codigo": "78.1.3.9",
+                      "nome": "Outros riscos e encargos"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "codigo": "78.2",
+              "nome": "Amortizações extraordinárias",
+              "subcontas": [
+                {
+                  "codigo": "78.2.1",
+                  "nome": "Imobilizações Corpóreas"
+                },
+                {
+                  "codigo": "78.2.2",
+                  "nome": "Imobilizações Incorpóreas"
+                }
+              ]
+            },
+            {
+              "codigo": "78.3",
+              "nome": "Perdas em imobilizações",
+              "subcontas": [
+                {
+                  "codigo": "78.3.1",
+                  "nome": "Venda de imobilizações corpóreas"
+                },
+                {
+                  "codigo": "78.3.2",
+                  "nome": "Venda de imobilizações incorpóreas"
+                },
+                {
+                  "codigo": "78.3.3",
+                  "nome": "Abates"
+                },
+                {
+                  "codigo": "78.3.9",
+                  "nome": "Outras"
+                }
+              ]
+            },
+            {
+              "codigo": "78.4",
+              "nome": "Perdas em existências",
+              "subcontas": [
+                {
+                  "codigo": "78.4.1",
+                  "nome": "Quebras"
+                }
+              ]
+            },
+            {
+              "codigo": "78.5",
+              "nome": "Dívidas incobráveis"
+            },
+            {
+              "codigo": "78.6",
+              "nome": "Multas e penalidades contratuais",
+              "subcontas": [
+                {
+                  "codigo": "78.6.1",
+                  "nome": "Fiscais"
+                },
+                {
+                  "codigo": "78.6.2",
+                  "nome": "Não fiscais"
+                },
+                {
+                  "codigo": "78.6.3",
+                  "nome": "Penalidades contratuais"
+                }
+              ]
+            },
+            {
+              "codigo": "78.7",
+              "nome": "Custos de reestruturação"
+            },
+            {
+              "codigo": "78.8",
+              "nome": "Descontinuidade de operações"
+            },
+            {
+              "codigo": "78.9",
+              "nome": "Alterações de políticas contabilísticas"
+            },
+            {
+              "codigo": "78.10",
+              "nome": "Correcções relativas a exercícios anteriores",
+              "subcontas": [
+                {
+                  "codigo": "78.10.1",
+                  "nome": "Estimativa impostos"
+                }
+              ]
+            },
+            {
+              "codigo": "78.11",
+              "nome": "Outros custos e perdas não operacionais",
+              "subcontas": [
+                {
+                  "codigo": "78.11.1",
+                  "nome": "Donativos"
+                },
+                {
+                  "codigo": "78.11.2",
+                  "nome": "Reembolso de subsídios à exploração"
+                },
+                {
+                  "codigo": "78.11.3",
+                  "nome": "Reembolso de subsídios a investimentos"
+                }
+              ]
+            },
+            {
+              "codigo": "78.19",
+              "nome": "Transferência para resultados não operacionais"
+            }
+          ]
+        },
+        {
+          "codigo": "79",
+          "nome": "Custos e perdas extraordinárias",
+          "subcontas": [
+            {
+              "codigo": "79.1",
+              "nome": "Perdas resultantes de catástrofes naturais"
+            },
+            {
+              "codigo": "79.2",
+              "nome": "Perdas resultantes de convulsões políticas"
+            },
+            {
+              "codigo": "79.3",
+              "nome": "Perdas resultantes de expropriações"
+            },
+            {
+              "codigo": "79.4",
+              "nome": "Perdas resultantes de sinistros"
+            },
+            {
+              "codigo": "79.9",
+              "nome": "Transferência para resultados extraordinários"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "classe": "8",
+      "nome": "Resultados",
+      "contas": [
+        {
+          "codigo": "81",
+          "nome": "Resultados transitados",
+          "subcontas": [
+            {
+              "codigo": "81.1",
+              "nome": "Ano ___",
+              "subcontas": [
+                {
+                  "codigo": "81.1.1",
+                  "nome": "Resultado do ano"
+                },
+                {
+                  "codigo": "81.1.2",
+                  "nome": "Aplicação de resultados"
+                },
+                {
+                  "codigo": "81.1.3",
+                  "nome": "Correcções de erros fundamentais, no exercício seguinte"
+                },
+                {
+                  "codigo": "81.1.4",
+                  "nome": "Efeito das alterações de políticas contabilísticas"
+                },
+                {
+                  "codigo": "81.1.5",
+                  "nome": "Imposto relativo a correcções de erros fundamentais e alterações de políticas contabilísticas"
+                }
+              ]
+            },
+            {
+              "codigo": "81.2",
+              "nome": "Ano ___",
+              "subcontas": [
+                {
+                  "codigo": "81.2.1",
+                  "nome": "Resultado do ano"
+                },
+                {
+                  "codigo": "81.2.2",
+                  "nome": "Aplicação de resultados"
+                },
+                {
+                  "codigo": "81.2.3",
+                  "nome": "Correcções de erros fundamentais, no exercício seguinte"
+                },
+                {
+                  "codigo": "81.2.4",
+                  "nome": "Efeito das alterações de políticas contabilísticas"
+                },
+                {
+                  "codigo": "81.2.5",
+                  "nome": "Imposto relativo a correcções de erros fundamentais e alterações de políticas contabilísticas"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "82",
+          "nome": "Resultados operacionais",
+          "subcontas": [
+            {
+              "codigo": "82.1",
+              "nome": "Vendas"
+            },
+            {
+              "codigo": "82.2",
+              "nome": "Prestações de serviço"
+            },
+            {
+              "codigo": "82.3",
+              "nome": "Outros proveitos operacionais"
+            },
+            {
+              "codigo": "82.4",
+              "nome": "Variação nos inventários de produtos acabados e produtos em vias de fabrico"
+            },
+            {
+              "codigo": "82.5",
+              "nome": "Trabalhos para a própria empresa"
+            },
+            {
+              "codigo": "82.6",
+              "nome": "Custo das mercadorias vendidas e das matérias consumidas"
+            },
+            {
+              "codigo": "82.7",
+              "nome": "Custos com o pessoal"
+            },
+            {
+              "codigo": "82.8",
+              "nome": "Amortizações do exercício"
+            },
+            {
+              "codigo": "82.9",
+              "nome": "Outros custos operacionais"
+            },
+            {
+              "codigo": "82.19",
+              "nome": "Transferência para resultados líquidos"
+            }
+          ]
+        },
+        {
+          "codigo": "83",
+          "nome": "Resultados financeiros",
+          "subcontas": [
+            {
+              "codigo": "83.1",
+              "nome": "Proveitos e ganhos financeiros gerais"
+            },
+            {
+              "codigo": "83.2",
+              "nome": "Custos e perdas financeiros gerais"
+            },
+            {
+              "codigo": "83.9",
+              "nome": "Transferência para resultados líquidos"
+            }
+          ]
+        },
+        {
+          "codigo": "84",
+          "nome": "Resultados em filiais e associadas",
+          "subcontas": [
+            {
+              "codigo": "84.1",
+              "nome": "Proveitos e ganhos em filiais e associadas"
+            },
+            {
+              "codigo": "84.2",
+              "nome": "Custos e perdas em filiais e associadas"
+            },
+            {
+              "codigo": "84.9",
+              "nome": "Transferência para resultados líquidos"
+            }
+          ]
+        },
+        {
+          "codigo": "85",
+          "nome": "Resultados não operacionais",
+          "subcontas": [
+            {
+              "codigo": "85.1",
+              "nome": "Proveitos e ganhos não operacionais"
+            },
+            {
+              "codigo": "85.2",
+              "nome": "Custos e perdas não operacionais"
+            },
+            {
+              "codigo": "85.9",
+              "nome": "Transferência para resultados líquidos"
+            }
+          ]
+        },
+        {
+          "codigo": "86",
+          "nome": "Resultados extraordinários",
+          "subcontas": [
+            {
+              "codigo": "86.1",
+              "nome": "Proveitos e ganhos extraordinários"
+            },
+            {
+              "codigo": "86.2",
+              "nome": "Custos e perdas extraordinários"
+            },
+            {
+              "codigo": "86.9",
+              "nome": "Transferência para resultados líquidos"
+            }
+          ]
+        },
+        {
+          "codigo": "87",
+          "nome": "Imposto sobre os lucros",
+          "subcontas": [
+            {
+              "codigo": "87.1",
+              "nome": "Imposto sobre os resultados correntes"
+            },
+            {
+              "codigo": "87.2",
+              "nome": "Imposto sobre os resultados extraordinários"
+            },
+            {
+              "codigo": "87.9",
+              "nome": "Transferência para resultados líquidos"
+            }
+          ]
+        },
+        {
+          "codigo": "88",
+          "nome": "Resultado líquido do exercício",
+          "subcontas": [
+            {
+              "codigo": "88.1",
+              "nome": "Resultados operacionais"
+            },
+            {
+              "codigo": "88.2",
+              "nome": "Resultados financeiros gerais"
+            },
+            {
+              "codigo": "88.3",
+              "nome": "Resultados em filiais e associadas"
+            },
+            {
+              "codigo": "88.4",
+              "nome": "Resultados não operacionais"
+            },
+            {
+              "codigo": "88.5",
+              "nome": "Imposto sobre os resultados correntes"
+            },
+            {
+              "codigo": "88.6",
+              "nome": "Resultados extraordinários"
+            },
+            {
+              "codigo": "88.7",
+              "nome": "Imposto sobre os resultados extraordinários"
+            },
+            {
+              "codigo": "88.9",
+              "nome": "Transferência para resultados transitados"
+            }
+          ]
+        },
+        {
+          "codigo": "89",
+          "nome": "Dividendos antecipados",
+          "natureza": "devedora",
+          "subcontas": [
+            {
+              "codigo": "89.9",
+              "nome": "Transferência para resultados transitados"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "classe": "9",
+      "nome": "Contabilidade Analítica",
+      "uso": "facultativo",
+      "observacao": "Uso facultativo dependendo da necessidade sentida pela empresa e da ponderação do binómio custo/benefício. Recomenda-se o seu uso para empresas industriais onde o apuramento dos custos de produção se torne moroso e difícil de executar por outra via.",
+      "contas": []
+    }
+  ]
+}
