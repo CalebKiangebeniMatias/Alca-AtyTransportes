@@ -449,7 +449,7 @@
                 <label class="f-label">Mês</label>
                 <select name="mes">
                     {% for valor, rotulo in meses %}
-                    <option value="{{ valor }}" {% if mes_selecionado==valor %}selected{% endif %}>{{ rotulo }}</option>
+                    <option value="{{ valor }}" {% if mes_selecionado == valor %}selected{% endif %}>{{ rotulo }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -457,7 +457,7 @@
                 <label class="f-label">Ano</label>
                 <select name="ano">
                     {% for a in anos %}
-                    <option value="{{ a }}" {% if ano_selecionado==a|stringformat:"s" %}selected{% endif %}>{{ a }}
+                    <option value="{{ a }}" {% if ano_selecionado == a|stringformat:"s" %}selected{% endif %}>{{ a }}
                     </option>
                     {% endfor %}
                 </select>
@@ -467,7 +467,7 @@
                 <select name="sector">
                     <option value="">Todos os sectores</option>
                     {% for s in sectores %}
-                    <option value="{{ s.id }}" {% if request.GET.sector==s.id|stringformat:"s" %}selected{% endif %}>{{
+                    <option value="{{ s.id }}" {% if request.GET.sector == s.id|stringformat:"s" %}selected{% endif %}>{{
                         s.nome }}</option>
                     {% endfor %}
                 </select>
