@@ -1,8 +1,11 @@
 {% extends 'base.html' %}
+
 {% block title %}{{ titulo }}{% endblock %}
+
 {% block breadcrumb %}Caixa › {{ titulo }}{% endblock %}
 
 {% block content %}
+
 <style>
     .cxf-wrapper {
         animation: cxfIn .5s cubic-bezier(.34, 1.56, .64, 1) both;
@@ -137,50 +140,93 @@
 </style>
 
 <div class="cxf-wrapper">
+
+    ```
     <div class="cxf-title">{{ titulo }}</div>
 
     <div class="cxf-card">
+
         <form method="post">
             {% csrf_token %}
 
             <div class="cxf-group">
                 <label class="cxf-label">Sector</label>
+
                 {{ form.sector }}
-                {% if form.sector.errors %}<div class="cxf-error">{{ form.sector.errors|join:", " }}</div>{% endif %}
+
+                {% if form.sector.errors %}
+                <div class="cxf-error">
+                    {{ form.sector.errors|join:", " }}
+                </div>
+                {% endif %}
             </div>
 
             <div class="cxf-group">
                 <label class="cxf-label">Autocarro</label>
+
                 {{ form.autocarro }}
-                {% if form.autocarro.errors %}<div class="cxf-error">{{ form.autocarro.errors|join:", " }}</div>{% endif
-                %}
+
+                {% if form.autocarro.errors %}
+                <div class="cxf-error">
+                    {{ form.autocarro.errors|join:", " }}
+                </div>
+                {% endif %}
             </div>
 
             <div class="cxf-group">
                 <label class="cxf-label">Data</label>
+
                 {{ form.data }}
-                {% if form.data.errors %}<div class="cxf-error">{{ form.data.errors|join:", " }}</div>{% endif %}
+
+                {% if form.data.errors %}
+                <div class="cxf-error">
+                    {{ form.data.errors|join:", " }}
+                </div>
+                {% endif %}
             </div>
 
             <div class="cxf-group">
                 <label class="cxf-label">Valor de Saída de Combustível</label>
+
                 {{ form.valor_saida_combustivel }}
-                {% if form.valor_saida_combustivel.errors %}<div class="cxf-error">{{
-                    form.valor_saida_combustivel.errors|join:", " }}</div>{% endif %}
+
+                {% if form.valor_saida_combustivel.errors %}
+                <div class="cxf-error">
+                    {{ form.valor_saida_combustivel.errors|join:", " }}
+                </div>
+                {% endif %}
             </div>
 
             <div class="cxf-group">
                 <label class="cxf-label">Observação</label>
+
                 {{ form.observacao }}
-                {% if form.observacao.errors %}<div class="cxf-error">{{ form.observacao.errors|join:", " }}</div>{%
-                endif %}
+
+                {% if form.observacao.errors %}
+                <div class="cxf-error">
+                    {{ form.observacao.errors|join:", " }}
+                </div>
+                {% endif %}
             </div>
 
             <div class="cxf-actions">
-                <button type="submit" class="btn-cxf btn-cxf-save"><i class="fas fa-check"></i> Guardar</button>
-                <a href="{% url 'caixa_list' %}" class="btn-cxf btn-cxf-cancel">Cancelar</a>
+
+                <button type="submit" class="btn-cxf btn-cxf-save">
+                    <i class="fas fa-check"></i>
+                    Guardar
+                </button>
+
+                <a href="{% url 'caixa_list' %}" class="btn-cxf btn-cxf-cancel">
+                    Cancelar
+                </a>
+
             </div>
+
         </form>
+
     </div>
+    ```
+
 </div>
+
 {% endblock %}

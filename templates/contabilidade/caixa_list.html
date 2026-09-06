@@ -469,10 +469,7 @@
                 <label class="f-label">Sector</label>
                 <select name="sector">
                     <option value="">Todos os sectores</option>
-                    {% for s in sectores %}
-                    <option value="{{ s.id }}" {% if request.GET.sector == s.id|stringformat:"s" %}selected{% endif %}>{{
-                        s.nome }}</option>
-                    {% endfor %}
+                    {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
                 </select>
             </div>
             <div class="f-group">
