@@ -456,10 +456,13 @@
             <div class="f-group">
                 <label class="f-label">Ano</label>
                 <select name="ano">
-                    {% for a in anos %}
-                    <option value="{{ a }}" {% if ano_selecionado == a|stringformat:"s" %}selected{% endif %}>{{ a }}
-                    </option>
-                    {% endfor %}
+                    <option value="">Todos</option>
+                        <option value="2030">2030</option>
+                        <option value="2029">2029</option>
+                        <option value="2028">2028</option>
+                        <option value="2027">2027</option>
+                        <option value="2026">2026</option>
+                        <option value="2025">2025</option>
                 </select>
             </div>
             <div class="f-group">
