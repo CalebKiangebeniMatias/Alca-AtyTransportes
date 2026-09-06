@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block breadcrumb %}Caixa › {{ titulo }}{% endblock %}
+
+{% block content %}
+<style>
+    .cxf-wrapper {
+        animation: cxfIn .5s cubic-bezier(.34, 1.56, .64, 1) both;
+        max-width: 560px;
+    }
+
+    @keyframes cxfIn {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .cxf-title {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.8rem;
+        letter-spacing: 2px;
+        margin-bottom: 20px;
+    }
+
+    .cxf-card {
+        background: rgba(13, 43, 94, .42);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        backdrop-filter: blur(14px);
+        padding: 24px;
+        box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
+    }
+
+    .cxf-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 18px;
+    }
+
+    .cxf-label {
+        font-size: .68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: rgba(255, 255, 255, .5);
+    }
+
+    .cxf-wrapper select,
+    .cxf-wrapper input[type="date"],
+    .cxf-wrapper input[type="number"],
+    .cxf-wrapper textarea {
+        width: 100%;
+        background: rgba(4, 30, 66, .55);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        color: var(--white);
+        padding: 10px 13px;
+        font-family: 'Barlow', sans-serif;
+        font-size: .9rem;
+        outline: none;
+        -webkit-appearance: none;
+        transition: border-color var(--ease-fast), box-shadow var(--ease-fast);
+    }
+
+    .cxf-wrapper select:focus,
+    .cxf-wrapper input:focus,
+    .cxf-wrapper textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(79, 195, 247, .15);
+        background: rgba(4, 30, 66, .85);
+    }
+
+    .cxf-wrapper select option {
+        background: var(--navy);
+        color: var(--white);
+    }
+
+    .cxf-wrapper textarea {
+        resize: vertical;
+    }
+
+    .cxf-error {
+        color: #ff8a80;
+        font-size: .75rem;
+        margin-top: 4px;
+    }
+
+    .cxf-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 22px;
+    }
+
+    .btn-cxf {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 10px 22px;
+        border: none;
+        border-radius: var(--radius-md);
+        font-family: 'Barlow Condensed', sans-serif;
+        font-weight: 700;
+        font-size: .88rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        cursor: pointer;
+        text-decoration: none;
+        transition: transform var(--ease-spring), box-shadow var(--ease-base);
+    }
+
+    .btn-cxf-save {
+        background: var(--success);
+        color: var(--white);
+        box-shadow: 0 4px 16px rgba(39, 174, 96, .3);
+    }
+
+    .btn-cxf-save:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-cxf-cancel {
+        background: rgba(255, 255, 255, .06);
+        border: 1px solid var(--glass-border);
+        color: rgba(255, 255, 255, .7);
+    }
+
+    .btn-cxf-cancel:hover {
+        background: rgba(255, 255, 255, .1);
+    }
+</style>
+
+<div class="cxf-wrapper">
+    <div class="cxf-title">{{ titulo }}</div>
+
+    <div class="cxf-card">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="cxf-group">
+                <label class="cxf-label">Sector</label>
+                {{ form.sector }}
+                {% if form.sector.errors %}<div class="cxf-error">{{ form.sector.errors|join:", " }}</div>{% endif %}
+            </div>
+
+            <div class="cxf-group">
+                <label class="cxf-label">Autocarro</label>
+                {{ form.autocarro }}
+                {% if form.autocarro.errors %}<div class="cxf-error">{{ form.autocarro.errors|join:", " }}</div>{% endif
+                %}
+            </div>
+
+            <div class="cxf-group">
+                <label class="cxf-label">Data</label>
+                {{ form.data }}
+                {% if form.data.errors %}<div class="cxf-error">{{ form.data.errors|join:", " }}</div>{% endif %}
+            </div>
+
+            <div class="cxf-group">
+                <label class="cxf-label">Valor de Saída de Combustível</label>
+                {{ form.valor_saida_combustivel }}
+                {% if form.valor_saida_combustivel.errors %}<div class="cxf-error">{{
+                    form.valor_saida_combustivel.errors|join:", " }}</div>{% endif %}
+            </div>
+
+            <div class="cxf-group">
+                <label class="cxf-label">Observação</label>
+                {{ form.observacao }}
+                {% if form.observacao.errors %}<div class="cxf-error">{{ form.observacao.errors|join:", " }}</div>{%
+                endif %}
+            </div>
+
+            <div class="cxf-actions">
+                <button type="submit" class="btn-cxf btn-cxf-save"><i class="fas fa-check"></i> Guardar</button>
+                <a href="{% url 'caixa_list' %}" class="btn-cxf btn-cxf-cancel">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

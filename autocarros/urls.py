@@ -238,6 +238,11 @@ urlpatterns = [
     path('banco/registos/<int:pk>/editar/', views.movimento_edit, name='movimento_edit'),
     path('banco/registos/<int:pk>/eliminar/', views.movimento_delete, name='movimento_delete'),
     path('banco/movimentos/', views.movimento_list, name='movimento_list'),
+    # CAIXA - COMBUSTIVEL DE CARTÃO
+    path('caixa/novo/', views.caixa_create, name='caixa_create'),
+    path('caixa/<int:pk>/editar/', views.caixa_edit, name='caixa_edit'),
+    path('caixa/<int:pk>/eliminar/', views.caixa_delete, name='caixa_delete'),
+    path('caixa/', views.caixa_list, name='caixa_list'),
 
 ]
 

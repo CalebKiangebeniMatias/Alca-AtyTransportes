@@ -6219,6 +6219,113 @@ def movimento_list(request):
         'sectores': Sector.objects.all(),
     })
 
+# caixa combustivel
+import calendar
+from decimal import Decimal
+
+from django.contrib import messages
+from django.db.models import Sum
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+
+from .forms import CaixaForm
+from .models import Caixa, Sector
+
+
+def caixa_create(request):
+    if request.method == 'POST':
+        form = CaixaForm(request.POST)
+        if form.is_valid():
+            caixa = form.save(commit=False)
+            if request.user.is_authenticated:
+                caixa.responsavel = request.user
+            caixa.save()
+            messages.success(request, 'Registo de caixa lançado com sucesso.')
+            return redirect('caixa_list')
+    else:
+        form = CaixaForm(initial={'data': timezone.now().date()})
+
+    return render(request, 'contabilidade/caixa_form.html', {
+        'form': form,
+        'titulo': 'Lançar Registo de Caixa',
+    })
+
+
+def caixa_edit(request, pk):
+    caixa = get_object_or_404(Caixa, pk=pk)
+
+    if request.method == 'POST':
+        form = CaixaForm(request.POST, instance=caixa)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Registo atualizado com sucesso.')
+            return redirect('caixa_list')
+    else:
+        form = CaixaForm(instance=caixa)
+
+    return render(request, 'contabilidade/caixa_form.html', {
+        'form': form,
+        'titulo': 'Editar Registo de Caixa',
+    })
+
+
+def caixa_delete(request, pk):
+    caixa = get_object_or_404(Caixa, pk=pk)
+    if request.method == 'POST':
+        caixa.delete()
+        messages.success(request, 'Registo eliminado com sucesso.')
+    return redirect('caixa_list')
+
+
+def caixa_list(request):
+    qs = Caixa.objects.select_related('sector', 'autocarro').all().order_by('-data', '-criado_em')
+
+    hoje = timezone.now().date()
+    mes = request.GET.get('mes') or str(hoje.month)
+    ano = request.GET.get('ano') or str(hoje.year)
+
+    if mes:
+        qs = qs.filter(data__month=mes)
+    if ano:
+        qs = qs.filter(data__year=ano)
+
+    sector_id = request.GET.get('sector')
+    if sector_id:
+        qs = qs.filter(sector_id=sector_id)
+
+    autocarro_numero = request.GET.get('autocarro')
+    if autocarro_numero:
+        qs = qs.filter(autocarro__numero__icontains=autocarro_numero)
+
+    total_geral = qs.aggregate(total=Sum('valor_saida_combustivel'))['total'] or Decimal('0.00')
+
+    por_sector = (
+        qs.values('sector__nome')
+        .annotate(total=Sum('valor_saida_combustivel'))
+        .order_by('-total')
+    )
+    por_autocarro = (
+        qs.values('autocarro__numero')
+        .annotate(total=Sum('valor_saida_combustivel'))
+        .order_by('-total')
+    )
+
+    meses = [(str(i), calendar.month_name[i].capitalize()) for i in range(1, 13)]
+    anos = list(range(hoje.year - 3, hoje.year + 1))
+
+    return render(request, 'contabilidade/caixa_list.html', {
+        'caixas': qs,
+        'total_registos': qs.count(),
+        'total_geral': total_geral,
+        'por_sector': por_sector,
+        'por_autocarro': por_autocarro,
+        'sectores': Sector.objects.all().order_by('nome'),
+        'meses': meses,
+        'anos': anos,
+        'mes_selecionado': mes,
+        'ano_selecionado': ano,
+    })
+
 # ═══════════════════════════════════════════════════════════
 # 3. ADICIONAR AS URLS NO urls.py
 # ═══════════════════════════════════════════════════════════

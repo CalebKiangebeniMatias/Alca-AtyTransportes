@@ -1014,3 +1014,47 @@ class MovimentoBancario(models.Model):
 
     def __str__(self):
         return f'{self.get_tipo_display()} — {self.pgc.codigo} — {self.valor}'
+
+
+# CAIXA COMBUSTIVEL SAIDAS DO CARTÃO
+from decimal import Decimal
+
+from django.conf import settings
+from django.db import models
+
+
+class Caixa(models.Model):
+    """
+    Registo diário de Caixa — saída de combustível por autocarro, dentro de
+    um sector. Um registo por autocarro por dia (pode haver mais de um se
+    precisar lançar mais de uma saída no mesmo dia).
+    """
+
+    sector = models.ForeignKey(
+        'Sector', on_delete=models.CASCADE, related_name='caixas'
+    )
+    autocarro = models.ForeignKey(
+        'Autocarro', on_delete=models.CASCADE, related_name='caixas'
+    )
+    data = models.DateField(help_text='Data do lançamento (normalmente hoje)')
+    valor_saida_combustivel = models.DecimalField(
+        max_digits=14, decimal_places=2, default=Decimal('0.00'),
+        help_text='Valor gasto em combustível neste autocarro, neste dia'
+    )
+    observacao = models.TextField(blank=True, null=True)
+
+    responsavel = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='caixas'
+    )
+
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-data', '-criado_em']
+        verbose_name = 'Registo de Caixa'
+        verbose_name_plural = 'Registos de Caixa'
+
+    def __str__(self):
+        return f'{self.data} — {self.autocarro.numero} — {self.valor_saida_combustivel}'

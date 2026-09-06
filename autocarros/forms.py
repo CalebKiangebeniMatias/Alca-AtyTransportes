@@ -669,3 +669,27 @@ class MovimentoBancarioForm(forms.ModelForm):
                 'Escolha uma conta Analítica.'
             )
         return pgc
+
+# CAIXA COMBUSTIVEL DO CARTÃO
+from django import forms
+
+from .models import Autocarro, Caixa, Sector
+
+
+class AutocarroChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return f'Autocarro {obj.numero}'
+
+
+class CaixaForm(forms.ModelForm):
+    autocarro = AutocarroChoiceField(queryset=Autocarro.objects.all().order_by('numero'))
+    sector = forms.ModelChoiceField(queryset=Sector.objects.all().order_by('nome'))
+
+    class Meta:
+        model = Caixa
+        fields = ['sector', 'autocarro', 'data', 'valor_saida_combustivel', 'observacao']
+        widgets = {
+            'data': forms.DateInput(attrs={'type': 'date'}),
+            'valor_saida_combustivel': forms.NumberInput(attrs={'step': '0.01', 'placeholder': '0.00'}),
+            'observacao': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Notas adicionais (opcional)'}),
+        }
