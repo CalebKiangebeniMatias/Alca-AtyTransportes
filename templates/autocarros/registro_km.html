@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load l10n %}
 {% block title %}Registo de KMs{% endblock %}
 {% block breadcrumb %}Frota › Registo de KMs{% endblock %}
 
@@ -222,76 +223,152 @@
 .btn-save-km.loading .sp  { display:inline-block; }
 .btn-save-km.loading .lbl { opacity:.7; }
 
-/* ── REGISTOS HISTÓRICO ──────────────────────────── */
-.reg-item {
-  background: rgba(4,30,66,.4);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
+/* ════════════════════════════════════════════════════
+   ÚLTIMOS REGISTOS — painel de relatório (.rp-*)
+   Cabeçalho azul-marinho, KPIs, tabela por urgência,
+   barras de diferença e estados a cores.
+════════════════════════════════════════════════════ */
+.rp-item {
+  --rp-navy:#0B2545; --rp-ink:#14213D; --rp-grey:#5B6478;
+  --rp-bg:#F4F6FA;   --rp-alt:#F0F3F9; --rp-line:#DDE3EE;
+  --rp-red:#D62839;  --rp-amber:#F59E0B; --rp-amber-tx:#B45309; --rp-green:#12A150;
+  background: var(--rp-bg);
+  border-radius: 14px;
   overflow: hidden;
-  margin-bottom: 14px;
-  transition: border-color var(--ease-fast);
+  margin-bottom: 18px;
+  box-shadow: 0 10px 30px rgba(2,16,40,.35);
+  animation: rpIn .6s cubic-bezier(.2,.8,.2,1) both;
+  animation-delay: calc(var(--i, 0) * 120ms);
 }
-.reg-item:hover { border-color: rgba(79,195,247,.22); }
-.reg-item:last-child { margin-bottom: 0; }
-
-.reg-item-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 14px;
-  background: rgba(36,99,163,.2);
-  border-bottom: 1px solid var(--glass-border);
-}
-.reg-sector {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: .9rem;
-  letter-spacing: 1px; color: var(--white);
-  display: flex; align-items: center; gap: 6px;
-}
-.reg-sector i { color: var(--accent); font-size: .7rem; }
-.reg-date { font-size: .72rem; color: var(--grey); }
-
-/* mini table */
-.reg-table-wrap { overflow-x: auto; }
-.reg-table {
-  width: 100%; border-collapse: collapse; font-size: .78rem;
-}
-.reg-table thead th {
-  background: rgba(4,30,66,.5);
-  color: var(--accent);
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: .65rem;
-  letter-spacing: 1.2px; text-transform: uppercase;
-  padding: 7px 12px;
-  border-bottom: 1px solid rgba(79,195,247,.08);
-  text-align: left; white-space: nowrap;
-}
-.reg-table tbody tr {
-  border-bottom: 1px solid rgba(79,195,247,.05);
-  transition: background var(--ease-fast);
-}
-.reg-table tbody tr:hover { background: rgba(36,99,163,.15); }
-.reg-table tbody td {
-  padding: 8px 12px; color: rgba(255,255,255,.7);
-  white-space: nowrap; vertical-align: middle;
+.rp-item:last-child { margin-bottom: 0; }
+@keyframes rpIn {
+  from { opacity:0; transform:translateY(18px) scale(.985); }
+  to   { opacity:1; transform:none; }
 }
 
-/* status pill */
-.km-status {
-  display: inline-flex; align-items: center; gap: 4px;
-  border-radius: 30px; padding: 2px 8px;
-  font-size: .65rem; font-weight: 700;
-  letter-spacing: .8px; text-transform: uppercase;
+/* cabeçalho */
+.rp-head {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 16px 20px 15px;
+  background: var(--rp-navy);
+  border-bottom: 4px solid var(--rp-amber);
 }
-.km-status.ok      { background:rgba(39,174,96,.12);  border:1px solid rgba(39,174,96,.28);  color:#69f0ae; }
-.km-status.alerta  { background:rgba(243,156,18,.12); border:1px solid rgba(243,156,18,.3);  color:#ffd54f; }
-.km-status.urgente { background:rgba(231,76,60,.12);  border:1px solid rgba(231,76,60,.28);  color:#ff8a80; }
-.km-status.nd      { background:rgba(141,163,196,.08);border:1px solid rgba(141,163,196,.15);color:var(--grey); }
+.rp-head::after {           /* brilho que passa uma vez */
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.14) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: rpShine 1.4s ease .5s 1 forwards;
+  pointer-events: none;
+}
+@keyframes rpShine { to { transform: translateX(120%); } }
+.rp-sector {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.35rem; letter-spacing: 1.5px; line-height: 1;
+  color: #fff; display: flex; align-items: center; gap: 9px;
+}
+.rp-sector i { color: var(--rp-amber); font-size: .95rem; }
+.rp-date { font-size: .78rem; color: #B8C7E0; text-align: right; line-height: 1.25; }
+.rp-date b { display:block; font-size: 1rem; color:#fff; font-family:'Barlow Condensed',sans-serif; letter-spacing:.5px; }
 
-.km-val { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: .88rem; color: var(--white); }
-.km-prox-val { color: var(--accent); font-weight: 700; }
-.km-falta { color: #ffd54f; font-weight: 700; }
-.km-dash  { color: rgba(255,255,255,.2); }
+/* KPIs */
+.rp-kpis {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  padding: 14px 16px 4px;
+}
+.rp-kpi {
+  position: relative;
+  background: #fff; border: 1px solid var(--rp-line); border-radius: 10px;
+  padding: 9px 12px 9px 16px;
+  color: var(--rp-grey); font-size: .68rem; line-height: 1.2;
+}
+.rp-kpi::before {
+  content:''; position:absolute; left:0; top:0; bottom:0; width:6px;
+  border-radius: 10px 0 0 10px; background: var(--kc);
+}
+.rp-kpi b {
+  display:block; font-family:'Bebas Neue',sans-serif;
+  font-size: 2rem; line-height: 1; letter-spacing: 1px; color: var(--kc);
+}
+.rp-kpi[data-k="total"] { --kc: var(--rp-navy); }
+.rp-kpi[data-k="bad"]   { --kc: var(--rp-red); }
+.rp-kpi[data-k="warn"]  { --kc: var(--rp-amber); }
+.rp-kpi[data-k="good"]  { --kc: var(--rp-green); }
 
-/* empty registos */
+/* tabela */
+.rp-table-wrap { overflow-x: auto; padding: 10px 16px 0; }
+.rp-table { width:100%; border-collapse: collapse; font-size: .82rem; min-width: 520px; }
+.rp-table thead th {
+  background: var(--rp-navy); color:#fff;
+  font-family:'Barlow Condensed',sans-serif; font-weight:700;
+  font-size:.72rem; letter-spacing:1.2px; text-transform:uppercase;
+  padding: 10px 12px; white-space: nowrap; text-align:left;
+}
+.rp-table thead th:first-child { border-radius: 8px 0 0 0; }
+.rp-table thead th:last-child  { border-radius: 0 8px 0 0; text-align:center; }
+.rp-table th.r, .rp-table td.r { text-align:right; }
+
+.rp-row {
+  background:#fff; color: var(--rp-ink);
+  animation: rpRow .45s cubic-bezier(.2,.8,.2,1) both;
+  animation-delay: calc(var(--i, 0) * 120ms + 260ms + var(--d, 0) * 55ms);
+}
+.rp-row:nth-child(even) { background: var(--rp-alt); }
+@keyframes rpRow { from { opacity:0; transform:translateX(-14px); } to { opacity:1; transform:none; } }
+.rp-row td {
+  padding: 11px 12px; white-space: nowrap; vertical-align: middle;
+  border-bottom: 1px solid var(--rp-line);
+}
+.rp-row td:first-child { box-shadow: inset 6px 0 0 var(--tc); }
+.rp-row[data-tone="bad"]  { --tc: var(--rp-red); }
+.rp-row[data-tone="warn"] { --tc: var(--rp-amber); }
+.rp-row[data-tone="good"] { --tc: var(--rp-green); }
+.rp-row[data-tone="nd"]   { --tc: #9AA3B5; }
+.rp-row:hover td { background: rgba(11,37,69,.045); }
+
+.rp-bus {
+  display:flex; align-items:center; gap:8px; padding-left: 6px;
+  font-family:'Barlow Condensed',sans-serif; font-weight:700;
+  font-size: 1.1rem; letter-spacing: .5px;
+}
+.rp-bus i { color: var(--rp-navy); font-size:.8rem; opacity:.7; }
+.rp-num { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.05rem; }
+.rp-dash { color:#B3BBCB; }
+
+/* diferença + barra */
+.rp-diff { min-width: 150px; }
+.rp-bar { height: 9px; border-radius: 6px; background: rgba(11,37,69,.08); overflow: hidden; margin-top: 5px; }
+.rp-bar i {
+  display:block; height:100%; width:0; border-radius:6px; background: var(--tc);
+  transition: width .95s cubic-bezier(.2,.8,.2,1);
+}
+.rp-diff-lbl { font-weight:700; font-size:.76rem; color: var(--tc); }
+.rp-row[data-tone="warn"] .rp-diff-lbl { color: var(--rp-amber-tx); }
+
+/* estado */
+.rp-pill {
+  display:inline-block; min-width: 88px; text-align:center;
+  padding: 5px 12px; border-radius: 30px;
+  font-family:'Barlow Condensed',sans-serif; font-weight:700;
+  font-size:.78rem; letter-spacing:1px; text-transform:uppercase;
+  color:#fff; background: var(--tc);
+}
+.rp-row[data-tone="bad"] .rp-pill { animation: rpPulse 2.4s ease-in-out 1.6s infinite; }
+@keyframes rpPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(214,40,57,.45); }
+  50%     { box-shadow: 0 0 0 7px rgba(214,40,57,0); }
+}
+
+/* legenda */
+.rp-legend {
+  display:flex; flex-wrap:wrap; gap: 6px 18px;
+  padding: 12px 20px 14px; font-size:.7rem; color: var(--rp-grey);
+}
+.rp-legend span { display:inline-flex; align-items:center; gap:6px; }
+.rp-legend i { width:11px; height:11px; border-radius:3px; display:inline-block; }
+.rp-legend em { font-style:normal; font-weight:700; color: var(--rp-navy); flex-basis:100%; }
+
+/* vazio */
 .reg-empty {
   text-align: center; padding: 40px 16px;
   color: rgba(255,255,255,.25);
@@ -326,6 +403,11 @@
 @media (max-width: 560px) {
   .km-card-footer { flex-wrap: wrap; }
   .btn-km { flex: 1; justify-content: center; }
+  .rp-kpis { grid-template-columns: repeat(2, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rp-item, .rp-row, .rp-head::after, .rp-pill { animation: none !important; }
+  .rp-bar i { transition: none; }
 }
 </style>
 
@@ -406,67 +488,71 @@
       </div>
 
       <div class="km-card-body" style="padding-bottom:20px">
-        <div id="lista_registros" style="max-height:560px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(79,195,247,.2) transparent">
+        <div id="lista_registros" style="max-height:640px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(79,195,247,.2) transparent">
           {% for r in registros %}
-          <div class="reg-item">
-            <div class="reg-item-header">
-              <div class="reg-sector">
-                <i class="fas fa-map-marker-alt"></i>
-                {{ r.sector }}
-              </div>
-              <span class="reg-date">{{ r.data_registo }}</span>
+          <div class="rp-item" style="--i:{{ forloop.counter0 }}">
+
+            <div class="rp-head">
+              <div class="rp-sector"><i class="fas fa-map-marker-alt"></i> {{ r.sector }}</div>
+              <div class="rp-date">Data do registo<b>{{ r.data_registo }}</b></div>
             </div>
-            <div class="reg-table-wrap">
-              <table class="reg-table">
+
+            <div class="rp-kpis">
+              <div class="rp-kpi" data-k="total"><b>0</b>Autocarros</div>
+              <div class="rp-kpi" data-k="bad"><b>0</b>Vencidas</div>
+              <div class="rp-kpi" data-k="warn"><b>0</b>Próximas</div>
+              <div class="rp-kpi" data-k="good"><b>0</b>Em dia</div>
+            </div>
+
+            <div class="rp-table-wrap">
+              <table class="rp-table">
                 <thead>
                   <tr>
                     <th>Autocarro</th>
-                    <th>Km Atual</th>
-                    <th>Km Próx.</th>
-                    <th>Falta</th>
+                    <th class="r">Km atual</th>
+                    <th class="r">Km próx.</th>
+                    <th>Diferença</th>
                     <th>Estado</th>
                   </tr>
                 </thead>
                 <tbody>
                   {% for it in r.itens %}
-                  <tr>
+                  {% with s=it.status|lower %}
+                  <tr class="rp-row"
+                      data-tone="{% if s == 'vencida' or s == 'urgente' %}bad{% elif s == 'próxima' or s == 'proxima' or s == 'alerta' %}warn{% elif s == 'ok' %}good{% else %}nd{% endif %}"
+                      data-falta="{% if it.falta is not None %}{{ it.falta|unlocalize }}{% endif %}">
                     <td>
-                      <span style="display:flex;align-items:center;gap:5px">
-                        <i class="fas fa-bus" style="color:var(--accent);font-size:.65rem"></i>
-                        <span class="km-val">{{ it.autocarro_numero }}</span>
-                      </span>
+                      <span class="rp-bus"><i class="fas fa-bus"></i>{{ it.autocarro_numero }}</span>
                     </td>
-                    <td><span class="km-val">{{ it.km_atual }}</span></td>
-                    <td>
-                      {% if it.km_prox %}
-                        <span class="km-prox-val">{{ it.km_prox }}</span>
-                      {% else %}
-                        <span class="km-dash">—</span>
-                      {% endif %}
+                    <td class="r"><span class="rp-num">{{ it.km_atual }}</span></td>
+                    <td class="r">
+                      {% if it.km_prox %}<span class="rp-num">{{ it.km_prox }}</span>{% else %}<span class="rp-dash">—</span>{% endif %}
                     </td>
                     <td>
                       {% if it.falta is not None %}
-                        <span class="km-falta">{{ it.falta }}</span>
+                        <div class="rp-diff">
+                          <span class="rp-diff-lbl">{{ it.falta }}</span>
+                          <div class="rp-bar"><i></i></div>
+                        </div>
                       {% else %}
-                        <span class="km-dash">—</span>
+                        <span class="rp-dash">—</span>
                       {% endif %}
                     </td>
-                    <td>
-                      {% if it.status == 'OK' or it.status == 'ok' %}
-                        <span class="km-status ok"><i class="fas fa-circle" style="font-size:.4rem"></i> {{ it.status }}</span>
-                      {% elif it.status == 'Alerta' or it.status == 'alerta' %}
-                        <span class="km-status alerta"><i class="fas fa-circle" style="font-size:.4rem"></i> {{ it.status }}</span>
-                      {% elif it.status == 'Urgente' or it.status == 'urgente' %}
-                        <span class="km-status urgente"><i class="fas fa-circle" style="font-size:.4rem"></i> {{ it.status }}</span>
-                      {% else %}
-                        <span class="km-status nd">{{ it.status }}</span>
-                      {% endif %}
-                    </td>
+                    <td style="text-align:center"><span class="rp-pill">{{ it.status }}</span></td>
                   </tr>
+                  {% endwith %}
                   {% endfor %}
                 </tbody>
               </table>
             </div>
+
+            <div class="rp-legend">
+              <span><i style="background:var(--rp-red)"></i>Vencida: passou o km da revisão</span>
+              <span><i style="background:var(--rp-amber)"></i>Próxima: perto do limite</span>
+              <span><i style="background:var(--rp-green)"></i>OK: dentro do prazo</span>
+              <em>Ordenado por urgência: maior atraso primeiro.</em>
+            </div>
+
           </div>
           {% empty %}
           <div class="reg-empty">
@@ -503,6 +589,61 @@
   document.querySelectorAll('.km-wrapper select, .km-wrapper input').forEach(function (el) {
     el.classList.remove('form-control', 'form-select', 'form-control-sm');
   });
+
+  /* ── Painel "Últimos Registos": ordenar, KPIs, barras ── */
+  (function () {
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var fmt = function (n) { return String(Math.abs(Math.round(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
+
+    function countUp(el, to, delay) {
+      if (reduce || to === 0) { el.textContent = to; return; }
+      setTimeout(function () {
+        var start = null;
+        (function step(ts) {
+          if (!start) start = ts;
+          var p = Math.min((ts - start) / 700, 1);
+          el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
+          if (p < 1) requestAnimationFrame(step);
+        })(performance.now());
+      }, delay);
+    }
+
+    document.querySelectorAll('.rp-item').forEach(function (item, idx) {
+      var tb = item.querySelector('tbody');
+      if (!tb) return;
+      var rows = Array.from(tb.querySelectorAll('.rp-row'));
+      rows.forEach(function (r) {
+        var v = parseFloat(r.dataset.falta);
+        r._v = isNaN(v) ? null : v;
+      });
+      /* mais atrasado primeiro; sem valor no fim */
+      rows.sort(function (a, b) {
+        if (a._v === null) return 1;
+        if (b._v === null) return -1;
+        return a._v - b._v;
+      });
+      var max = Math.max.apply(null, rows.map(function (r) { return r._v === null ? 0 : Math.abs(r._v); }).concat([1]));
+      var c = { total: rows.length, bad: 0, warn: 0, good: 0 };
+      var base = idx * 120 + 260;
+
+      rows.forEach(function (r, i) {
+        tb.appendChild(r);
+        r.style.setProperty('--d', i);
+        if (c[r.dataset.tone] !== undefined) c[r.dataset.tone]++;
+        if (r._v === null) return;
+        var lbl = r.querySelector('.rp-diff-lbl');
+        var bar = r.querySelector('.rp-bar i');
+        lbl.textContent = fmt(r._v) + (r._v < 0 ? ' km em atraso' : ' km restantes');
+        var w = Math.max(4, Math.abs(r._v) / max * 100) + '%';
+        if (reduce) bar.style.width = w;
+        else setTimeout(function () { bar.style.width = w; }, base + 250 + i * 55);
+      });
+
+      item.querySelectorAll('.rp-kpi').forEach(function (k, j) {
+        countUp(k.querySelector('b'), c[k.dataset.k] || 0, idx * 120 + 200 + j * 90);
+      });
+    });
+  })();
 
   /* ── Carregar autocarros ─────────────────────────── */
   document.getElementById('btn_carregar').addEventListener('click', async function () {
