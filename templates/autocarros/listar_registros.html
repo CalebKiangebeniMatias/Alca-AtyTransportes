@@ -9,541 +9,345 @@
 <style>
 /* ════════════════════════════════════════════════════
    LISTAR REGISTOS DIÁRIOS
+   Mesmo visual das restantes páginas: painéis claros com
+   cabeçalho azul-marinho + linha âmbar, KPIs e animações.
 ════════════════════════════════════════════════════ */
-
 .lr-wrapper {
+  --lr-navy:#0B2545; --lr-ink:#14213D; --lr-grey:#5B6478;
+  --lr-bg:#F4F6FA;   --lr-alt:#F0F3F9; --lr-line:#DDE3EE;
+  --lr-red:#D62839;  --lr-amber:#F59E0B; --lr-amber-tx:#B45309; --lr-green:#12A150; --lr-blue:#2463A3;
   animation: lrIn .5s cubic-bezier(.34,1.56,.64,1) both;
 }
-@keyframes lrIn {
-  from { opacity:0; transform:translateY(16px); }
-  to   { opacity:1; transform:translateY(0); }
-}
+@keyframes lrIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+@keyframes lrUp { from { opacity:0; transform:translateY(18px) scale(.985); } to { opacity:1; transform:none; } }
+@keyframes lrShine { to { transform: translateX(120%); } }
 
-/* ── PAGE HEADER ─────────────────────────────────── */
-.lr-header {
-  display: flex; align-items: flex-end;
-  justify-content: space-between; flex-wrap: wrap;
-  gap: 14px; margin-bottom: 24px;
-}
-.lr-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.9rem; letter-spacing: 2px; line-height: 1;
-}
+/* ── HEADER ──────────────────────────────────────── */
+.lr-header { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:14px; margin-bottom:24px; }
+.lr-title { font-family:'Bebas Neue',sans-serif; font-size:1.9rem; letter-spacing:2px; line-height:1; }
 .lr-title span { color: var(--accent); }
-.lr-subtitle { font-size: .8rem; color: var(--grey); margin-top: 4px; }
+.lr-subtitle { font-size:.8rem; color: var(--grey); margin-top:4px; }
+.lr-actions-top { display:flex; gap:10px; flex-wrap:wrap; }
 
-/* ── STAT STRIP ──────────────────────────────────── */
-.stat-strip {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px; margin-bottom: 24px;
-}
-.sstat {
-  background: rgba(13,43,94,.42);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  padding: 14px 18px;
-  display: flex; align-items: center; gap: 14px;
-  transition: transform var(--ease-spring), border-color var(--ease-fast);
-  backdrop-filter: blur(8px);
-}
-.sstat:hover { transform: translateY(-3px); border-color: rgba(79,195,247,.3); }
-.sstat-icon {
-  width: 40px; height: 40px; flex-shrink: 0;
-  border-radius: var(--radius-sm);
-  display: flex; align-items: center; justify-content: center;
-  font-size: .95rem;
-}
-.sstat-icon.grupos  { background:rgba(79,195,247,.12); color:var(--accent); }
-.sstat-icon.registos{ background:rgba(30,136,229,.12); color:#64b5f6; }
-.sstat-icon.entrada { background:rgba(39,174,96,.12);  color:#69f0ae; }
-.sstat-icon.saldo   { background:rgba(243,156,18,.12); color:#ffd54f; }
-.sstat-val {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.4rem; letter-spacing: 1px; line-height: 1;
-  color: var(--white);
-}
-.sstat-lbl {
-  font-size: .68rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 1px;
-  color: var(--grey); margin-top: 3px;
-}
-
-/* ── FILTER CARD ─────────────────────────────────── */
-.filter-card {
-  background: rgba(13,43,94,.42);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  padding: 18px 22px;
-  margin-bottom: 24px;
-}
-.filter-card-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: .88rem;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  color: rgba(255,255,255,.5);
-  margin-bottom: 14px;
-  display: flex; align-items: center; gap: 8px;
-}
-.filter-card-title i { color: var(--accent); }
-.filter-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
-.f-group { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
-.f-label {
-  font-size: .7rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 1px;
-  color: rgba(255,255,255,.42); margin-bottom: 5px;
-}
-
-/* fields override */
-.lr-wrapper select,
-.lr-wrapper input[type="date"] {
-  background: rgba(4,30,66,.55) !important;
-  border: 1px solid var(--glass-border) !important;
-  border-radius: var(--radius-md) !important;
-  color: var(--white) !important;
-  padding: 9px 13px !important;
-  font-family: 'Barlow', sans-serif !important;
-  font-size: .88rem !important;
-  transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
-  outline: none !important;
-  width: 100%; -webkit-appearance: none;
-}
-.lr-wrapper select:focus,
-.lr-wrapper input[type="date"]:focus {
-  border-color: var(--accent) !important;
-  background: rgba(4,30,66,.85) !important;
-  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
-}
-.lr-wrapper select option { background: var(--navy); color: var(--white); }
-.lr-wrapper input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7); }
-
-/* ── BUTTONS ─────────────────────────────────────── */
+/* ── BOTÕES ──────────────────────────────────────── */
 .btn-lr {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 9px 20px;
-  border: none; border-radius: var(--radius-md);
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: .88rem;
-  letter-spacing: 1px; text-transform: uppercase;
-  cursor: pointer; white-space: nowrap; text-decoration: none;
-  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+  position:relative; overflow:hidden;
+  display:inline-flex; align-items:center; gap:7px; padding:9px 20px; border:none; border-radius: var(--radius-md);
+  font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:.88rem; letter-spacing:1px; text-transform:uppercase;
+  cursor:pointer; white-space:nowrap; text-decoration:none;
+  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast), color var(--ease-fast);
 }
+.btn-lr::before {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.14), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-lr:hover::before { transform: translateX(100%); }
 .btn-lr:hover  { transform: translateY(-2px); }
 .btn-lr:active { transform: scale(.97); }
 
-.btn-primary-lr { background: var(--grad-btn); color: var(--white); box-shadow: var(--shadow-sm); }
-.btn-primary-lr:hover { box-shadow: 0 6px 20px rgba(36,99,163,.4); color: var(--white); }
+.btn-primary-lr { background: var(--grad-btn); color:#fff; box-shadow: var(--shadow-sm); }
+.btn-primary-lr:hover { box-shadow:0 6px 20px rgba(36,99,163,.4); color:#fff; }
+.btn-success-lr { background: var(--success); color:#fff; }
+.btn-success-lr:hover { background:#219150; box-shadow:0 6px 18px rgba(39,174,96,.3); color:#fff; }
+.btn-print-lr { background: rgba(79,195,247,.1); color: var(--accent); border:1px solid rgba(79,195,247,.3); }
+.btn-print-lr:hover { background: rgba(79,195,247,.2); color: var(--accent); }
 
-.btn-outline-lr {
-  background: transparent;
-  border: 1px solid var(--glass-border) !important;
-  color: rgba(255,255,255,.6);
-}
-.btn-outline-lr:hover { background: rgba(255,255,255,.07); color: var(--white); }
+/* sobre fundo escuro (filtros / cabeçalho azul-marinho) */
+.btn-ghost-lr { background: rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.25); color:#fff; }
+.btn-ghost-lr:hover { background: rgba(245,158,11,.18); border-color: var(--lr-amber); color: var(--lr-amber); }
+.btn-danger-lr { background: rgba(214,40,57,.18); border:1px solid rgba(255,138,128,.5); color:#ffb4ac; }
+.btn-danger-lr:hover { background: var(--lr-red); border-color: var(--lr-red); color:#fff; }
 
-.btn-success-lr { background: var(--success); color: var(--white); }
-.btn-success-lr:hover { background:#219150; box-shadow:0 6px 18px rgba(39,174,96,.3); color:var(--white); }
+/* sobre fundo claro (rodapé do grupo / modais) */
+.btn-outline-lr { background:#fff; border:1.5px solid var(--lr-navy); color: var(--lr-navy); }
+.btn-outline-lr:hover { background: var(--lr-navy); color:#fff; }
+.btn-warn-lr { background: var(--lr-amber); color: var(--lr-navy); }
+.btn-warn-lr:hover { background:#d98a06; color: var(--lr-navy); box-shadow:0 6px 18px rgba(245,158,11,.35); }
+.btn-wa { background: linear-gradient(135deg,#25d366,#128c7e); color:#fff; box-shadow:0 4px 14px rgba(37,211,102,.25); }
+.btn-wa:hover { box-shadow:0 8px 22px rgba(37,211,102,.38); color:#fff; }
+.btn-wa-dis { background: var(--lr-alt); border:1px solid var(--lr-line); color:#9AA3B5; cursor:not-allowed; }
 
-.btn-danger-lr {
-  background: rgba(231,76,60,.15);
-  border: 1px solid rgba(231,76,60,.3) !important;
-  color: #ff8a80;
-}
-.btn-danger-lr:hover { background: rgba(231,76,60,.28); }
-
-.btn-wa {
-  background: linear-gradient(135deg, #25d366, #128c7e);
-  color: var(--white); box-shadow: 0 4px 14px rgba(37,211,102,.25);
-}
-.btn-wa:hover { box-shadow: 0 8px 22px rgba(37,211,102,.38); color: var(--white); }
-.btn-wa:disabled,
-.btn-wa-dis {
-  background: rgba(255,255,255,.07);
-  border: 1px solid var(--glass-border) !important;
-  color: rgba(255,255,255,.3);
-  cursor: not-allowed; transform: none !important;
-}
-
-/* small icon btn */
 .btn-icon-sm {
-  width: 30px; height: 30px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--glass-border);
-  background: transparent;
-  color: var(--grey);
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: .8rem; cursor: pointer; text-decoration: none;
-  transition: background var(--ease-fast), color var(--ease-fast), border-color var(--ease-fast);
+  width:30px; height:30px; border-radius: var(--radius-sm); border:1.5px solid var(--lr-red); background:#fff; color: var(--lr-red);
+  display:inline-flex; align-items:center; justify-content:center; font-size:.78rem; cursor:pointer;
+  transition: background var(--ease-fast), color var(--ease-fast), transform var(--ease-spring);
 }
-.btn-icon-sm:hover { background: rgba(79,195,247,.12); color: var(--accent); border-color: rgba(79,195,247,.3); }
-.btn-icon-sm.danger:hover { background: rgba(231,76,60,.15); color: #ff8a80; border-color: rgba(231,76,60,.3); }
+.btn-icon-sm:hover { background: var(--lr-red); color:#fff; transform: scale(1.12); }
 
-/* ── GRUPO CARD ──────────────────────────────────── */
+/* ── KPIs ────────────────────────────────────────── */
+.stat-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
+.lr-kpi {
+  --kc: var(--lr-navy);
+  position:relative; overflow:hidden;
+  background: var(--lr-bg); border-radius:12px; padding:14px 18px 14px 26px;
+  display:flex; align-items:center; gap:14px;
+  box-shadow: var(--shadow-panel, 0 10px 30px rgba(2,16,40,.35));
+  animation: lrUp .6s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--k,0) * 90ms + 120ms);
+  transition: transform var(--ease-base), box-shadow var(--ease-base);
+}
+.lr-kpi::before { content:''; position:absolute; left:0; top:0; bottom:0; width:8px; background: var(--kc); }
+.lr-kpi:hover { transform: translateY(-3px); box-shadow:0 14px 34px rgba(2,16,40,.45); }
+.lr-kpi-ico {
+  width:42px; height:42px; flex-shrink:0; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  background:#fff; border:1px solid var(--lr-line); color: var(--kc); font-size:.98rem;
+  transition: transform var(--ease-spring);
+}
+.lr-kpi:hover .lr-kpi-ico { transform: scale(1.1) rotate(-6deg); }
+.lr-kpi-val { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; letter-spacing:1px; line-height:1; color: var(--kc); }
+.lr-kpi-lbl { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color: var(--lr-grey); margin-top:3px; }
+
+/* ── FILTROS (fundo escuro, como nas outras páginas) ─ */
+.filter-card {
+  background: rgba(13,43,94,.42); border:1px solid var(--glass-border); border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  padding:18px 22px; margin-bottom:24px;
+  animation: lrUp .55s cubic-bezier(.2,.8,.2,1) .1s both;
+}
+.filter-card-title {
+  font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:.88rem; letter-spacing:1.5px; text-transform:uppercase;
+  color: rgba(255,255,255,.6); margin-bottom:14px; display:flex; align-items:center; gap:8px;
+}
+.filter-card-title::before { content:''; width:14px; height:2px; border-radius:2px; background: var(--lr-amber); }
+.filter-card-title i { color: var(--lr-amber); }
+.filter-row { display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end; }
+.f-group { display:flex; flex-direction:column; flex:1; min-width:140px; }
+.f-label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color: rgba(255,255,255,.42); margin-bottom:5px; }
+
+.lr-wrapper .filter-card select,
+.lr-wrapper .filter-card input[type="date"] {
+  background: rgba(4,30,66,.55) !important; border:1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important; color: var(--white) !important; padding:9px 13px !important;
+  font-family:'Barlow',sans-serif !important; font-size:.88rem !important;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+  outline:none !important; width:100%; -webkit-appearance:none;
+}
+.lr-wrapper .filter-card select:focus,
+.lr-wrapper .filter-card input[type="date"]:focus {
+  border-color: var(--accent) !important; background: rgba(4,30,66,.85) !important; box-shadow:0 0 0 3px rgba(79,195,247,.15) !important;
+}
+.lr-wrapper .filter-card select option { background: var(--navy); color: var(--white); }
+.lr-wrapper .filter-card input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7); }
+
+/* ── GRUPO ───────────────────────────────────────── */
 .grupo-card {
-  background: rgba(13,43,94,.42);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 8px 28px rgba(4,30,66,.28);
-  overflow: hidden;
-  margin-bottom: 20px;
-  transition: border-color var(--ease-fast);
+  background: var(--lr-bg); border-radius:14px; overflow:hidden; margin-bottom:22px;
+  box-shadow: 0 10px 30px rgba(2,16,40,.35); color: var(--lr-ink);
+  animation: lrUp .6s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(min(var(--i,0), 6) * 90ms + 200ms);
 }
-.grupo-card:hover { border-color: rgba(79,195,247,.25); }
-
-/* Header do grupo */
 .grupo-header {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  padding: 14px 20px;
-  background: linear-gradient(90deg, rgba(36,99,163,.4), rgba(4,30,66,.25));
-  border-bottom: 1px solid var(--glass-border);
-  flex-wrap: wrap; gap: 10px;
+  position:relative; overflow:hidden;
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  padding:14px 20px 13px; background: var(--lr-navy); border-bottom:4px solid var(--lr-amber);
 }
-.grupo-header-left { display: flex; flex-direction: column; gap: 3px; }
-.grupo-sector {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.4rem; letter-spacing: 2px; line-height: 1;
-  color: var(--white);
+.grupo-header::after {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.14) 50%, transparent 65%);
+  transform: translateX(-120%); animation: lrShine 1.4s ease .7s 1 forwards; pointer-events:none;
 }
-.grupo-meta {
-  display: flex; align-items: center; gap: 10px;
-  flex-wrap: wrap;
+.grupo-header-left { display:flex; align-items:center; gap:12px; }
+.grupo-toggle {
+  width:34px; height:34px; flex-shrink:0; border-radius:8px; cursor:pointer;
+  background: rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.2); color: var(--lr-amber);
+  display:flex; align-items:center; justify-content:center; font-size:.8rem;
+  transition: background var(--ease-fast), transform var(--ease-spring);
 }
-.grupo-date {
-  font-size: .75rem; color: var(--grey);
-  display: flex; align-items: center; gap: 5px;
-}
-.grupo-date i { color: var(--accent); font-size: .65rem; }
+.grupo-toggle:hover { background: rgba(245,158,11,.2); transform: scale(1.08); }
+.grupo-toggle i { transition: transform .25s ease; }
+.grupo-card.closed .grupo-toggle i { transform: rotate(-90deg); }
+.grupo-sector { font-family:'Bebas Neue',sans-serif; font-size:1.45rem; letter-spacing:2px; line-height:1; color:#fff; }
+.grupo-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:4px; }
+.grupo-date { font-size:.76rem; color:#B8C7E0; display:flex; align-items:center; gap:5px; }
+.grupo-date i { color: var(--lr-amber); font-size:.65rem; }
 .grupo-count {
-  background: rgba(79,195,247,.1);
-  border: 1px solid rgba(79,195,247,.2);
-  border-radius: 30px;
-  padding: 2px 10px;
-  font-size: .7rem; font-weight: 700;
-  letter-spacing: 1px; text-transform: uppercase;
-  color: var(--accent);
+  background: rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.4); border-radius:30px; padding:2px 10px;
+  font-family:'Barlow Condensed',sans-serif; font-size:.74rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color: var(--lr-amber);
 }
-.grupo-header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.grupo-header-right { display:flex; align-items:center; gap:8px; flex-wrap:wrap; position:relative; z-index:1; }
 
-/* ── RESUMO CONSOLIDADO ──────────────────────────── */
-.resumo-consolidado {
-  background: rgba(21,101,192,.12);
-  border-left: 3px solid var(--blue-mid);
-  margin: 0;
-  padding: 18px 20px;
-  border-bottom: 1px solid var(--glass-border);
-}
-.resumo-top {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap; gap: 14px;
-  margin-bottom: 14px;
-}
+/* Resumo consolidado */
+.resumo-consolidado { padding:16px 20px 6px; }
+.resumo-top { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
 .resumo-sector-label {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: .95rem;
-  letter-spacing: 1px; color: var(--white);
-  display: flex; align-items: center; gap: 8px;
+  font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:.95rem; letter-spacing:1.2px; text-transform:uppercase;
+  color: var(--lr-navy); display:flex; align-items:center; gap:8px;
 }
-.resumo-sector-label i { color: var(--accent); }
-.resumo-meta-chips {
-  display: flex; gap: 10px; flex-wrap: wrap;
-}
+.resumo-sector-label i { color: var(--lr-amber-tx); }
+.resumo-meta-chips { display:flex; gap:8px; flex-wrap:wrap; }
 .meta-chip {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: rgba(79,195,247,.07);
-  border: 1px solid rgba(79,195,247,.15);
-  border-radius: 30px; padding: 3px 12px;
-  font-size: .72rem; font-weight: 700; letter-spacing: .8px;
-  color: rgba(255,255,255,.6);
+  display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid var(--lr-line); border-radius:30px; padding:4px 12px;
+  font-family:'Barlow Condensed',sans-serif; font-size:.85rem; font-weight:700; letter-spacing:.5px; color: var(--lr-ink);
 }
-.meta-chip i { color: var(--accent); font-size: .65rem; }
+.meta-chip i { color: var(--lr-navy); opacity:.65; font-size:.7rem; }
 
-/* Resumo financeiro 3 colunas */
-.resumo-fin {
-  display: grid; grid-template-columns: repeat(3,1fr);
-  gap: 1px; background: var(--glass-border);
-  border-radius: var(--radius-md); overflow: hidden;
-}
+.resumo-fin { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
 .rfin-col {
-  background: rgba(4,30,66,.5);
-  padding: 12px 10px; text-align: center;
-  transition: background var(--ease-fast);
+  --kc: var(--lr-navy);
+  position:relative; background:#fff; border:1px solid var(--lr-line); border-radius:10px; padding:10px 12px 10px 18px;
+  transition: transform var(--ease-base);
 }
-.rfin-col:hover { background: rgba(36,99,163,.22); }
-.rfin-lbl {
-  font-size: .65rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 1px;
-  color: var(--grey); margin-bottom: 5px;
-}
-.rfin-val {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.2rem; letter-spacing: .5px; line-height: 1;
-}
-.rfin-val.entrada { color: #69f0ae; }
-.rfin-val.saida   { color: #ff8a80; }
-.rfin-val.saldo   { color: var(--accent); }
-.rfin-unit { font-size: .65rem; color: var(--grey); margin-top: 2px; }
+.rfin-col::before { content:''; position:absolute; left:0; top:0; bottom:0; width:6px; border-radius:10px 0 0 10px; background: var(--kc); }
+.rfin-col:hover { transform: translateY(-2px); }
+.rfin-col.e { --kc: var(--lr-green); } .rfin-col.s { --kc: var(--lr-red); } .rfin-col.b { --kc: var(--lr-blue); }
+.rfin-lbl { font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color: var(--lr-grey); margin-bottom:4px; }
+.rfin-val { font-family:'Bebas Neue',sans-serif; font-size:1.45rem; letter-spacing:.5px; line-height:1; color: var(--kc); }
+.rfin-unit { font-size:.68rem; font-weight:700; color: var(--lr-grey); margin-top:2px; }
 
-/* ── AUTOCARROS GRID ─────────────────────────────── */
-.grupo-body { padding: 16px; }
-.autocarros-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
+/* ── AUTOCARROS ──────────────────────────────────── */
+.grupo-body { padding:16px 20px 18px; }
+.grupo-card.closed .grupo-body { display:none; }
+.autocarros-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
 
-/* Autocarro card */
 .ac-card {
-  background: rgba(4,30,66,.45);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  transition: border-color var(--ease-fast), box-shadow var(--ease-base);
+  --tc: #9AA3B5;
+  background:#fff; border:1px solid var(--lr-line); border-radius:12px; overflow:hidden;
+  box-shadow: 0 2px 10px rgba(11,37,69,.08);
+  transition: box-shadow var(--ease-base), transform var(--ease-base);
 }
-.ac-card:hover { border-color: rgba(79,195,247,.28); box-shadow: 0 6px 20px rgba(4,30,66,.3); }
+.ac-card[data-tone="good"] { --tc: var(--lr-green); }
+.ac-card[data-tone="warn"] { --tc: var(--lr-amber); }
+.ac-card:hover { box-shadow: 0 10px 26px rgba(11,37,69,.18); transform: translateY(-2px); }
 
 .ac-head {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  background: rgba(36,99,163,.2);
-  border-bottom: 1px solid var(--glass-border);
-  gap: 8px;
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:10px 14px 10px 18px; background: var(--lr-alt); border-bottom:1px solid var(--lr-line);
+  box-shadow: inset 6px 0 0 var(--tc);
 }
 .ac-num {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: .95rem; letter-spacing: 1px;
-  color: var(--white); display: flex; align-items: center; gap: 7px;
+  font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.1rem; letter-spacing:.8px;
+  color: var(--lr-ink); display:flex; align-items:center; gap:7px; flex-wrap:wrap;
 }
-.ac-num i { color: var(--accent); font-size: .82rem; }
-.ac-modelo { font-size: .72rem; color: var(--grey); }
+.ac-num i { color: var(--lr-navy); opacity:.7; font-size:.85rem; }
+.ac-modelo { font-family:'Barlow',sans-serif; font-weight:400; font-size:.74rem; color: var(--lr-grey); letter-spacing:0; }
 
 .status-badge {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: .65rem; font-weight: 700;
-  letter-spacing: 1px; text-transform: uppercase;
-  padding: 2px 8px; border-radius: 30px;
+  font-family:'Barlow Condensed',sans-serif; font-size:.72rem; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  padding:3px 11px; border-radius:30px; color:#fff; background: var(--tc);
 }
-.s-validado  { background:rgba(39,174,96,.18);  border:1px solid rgba(39,174,96,.4);  color:#69f0ae; }
-.s-concluido { background:rgba(243,156,18,.15);  border:1px solid rgba(243,156,18,.35);color:#ffd54f; }
-.s-pendente  { background:rgba(141,163,196,.1);  border:1px solid rgba(141,163,196,.22);color:var(--grey); }
+.ac-card[data-tone="good"] .status-badge { animation: lrPulse 2.6s ease-in-out 1.8s infinite; }
+@keyframes lrPulse { 0%,100% { box-shadow:0 0 0 0 rgba(18,161,80,.45); } 50% { box-shadow:0 0 0 6px rgba(18,161,80,0); } }
 
-.ac-body { padding: 13px; }
+.ac-body { padding:13px 14px 14px; }
 
-/* Mini resumo financeiro */
-.ac-resumo {
-  display: grid; grid-template-columns: repeat(3,1fr);
-  gap: 1px; background: var(--glass-border);
-  border-radius: var(--radius-sm); overflow: hidden;
-  margin-bottom: 12px;
-}
-.ac-resumo-col {
-  background: rgba(4,30,66,.5);
-  padding: 8px 6px; text-align: center;
-}
-.ac-resumo-lbl { font-size: .6rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--grey); }
-.ac-resumo-val { font-family:'Bebas Neue',sans-serif; font-size:.95rem; margin-top:2px; }
-.ac-resumo-val.e { color:#69f0ae; }
-.ac-resumo-val.s { color:#ff8a80; }
-.ac-resumo-val.b { color:var(--accent); }
+.ac-resumo { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+.ac-resumo-col { background: var(--lr-bg); border:1px solid var(--lr-line); border-radius:8px; padding:7px 6px; text-align:center; }
+.ac-resumo-lbl { font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color: var(--lr-grey); }
+.ac-resumo-val { font-family:'Bebas Neue',sans-serif; font-size:1.05rem; letter-spacing:.5px; margin-top:2px; }
+.ac-resumo-val.e { color: var(--lr-green); } .ac-resumo-val.s { color: var(--lr-red); } .ac-resumo-val.b { color: var(--lr-blue); }
 
-/* Equipa */
-.ac-equipa {
-  display: grid; grid-template-columns: repeat(3,1fr);
-  gap: 6px; margin-bottom: 12px;
-}
-.eq-item { display: flex; flex-direction: column; gap: 2px; }
-.eq-lbl {
-  font-size: .62rem; font-weight:700;
-  text-transform:uppercase; letter-spacing:.8px;
-  color: rgba(255,255,255,.35);
-}
-.eq-val { font-size: .78rem; color: rgba(255,255,255,.75); font-weight:600; }
+.ac-equipa { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; padding:8px 10px; background: var(--lr-alt); border-radius:8px; }
+.eq-item { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.eq-lbl { font-size:.6rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#8790A3; }
+.eq-val { font-size:.8rem; color: var(--lr-ink); font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
-/* Detail sections */
-.detail-section { margin-bottom: 10px; }
+.detail-section { margin-bottom:10px; }
 .detail-header {
-  display: flex; align-items: center; gap: 6px;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: .75rem;
-  letter-spacing: 1.2px; text-transform: uppercase;
-  margin-bottom: 7px; padding-left: 8px;
+  display:flex; align-items:center; gap:6px; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:.78rem;
+  letter-spacing:1.2px; text-transform:uppercase; margin-bottom:6px; padding:2px 0 2px 9px;
 }
-.detail-header.verde  { border-left: 2px solid #69f0ae; color: #69f0ae; }
-.detail-header.vermelho { border-left: 2px solid #ff8a80; color: #ff8a80; }
-.detail-header.cinza  { border-left: 2px solid var(--grey); color: var(--grey); }
-
-.detail-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 4px 10px;
-}
+.detail-header.verde    { border-left:4px solid var(--lr-green); color: var(--lr-green); }
+.detail-header.vermelho { border-left:4px solid var(--lr-red);   color: var(--lr-red); }
+.detail-header.cinza    { border-left:4px solid var(--lr-blue);  color: var(--lr-blue); }
+.detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
 .detail-item {
-  display: flex; justify-content: space-between;
-  font-size: .75rem;
-  color: rgba(255,255,255,.55);
-  padding: 3px 0;
-  border-bottom: 1px solid rgba(79,195,247,.05);
+  display:flex; justify-content:space-between; gap:8px; font-size:.78rem; color: var(--lr-grey);
+  padding:4px 0; border-bottom:1px solid var(--lr-line);
 }
-.detail-item:last-child { border-bottom: none; }
-.detail-item strong { color: rgba(255,255,255,.8); }
+.detail-item strong { color: var(--lr-ink); font-family:'Barlow Condensed',sans-serif; font-size:.92rem; white-space:nowrap; }
+.detail-item span i { color: var(--lr-navy) !important; opacity:.6; }   /* ícones legíveis no fundo claro */
 
-/* Saldo final */
 .ac-saldo-final {
-  background: rgba(21,101,192,.15);
-  border: 1px solid rgba(79,195,247,.2);
-  border-radius: var(--radius-sm);
-  padding: 10px;
-  text-align: center;
-  margin-top: 10px;
+  margin-top:10px; padding:9px 10px; text-align:center; border-radius:10px;
+  background: var(--lr-navy); border-bottom:3px solid var(--lr-amber);
 }
-.sf-lbl {
-  font-size: .65rem; font-weight:700;
-  text-transform:uppercase; letter-spacing:1.2px;
-  color: var(--grey); margin-bottom: 4px;
-}
-.sf-val {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.5rem; letter-spacing: 1px;
-  color: var(--accent);
-}
+.sf-lbl { font-size:.64rem; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:#B8C7E0; margin-bottom:2px; }
+.sf-val { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:1px; color:#fff; }
 
-/* ── GRUPO FOOTER ────────────────────────────────── */
+/* ── RODAPÉ DO GRUPO ─────────────────────────────── */
 .grupo-footer {
-  display: flex; align-items: center;
-  justify-content: space-between; flex-wrap: wrap;
-  gap: 12px;
-  padding: 13px 20px;
-  background: rgba(4,30,66,.3);
-  border-top: 1px solid var(--glass-border);
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+  padding:13px 20px; background: var(--lr-alt); border-top:1px solid var(--lr-line);
 }
-.gf-despesas { display: flex; flex-direction: column; gap: 3px; }
-.gf-despesa-item {
-  font-size: .76rem; color: rgba(255,255,255,.5);
-  display: flex; align-items: center; gap: 6px;
-}
-.gf-despesa-item i { color: var(--accent); font-size: .65rem; }
-.gf-despesa-item strong { color: rgba(255,255,255,.75); }
-.gf-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.gf-despesas { display:flex; flex-direction:column; gap:3px; }
+.gf-despesa-item { font-size:.78rem; color: var(--lr-grey); display:flex; align-items:center; gap:6px; }
+.gf-despesa-item i { color: var(--lr-amber-tx); font-size:.7rem; }
+.gf-despesa-item strong { color: var(--lr-ink); }
+.gf-actions { display:flex; gap:8px; flex-wrap:wrap; }
 
-/* ── RESUMO GERAL (final da página) ──────────────── */
+/* ── RESUMO GERAL ────────────────────────────────── */
 .resumo-geral {
-  background: rgba(13,43,94,.45);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  backdrop-filter: blur(14px);
-  overflow: hidden;
-  margin-top: 28px;
+  background: var(--lr-bg); border-radius:14px; overflow:hidden; margin-top:28px;
+  box-shadow: 0 10px 30px rgba(2,16,40,.35);
+  animation: lrUp .6s cubic-bezier(.2,.8,.2,1) .3s both;
 }
-.rg-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 13px 22px;
-  background: var(--grad-header);
-  border-bottom: 1px solid var(--glass-border);
-}
-.rg-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: 1rem;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--white);
-}
-.rg-title i { color: var(--accent); margin-right: 8px; }
-.rg-body {
-  display: grid; grid-template-columns: repeat(4,1fr);
-  gap: 1px; background: var(--glass-border);
-}
+.rg-header { display:flex; align-items:center; gap:10px; padding:15px 22px 14px; background: var(--lr-navy); border-bottom:4px solid var(--lr-amber); }
+.rg-title { font-family:'Bebas Neue',sans-serif; font-size:1.35rem; letter-spacing:1.5px; color:#fff; display:flex; align-items:center; gap:9px; }
+.rg-title i { color: var(--lr-amber); font-size:.95rem; }
+.rg-body { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:14px 16px 16px; }
 .rg-col {
-  background: rgba(4,30,66,.5);
-  padding: 22px 18px; text-align: center;
-  transition: background var(--ease-fast);
+  --kc: var(--lr-navy);
+  position:relative; background:#fff; border:1px solid var(--lr-line); border-radius:10px; padding:16px 14px 14px 22px;
+  transition: transform var(--ease-base), box-shadow var(--ease-base);
 }
-.rg-col:hover { background: rgba(36,99,163,.22); }
-.rg-lbl {
-  font-size: .68rem; font-weight:700;
-  text-transform:uppercase; letter-spacing:1.2px;
-  color: var(--grey); margin-bottom: 8px;
-  display: flex; align-items:center; justify-content:center; gap:5px;
-}
-.rg-lbl i { font-size: .65rem; }
-.rg-val {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.7rem; letter-spacing: 1px; line-height: 1;
-}
-.rg-val.entrada { color: #69f0ae; }
-.rg-val.saida   { color: #ff8a80; }
-.rg-val.reg     { color: #ffd54f; }
-.rg-val.saldo   { color: var(--accent); }
-.rg-unit { font-size: .7rem; color: var(--grey); margin-top: 4px; }
+.rg-col::before { content:''; position:absolute; left:0; top:0; bottom:0; width:8px; border-radius:10px 0 0 10px; background: var(--kc); }
+.rg-col:hover { transform: translateY(-3px); box-shadow:0 10px 24px rgba(11,37,69,.15); }
+.rg-col.e { --kc: var(--lr-green); } .rg-col.s { --kc: var(--lr-red); } .rg-col.r { --kc: var(--lr-amber); } .rg-col.b { --kc: var(--lr-blue); }
+.rg-lbl { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; color: var(--lr-grey); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.rg-lbl i { color: var(--kc); font-size:.75rem; }
+.rg-val { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; letter-spacing:1px; line-height:1; color: var(--kc); }
+.rg-unit { font-size:.72rem; font-weight:700; color: var(--lr-grey); margin-top:4px; }
 
-/* ── EMPTY STATE ─────────────────────────────────── */
+/* ── VAZIO ───────────────────────────────────────── */
 .empty-state {
-  background: rgba(13,43,94,.42);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  padding: 64px 24px;
-  text-align: center;
-  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  background: var(--lr-bg); border-radius:14px; box-shadow: 0 10px 30px rgba(2,16,40,.35);
+  padding:60px 24px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:12px; color: var(--lr-grey);
+  animation: lrUp .6s cubic-bezier(.2,.8,.2,1) .15s both;
 }
-.empty-state i { font-size: 2.8rem; color: rgba(255,255,255,.18); }
-.empty-state h4 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.4rem; letter-spacing: 2px;
-  color: rgba(255,255,255,.45);
-}
-.empty-state p { font-size: .88rem; color: rgba(255,255,255,.28); }
+.empty-state i { font-size:2.8rem; color: var(--lr-navy); opacity:.28; }
+.empty-state h4 { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:2px; color: var(--lr-ink); }
+.empty-state p { font-size:.88rem; }
 
-/* ── MODAL ───────────────────────────────────────── */
-.modal-content {
-  background: rgba(4,30,66,.97);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  backdrop-filter: blur(16px);
-  color: var(--white);
-}
-.modal-header {
-  background: var(--grad-header);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  border-bottom: 1px solid var(--glass-border);
-  padding: 13px 20px;
-}
-.modal-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: 1rem;
-  letter-spacing: 1.5px; text-transform: uppercase;
-}
-.modal-footer { border-top: 1px solid var(--glass-border); padding: 11px 20px; gap: 8px; }
-.modal-backdrop { background: rgba(4,30,66,.75); backdrop-filter: blur(4px); }
-.modal-body { padding: 20px; font-size: .92rem; color: rgba(255,255,255,.75); }
-.modal-body strong { color: var(--white); }
+/* ── MODAIS ──────────────────────────────────────── */
+.lr-modal .modal-content { background: var(--lr-bg); border:none; border-radius:14px; overflow:hidden; color: var(--lr-ink); box-shadow: var(--shadow-lg); }
+.lr-modal .modal-header { background: var(--lr-navy); border:none; border-bottom:4px solid var(--lr-amber); border-radius:0; padding:14px 22px 13px; color:#fff; }
+.lr-modal .modal-title { font-family:'Bebas Neue',sans-serif; font-weight:400; font-size:1.3rem; letter-spacing:1.5px; }
+.lr-modal .modal-title i { color: var(--lr-amber) !important; }
+.lr-modal .modal-body { padding:22px; font-size:.95rem; color: var(--lr-ink); }
+.lr-modal .modal-body strong { color: var(--lr-navy); }
+.lr-modal .modal-footer { border-top:1px solid var(--lr-line); background: var(--lr-alt); padding:12px 20px; gap:8px; }
 
 /* ── RESPONSIVE ─────────────────────────────────── */
 @media (max-width: 900px) {
-  .stat-strip { grid-template-columns: repeat(2,1fr); }
-  .rg-body    { grid-template-columns: repeat(2,1fr); }
+  .stat-strip { grid-template-columns:repeat(2,1fr); }
+  .rg-body    { grid-template-columns:repeat(2,1fr); }
 }
 @media (max-width: 640px) {
-  .autocarros-grid { grid-template-columns: 1fr; }
-  .lr-header { flex-direction: column; align-items: flex-start; }
-  .grupo-header { flex-direction: column; align-items: flex-start; }
-  .grupo-header-right { width: 100%; }
-  .resumo-fin { grid-template-columns: repeat(3,1fr); }
-  .ac-equipa  { grid-template-columns: 1fr 1fr; }
-  .detail-grid { grid-template-columns: 1fr; }
-  .grupo-footer { flex-direction: column; align-items: flex-start; }
-  .gf-actions { width: 100%; }
+  .autocarros-grid { grid-template-columns:1fr; }
+  .lr-header { flex-direction:column; align-items:flex-start; }
+  .grupo-header { flex-direction:column; align-items:flex-start; }
+  .grupo-header-right { width:100%; }
+  .resumo-fin { grid-template-columns:1fr; }
+  .ac-equipa  { grid-template-columns:1fr 1fr; }
+  .detail-grid { grid-template-columns:1fr; }
+  .grupo-footer { flex-direction:column; align-items:flex-start; }
+  .gf-actions { width:100%; }
   .gf-actions .btn-lr { flex:1; justify-content:center; }
 }
 @media (max-width: 480px) {
-  .stat-strip { grid-template-columns: 1fr 1fr; }
-  .rg-body    { grid-template-columns: 1fr 1fr; }
-  .resumo-meta-chips { flex-direction: column; gap: 5px; }
-  .filter-row { flex-direction: column; }
-  .f-group    { min-width: unset; width: 100%; }
+  .rg-body { grid-template-columns:1fr; }
+  .filter-row { flex-direction:column; }
+  .f-group { min-width:unset; width:100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lr-kpi, .grupo-card, .resumo-geral, .filter-card, .empty-state, .grupo-header::after, .status-badge { animation:none !important; }
+}
+/* Impressão: só os dados, sem botões nem filtros */
+@media print {
+  .lr-actions-top, .filter-card, .grupo-header-right, .gf-actions, .btn-icon-sm, .grupo-toggle, .modal { display:none !important; }
+  .grupo-card, .resumo-geral, .lr-kpi { animation:none !important; box-shadow:none; border:1px solid #DDE3EE; }
+  .grupo-card.closed .grupo-body { display:block !important; }
+  .ac-card { break-inside:avoid; box-shadow:none; }
+  .lr-title, .lr-subtitle { color:#0B2545 !important; }
 }
 </style>
 
@@ -555,39 +359,46 @@
       <div class="lr-title">Registos <span>Diários</span></div>
       <div class="lr-subtitle">Gestão e acompanhamento dos registos por sector</div>
     </div>
-    <a href="{% url 'adicionar_relatorio_sector' %}" class="btn-lr btn-success-lr">
-      <i class="fas fa-plus"></i> Novo Registo
-    </a>
+    <div class="lr-actions-top">
+      {% if registros_agrupados %}
+      <button type="button" class="btn-lr btn-print-lr" onclick="window.print()">
+        <i class="fas fa-print"></i> Imprimir
+      </button>
+      {% endif %}
+      <a href="{% url 'adicionar_relatorio_sector' %}" class="btn-lr btn-success-lr">
+        <i class="fas fa-plus"></i> Novo Registo
+      </a>
+    </div>
   </div>
 
   <!-- STATS -->
   <div class="stat-strip">
-    <div class="sstat">
-      <div class="sstat-icon grupos"><i class="fas fa-layer-group"></i></div>
+    <div class="lr-kpi" style="--kc:var(--lr-navy);--k:0">
+      <div class="lr-kpi-ico"><i class="fas fa-layer-group"></i></div>
       <div>
-        <div class="sstat-val">{{ registros_agrupados|length|intcomma }}</div>
-        <div class="sstat-lbl">Grupos</div>
+        <div class="lr-kpi-val" data-count="{{ registros_agrupados|length }}">{{ registros_agrupados|length|intcomma }}</div>
+        <div class="lr-kpi-lbl">Grupos</div>
       </div>
     </div>
-    <div class="sstat">
-      <div class="sstat-icon registos"><i class="fas fa-bus"></i></div>
+    <div class="lr-kpi" style="--kc:var(--lr-blue);--k:1">
+      <div class="lr-kpi-ico"><i class="fas fa-bus"></i></div>
       <div>
-        <div class="sstat-val">{{ totais.total_autocarros|intcomma }}</div>
-        <div class="sstat-lbl">Registos</div>
+        <div class="lr-kpi-val" data-count="{{ totais.total_autocarros|default:0|unlocalize }}">{{ totais.total_autocarros|intcomma }}</div>
+        <div class="lr-kpi-lbl">Registos</div>
       </div>
     </div>
-    <div class="sstat">
-      <div class="sstat-icon entrada"><i class="fas fa-arrow-down"></i></div>
+    <div class="lr-kpi" style="--kc:var(--lr-green);--k:2">
+      <div class="lr-kpi-ico"><i class="fas fa-arrow-down"></i></div>
       <div>
-        <div class="sstat-val">{% localize on %}{{ totais.total_entradas|floatformat:0 }}{% endlocalize %}</div>
-        <div class="sstat-lbl">Entradas Kz</div>
+        <div class="lr-kpi-val" data-count="{{ totais.total_entradas|default:0|unlocalize }}">{% localize on %}{{ totais.total_entradas|floatformat:0 }}{% endlocalize %}</div>
+        <div class="lr-kpi-lbl">Entradas Kz</div>
       </div>
     </div>
-    <div class="sstat">
-      <div class="sstat-icon saldo"><i class="fas fa-wallet"></i></div>
+    <div class="lr-kpi" style="--kc:var(--lr-amber);--k:3">
+      <div class="lr-kpi-ico"><i class="fas fa-wallet"></i></div>
       <div>
-        <div class="sstat-val">{% localize on %}{{ totais.total_saldo|floatformat:0 }}{% endlocalize %}</div>
-        <div class="sstat-lbl">Saldo Kz</div>
+        <div class="lr-kpi-val" data-count="{{ totais.total_saldo|default:0|unlocalize }}">{% localize on %}{{ totais.total_saldo|floatformat:0 }}{% endlocalize %}</div>
+        <div class="lr-kpi-lbl">Saldo Kz</div>
       </div>
     </div>
   </div>
@@ -618,7 +429,7 @@
           <button type="submit" class="btn-lr btn-primary-lr">
             <i class="fas fa-search"></i> Filtrar
           </button>
-          <a href="{% url 'listar_registros' %}" class="btn-lr btn-outline-lr" title="Limpar filtros">
+          <a href="{% url 'listar_registros' %}" class="btn-lr btn-ghost-lr" title="Limpar filtros">
             <i class="fas fa-rotate"></i>
           </a>
         </div>
@@ -630,19 +441,24 @@
   {% if registros_agrupados %}
 
     {% for grupo in registros_agrupados %}
-    <div class="grupo-card">
+    <div class="grupo-card" style="--i:{{ forloop.counter0 }}">
 
       <!-- HEADER DO GRUPO -->
       <div class="grupo-header">
         <div class="grupo-header-left">
-          <div class="grupo-sector">{{ grupo.sector.nome }}</div>
-          <div class="grupo-meta">
-            <span class="grupo-date"><i class="fas fa-calendar-day"></i>{{ grupo.data|date:"d/m/Y" }}</span>
-            <span class="grupo-count">{{ grupo.registos|length }} autocarro(s)</span>
+          <button type="button" class="grupo-toggle" title="Recolher / expandir autocarros">
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div>
+            <div class="grupo-sector">{{ grupo.sector.nome }}</div>
+            <div class="grupo-meta">
+              <span class="grupo-date"><i class="fas fa-calendar-day"></i>{{ grupo.data|date:"d/m/Y" }}</span>
+              <span class="grupo-count">{{ grupo.registos|length }} autocarro(s)</span>
+            </div>
           </div>
         </div>
         <div class="grupo-header-right">
-          <a href="{% url 'editar_relatorio_sector' grupo.registos.0.id %}" class="btn-lr btn-outline-lr" style="padding:7px 14px">
+          <a href="{% url 'editar_relatorio_sector' grupo.registos.0.id %}" class="btn-lr btn-ghost-lr" style="padding:7px 14px">
             <i class="fas fa-pen"></i> Gerir
           </a>
           <form method="get" action="{% url 'deletar_registros_sector_data' grupo.sector.id grupo.data|date:'Y-m-d' %}"
@@ -668,19 +484,19 @@
           </div>
         </div>
         <div class="resumo-fin">
-          <div class="rfin-col">
+          <div class="rfin-col e">
             <div class="rfin-lbl">Entradas</div>
-            <div class="rfin-val entrada">{% localize on %}{{ grupo.total_entradas|floatformat:2 }}{% endlocalize %}</div>
+            <div class="rfin-val" data-count="{{ grupo.total_entradas|default:0|unlocalize }}" data-dec="2">{% localize on %}{{ grupo.total_entradas|floatformat:2 }}{% endlocalize %}</div>
             <div class="rfin-unit">Kz</div>
           </div>
-          <div class="rfin-col">
+          <div class="rfin-col s">
             <div class="rfin-lbl">Saídas (incl. Comb.)</div>
-            <div class="rfin-val saida">{% localize on %}{{ grupo.total_saidas|floatformat:2 }}{% endlocalize %}</div>
+            <div class="rfin-val" data-count="{{ grupo.total_saidas|default:0|unlocalize }}" data-dec="2">{% localize on %}{{ grupo.total_saidas|floatformat:2 }}{% endlocalize %}</div>
             <div class="rfin-unit">Kz</div>
           </div>
-          <div class="rfin-col">
+          <div class="rfin-col b">
             <div class="rfin-lbl">Saldo</div>
-            <div class="rfin-val saldo">{% localize on %}{{ grupo.total_saldo|floatformat:2 }}{% endlocalize %}</div>
+            <div class="rfin-val" data-count="{{ grupo.total_saldo|default:0|unlocalize }}" data-dec="2">{% localize on %}{{ grupo.total_saldo|floatformat:2 }}{% endlocalize %}</div>
             <div class="rfin-unit">Kz</div>
           </div>
         </div>
@@ -690,7 +506,7 @@
       <div class="grupo-body">
         <div class="autocarros-grid">
           {% for reg in grupo.registos %}
-          <div class="ac-card">
+          <div class="ac-card" data-tone="{% if reg.validado %}good{% elif reg.concluido %}warn{% else %}nd{% endif %}">
 
             <!-- Head -->
             <div class="ac-head">
@@ -701,16 +517,16 @@
               </div>
               <div style="display:flex;align-items:center;gap:6px">
                 {% if reg.validado %}
-                  <span class="status-badge s-validado">Validado</span>
+                  <span class="status-badge">Validado</span>
                 {% elif reg.concluido %}
-                  <span class="status-badge s-concluido">Concluído</span>
+                  <span class="status-badge">Concluído</span>
                 {% else %}
-                  <span class="status-badge s-pendente">Pendente</span>
+                  <span class="status-badge">Pendente</span>
                 {% endif %}
                 <form method="post" action="{% url 'deletar_registro' reg.id %}" style="margin:0"
                       onsubmit="return confirm('Eliminar este registo?');">
                   {% csrf_token %}
-                  <button type="submit" class="btn-icon-sm danger" title="Eliminar">
+                  <button type="submit" class="btn-icon-sm" title="Eliminar">
                     <i class="fas fa-trash-can"></i>
                   </button>
                 </form>
@@ -757,26 +573,26 @@
                 <div class="detail-grid">
                   <div class="detail-item">
                     {% if grupo.sector.nome == "Luanda" %}
-                      <span><i class="fas fa-sun" style="color:#ffd54f;margin-right:4px"></i>Manhã</span>
+                      <span><i class="fas fa-sun" style="margin-right:4px"></i>Manhã</span>
                     {% else %}
-                      <span><i class="fas fa-ticket" style="color:#69f0ae;margin-right:4px"></i>Normal</span>
+                      <span><i class="fas fa-ticket" style="margin-right:4px"></i>Normal</span>
                     {% endif %}
                     <strong>{% localize on %}{{ reg.normal|floatformat:2 }}{% endlocalize %} Kz</strong>
                   </div>
                   <div class="detail-item">
                     {% if grupo.sector.nome == "Luanda" %}
-                      <span><i class="fas fa-moon" style="color:#9c88ff;margin-right:4px"></i>Tarde</span>
+                      <span><i class="fas fa-moon" style="margin-right:4px"></i>Tarde</span>
                     {% else %}
-                      <span><i class="fas fa-graduation-cap" style="color:#69f0ae;margin-right:4px"></i>Alunos</span>
+                      <span><i class="fas fa-graduation-cap" style="margin-right:4px"></i>Alunos</span>
                     {% endif %}
                     <strong>{% localize on %}{{ reg.alunos|floatformat:2 }}{% endlocalize %} Kz</strong>
                   </div>
                   <div class="detail-item">
-                    <span><i class="fas fa-coins" style="color:#ffd54f;margin-right:4px"></i>Luvu</span>
+                    <span><i class="fas fa-coins" style="margin-right:4px"></i>Luvu</span>
                     <strong>{% localize on %}{{ reg.luvu|floatformat:2 }}{% endlocalize %} Kz</strong>
                   </div>
                   <div class="detail-item">
-                    <span><i class="fas fa-box" style="color:#64b5f6;margin-right:4px"></i>Frete</span>
+                    <span><i class="fas fa-box" style="margin-right:4px"></i>Frete</span>
                     <strong>{% localize on %}{{ reg.frete|floatformat:2 }}{% endlocalize %} Kz</strong>
                   </div>
                 </div>
@@ -787,35 +603,35 @@
                 <div class="detail-header vermelho"><i class="fas fa-arrow-up"></i> Saídas</div>
                 <div class="detail-grid">
                   <div class="detail-item">
-                    <span><i class="fas fa-utensils" style="color:#ff8a80;margin-right:4px"></i>Alimentação</span>
+                    <span><i class="fas fa-utensils" style="margin-right:4px"></i>Alimentação</span>
                     <strong>{% localize on %}{{ reg.alimentacao|floatformat:2 }}{% endlocalize %} Kz</strong>
                   </div>
                   <div class="detail-item">
-                    <span><i class="fas fa-square-parking" style="color:#ff8a80;margin-right:4px"></i>Parqueamento</span>
+                    <span><i class="fas fa-square-parking" style="margin-right:4px"></i>Parqueamento</span>
                     <strong>{% localize on %}{{ reg.parqueamento|floatformat:2 }}{% endlocalize %} Kz</strong>
                   </div>
                   <div class="detail-item">
-                    <span><i class="fas fa-file-invoice-dollar" style="color:#ff8a80;margin-right:4px"></i>Taxa</span>
+                    <span><i class="fas fa-file-invoice-dollar" style="margin-right:4px"></i>Taxa</span>
                     <strong>{% localize on %}{{ reg.taxa|floatformat:2 }}{% endlocalize %} Kz</strong>
                   </div>
                   <div class="detail-item">
-                    <span><i class="fas fa-ellipsis" style="color:#ff8a80;margin-right:4px"></i>Outros</span>
+                    <span><i class="fas fa-ellipsis" style="margin-right:4px"></i>Outros</span>
                     <strong>{% localize on %}{{ reg.outros|floatformat:2 }}{% endlocalize %} Kz</strong>
                   </div>
                   <div class="detail-item">
-                    <span><i class="fas fa-taxi" style="color:#ff8a80;margin-right:4px"></i>Taxi</span>
+                    <span><i class="fas fa-taxi" style="margin-right:4px"></i>Taxi</span>
                     <strong>{% localize on %}{{ reg.taxi|floatformat:2 }}{% endlocalize %} Kz</strong>
                   </div>
                   <div class="detail-item">
-                    <span><i class="fas fa-gas-pump" style="color:#ff8a80;margin-right:4px"></i>Combustível</span>
+                    <span><i class="fas fa-gas-pump" style="margin-right:4px"></i>Combustível</span>
                     <strong>{% localize on %}{{ reg.combustivel_total|floatformat:2 }}{% endlocalize %} Kz</strong>
                   </div>
                   <div class="detail-item">
-                    <span><i class="fas fa-filter" style="color:#ff8a80;margin-right:4px"></i>Sopragem</span>
+                    <span><i class="fas fa-filter" style="margin-right:4px"></i>Sopragem</span>
                     <strong>{% localize on %}{{ reg.combustivel_sobragem|floatformat:2 }}{% endlocalize %} Kz</strong>
                   </div>
                   <div class="detail-item">
-                    <span><i class="fas fa-bucket" style="color:#ff8a80;margin-right:4px"></i>Lavagem</span>
+                    <span><i class="fas fa-bucket" style="margin-right:4px"></i>Lavagem</span>
                     <strong>{% localize on %}{{ reg.combustivel_lavagem|floatformat:2 }}{% endlocalize %} Kz</strong>
                   </div>
                 </div>
@@ -826,15 +642,15 @@
                 <div class="detail-header cinza"><i class="fas fa-chart-bar"></i> Operacional</div>
                 <div class="detail-grid">
                   <div class="detail-item">
-                    <span><i class="fas fa-route" style="color:var(--grey);margin-right:4px"></i>Viagens</span>
+                    <span><i class="fas fa-route" style="margin-right:4px"></i>Viagens</span>
                     <strong>{{ reg.numero_viagens|intcomma }}</strong>
                   </div>
                   <div class="detail-item">
-                    <span><i class="fas fa-users" style="color:var(--grey);margin-right:4px"></i>Passageiros</span>
+                    <span><i class="fas fa-users" style="margin-right:4px"></i>Passageiros</span>
                     <strong>{{ reg.numero_passageiros|intcomma }}</strong>
                   </div>
                   <div class="detail-item">
-                    <span><i class="fas fa-road" style="color:var(--grey);margin-right:4px"></i>Km</span>
+                    <span><i class="fas fa-road" style="margin-right:4px"></i>Km</span>
                     <strong>{{ reg.km_percorridos|intcomma }}</strong>
                   </div>
                 </div>
@@ -888,7 +704,6 @@
               <i class="fab fa-whatsapp"></i> Enviar
             </span>
           {% endif %}
-          <!-- Concluir -->
           {% with pr=grupo.registos.0 %}
           <button class="btn-lr btn-outline-lr" style="padding:8px 16px"
                   data-bs-toggle="modal" data-bs-target="#concluirModal{{ pr.id }}">
@@ -905,11 +720,11 @@
       <!-- MODAIS -->
       {% with pr=grupo.registos.0 %}
       <!-- Concluir -->
-      <div class="modal fade" id="concluirModal{{ pr.id }}" tabindex="-1" aria-hidden="true">
+      <div class="modal fade lr-modal" id="concluirModal{{ pr.id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title"><i class="fas fa-check-circle" style="color:var(--accent);margin-right:8px"></i>Concluir Registos</h5>
+              <h5 class="modal-title"><i class="fas fa-check-circle" style="margin-right:8px"></i>Concluir Registos</h5>
               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -931,11 +746,11 @@
         </div>
       </div>
       <!-- Validar -->
-      <div class="modal fade" id="validarModal{{ pr.id }}" tabindex="-1" aria-hidden="true">
+      <div class="modal fade lr-modal" id="validarModal{{ pr.id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title"><i class="fas fa-shield-halved" style="color:var(--accent);margin-right:8px"></i>Validar Registos</h5>
+              <h5 class="modal-title"><i class="fas fa-shield-halved" style="margin-right:8px"></i>Validar Registos</h5>
               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -948,7 +763,7 @@
               </button>
               <form method="post" action="{% url 'validar_relatorio' pr.id %}" style="margin:0">
                 {% csrf_token %}
-                <button type="submit" class="btn-lr" style="background:var(--warning);color:var(--navy)">
+                <button type="submit" class="btn-lr btn-warn-lr">
                   <i class="fas fa-shield-halved"></i> Validar
                 </button>
               </form>
@@ -967,24 +782,24 @@
         <div class="rg-title"><i class="fas fa-chart-bar"></i> Resumo Geral do Período</div>
       </div>
       <div class="rg-body">
-        <div class="rg-col">
-          <div class="rg-lbl"><i class="fas fa-arrow-down" style="color:#69f0ae"></i> Total Entradas</div>
-          <div class="rg-val entrada">{% localize on %}{{ totais.total_entradas|floatformat:2 }}{% endlocalize %}</div>
+        <div class="rg-col e">
+          <div class="rg-lbl"><i class="fas fa-arrow-down"></i> Total Entradas</div>
+          <div class="rg-val" data-count="{{ totais.total_entradas|default:0|unlocalize }}" data-dec="2">{% localize on %}{{ totais.total_entradas|floatformat:2 }}{% endlocalize %}</div>
           <div class="rg-unit">Kz</div>
         </div>
-        <div class="rg-col">
-          <div class="rg-lbl"><i class="fas fa-arrow-up" style="color:#ff8a80"></i> Total Saídas</div>
-          <div class="rg-val saida">{% localize on %}{{ totais.total_saidas|floatformat:2 }}{% endlocalize %}</div>
+        <div class="rg-col s">
+          <div class="rg-lbl"><i class="fas fa-arrow-up"></i> Total Saídas</div>
+          <div class="rg-val" data-count="{{ totais.total_saidas|default:0|unlocalize }}" data-dec="2">{% localize on %}{{ totais.total_saidas|floatformat:2 }}{% endlocalize %}</div>
           <div class="rg-unit">Kz</div>
         </div>
-        <div class="rg-col">
-          <div class="rg-lbl"><i class="fas fa-bus" style="color:#ffd54f"></i> Total Registos</div>
-          <div class="rg-val reg">{{ totais.total_autocarros|intcomma }}</div>
+        <div class="rg-col r">
+          <div class="rg-lbl"><i class="fas fa-bus"></i> Total Registos</div>
+          <div class="rg-val" data-count="{{ totais.total_autocarros|default:0|unlocalize }}">{{ totais.total_autocarros|intcomma }}</div>
           <div class="rg-unit">Autocarros</div>
         </div>
-        <div class="rg-col">
-          <div class="rg-lbl"><i class="fas fa-wallet" style="color:var(--accent)"></i> Saldo Líquido</div>
-          <div class="rg-val saldo">{% localize on %}{{ totais.total_saldo|floatformat:2 }}{% endlocalize %}</div>
+        <div class="rg-col b">
+          <div class="rg-lbl"><i class="fas fa-wallet"></i> Saldo Líquido</div>
+          <div class="rg-val" data-count="{{ totais.total_saldo|default:0|unlocalize }}" data-dec="2">{% localize on %}{{ totais.total_saldo|floatformat:2 }}{% endlocalize %}</div>
           <div class="rg-unit">Kz</div>
         </div>
       </div>
@@ -1002,4 +817,44 @@
   {% endif %}
 
 </div>
+
+<script>
+(function () {
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* 1234567.5 -> "1.234.567,50"  (dec = casas decimais) */
+  function fmt(n, dec) {
+    var neg = n < 0;
+    var s = Math.abs(n).toFixed(dec).split('.');
+    s[0] = s[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return (neg ? '-' : '') + s[0] + (dec ? ',' + s[1] : '');
+  }
+
+  /* ── Recolher / expandir a lista de autocarros de cada grupo ── */
+  document.querySelectorAll('.grupo-toggle').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      btn.closest('.grupo-card').classList.toggle('closed');
+    });
+  });
+
+  /* ── Contagem animada dos valores ── */
+  document.querySelectorAll('[data-count]').forEach(function (el, i) {
+    var raw = el.dataset.count;
+    if (raw === '' || isNaN(parseFloat(raw))) return;       /* mantém o texto do servidor */
+    var to  = parseFloat(raw);
+    var dec = parseInt(el.dataset.dec || '0', 10);
+    if (reduce || to === 0) { el.textContent = fmt(to, dec); return; }
+    el.textContent = fmt(0, dec);
+    setTimeout(function () {
+      var start = null;
+      (function step(ts) {
+        if (!start) start = ts;
+        var p = Math.min((ts - start) / 900, 1);
+        el.textContent = fmt(to * (1 - Math.pow(1 - p, 3)), dec);
+        if (p < 1) requestAnimationFrame(step);
+      })(performance.now());
+    }, 250 + Math.min(i, 12) * 70);
+  });
+})();
+</script>
 {% endblock %}
