@@ -30,6 +30,18 @@
     --danger:       #e74c3c;
     --warning:      #f39c12;
 
+    /* Novo: cor de destaque dos relatórios + paleta clara (painéis) */
+    --amber:        #F59E0B;
+    --amber-dark:   #B45309;
+    --report-navy:  #0B2545;
+    --paper:        #F4F6FA;
+    --paper-alt:    #F0F3F9;
+    --ink:          #14213D;
+    --ink-soft:     #5B6478;
+    --line:         #DDE3EE;
+    --red:          #D62839;
+    --green:        #12A150;
+
     --glass-bg:     rgba(36,99,163,0.13);
     --glass-border: rgba(79,195,247,0.18);
     --glass-blur:   14px;
@@ -96,7 +108,7 @@
   .loader-ring {
     width: 68px; height: 68px;
     border: 4px solid rgba(79,195,247,.15);
-    border-top-color: var(--accent);
+    border-top-color: var(--amber);
     border-radius: 50%;
     animation: spin .85s linear infinite;
   }
@@ -116,10 +128,7 @@
   /* ════════════════════════════════════════════════════
      LAYOUT WRAPPER
   ════════════════════════════════════════════════════ */
-  .layout {
-    display: flex;
-    min-height: 100vh;
-  }
+  .layout { display: flex; min-height: 100vh; }
 
   /* ════════════════════════════════════════════════════
      SIDEBAR
@@ -135,24 +144,29 @@
     overflow: hidden;
     box-shadow: 4px 0 24px rgba(4,30,66,.35);
   }
-
   .sidebar.collapsed { width: var(--sidebar-w-col); }
 
-  /* Sidebar Brand */
+  /* Brand — linha âmbar em baixo, continua na topbar */
   .sidebar-brand {
     display: flex; align-items: center; gap: 12px;
-    padding: 0 20px;
+    padding: 0 18px;
     height: var(--topbar-h);
-    border-bottom: 1px solid var(--glass-border);
+    box-shadow: inset 0 -3px 0 var(--amber);
     text-decoration: none;
     flex-shrink: 0;
     overflow: hidden;
     white-space: nowrap;
   }
   .sidebar-brand-icon {
-    font-size: 1.5rem; color: var(--accent);
-    flex-shrink: 0;
+    width: 34px; height: 34px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem; color: var(--amber);
+    background: rgba(245,158,11,.12);
+    border: 1px solid rgba(245,158,11,.3);
+    border-radius: 10px;
+    transition: transform var(--ease-spring);
   }
+  .sidebar-brand:hover .sidebar-brand-icon { transform: rotate(-8deg) scale(1.08); }
   .sidebar-brand-text {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1.25rem; letter-spacing: 2px; color: var(--white);
@@ -161,34 +175,33 @@
   .sidebar-brand-text span { color: var(--accent); }
   .sidebar.collapsed .sidebar-brand-text { opacity: 0; transform: translateX(-10px); pointer-events:none; }
 
-  /* Sidebar Nav */
-  .sidebar-nav {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 14px 0;
-  }
+  /* Nav */
+  .sidebar-nav { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 14px 0; }
   .sidebar-nav::-webkit-scrollbar { width: 4px; }
   .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(79,195,247,.25); border-radius:4px; }
 
-  /* Section label */
+  /* Section label — traço âmbar */
   .nav-section-label {
-    padding: 10px 20px 4px;
+    padding: 14px 20px 5px;
     font-size: .68rem; font-weight: 700;
     letter-spacing: 2px; text-transform: uppercase;
-    color: rgba(255,255,255,.28);
+    color: rgba(255,255,255,.34);
     white-space: nowrap;
     transition: opacity var(--ease-base);
   }
+  .nav-section-label::before {
+    content: ''; display: inline-block; vertical-align: middle;
+    width: 14px; height: 2px; margin-right: 8px; border-radius: 2px;
+    background: var(--amber);
+  }
   .sidebar.collapsed .nav-section-label { opacity: 0; }
 
-  /* Nav Item */
   .sidebar-item { position: relative; }
 
   .sidebar-link {
     display: flex; align-items: center; gap: 12px;
     padding: 10px 20px;
-    color: rgba(255,255,255,.62);
+    color: rgba(255,255,255,.66);
     text-decoration: none;
     font-size: .9rem; font-weight: 600;
     letter-spacing: .3px;
@@ -203,23 +216,30 @@
     background: rgba(79,195,247,.1);
     padding-left: 24px;
   }
+  /* Ativo: barra âmbar + brilho suave */
   .sidebar-link.active {
-    color: var(--accent);
-    background: rgba(79,195,247,.14);
-    border-left: 3px solid var(--accent);
-    padding-left: 17px;
+    color: var(--white);
+    background: linear-gradient(90deg, rgba(245,158,11,.22), rgba(245,158,11,.02));
+    border-left: 4px solid var(--amber);
+    padding-left: 16px;
   }
+  /* Grupo que contém a página atual */
+  .sidebar-link.has-active { color: var(--white); }
 
-  .sidebar-link i.nav-icon {
+  /* Ícones unificados (antes: arco-íris, e "text-dark" ficava invisível) */
+  .sidebar .nav-icon {
     font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0;
+    color: var(--accent) !important; opacity: .9;
+    transition: color var(--ease-fast), transform var(--ease-spring);
   }
+  .sidebar-submenu .nav-icon { color: rgba(141,163,196,.95) !important; font-size: .85rem; }
+  .sidebar-link:hover .nav-icon { color: var(--accent) !important; transform: scale(1.12); }
+  .sidebar-link.active .nav-icon,
+  .sidebar-link.has-active .nav-icon { color: var(--amber) !important; opacity: 1; }
 
-  .nav-text {
-    transition: opacity var(--ease-base);
-  }
+  .nav-text { transition: opacity var(--ease-base); }
   .sidebar.collapsed .nav-text { opacity: 0; pointer-events:none; }
 
-  /* Chevron */
   .nav-chevron {
     margin-left: auto;
     font-size: .7rem;
@@ -228,21 +248,21 @@
   .sidebar.collapsed .nav-chevron { opacity: 0; }
   .sidebar-link[aria-expanded="true"] .nav-chevron { transform: rotate(90deg); }
 
-  /* Submenu */
-  .sidebar-submenu {
-    overflow: hidden;
-    background: rgba(4,30,66,.4);
+  /* Submenu com linha-guia */
+  .sidebar-submenu { overflow: hidden; background: rgba(4,30,66,.4); position: relative; }
+  .sidebar-submenu::before {
+    content: ''; position: absolute; left: 29px; top: 6px; bottom: 6px; width: 1px;
+    background: rgba(79,195,247,.16); pointer-events: none;
   }
   .sidebar-submenu .sidebar-link {
     padding-left: 52px;
     font-size: .85rem; font-weight: 400;
-    color: rgba(255,255,255,.52);
+    color: rgba(255,255,255,.55);
   }
   .sidebar-submenu .sidebar-link:hover { padding-left: 56px; color: var(--white); }
-  .sidebar-submenu .sidebar-link.active { padding-left: 49px; }
+  .sidebar-submenu .sidebar-link.active { padding-left: 48px; font-weight: 600; }
   .sidebar.collapsed .sidebar-submenu { display: none !important; }
 
-  /* Tooltip quando collapsed */
   .sidebar.collapsed .sidebar-link {
     justify-content: center;
     padding-left: 0; padding-right: 0;
@@ -262,7 +282,7 @@
     background: var(--blue-mid);
     display: flex; align-items: center; justify-content: center;
     font-size: 1rem; flex-shrink: 0;
-    border: 2px solid var(--glass-border);
+    border: 2px solid var(--amber);
   }
   .sidebar-footer-info { transition: opacity var(--ease-base); }
   .sidebar-footer-name { font-weight: 700; font-size: .88rem; }
@@ -277,14 +297,18 @@
     background: rgba(4,30,66,.82);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
-    border-bottom: 1px solid var(--glass-border);
     display: flex; align-items: center;
     padding: 0 24px; gap: 16px;
     position: sticky; top: 0; z-index: 150;
     box-shadow: var(--shadow-sm);
   }
+  /* linha âmbar que se dissolve (continua a da sidebar) */
+  .topbar::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+    background: linear-gradient(90deg, var(--amber), rgba(245,158,11,0) 70%);
+    pointer-events: none;
+  }
 
-  /* Toggle button */
   .sidebar-toggle {
     width: 36px; height: 36px;
     background: transparent;
@@ -296,20 +320,15 @@
     transition: background var(--ease-fast), color var(--ease-fast), transform var(--ease-fast);
     flex-shrink: 0;
   }
-  .sidebar-toggle:hover { background: var(--glass-bg); color: var(--accent); transform: scale(1.08); }
+  .sidebar-toggle:hover { background: var(--glass-bg); color: var(--amber); transform: scale(1.08); }
 
-  /* Breadcrumb */
   .topbar-breadcrumb {
     font-size: .82rem; color: var(--grey);
     display: flex; align-items: center; gap: 6px;
   }
-  .topbar-breadcrumb span { color: var(--white); font-weight: 600; }
+  .topbar-breadcrumb span { color: var(--white); font-weight: 600; letter-spacing: .3px; }
 
-  /* Topbar right */
-  .topbar-right {
-    margin-left: auto;
-    display: flex; align-items: center; gap: 10px;
-  }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
 
   .topbar-btn {
     width: 36px; height: 36px;
@@ -320,41 +339,48 @@
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     text-decoration: none;
-    transition: background var(--ease-fast), color var(--ease-fast), border-color var(--ease-fast);
+    transition: background var(--ease-fast), color var(--ease-fast), border-color var(--ease-fast), transform var(--ease-spring);
     position: relative;
   }
-  .topbar-btn:hover { background: rgba(79,195,247,.15); color: var(--accent); border-color: rgba(79,195,247,.35); }
+  .topbar-btn:hover {
+    background: rgba(245,158,11,.14); color: var(--amber);
+    border-color: rgba(245,158,11,.4); transform: translateY(-2px);
+  }
 
   .topbar-badge {
-    position: absolute; top: -4px; right: -4px;
-    width: 16px; height: 16px;
-    background: var(--danger);
-    border-radius: 50%;
-    font-size: .62rem; font-weight: 700;
+    position: absolute; top: -5px; right: -5px;
+    min-width: 17px; height: 17px; padding: 0 4px;
+    background: var(--red);
+    border: 2px solid var(--navy);
+    border-radius: 10px;
+    font-size: .6rem; font-weight: 700;
     display: flex; align-items: center; justify-content: center;
     color: var(--white);
+    animation: badgePulse 2.6s ease-in-out infinite;
+  }
+  @keyframes badgePulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(214,40,57,.5); }
+    50%     { box-shadow: 0 0 0 5px rgba(214,40,57,0); }
   }
 
   .topbar-user {
     display: flex; align-items: center; gap: 8px;
-    padding: 6px 12px;
+    padding: 5px 12px 5px 6px;
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
+    border-radius: 30px;
     cursor: pointer;
     text-decoration: none;
     transition: background var(--ease-fast), border-color var(--ease-fast);
   }
-  .topbar-user:hover { background: rgba(79,195,247,.12); border-color: rgba(79,195,247,.35); }
+  .topbar-user:hover { background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.4); }
   .topbar-user-avatar {
     width: 28px; height: 28px; border-radius: 50%;
     background: var(--blue-mid);
     display: flex; align-items: center; justify-content: center;
-    font-size: .9rem;
+    font-size: .9rem; border: 2px solid var(--amber);
   }
-  .topbar-user-name {
-    font-size: .85rem; font-weight: 600; color: var(--white);
-  }
+  .topbar-user-name { font-size: .85rem; font-weight: 600; color: var(--white); }
   @media(max-width:600px){ .topbar-user-name { display:none; } }
 
   /* ════════════════════════════════════════════════════
@@ -369,25 +395,18 @@
   }
   .main-wrapper.expanded { margin-left: var(--sidebar-w-col); }
 
-  .main-content {
-    flex: 1;
-    padding: 28px 32px;
-  }
+  .main-content { flex: 1; padding: 28px 32px; }
 
-  /* Page header */
   .page-header {
     margin-bottom: 28px;
     display: flex; align-items: flex-end;
     justify-content: space-between; flex-wrap: wrap; gap: 16px;
   }
-  .page-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2rem; letter-spacing: 2px; line-height: 1;
-  }
+  .page-title { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 2px; line-height: 1; }
   .page-title span { color: var(--accent); }
 
   /* ════════════════════════════════════════════════════
-     CARDS
+     CARDS  (hover mais discreto: sem "zoom")
   ════════════════════════════════════════════════════ */
   .card {
     background: rgba(36,99,163,.13);
@@ -397,11 +416,11 @@
     color: var(--white);
     margin-bottom: 24px;
     backdrop-filter: blur(8px);
-    transition: transform var(--ease-spring), box-shadow var(--ease-base), border-color var(--ease-base);
+    transition: transform var(--ease-base), box-shadow var(--ease-base), border-color var(--ease-base);
     overflow: hidden;
   }
   .card:hover {
-    transform: translateY(-5px) scale(1.012);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-lg), 0 0 0 1px rgba(79,195,247,.18);
     border-color: rgba(79,195,247,.32);
   }
@@ -410,7 +429,8 @@
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 700; font-size: 1.05rem;
     letter-spacing: 1.5px; text-transform: uppercase;
-    border: none; padding: 13px 20px;
+    border: none; border-bottom: 3px solid var(--amber);
+    padding: 13px 20px;
   }
   .card-body { padding: 20px; }
   .card-title {
@@ -419,17 +439,23 @@
     letter-spacing: 1px; color: var(--white);
   }
 
-  /* Stat cards */
+  /* Stat cards — faixa lateral como nos cartões de resumo */
   .stat-card {
+    position: relative;
     background: rgba(36,99,163,.13);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
-    padding: 22px 24px;
+    padding: 22px 24px 22px 30px;
     display: flex; align-items: center; gap: 18px;
-    transition: transform var(--ease-spring), box-shadow var(--ease-base);
+    transition: transform var(--ease-base), box-shadow var(--ease-base);
     backdrop-filter: blur(8px);
+    overflow: hidden;
   }
-  .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+  .stat-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+    background: var(--amber);
+  }
+  .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
   .stat-icon {
     width: 52px; height: 52px;
     border-radius: var(--radius-md);
@@ -440,12 +466,8 @@
     flex-shrink: 0;
     transition: transform var(--ease-spring), background var(--ease-fast);
   }
-  .stat-card:hover .stat-icon { transform: scale(1.12) rotate(-6deg); background: rgba(79,195,247,.2); }
-  .stat-value {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2rem; letter-spacing: 1px; line-height: 1;
-    color: var(--white);
-  }
+  .stat-card:hover .stat-icon { transform: scale(1.1) rotate(-6deg); background: rgba(79,195,247,.2); }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 1px; line-height: 1; color: var(--white); }
   .stat-label {
     font-size: .78rem; font-weight: 700;
     text-transform: uppercase; letter-spacing: 1px;
@@ -465,11 +487,7 @@
     transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
     position: relative; overflow: hidden;
   }
-  .btn::after {
-    content:''; position:absolute; inset:0;
-    background: rgba(255,255,255,0);
-    transition: background var(--ease-fast);
-  }
+  .btn::after { content:''; position:absolute; inset:0; background: rgba(255,255,255,0); transition: background var(--ease-fast); }
   .btn:hover::after { background: rgba(255,255,255,.06); }
   .btn:hover        { transform: translateY(-2px); }
   .btn:active       { transform: translateY(0) scale(.97); }
@@ -480,7 +498,8 @@
   .btn-success:hover  { background: #219150; box-shadow: 0 6px 20px rgba(39,174,96,.30); }
   .btn-danger   { background: var(--danger); color: var(--white); }
   .btn-danger:hover   { background: #c0392b; box-shadow: 0 6px 20px rgba(231,76,60,.30); }
-  .btn-warning  { background: var(--warning); color: var(--navy); }
+  .btn-warning  { background: var(--amber); color: var(--navy); }
+  .btn-warning:hover  { background: #d98a06; color: var(--navy); box-shadow: 0 6px 20px rgba(245,158,11,.3); }
   .btn-outline-light {
     border: 1px solid rgba(255,255,255,.35) !important;
     color: var(--white) !important; background: transparent;
@@ -492,7 +511,7 @@
   }
 
   /* ════════════════════════════════════════════════════
-     TABLE
+     TABLE (Bootstrap)
   ════════════════════════════════════════════════════ */
   .table {
     --bs-table-bg: transparent;
@@ -501,12 +520,14 @@
     overflow: hidden;
   }
   .table thead th {
-    background: var(--blue-dark);
-    color: var(--accent);
+    background: var(--report-navy);
+    color: #fff;
     font-family: 'Barlow Condensed', sans-serif;
     font-size: .82rem; font-weight: 700;
     letter-spacing: 1.5px; text-transform: uppercase;
-    border-color: rgba(79,195,247,.18); padding: 12px 16px;
+    border-color: rgba(79,195,247,.18);
+    border-bottom: 3px solid var(--amber);
+    padding: 12px 16px;
   }
   .table tbody tr { transition: background var(--ease-fast); }
   .table tbody tr:hover { background: rgba(36,99,163,.22) !important; }
@@ -530,7 +551,7 @@
   }
   .alert-success { border-left: 4px solid var(--success); }
   .alert-danger  { border-left: 4px solid var(--danger);  }
-  .alert-warning { border-left: 4px solid var(--warning); }
+  .alert-warning { border-left: 4px solid var(--amber);   }
   .alert-info    { border-left: 4px solid var(--accent);  }
   @keyframes alertIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
 
@@ -572,7 +593,7 @@
   .modal-header {
     background: var(--grad-header);
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    border-bottom: 1px solid var(--glass-border);
+    border-bottom: 3px solid var(--amber);
     padding: 15px 22px;
   }
   .modal-title {
@@ -583,68 +604,92 @@
   .modal-backdrop { background: rgba(4,30,66,.75); backdrop-filter: blur(4px); }
 
   /* ════════════════════════════════════════════════════
-     FAB (Botão flutuante agência)
+     COMPONENTES DE RELATÓRIO (.rep-*)
+     Painel claro com cabeçalho azul-marinho + linha âmbar,
+     cartões de resumo e etiquetas. Use em páginas novas:
+       <div class="rep-panel">
+         <div class="rep-head"><div class="rep-head-title"><i class="fas fa-..."></i> Título</div></div>
+         <div class="rep-kpis">
+           <div class="rep-kpi" style="--kc:var(--red)"><b data-countup="7">0</b>Vencidas</div>
+         </div>
+         ...
+       </div>
+  ════════════════════════════════════════════════════ */
+  .rep-panel {
+    background: var(--paper); color: var(--ink);
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(2,16,40,.35);
+    animation: repIn .6s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes repIn { from { opacity:0; transform:translateY(18px) scale(.985); } to { opacity:1; transform:none; } }
+  .rep-head {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    padding: 16px 20px 15px; background: var(--report-navy); color: #fff;
+    border-bottom: 4px solid var(--amber);
+  }
+  .rep-head-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.35rem; letter-spacing: 1.5px; line-height: 1;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .rep-head-title i { color: var(--amber); font-size: .95rem; }
+  .rep-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; padding: 14px 16px 4px; }
+  .rep-kpi {
+    --kc: var(--report-navy);
+    position: relative; background: #fff; border: 1px solid var(--line); border-radius: 10px;
+    padding: 9px 12px 9px 16px; color: var(--ink-soft); font-size: .68rem; line-height: 1.2;
+  }
+  .rep-kpi::before { content:''; position:absolute; left:0; top:0; bottom:0; width:6px; border-radius:10px 0 0 10px; background: var(--kc); }
+  .rep-kpi b { display:block; font-family:'Bebas Neue',sans-serif; font-size: 2rem; line-height: 1; letter-spacing: 1px; color: var(--kc); }
+  .rep-pill {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 96px;
+    padding: 5px 12px; border-radius: 30px; color: #fff; background: var(--pc, var(--report-navy));
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: .78rem;
+    letter-spacing: 1px; text-transform: uppercase; white-space: nowrap;
+  }
+
+  /* ════════════════════════════════════════════════════
+     FAB, TRANSIÇÃO, REVEAL, FOOTER, SCROLLBAR
   ════════════════════════════════════════════════════ */
   .fab-depositos {
     position: fixed; bottom: 24px; right: 24px; z-index: 300;
     width: 52px; height: 52px;
     border-radius: 50%;
     background: var(--grad-btn);
-    color: var(--accent);
+    color: var(--amber);
+    border: 2px solid rgba(245,158,11,.5);
     display: flex; align-items: center; justify-content: center;
     font-size: 1.2rem;
     box-shadow: 0 4px 16px rgba(0,0,0,.3);
     text-decoration: none;
     transition: transform var(--ease-spring), box-shadow var(--ease-base);
   }
-  .fab-depositos:hover {
-    transform: scale(1.12);
-    box-shadow: 0 8px 24px rgba(79,195,247,.25);
-    color: var(--white);
-  }
+  .fab-depositos:hover { transform: scale(1.12); box-shadow: 0 8px 24px rgba(245,158,11,.3); color: var(--white); }
 
-  /* ════════════════════════════════════════════════════
-     PAGE TRANSITION
-  ════════════════════════════════════════════════════ */
-  .page-container {
-    opacity: 1; transform: translateY(0);
-    transition: opacity .32s ease, transform .32s ease;
-  }
+  .page-container { opacity: 1; transform: translateY(0); transition: opacity .32s ease, transform .32s ease; }
   .page-container.fade-out { opacity: 0; transform: translateY(6px); }
 
-  /* ════════════════════════════════════════════════════
-     REVEAL
-  ════════════════════════════════════════════════════ */
-  .reveal {
-    opacity: 0; transform: translateY(24px);
-    transition: opacity .55s ease, transform .55s ease;
-  }
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .55s ease, transform .55s ease; }
   .reveal.visible { opacity: 1; transform: translateY(0); }
 
-  /* ════════════════════════════════════════════════════
-     FOOTER
-  ════════════════════════════════════════════════════ */
   .main-footer {
+    position: relative;
     background: rgba(2,14,36,.9);
-    border-top: 1px solid var(--glass-border);
     color: rgba(255,255,255,.4);
     text-align: center;
     padding: 18px 20px;
     font-size: .82rem; letter-spacing: .5px;
   }
+  .main-footer::before {
+    content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--amber), transparent); opacity: .55;
+  }
   .main-footer strong { color: var(--accent); }
 
-  /* ════════════════════════════════════════════════════
-     SCROLLBAR
-  ════════════════════════════════════════════════════ */
   ::-webkit-scrollbar       { width: 5px; }
   ::-webkit-scrollbar-track { background: var(--navy); }
   ::-webkit-scrollbar-thumb { background: var(--blue-mid); border-radius: 8px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--amber); }
 
-  /* ════════════════════════════════════════════════════
-     MOBILE OVERLAY
-  ════════════════════════════════════════════════════ */
   .sidebar-overlay {
     display: none;
     position: fixed; inset: 0; z-index: 199;
@@ -657,7 +702,6 @@
      RESPONSIVE — TABLET (≤ 1100px)
   ════════════════════════════════════════════════════ */
   @media (max-width: 1100px) {
-    /* Auto-colapsa para icon-only em tablets */
     .sidebar { width: var(--sidebar-w-col); }
     .sidebar .sidebar-brand-text,
     .sidebar .nav-text,
@@ -674,128 +718,98 @@
      RESPONSIVE — MOBILE (≤ 768px)
   ════════════════════════════════════════════════════ */
   @media (max-width: 768px) {
-    /* Sidebar sai do ecrã, abre como drawer */
     .sidebar {
       width: var(--sidebar-w) !important;
       transform: translateX(-100%);
       transition: transform var(--ease-base);
     }
-
-    /* Quando aberta no mobile, mostra tudo normalmente */
-    .sidebar.mobile-open {
-      transform: translateX(0);
-    }
+    .sidebar.mobile-open { transform: translateX(0); }
     .sidebar.mobile-open .sidebar-brand-text,
     .sidebar.mobile-open .nav-text,
     .sidebar.mobile-open .nav-chevron,
     .sidebar.mobile-open .nav-section-label,
-    .sidebar.mobile-open .sidebar-footer-info {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    .sidebar.mobile-open .sidebar-link {
-      justify-content: flex-start;
-      padding-left: 20px;
-      padding-right: 20px;
-    }
+    .sidebar.mobile-open .sidebar-footer-info { opacity: 1; pointer-events: auto; }
+    .sidebar.mobile-open .sidebar-link { justify-content: flex-start; padding-left: 20px; padding-right: 20px; }
     .sidebar.mobile-open .sidebar-submenu { display: block !important; }
+    .sidebar.mobile-open .sidebar-submenu .sidebar-link { padding-left: 52px; }
+    .sidebar.mobile-open .sidebar-link.active { padding-left: 16px; }
+    .sidebar.mobile-open .sidebar-submenu .sidebar-link.active { padding-left: 48px; }
 
-    /* Overlay visível quando sidebar aberta */
     .sidebar-overlay.active { display: block; }
-
-    /* Main ocupa tudo */
     .main-wrapper { margin-left: 0 !important; }
 
-    /* Topbar compacta */
     .topbar { padding: 0 14px; gap: 10px; }
-    .topbar-breadcrumb { display: none; } /* esconde breadcrumb no mobile */
+    .topbar-breadcrumb { display: none; }
+    .topbar-right { gap: 6px; }
+    .topbar-btn { width: 34px; height: 34px; }
 
-    /* Content com menos padding */
     .main-content { padding: 16px 12px; }
 
-    /* Cards sem hover de elevação agressiva no touch */
     .card:hover { transform: none; }
     .stat-card:hover { transform: none; }
-
-    /* Stat cards empilham melhor */
-    .stat-card { padding: 16px 18px; gap: 14px; }
+    .stat-card { padding: 16px 18px 16px 24px; gap: 14px; }
     .stat-icon { width: 44px; height: 44px; font-size: 1.2rem; }
     .stat-value { font-size: 1.6rem; }
 
-    /* Tabelas — scroll horizontal */
     .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .table { min-width: 500px; font-size: .82rem; }
     .table thead th { padding: 10px 12px; font-size: .75rem; }
     .table td { padding: 9px 12px; }
 
-    /* Botões menores */
     .btn { font-size: .82rem; padding: 8px 14px; }
-
-    /* Formulários full-width */
     .form-control, .form-select { font-size: .92rem; }
 
-    /* Modal ocupa mais ecrã */
     .modal-dialog { margin: 10px !important; max-width: calc(100vw - 20px) !important; }
     .modal-content { border-radius: var(--radius-md); }
 
-    /* FAB um pouco menor */
     .fab-depositos { width: 46px; height: 46px; font-size: 1.05rem; bottom: 16px; right: 16px; }
-
-    /* Footer mais compacto */
     .main-footer { font-size: .75rem; padding: 14px 12px; }
   }
 
-  /* ════════════════════════════════════════════════════
-     RESPONSIVE — SMALL MOBILE (≤ 480px)
-  ════════════════════════════════════════════════════ */
   @media (max-width: 480px) {
-    /* Topbar: esconder username e alguns botões secundários */
     .topbar-user-name { display: none; }
-    .topbar-user { padding: 5px 8px; }
-
-    /* Títulos de página menores */
+    .topbar-user { padding: 4px 6px; }
     .page-title { font-size: 1.5rem; }
-
-    /* Alertas menores */
     .alert { font-size: .85rem; padding: 10px 14px; }
-
-    /* Content com padding mínimo */
     .main-content { padding: 12px 10px; }
-
-    /* Cards sem margin lateral extra */
     .card { border-radius: var(--radius-md); }
     .card-body { padding: 14px; }
-
-    /* Botões de formulário full width */
     .btn-block-mobile { width: 100%; justify-content: center; }
   }
 
-  /* ════════════════════════════════════════════════════
-     TOUCH — desabilitar hover que não funciona bem
-  ════════════════════════════════════════════════════ */
   @media (hover: none) {
     .card:hover        { transform: none; box-shadow: var(--shadow-md); }
     .stat-card:hover   { transform: none; }
     .btn:hover         { transform: none; }
+    .topbar-btn:hover  { transform: none; }
     .sidebar-link:hover { padding-left: 20px; background: none; }
     .sidebar.mobile-open .sidebar-link:hover { padding-left: 24px; background: rgba(79,195,247,.1); }
   }
 
-  /* ════════════════════════════════════════════════════
-     SAFE AREA — iPhones com notch/ilha dinâmica
-  ════════════════════════════════════════════════════ */
   @supports (padding: max(0px)) {
     .topbar {
       padding-left: max(14px, env(safe-area-inset-left));
       padding-right: max(14px, env(safe-area-inset-right));
     }
-    .main-content {
-      padding-bottom: max(16px, env(safe-area-inset-bottom));
-    }
+    .main-content { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
     .fab-depositos {
       bottom: max(16px, env(safe-area-inset-bottom));
       right: max(16px, env(safe-area-inset-right));
     }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .topbar-badge, .rep-panel, .alert { animation: none !important; }
+    .page-container, .reveal { transition: none; }
+  }
+
+  /* Imprimir qualquer página: sem menus, fundo branco */
+  @media print {
+    #loader, .sidebar, .sidebar-overlay, .topbar, .main-footer, .fab-depositos { display: none !important; }
+    .main-wrapper { margin-left: 0 !important; }
+    body { background: #fff !important; color: #000; }
+    .main-content { padding: 0; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
   </style>
 
@@ -839,21 +853,21 @@
 
       <div class="sidebar-item">
         <button class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#sub-painel" aria-expanded="false">
-          <i class="fas fa-chart-line nav-icon text-info"></i>
+          <i class="fas fa-chart-line nav-icon"></i>
           <span class="nav-text">Dashboard</span>
           <i class="fas fa-chevron-right nav-chevron"></i>
         </button>
         <div class="collapse sidebar-submenu" id="sub-painel">
           <a class="sidebar-link" href="{% url 'dashboard' %}">
-            <i class="fas fa-list nav-icon text-info"></i>
+            <i class="fas fa-list nav-icon"></i>
             <span class="nav-text">Gestão de Frota</span>
           </a>
           <a class="sidebar-link" href="{% url 'gerencia_campo' %}">
-            <i class="fas fa-map-location-dot nav-icon text-danger"></i>
+            <i class="fas fa-map-location-dot nav-icon"></i>
             <span class="nav-text">Gerência de Campo</span>
           </a>
           <a class="sidebar-link" href="{% url 'register' %}">
-            <i class="fas fa-user-plus nav-icon text-success"></i>
+            <i class="fas fa-user-plus nav-icon"></i>
             <span class="nav-text">Registrar Utilizador</span>
           </a>
         </div>
@@ -862,67 +876,55 @@
       <div class="nav-section-label">Contabilidade & Finanças</div>
 
       <div class="sidebar-item">
-        <button class="sidebar-link" data-bs-toggle="collapse"
-                data-bs-target="#sub-contabilidade"
-                aria-expanded="false">
-            <i class="fas fa-money-bill-trend-up nav-icon text-info"></i>
-            <span class="nav-text">Contabilidade</span>
-            <i class="fas fa-chevron-right nav-chevron"></i>
+        <button class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#sub-contabilidade" aria-expanded="false">
+          <i class="fas fa-money-bill-trend-up nav-icon"></i>
+          <span class="nav-text">Contabilidade</span>
+          <i class="fas fa-chevron-right nav-chevron"></i>
         </button>
-    
         <div class="collapse sidebar-submenu" id="sub-contabilidade">
-    
-            <!-- Plano de Contas -->
-            <a class="sidebar-link" href="{% url 'plano_contas_list' %}">
-                <i class="fas fa-list-ul nav-icon text-primary"></i>
-                <span class="nav-text">Plano de Contas</span>
-            </a>
-    
-            <!-- Bancos -->
-            <a class="sidebar-link" href="{% url 'menu_banco' %}">
-                <i class="fas fa-building-columns nav-icon text-success"></i>
-                <span class="nav-text">Bancos</span>
-            </a>
-    
-            <!-- Caixas -->
-            <a class="sidebar-link" href="{% url 'menu_caixas' %}">
-                <i class="fas fa-cash-register nav-icon text-warning"></i>
-                <span class="nav-text">Caixas</span>
-            </a>
-    
-            <!-- Finanças -->
-            <a class="sidebar-link" href="{% url 'contabilista_financas' %}">
-                <i class="fas fa-money-bill-trend-up nav-icon text-danger"></i>
-                <span class="nav-text">Gerência de Finanças</span>
-            </a>
-    
+          <a class="sidebar-link" href="{% url 'plano_contas_list' %}">
+            <i class="fas fa-list-ul nav-icon"></i>
+            <span class="nav-text">Plano de Contas</span>
+          </a>
+          <a class="sidebar-link" href="{% url 'menu_banco' %}">
+            <i class="fas fa-building-columns nav-icon"></i>
+            <span class="nav-text">Bancos</span>
+          </a>
+          <a class="sidebar-link" href="{% url 'menu_caixas' %}">
+            <i class="fas fa-cash-register nav-icon"></i>
+            <span class="nav-text">Caixas</span>
+          </a>
+          <a class="sidebar-link" href="{% url 'contabilista_financas' %}">
+            <i class="fas fa-money-bill-trend-up nav-icon"></i>
+            <span class="nav-text">Gerência de Finanças</span>
+          </a>
         </div>
-    </div>
+      </div>
 
-      <!-- MANUTENÇÃO -->
+      <!-- OPERAÇÕES -->
       <div class="nav-section-label">Operações</div>
 
       <div class="sidebar-item">
         <button class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#sub-manut" aria-expanded="false">
-          <i class="fas fa-tools nav-icon text-warning"></i>
+          <i class="fas fa-tools nav-icon"></i>
           <span class="nav-text">Manutenção</span>
           <i class="fas fa-chevron-right nav-chevron"></i>
         </button>
         <div class="collapse sidebar-submenu" id="sub-manut">
           <a class="sidebar-link" href="{% url 'manutencao_list' %}">
-            <i class="fas fa-list nav-icon text-info"></i>
+            <i class="fas fa-list nav-icon"></i>
             <span class="nav-text">Listar Manutenções</span>
           </a>
           <a class="sidebar-link" href="{% url 'registro_km' %}">
-            <i class="fas fa-road nav-icon text-success"></i>
+            <i class="fas fa-road nav-icon"></i>
             <span class="nav-text">Registo de KM's</span>
           </a>
           <a class="sidebar-link" href="{% url 'manutencao_create' %}">
-            <i class="fas fa-calendar-plus nav-icon text-primary"></i>
+            <i class="fas fa-calendar-plus nav-icon"></i>
             <span class="nav-text">Agendar Manutenção</span>
           </a>
           <a class="sidebar-link" href="#">
-            <i class="fas fa-history nav-icon text-secondary"></i>
+            <i class="fas fa-history nav-icon"></i>
             <span class="nav-text">Histórico</span>
           </a>
         </div>
@@ -931,34 +933,29 @@
       <!-- CONTROLO DOS PNEUS -->
       <div class="sidebar-item">
         <button class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#sub-pneus" aria-expanded="false">
-          <i class="fas fa-circle-dot nav-icon text-warning"></i>
+          <i class="fas fa-circle-dot nav-icon"></i>
           <span class="nav-text">Controlo dos Pneus</span>
           <i class="fas fa-chevron-right nav-chevron"></i>
         </button>
-      
         <div class="collapse sidebar-submenu" id="sub-pneus">
           <a class="sidebar-link" href="{% url 'pneu_list' %}">
-            <i class="fas fa-list nav-icon text-info"></i>
+            <i class="fas fa-list nav-icon"></i>
             <span class="nav-text">Listar Pneus</span>
           </a>
-      
           <a class="sidebar-link" href="{% url 'pneu_create' %}">
-            <i class="fas fa-plus-circle nav-icon text-success"></i>
+            <i class="fas fa-plus-circle nav-icon"></i>
             <span class="nav-text">Cadastrar Pneu</span>
           </a>
-      
           <a class="sidebar-link" href="{% url 'troca_create' %}">
-            <i class="fas fa-sync-alt nav-icon text-primary"></i>
+            <i class="fas fa-sync-alt nav-icon"></i>
             <span class="nav-text">Trocas de Pneus</span>
           </a>
-      
           <a class="sidebar-link" href="{% url 'inspecao_list' %}">
-            <i class="fas fa-search nav-icon text-secondary"></i>
+            <i class="fas fa-search nav-icon"></i>
             <span class="nav-text">Inspeções</span>
           </a>
-      
           <a class="sidebar-link" href="#">
-            <i class="fas fa-history nav-icon text-dark"></i>
+            <i class="fas fa-history nav-icon"></i>
             <span class="nav-text">Histórico</span>
           </a>
         </div>
@@ -967,34 +964,29 @@
       <!-- CONTROLO DE BATERIAS -->
       <div class="sidebar-item">
         <button class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#sub-baterias" aria-expanded="false">
-          <i class="fas fa-car-battery nav-icon text-warning"></i>
+          <i class="fas fa-car-battery nav-icon"></i>
           <span class="nav-text">Controlo de Baterias</span>
           <i class="fas fa-chevron-right nav-chevron"></i>
         </button>
-
         <div class="collapse sidebar-submenu" id="sub-baterias">
           <a class="sidebar-link" href="{% url 'bateria_list' %}">
-            <i class="fas fa-list nav-icon text-info"></i>
+            <i class="fas fa-list nav-icon"></i>
             <span class="nav-text">Listar Baterias</span>
           </a>
-
           <a class="sidebar-link" href="{% url 'bateria_create' %}">
-            <i class="fas fa-plus-circle nav-icon text-success"></i>
+            <i class="fas fa-plus-circle nav-icon"></i>
             <span class="nav-text">Cadastrar Bateria</span>
           </a>
-
           <a class="sidebar-link" href="{% url 'trocabateria_create' %}">
-            <i class="fas fa-sync-alt nav-icon text-primary"></i>
+            <i class="fas fa-sync-alt nav-icon"></i>
             <span class="nav-text">Trocas de Baterias</span>
           </a>
-
           <a class="sidebar-link" href="{% url 'inspecao_bateria_list' %}">
-            <i class="fas fa-search nav-icon text-secondary"></i>
+            <i class="fas fa-search nav-icon"></i>
             <span class="nav-text">Inspeções</span>
           </a>
-
           <a class="sidebar-link" href="{% url 'historico_bateria_list' %}">
-            <i class="fas fa-history nav-icon text-dark"></i>
+            <i class="fas fa-history nav-icon"></i>
             <span class="nav-text">Histórico</span>
           </a>
         </div>
@@ -1003,90 +995,85 @@
       <!-- CONTROLO DE PEÇAS -->
       <div class="sidebar-item">
         <button class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#sub-pecas" aria-expanded="false">
-          <i class="fas fa-cogs nav-icon text-warning"></i>
+          <i class="fas fa-cogs nav-icon"></i>
           <span class="nav-text">Controlo de Peças</span>
           <i class="fas fa-chevron-right nav-chevron"></i>
         </button>
-
         <div class="collapse sidebar-submenu" id="sub-pecas">
           <a class="sidebar-link" href="{% url 'peca_list' %}">
-            <i class="fas fa-list nav-icon text-info"></i>
+            <i class="fas fa-list nav-icon"></i>
             <span class="nav-text">Listar Peças</span>
           </a>
-
           <a class="sidebar-link" href="{% url 'peca_create' %}">
-            <i class="fas fa-plus-circle nav-icon text-success"></i>
+            <i class="fas fa-plus-circle nav-icon"></i>
             <span class="nav-text">Cadastrar Peça</span>
           </a>
-
           <a class="sidebar-link" href="{% url 'movimentacao_create' %}">
-            <i class="fas fa-exchange-alt nav-icon text-primary"></i>
+            <i class="fas fa-exchange-alt nav-icon"></i>
             <span class="nav-text">Movimentações</span>
           </a>
-
           <a class="sidebar-link" href="{% url 'estoque_list' %}">
-            <i class="fas fa-boxes nav-icon text-secondary"></i>
+            <i class="fas fa-boxes nav-icon"></i>
             <span class="nav-text">Estoque</span>
           </a>
-
           <a class="sidebar-link" href="{% url 'movimentacao_historico' %}">
-            <i class="fas fa-history nav-icon text-dark"></i>
+            <i class="fas fa-history nav-icon"></i>
             <span class="nav-text">Histórico</span>
           </a>
         </div>
       </div>
 
-        <!-- AUTOCARROS -->
+      <!-- AUTOCARROS -->
       <div class="sidebar-item">
         <button class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#sub-autocarros" aria-expanded="false">
-          <i class="fas fa-bus nav-icon text-accent"></i>
+          <i class="fas fa-bus nav-icon"></i>
           <span class="nav-text">Autocarros</span>
           <i class="fas fa-chevron-right nav-chevron"></i>
         </button>
         <div class="collapse sidebar-submenu" id="sub-autocarros">
           <a class="sidebar-link" href="{% url 'listar_autocarros' %}">
-            <i class="fas fa-list nav-icon text-primary"></i>
+            <i class="fas fa-list nav-icon"></i>
             <span class="nav-text">Listar Autocarros</span>
           </a>
           <a class="sidebar-link" href="{% url 'cadastrar_autocarro' %}">
-            <i class="fas fa-plus nav-icon text-success"></i>
+            <i class="fas fa-plus nav-icon"></i>
             <span class="nav-text">Cadastrar Autocarro</span>
           </a>
           <a class="sidebar-link" href="{% url 'atualizar_estado' %}">
-            <i class="fas fa-tools nav-icon text-danger"></i>
+            <i class="fas fa-tools nav-icon"></i>
             <span class="nav-text">Atualizar Estado</span>
           </a>
         </div>
       </div>
 
-      <!-- REGISTOS -->
+      <!-- RELATÓRIOS -->
       <div class="nav-section-label">Relatórios</div>
 
       <div class="sidebar-item">
         <button class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#sub-registos" aria-expanded="false">
-          <i class="fas fa-clipboard-list nav-icon text-info"></i>
+          <i class="fas fa-clipboard-list nav-icon"></i>
           <span class="nav-text">Registos</span>
           <i class="fas fa-chevron-right nav-chevron"></i>
         </button>
         <div class="collapse sidebar-submenu" id="sub-registos">
           <a class="sidebar-link" href="{% url 'listar_registros' %}">
-            <i class="fas fa-list nav-icon text-secondary"></i>
+            <i class="fas fa-list nav-icon"></i>
             <span class="nav-text">Listar Relatórios</span>
           </a>
           <a class="sidebar-link" href="{% url 'adicionar_relatorio_sector' %}">
-            <i class="fas fa-plus nav-icon text-success"></i>
+            <i class="fas fa-plus nav-icon"></i>
             <span class="nav-text">Adicionar Relatório Diário</span>
           </a>
           <a class="sidebar-link" href="{% url 'relatorios_validados' %}">
-            <i class="fas fa-check-circle nav-icon text-success"></i>
+            <i class="fas fa-check-circle nav-icon"></i>
             <span class="nav-text">Relatórios Validados</span>
           </a>
           <a class="sidebar-link" href="{% url 'selc_sector_cumb' %}">
-            <i class="fas fa-gas-pump nav-icon text-warning"></i>
+            <i class="fas fa-gas-pump nav-icon"></i>
             <span class="nav-text">Add Despesa Combustível</span>
           </a>
           <a class="sidebar-link" href="{% url 'listar_combustivel' %}">
-            <i class="fas fa-receipt nav-icon text-primary"></i>
+            <i class="fas fa-receipt nav-icon"></i>
             <span class="nav-text">Listar Despesas Combustível</span>
           </a>
         </div>
@@ -1095,25 +1082,25 @@
       <!-- DESPESAS -->
       <div class="sidebar-item">
         <button class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#sub-despesas" aria-expanded="false">
-          <i class="fas fa-money-check nav-icon text-danger"></i>
+          <i class="fas fa-money-check nav-icon"></i>
           <span class="nav-text">Despesas</span>
           <i class="fas fa-chevron-right nav-chevron"></i>
         </button>
         <div class="collapse sidebar-submenu" id="sub-despesas">
           <a class="sidebar-link" href="{% url 'despesa_list' %}">
-            <i class="fas fa-list nav-icon text-primary"></i>
+            <i class="fas fa-list nav-icon"></i>
             <span class="nav-text">Listar Despesas</span>
           </a>
           <a class="sidebar-link" href="{% url 'despesa_create' %}">
-            <i class="fas fa-plus nav-icon text-success"></i>
+            <i class="fas fa-plus nav-icon"></i>
             <span class="nav-text">Adicionar Despesa</span>
           </a>
           <a class="sidebar-link" href="{% url 'categoria_create' %}">
-            <i class="fas fa-tags nav-icon text-primary"></i>
+            <i class="fas fa-tags nav-icon"></i>
             <span class="nav-text">Add Categoria</span>
           </a>
           <a class="sidebar-link" href="{% url 'subcategoria_create' %}">
-            <i class="fas fa-tag nav-icon text-primary"></i>
+            <i class="fas fa-tag nav-icon"></i>
             <span class="nav-text">Add Subcategoria</span>
           </a>
         </div>
@@ -1124,22 +1111,22 @@
 
       <div class="sidebar-item">
         <button class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#sub-regioes" aria-expanded="false">
-          <i class="fas fa-map-marker-alt nav-icon text-success"></i>
+          <i class="fas fa-map-marker-alt nav-icon"></i>
           <span class="nav-text">Setores</span>
           <i class="fas fa-chevron-right nav-chevron"></i>
         </button>
         <div class="collapse sidebar-submenu" id="sub-regioes">
           <a class="sidebar-link" href="{% url 'lista_sectores' %}">
-            <i class="fas fa-list nav-icon text-info"></i>
+            <i class="fas fa-list nav-icon"></i>
             <span class="nav-text">Listar Setores</span>
           </a>
           <a class="sidebar-link" href="{% url 'adicionar_sector' %}">
-            <i class="fas fa-plus nav-icon text-success"></i>
+            <i class="fas fa-plus nav-icon"></i>
             <span class="nav-text">Adicionar Setor</span>
           </a>
           {% for sector in sectores %}
           <a class="sidebar-link" href="{% url 'resumo_sector' sector.nome|slugify %}">
-            <i class="fas fa-city nav-icon text-secondary"></i>
+            <i class="fas fa-city nav-icon"></i>
             <span class="nav-text">{{ sector.nome }}</span>
           </a>
           {% endfor %}
@@ -1151,29 +1138,29 @@
 
       <div class="sidebar-item">
         <button class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#sub-financas" aria-expanded="false">
-          <i class="fas fa-piggy-bank nav-icon text-warning"></i>
+          <i class="fas fa-piggy-bank nav-icon"></i>
           <span class="nav-text">Finanças</span>
           <i class="fas fa-chevron-right nav-chevron"></i>
         </button>
         <div class="collapse sidebar-submenu" id="sub-financas">
           <a class="sidebar-link" href="#">
-            <i class="fas fa-hand-holding-usd nav-icon text-success"></i>
+            <i class="fas fa-hand-holding-usd nav-icon"></i>
             <span class="nav-text">Crédito</span>
           </a>
           <a class="sidebar-link" href="#">
-            <i class="fas fa-chart-line nav-icon text-primary"></i>
+            <i class="fas fa-chart-line nav-icon"></i>
             <span class="nav-text">Investimentos</span>
           </a>
           <a class="sidebar-link" href="#">
-            <i class="fas fa-coins nav-icon text-warning"></i>
+            <i class="fas fa-coins nav-icon"></i>
             <span class="nav-text">Amortizações</span>
           </a>
           <a class="sidebar-link" href="#">
-            <i class="fas fa-file-invoice-dollar nav-icon text-info"></i>
+            <i class="fas fa-file-invoice-dollar nav-icon"></i>
             <span class="nav-text">Demonstração</span>
           </a>
           <a class="sidebar-link" href="#">
-            <i class="fas fa-receipt nav-icon text-secondary"></i>
+            <i class="fas fa-receipt nav-icon"></i>
             <span class="nav-text">Extratos</span>
           </a>
         </div>
@@ -1199,7 +1186,7 @@
 
     <!-- TOPBAR -->
     <header class="topbar">
-      <button class="sidebar-toggle" id="sidebarToggle" title="Toggle menu">
+      <button class="sidebar-toggle" id="sidebarToggle" title="Menu">
         <i class="fas fa-bars"></i>
       </button>
 
@@ -1210,29 +1197,25 @@
       </div>
 
       <div class="topbar-right">
-        <!-- Chat placeholder -->
+        <!-- Chat (placeholder) -->
         <div class="topbar-btn" title="Chat">
           <i class="fas fa-comments"></i>
           <span class="topbar-badge">10</span>
         </div>
-        <!-- Comparação -->
-        <a href="{% url 'mapa_geral_financeiro' %}" class="topbar-btn" title="Perfil">
+        <a href="{% url 'mapa_geral_financeiro' %}" class="topbar-btn" title="Mapa geral financeiro">
           <i class="fas fa-chart-line"></i>
         </a>
-        <a href="{% url 'relatorio_autocarros' %}" class="topbar-btn" title="Perfil">
-          <div class="topbar-btn" title="Notificações">
-            <i class="fas fa-bus"></i>
-            <span class="topbar-badge">1</span>
-          </div>
+        <a href="{% url 'relatorio_autocarros' %}" class="topbar-btn" title="Relatório de autocarros">
+          <i class="fas fa-bus"></i>
+          <span class="topbar-badge">1</span>
         </a>
         <a href="{% url 'comparacao_registo_deposito' %}" class="topbar-btn" title="Comparação de Registos de Depósitos">
           <i class="fas fa-gavel"></i>
         </a>
-        <!-- Perfil -->
-        <a href="{% url 'motorista_list' %}" class="topbar-btn" title="Perfil">
+        <a href="{% url 'motorista_list' %}" class="topbar-btn" title="Motoristas">
           <i class="fas fa-users"></i>
         </a>
-        <!-- Notificações placeholder -->
+        <!-- Notificações (placeholder) -->
         <div class="topbar-btn" title="Notificações">
           <i class="fas fa-bell"></i>
           <span class="topbar-badge">3</span>
@@ -1330,52 +1313,44 @@
   function openMobileSidebar() {
     sidebar.classList.add('mobile-open');
     overlay.classList.add('active');
-    document.body.style.overflow = 'hidden'; // evita scroll do body
+    document.body.style.overflow = 'hidden';
   }
 
   function toggleSidebar() {
     if (isMobile()) {
-      if (sidebar.classList.contains('mobile-open')) {
-        closeMobileSidebar();
-      } else {
-        openMobileSidebar();
-      }
-    } else {
-      // Em desktop/tablet o sidebar já colapsa via CSS no tablet
-      // Aqui só gere o desktop (> 1100px)
-      if (!isTablet()) {
-        const collapsed = sidebar.classList.toggle('collapsed');
-        mainWrapper.classList.toggle('expanded', collapsed);
-        localStorage.setItem('sidebarCollapsed', collapsed);
-      }
+      if (sidebar.classList.contains('mobile-open')) closeMobileSidebar();
+      else openMobileSidebar();
+    } else if (!isTablet()) {
+      const collapsed = sidebar.classList.toggle('collapsed');
+      mainWrapper.classList.toggle('expanded', collapsed);
+      try { localStorage.setItem('sidebarCollapsed', collapsed); } catch (e) {}
     }
   }
 
-  sidebarToggle.addEventListener('click', toggleSidebar);
+  /* Lembrar o estado do menu (antes era gravado mas nunca restaurado) */
+  try {
+    if (!isTablet() && localStorage.getItem('sidebarCollapsed') === 'true') {
+      sidebar.classList.add('collapsed');
+      mainWrapper.classList.add('expanded');
+    }
+  } catch (e) {}
 
+  sidebarToggle.addEventListener('click', toggleSidebar);
   overlay.addEventListener('click', closeMobileSidebar);
 
-  // Fechar com Escape
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && sidebar.classList.contains('mobile-open')) {
-      closeMobileSidebar();
-    }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && sidebar.classList.contains('mobile-open')) closeMobileSidebar();
   });
 
-  // Swipe para fechar (deslizar para a esquerda fecha o drawer)
   let touchStartX = 0;
-  sidebar.addEventListener('touchstart', function(e) {
-    touchStartX = e.touches[0].clientX;
-  }, { passive: true });
-  sidebar.addEventListener('touchend', function(e) {
+  sidebar.addEventListener('touchstart', function (e) { touchStartX = e.touches[0].clientX; }, { passive: true });
+  sidebar.addEventListener('touchend', function (e) {
     const diff = touchStartX - e.changedTouches[0].clientX;
-    if (diff > 60 && isMobile()) closeMobileSidebar(); // swipe left ≥ 60px
+    if (diff > 60 && isMobile()) closeMobileSidebar();
   }, { passive: true });
 
   window.addEventListener('resize', function () {
-    if (!isMobile()) {
-      closeMobileSidebar();
-    }
+    if (!isMobile()) closeMobileSidebar();
   });
 
   /* ── ACTIVE LINK ─────────────────────────── */
@@ -1383,13 +1358,14 @@
   document.querySelectorAll('.sidebar-link[href]').forEach(function (link) {
     if (link.getAttribute('href') === currentPath) {
       link.classList.add('active');
-
-      // Abrir o submenu pai
       const submenu = link.closest('.sidebar-submenu');
       if (submenu) {
         submenu.classList.add('show');
         const trigger = document.querySelector('[data-bs-target="#' + submenu.id + '"]');
-        if (trigger) trigger.setAttribute('aria-expanded', 'true');
+        if (trigger) {
+          trigger.setAttribute('aria-expanded', 'true');
+          trigger.classList.add('has-active');
+        }
       }
     }
   });
@@ -1411,6 +1387,7 @@
     ) return;
 
     link.addEventListener('click', function (e) {
+      if (e.ctrlKey || e.metaKey || e.shiftKey) return; // deixa abrir em novo separador
       e.preventDefault();
       const dest = link.href;
       if (pageContainer) pageContainer.classList.add('fade-out');
@@ -1436,12 +1413,26 @@
   document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function (btn) {
     const target = document.querySelector(btn.dataset.bsTarget);
     if (!target) return;
-    target.addEventListener('show.bs.collapse', function () {
-      btn.setAttribute('aria-expanded', 'true');
-    });
-    target.addEventListener('hide.bs.collapse', function () {
-      btn.setAttribute('aria-expanded', 'false');
-    });
+    target.addEventListener('show.bs.collapse', function () { btn.setAttribute('aria-expanded', 'true'); });
+    target.addEventListener('hide.bs.collapse', function () { btn.setAttribute('aria-expanded', 'false'); });
+  });
+
+  /* ── CONTADOR AUTOMÁTICO ────────────────────
+     <b data-countup="7">0</b> conta de 0 até 7.
+     Disponível para qualquer página nova. */
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('[data-countup]').forEach(function (el, i) {
+    const to = parseFloat(el.dataset.countup) || 0;
+    if (reduce || to === 0) { el.textContent = to; return; }
+    setTimeout(function () {
+      let start = null;
+      (function step(ts) {
+        if (!start) start = ts;
+        const p = Math.min((ts - start) / 700, 1);
+        el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
+        if (p < 1) requestAnimationFrame(step);
+      })(performance.now());
+    }, 300 + i * 90);
   });
 
 })();
