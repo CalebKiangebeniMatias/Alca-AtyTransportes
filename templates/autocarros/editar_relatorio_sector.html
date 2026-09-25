@@ -6,383 +6,718 @@
 
 {% block extra_css %}
 <style>
-/* ════════════════════════════════════════════════════
+  /* ════════════════════════════════════════════════════
    EDITAR REGISTOS
+   Mesmo cartão escuro com cabeçalho azul-marinho + linha
+   âmbar usado nas outras páginas de formulário.
 ════════════════════════════════════════════════════ */
 
-.registos-wrapper {
-  animation: pageIn .5s cubic-bezier(.34,1.56,.64,1) both;
-}
-@keyframes pageIn {
-  from { opacity:0; transform:translateY(18px); }
-  to   { opacity:1; transform:translateY(0); }
-}
+  .registos-wrapper {
+    --er-amber: #F59E0B;
+    --er-navy: #0B2545;
+    animation: pageIn .5s cubic-bezier(.34, 1.56, .64, 1) both;
+  }
 
-/* ── TOP BAR ─────────────────────────────────────── */
-.page-topbar {
-  display: flex; align-items: center;
-  justify-content: space-between; flex-wrap: wrap;
-  gap: 14px; margin-bottom: 24px;
-}
-.page-topbar-left { display: flex; flex-direction: column; gap: 5px; }
-.page-topbar-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.9rem; letter-spacing: 2px; line-height: 1;
-}
-.page-topbar-title span { color: var(--accent); }
-.page-topbar-meta {
-  display: flex; align-items: center; flex-wrap: wrap; gap: 14px;
-  font-size: .8rem; color: var(--grey);
-}
-.meta-pill {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(79,195,247,.08);
-  border: 1px solid var(--glass-border);
-  border-radius: 30px; padding: 4px 12px;
-  font-size: .75rem; font-weight: 700; letter-spacing: .8px;
-  color: rgba(255,255,255,.65);
-}
-.meta-pill i { color: var(--accent); font-size: .7rem; }
+  @keyframes pageIn {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
 
-.page-topbar-right { display: flex; gap: 10px; flex-wrap: wrap; }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
-/* ── DESPESA GERAL ───────────────────────────────── */
-.despesa-section {
-  background: rgba(13,43,94,.45);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 8px 28px rgba(4,30,66,.28);
-  overflow: hidden;
-  margin-bottom: 24px;
-}
-.despesa-header {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  padding: 13px 22px;
-  background: linear-gradient(90deg, rgba(36,99,163,.35), rgba(4,30,66,.2));
-  border-bottom: 1px solid var(--glass-border);
-}
-.despesa-header-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: 1rem;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--white); display: flex; align-items: center; gap: 9px;
-}
-.despesa-header-title i { color: var(--accent); }
-.despesa-body { padding: 22px; }
+  @keyframes erShine {
+    to {
+      transform: translateX(120%);
+    }
+  }
 
-/* ── FORM FIELDS (override Django) ──────────────── */
-.registos-wrapper .form-control,
-.registos-wrapper .form-select,
-.registos-wrapper select,
-.registos-wrapper input[type="text"],
-.registos-wrapper input[type="number"],
-.registos-wrapper input[type="date"],
-.registos-wrapper input[type="file"],
-.registos-wrapper textarea {
-  width: 100%;
-  background: rgba(4,30,66,.55) !important;
-  border: 1px solid var(--glass-border) !important;
-  border-radius: var(--radius-md) !important;
-  color: var(--white) !important;
-  padding: 9px 13px !important;
-  font-family: 'Barlow', sans-serif !important;
-  font-size: .88rem !important;
-  transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
-  outline: none !important;
-  -webkit-appearance: none;
-}
-.registos-wrapper .form-control:focus,
-.registos-wrapper select:focus,
-.registos-wrapper input[type="text"]:focus,
-.registos-wrapper input[type="number"]:focus,
-.registos-wrapper textarea:focus {
-  border-color: var(--accent) !important;
-  background: rgba(4,30,66,.8) !important;
-  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
-}
-.registos-wrapper input[type="number"] { text-align: right; }
-.registos-wrapper select option { background: var(--navy); color: var(--white); }
-.registos-wrapper textarea { resize: vertical; min-height: 80px; }
+  /* ── TOP BAR ─────────────────────────────────────── */
+  .page-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
 
-/* Field label */
-.f-label {
-  display: block;
-  font-size: .7rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 1px;
-  color: rgba(255,255,255,.48);
-  margin-bottom: 5px;
-}
+  .page-topbar-left {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
 
-/* Kz input group */
-.kz-wrap { position: relative; }
-.kz-wrap input { padding-right: 36px !important; }
-.kz-sym {
-  position: absolute; right: 11px; top: 50%;
-  transform: translateY(-50%);
-  font-size: .75rem; font-weight: 700;
-  color: var(--accent); pointer-events: none;
-}
+  .page-topbar-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.9rem;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
 
-/* File input */
-.file-item {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  background: rgba(4,30,66,.4);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-sm);
-  padding: 7px 12px; margin-top: 6px; gap: 10px;
-}
-.file-item a {
-  color: var(--accent); text-decoration: none;
-  font-size: .8rem; display: flex; align-items: center;
-  gap: 6px; flex:1; min-width:0;
-}
-.file-item a span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.file-item a:hover { color: var(--white); }
-.btn-rm {
-  width: 26px; height: 26px; flex-shrink:0;
-  background: rgba(231,76,60,.15);
-  border: 1px solid rgba(231,76,60,.3);
-  border-radius: 4px;
-  color: #ff8a80; font-size: .75rem;
-  display: flex; align-items: center; justify-content: center;
-  text-decoration: none;
-  transition: background var(--ease-fast);
-}
-.btn-rm:hover { background: rgba(231,76,60,.3); color: #ff8a80; }
+  .page-topbar-title span {
+    color: var(--er-amber);
+  }
 
-/* Checkboxes */
-.check-row {
-  display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 14px;
-}
-.check-item {
-  display: flex; align-items: center; gap: 8px;
-  cursor: pointer;
-}
-.check-item input[type="checkbox"] {
-  width: 16px !important; height: 16px !important;
-  border-radius: 4px !important; padding: 0 !important;
-  cursor: pointer; flex-shrink: 0;
-  accent-color: var(--accent);
-}
-.check-label {
-  font-size: .82rem; font-weight: 600;
-  color: rgba(255,255,255,.7);
-}
+  .page-topbar-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: .8rem;
+    color: var(--grey);
+  }
 
-/* ── AUTOCARRO CARD ──────────────────────────────── */
-.autocarro-card {
-  background: rgba(13,43,94,.42);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  height: 100%;
-  display: flex; flex-direction: column;
-  transition: border-color var(--ease-fast), box-shadow var(--ease-base);
-}
-.autocarro-card:focus-within {
-  border-color: rgba(79,195,247,.35);
-  box-shadow: 0 8px 28px rgba(4,30,66,.3);
-}
+  .meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(245, 158, 11, .09);
+    border: 1px solid rgba(245, 158, 11, .25);
+    border-radius: 30px;
+    padding: 4px 12px;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .8px;
+    color: rgba(255, 255, 255, .7);
+  }
 
-.ac-header {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  padding: 11px 16px;
-  background: linear-gradient(90deg, rgba(36,99,163,.3), rgba(4,30,66,.2));
-  border-bottom: 1px solid var(--glass-border);
-  gap: 10px;
-}
-.ac-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: .95rem; letter-spacing: 1px;
-  color: var(--white); display: flex; align-items: center; gap: 7px;
-}
-.ac-title i { color: var(--accent); font-size: .85rem; }
+  .meta-pill i {
+    color: var(--er-amber);
+    font-size: .7rem;
+  }
 
-/* Badge de status */
-.status-badge {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: .7rem; font-weight: 700;
-  letter-spacing: 1px; text-transform: uppercase;
-  padding: 3px 10px; border-radius: 30px;
-}
-.status-validado  { background: rgba(39,174,96,.2);  border: 1px solid rgba(39,174,96,.4);  color: #69f0ae; }
-.status-concluido { background: rgba(243,156,18,.18); border: 1px solid rgba(243,156,18,.4); color: #ffd54f; }
-.status-pendente  { background: rgba(141,163,196,.12);border: 1px solid rgba(141,163,196,.25);color: var(--grey); }
+  .page-topbar-right {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
 
-.ac-body { padding: 16px; flex: 1; }
+  /* ── DESPESA GERAL ───────────────────────────────── */
+  .despesa-section {
+    background: rgba(13, 43, 94, .45);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 8px 28px rgba(4, 30, 66, .28);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
 
-/* ── RESUMO MINI ─────────────────────────────────── */
-.resumo-mini {
-  display: grid; grid-template-columns: repeat(3,1fr);
-  gap: 1px;
-  background: var(--glass-border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  margin-bottom: 16px;
-}
-.resumo-col {
-  background: rgba(4,30,66,.5);
-  padding: 10px 6px;
-  text-align: center;
-  transition: background var(--ease-fast);
-}
-.resumo-col:hover { background: rgba(36,99,163,.22); }
-.resumo-val {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.15rem; letter-spacing: .5px;
-  transition: color var(--ease-fast);
-}
-.resumo-val.positive { color: #69f0ae; }
-.resumo-val.negative { color: #ff8a80; }
-.resumo-val.neutral  { color: rgba(255,255,255,.7); }
-.resumo-lbl {
-  font-size: .62rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 1px;
-  color: var(--grey); margin-top: 2px;
-}
+  .despesa-header {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px 22px 13px;
+    background: var(--er-navy);
+    border-bottom: 4px solid var(--er-amber);
+  }
 
-/* ── SUB SECTIONS (entradas/saídas) ──────────────── */
-.sub-section {
-  border-radius: var(--radius-md);
-  padding: 14px;
-  margin-bottom: 14px;
-}
-.sub-section:last-child { margin-bottom: 0; }
-.sub-section.entradas {
-  background: rgba(39,174,96,.07);
-  border: 1px solid rgba(39,174,96,.2);
-}
-.sub-section.saidas {
-  background: rgba(231,76,60,.07);
-  border: 1px solid rgba(231,76,60,.2);
-}
-.sub-section.operacional {
-  background: rgba(79,195,247,.05);
-  border: 1px solid rgba(79,195,247,.12);
-}
-.sub-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: .82rem;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  margin-bottom: 12px; display: flex; align-items: center; gap: 7px;
-}
-.sub-title.verde { color: #69f0ae; }
-.sub-title.vermelho { color: #ff8a80; }
-.sub-title.azul { color: var(--accent); }
-.fields-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
+  .despesa-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .14) 50%, transparent 65%);
+    transform: translateX(-120%);
+    animation: erShine 1.4s ease .6s 1 forwards;
+    pointer-events: none;
+  }
 
-/* ── PESSOAL ─────────────────────────────────────── */
-.pessoal-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-  margin-bottom: 14px;
-}
+  .despesa-header-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 400;
+    font-size: 1.15rem;
+    letter-spacing: 1.5px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
 
-/* ── ACTION BAR ──────────────────────────────────── */
-.form-actions {
-  display: flex; align-items: center;
-  justify-content: flex-end; gap: 12px;
-  flex-wrap: wrap;
-  background: rgba(4,30,66,.4);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  padding: 16px 22px;
-  margin-top: 8px;
-}
-.form-actions-left { margin-right: auto; font-size: .8rem; color: var(--grey); }
+  .despesa-header-title i {
+    color: var(--er-amber);
+  }
 
-.btn-guardar {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 11px 28px;
-  background: var(--success);
-  border: none; border-radius: var(--radius-md);
-  color: var(--white);
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: .98rem;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(39,174,96,.3);
-  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
-  position: relative; overflow: hidden;
-}
-.btn-guardar::before {
-  content:''; position:absolute; inset:0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);
-  transform:translateX(-100%); transition:transform .5s ease;
-}
-.btn-guardar:hover::before { transform:translateX(100%); }
-.btn-guardar:hover { background:#219150; transform:translateY(-2px); box-shadow:0 8px 24px rgba(39,174,96,.42); }
-.btn-guardar:active { transform:scale(.98); }
-.btn-guardar .sp {
-  display:none; width:14px; height:14px;
-  border:2px solid rgba(255,255,255,.3); border-top-color:white;
-  border-radius:50%; animation:spin .7s linear infinite;
-}
-.btn-guardar.loading .sp { display:inline-block; }
+  .despesa-body {
+    padding: 22px;
+  }
 
-.btn-voltar {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 11px 20px;
-  background: transparent;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  color: rgba(255,255,255,.6);
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: .95rem;
-  letter-spacing: 1px; text-transform: uppercase;
-  text-decoration: none;
-  transition: background var(--ease-fast), border-color var(--ease-fast), color var(--ease-fast);
-}
-.btn-voltar:hover { background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.3); color:var(--white); }
+  /* ── FORM FIELDS (override Django) ──────────────── */
+  .registos-wrapper .form-control,
+  .registos-wrapper .form-select,
+  .registos-wrapper select,
+  .registos-wrapper input[type="text"],
+  .registos-wrapper input[type="number"],
+  .registos-wrapper input[type="date"],
+  .registos-wrapper input[type="file"],
+  .registos-wrapper textarea {
+    width: 100%;
+    background: rgba(4, 30, 66, .55) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: var(--radius-md) !important;
+    color: var(--white) !important;
+    padding: 9px 13px !important;
+    font-family: 'Barlow', sans-serif !important;
+    font-size: .88rem !important;
+    transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+    outline: none !important;
+    -webkit-appearance: none;
+  }
 
-/* nav btn pequeno */
-.btn-sm-nav {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: .82rem;
-  letter-spacing: 1px; text-transform: uppercase;
-  text-decoration: none; cursor: pointer; border: none;
-  transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
-}
-.btn-sm-nav:hover { transform: translateY(-2px); }
-.btn-outline-nav {
-  background: transparent;
-  border: 1px solid var(--glass-border) !important;
-  color: rgba(255,255,255,.6) !important;
-}
-.btn-outline-nav:hover { background:rgba(255,255,255,.07) !important; color:var(--white) !important; }
-.btn-edit-nav {
-  background: var(--grad-btn);
-  color: var(--white) !important;
-  box-shadow: var(--shadow-sm);
-}
-.btn-edit-nav:hover { box-shadow: 0 6px 20px rgba(36,99,163,.35); }
+  .registos-wrapper .form-control:focus,
+  .registos-wrapper select:focus,
+  .registos-wrapper input[type="text"]:focus,
+  .registos-wrapper input[type="number"]:focus,
+  .registos-wrapper textarea:focus {
+    border-color: var(--er-amber) !important;
+    background: rgba(4, 30, 66, .8) !important;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, .18) !important;
+  }
 
-/* ── RESPONSIVE ─────────────────────────────────── */
-@media (max-width: 768px) {
-  .fields-grid { grid-template-columns: 1fr 1fr; }
-  .page-topbar { flex-direction: column; align-items: flex-start; }
-  .page-topbar-right { width: 100%; justify-content: flex-start; }
-}
-@media (max-width: 480px) {
-  .fields-grid { grid-template-columns: 1fr; }
-  .despesa-body { padding: 14px; }
-  .form-actions { flex-direction: column; }
-  .btn-guardar, .btn-voltar { width: 100%; justify-content: center; }
-  .form-actions-left { margin-right: 0; }
-}
+  .registos-wrapper input[type="number"] {
+    text-align: right;
+  }
+
+  .registos-wrapper select option {
+    background: var(--navy);
+    color: var(--white);
+  }
+
+  .registos-wrapper textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  /* Field label */
+  .f-label {
+    display: block;
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, .48);
+    margin-bottom: 5px;
+  }
+
+  /* Kz input group */
+  .kz-wrap {
+    position: relative;
+  }
+
+  .kz-wrap input {
+    padding-right: 36px !important;
+  }
+
+  .kz-sym {
+    position: absolute;
+    right: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: .75rem;
+    font-weight: 700;
+    color: var(--er-amber);
+    pointer-events: none;
+  }
+
+  /* File input */
+  .file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(4, 30, 66, .4);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    padding: 7px 12px;
+    margin-top: 6px;
+    gap: 10px;
+    transition: background var(--ease-fast), border-color var(--ease-fast);
+  }
+
+  .file-item:hover {
+    background: rgba(245, 158, 11, .08);
+    border-color: rgba(245, 158, 11, .25);
+  }
+
+  .file-item a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .8rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .file-item a span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .file-item a:hover {
+    color: var(--white);
+  }
+
+  .btn-rm {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    background: rgba(214, 40, 57, .15);
+    border: 1px solid rgba(214, 40, 57, .35);
+    border-radius: 4px;
+    color: #ff9d90;
+    font-size: .75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: background var(--ease-fast), transform var(--ease-spring);
+  }
+
+  .btn-rm:hover {
+    background: #D62839;
+    color: #fff;
+    transform: scale(1.1);
+  }
+
+  /* Checkboxes */
+  .check-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  .check-item input[type="checkbox"] {
+    width: 16px !important;
+    height: 16px !important;
+    border-radius: 4px !important;
+    padding: 0 !important;
+    cursor: pointer;
+    flex-shrink: 0;
+    accent-color: var(--er-amber);
+  }
+
+  .check-label {
+    font-size: .82rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, .7);
+  }
+
+  /* ── AUTOCARRO CARD ──────────────────────────────── */
+  .autocarro-card {
+    background: rgba(13, 43, 94, .42);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: border-color var(--ease-fast), box-shadow var(--ease-base);
+  }
+
+  .autocarro-card:focus-within {
+    border-color: rgba(245, 158, 11, .4);
+    box-shadow: 0 8px 28px rgba(4, 30, 66, .3);
+  }
+
+  .ac-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 16px;
+    background: rgba(11, 37, 69, .55);
+    border-bottom: 1px solid var(--glass-border);
+    border-left: 4px solid var(--er-amber);
+    gap: 10px;
+  }
+
+  .ac-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: .95rem;
+    letter-spacing: 1px;
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .ac-title i {
+    color: var(--er-amber);
+    font-size: .85rem;
+  }
+
+  /* Badge de status */
+  .status-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 30px;
+  }
+
+  .status-validado {
+    background: rgba(18, 161, 80, .2);
+    border: 1px solid rgba(18, 161, 80, .4);
+    color: #6be3a1;
+  }
+
+  .status-concluido {
+    background: rgba(245, 158, 11, .18);
+    border: 1px solid rgba(245, 158, 11, .4);
+    color: var(--er-amber);
+  }
+
+  .status-pendente {
+    background: rgba(141, 163, 196, .12);
+    border: 1px solid rgba(141, 163, 196, .25);
+    color: var(--grey);
+  }
+
+  .ac-body {
+    padding: 16px;
+    flex: 1;
+  }
+
+  /* ── RESUMO MINI ─────────────────────────────────── */
+  .resumo-mini {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--glass-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .resumo-col {
+    background: rgba(4, 30, 66, .5);
+    padding: 10px 6px;
+    text-align: center;
+    transition: background var(--ease-fast);
+  }
+
+  .resumo-col:hover {
+    background: rgba(245, 158, 11, .1);
+  }
+
+  .resumo-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.15rem;
+    letter-spacing: .5px;
+    transition: color var(--ease-fast);
+  }
+
+  .resumo-val.positive {
+    color: #12A150;
+  }
+
+  .resumo-val.negative {
+    color: #D62839;
+  }
+
+  .resumo-val.neutral {
+    color: rgba(255, 255, 255, .7);
+  }
+
+  .resumo-lbl {
+    font-size: .62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--grey);
+    margin-top: 2px;
+  }
+
+  /* ── SUB SECTIONS (entradas/saídas) ──────────────── */
+  .sub-section {
+    border-radius: var(--radius-md);
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+
+  .sub-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .sub-section.entradas {
+    background: rgba(18, 161, 80, .07);
+    border: 1px solid rgba(18, 161, 80, .22);
+  }
+
+  .sub-section.saidas {
+    background: rgba(214, 40, 57, .07);
+    border: 1px solid rgba(214, 40, 57, .22);
+  }
+
+  .sub-section.operacional {
+    background: rgba(245, 158, 11, .06);
+    border: 1px solid rgba(245, 158, 11, .2);
+  }
+
+  .sub-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: .82rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .sub-title.verde {
+    color: #12A150;
+  }
+
+  .sub-title.vermelho {
+    color: #D62839;
+  }
+
+  .sub-title.azul {
+    color: var(--er-amber);
+  }
+
+  .fields-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  /* ── PESSOAL ─────────────────────────────────────── */
+  .pessoal-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  /* ── ACTION BAR ──────────────────────────────────── */
+  .form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: rgba(4, 30, 66, .4);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    border-top: 3px solid var(--er-amber);
+    padding: 16px 22px;
+    margin-top: 8px;
+  }
+
+  .form-actions-left {
+    margin-right: auto;
+    font-size: .8rem;
+    color: var(--grey);
+  }
+
+  .form-actions-left i {
+    color: var(--er-amber);
+  }
+
+  .btn-guardar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 28px;
+    background: #12A150;
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: .98rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(18, 161, 80, .32);
+    transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-guardar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .14), transparent);
+    transform: translateX(-100%);
+    transition: transform .5s ease;
+  }
+
+  .btn-guardar:hover::before {
+    transform: translateX(100%);
+  }
+
+  .btn-guardar:hover {
+    background: #0e8a45;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(18, 161, 80, .42);
+  }
+
+  .btn-guardar:active {
+    transform: scale(.98);
+  }
+
+  .btn-guardar .sp {
+    display: none;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, .3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+
+  .btn-guardar.loading .sp {
+    display: inline-block;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .btn-voltar {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 11px 20px;
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: rgba(255, 255, 255, .6);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: .95rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background var(--ease-fast), border-color var(--ease-fast), color var(--ease-fast);
+  }
+
+  .btn-voltar:hover {
+    background: rgba(245, 158, 11, .1);
+    border-color: rgba(245, 158, 11, .35);
+    color: var(--er-amber);
+  }
+
+  /* nav btn pequeno */
+  .btn-sm-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: .82rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
+  }
+
+  .btn-sm-nav:hover {
+    transform: translateY(-2px);
+  }
+
+  .btn-outline-nav {
+    background: transparent;
+    border: 1px solid var(--glass-border) !important;
+    color: rgba(255, 255, 255, .6) !important;
+  }
+
+  .btn-outline-nav:hover {
+    background: rgba(245, 158, 11, .1) !important;
+    border-color: rgba(245, 158, 11, .35) !important;
+    color: var(--er-amber) !important;
+  }
+
+  .btn-edit-nav {
+    background: var(--grad-btn);
+    color: var(--white) !important;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-edit-nav:hover {
+    box-shadow: 0 6px 20px rgba(36, 99, 163, .35);
+  }
+
+  /* ── RESPONSIVE ─────────────────────────────────── */
+  @media (max-width: 768px) {
+    .fields-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .page-topbar {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .page-topbar-right {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .fields-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .despesa-body {
+      padding: 14px;
+    }
+
+    .form-actions {
+      flex-direction: column;
+    }
+
+    .btn-guardar,
+    .btn-voltar {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .form-actions-left {
+      margin-right: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+
+    .registos-wrapper,
+    .despesa-header::after {
+      animation: none !important;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -405,23 +740,24 @@
         <i class="fas fa-arrow-left"></i> Voltar
       </a>
       {% if relatorio and relatorio.id %}
-        <a href="{% url 'editar_relatorio_sector_geral' relatorio.id %}" class="btn-sm-nav btn-edit-nav">
-          <i class="fas fa-pen"></i> Editar Relatório
-        </a>
+      <a href="{% url 'editar_relatorio_sector_geral' relatorio.id %}" class="btn-sm-nav btn-edit-nav">
+        <i class="fas fa-pen"></i> Editar Relatório
+      </a>
       {% endif %}
     </div>
   </div>
 
   <!-- Mensagens -->
   {% if messages %}
-    <div style="margin-bottom:20px">
-      {% for message in messages %}
-        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
-          {{ message }}
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
-        </div>
-      {% endfor %}
+  <div style="margin-bottom:20px">
+    {% for message in messages %}
+    <div
+      class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+      {{ message }}
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
     </div>
+    {% endfor %}
+  </div>
   {% endif %}
 
   <form method="post" enctype="multipart/form-data" id="relatorioForm">
@@ -450,26 +786,28 @@
               <span class="kz-sym">Kz</span>
             </div>
             {% if relatorio_form.despesa_geral.errors %}
-              <div style="color:#ff8a80;font-size:.75rem;margin-top:4px">{{ relatorio_form.despesa_geral.errors.as_text }}</div>
+            <div style="color:#ff9d90;font-size:.75rem;margin-top:4px">{{ relatorio_form.despesa_geral.errors.as_text }}
+            </div>
             {% endif %}
           </div>
 
           <!-- Comprovativos -->
           <div class="col-md-6">
-            <label class="f-label"><i class="fas fa-paperclip" style="color:var(--accent)"></i> Adicionar Comprovativos</label>
+            <label class="f-label"><i class="fas fa-paperclip" style="color:var(--er-amber)"></i> Adicionar
+              Comprovativos</label>
             <input type="file" name="novos_comprovativos" multiple class="form-control">
             {% if relatorio.comprovativos.exists %}
-              {% for comp in relatorio.comprovativos.all %}
-                <div class="file-item">
-                  <a href="{{ comp.arquivo.url }}" target="_blank">
-                    <i class="fas fa-file-lines"></i>
-                    <span>{{ comp.arquivo.name|slice:"-35:" }}</span>
-                  </a>
-                  <a href="#" class="btn-rm" title="Remover" onclick="return confirm('Remover este comprovativo?');">
-                    <i class="fas fa-trash-can"></i>
-                  </a>
-                </div>
-              {% endfor %}
+            {% for comp in relatorio.comprovativos.all %}
+            <div class="file-item">
+              <a href="{{ comp.arquivo.url }}" target="_blank">
+                <i class="fas fa-file-lines"></i>
+                <span>{{ comp.arquivo.name|slice:"-35:" }}</span>
+              </a>
+              <a href="#" class="btn-rm" title="Remover" onclick="return confirm('Remover este comprovativo?');">
+                <i class="fas fa-trash-can"></i>
+              </a>
+            </div>
+            {% endfor %}
             {% endif %}
           </div>
 
@@ -478,7 +816,8 @@
             <label class="f-label">Observações do Relatório</label>
             {{ relatorio_form.descricao }}
             {% if relatorio_form.descricao.errors %}
-              <div style="color:#ff8a80;font-size:.75rem;margin-top:4px">{{ relatorio_form.descricao.errors.as_text }}</div>
+            <div style="color:#ff9d90;font-size:.75rem;margin-top:4px">{{ relatorio_form.descricao.errors.as_text }}
+            </div>
             {% endif %}
           </div>
 
@@ -506,14 +845,15 @@
             <div class="ac-title">
               <i class="fas fa-bus"></i>
               {{ item.registro.autocarro.numero }}
-              <span style="color:var(--grey);font-weight:400;font-size:.82rem">— {{ item.registro.autocarro.modelo }}</span>
+              <span style="color:var(--grey);font-weight:400;font-size:.82rem">— {{ item.registro.autocarro.modelo
+                }}</span>
             </div>
             {% if item.registro.validado %}
-              <span class="status-badge status-validado">Validado</span>
+            <span class="status-badge status-validado">Validado</span>
             {% elif item.registro.concluido %}
-              <span class="status-badge status-concluido">Concluído</span>
+            <span class="status-badge status-concluido">Concluído</span>
             {% else %}
-              <span class="status-badge status-pendente">Pendente</span>
+            <span class="status-badge status-pendente">Pendente</span>
             {% endif %}
           </div>
 
@@ -643,19 +983,20 @@
         </div><!-- autocarro-card -->
       </div>
       {% empty %}
-        <div class="col-12">
-          <div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,.35)">
-            <i class="fas fa-bus-slash" style="font-size:2rem;margin-bottom:10px;display:block"></i>
-            Nenhum autocarro registado neste setor.
-          </div>
+      <div class="col-12">
+        <div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,.35)">
+          <i class="fas fa-bus-slash"
+            style="font-size:2rem;margin-bottom:10px;display:block;color:var(--er-amber);opacity:.5"></i>
+          Nenhum autocarro registado neste setor.
         </div>
+      </div>
       {% endfor %}
     </div>
 
     <!-- ══ ACÇÕES ══ -->
     <div class="form-actions">
       <span class="form-actions-left">
-        <i class="fas fa-circle-info" style="color:var(--accent)"></i>
+        <i class="fas fa-circle-info"></i>
         Alterações guardadas para {{ sector.nome }} — {{ data|date:"d/m/Y" }}
       </span>
       <a href="{% url 'listar_registros' %}" class="btn-voltar">
@@ -673,48 +1014,49 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+  document.addEventListener('DOMContentLoaded', function () {
 
-  /* ── CÁLCULO RESUMO ───────────────────────────── */
-  function val(id) {
-    const el = document.getElementById(id);
-    const v = parseFloat(el?.value || 0);
-    return isNaN(v) ? 0 : v;
-  }
+    /* ── CÁLCULO RESUMO ───────────────────────────── */
+    function val(id) {
+      const el = document.getElementById(id);
+      const v = parseFloat(el?.value || 0);
+      return isNaN(v) ? 0 : v;
+    }
 
-  function fmt(n) { return n.toFixed(2); }
+    function fmt(n) { return n.toFixed(2); }
 
-  function setVal(id, text, cls) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = text;
-    el.className = 'resumo-val ' + cls;
-  }
+    function setVal(id, text, cls) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = text;
+      el.className = 'resumo-val ' + cls;
+    }
 
-  function updateSummary(rid) {
-    const entradas = val(`id_registro_${rid}-normal`)
-                   + val(`id_registro_${rid}-alunos`)
-                   + val(`id_registro_${rid}-luvu`)
-                   + val(`id_registro_${rid}-frete`);
+    function updateSummary(rid) {
+      const entradas = val(`id_registro_${rid}-normal`)
+        + val(`id_registro_${rid}-alunos`)
+        + val(`id_registro_${rid}-luvu`)
+        + val(`id_registro_${rid}-frete`);
 
-    const saidas   = val(`id_registro_${rid}-alimentacao`)
-                   + val(`id_registro_${rid}-parqueamento`)
-                   + val(`id_registro_${rid}-taxa`)
-                   + val(`id_registro_${rid}-outros`)
-                   + val(`id_registro_${rid}-taxi`);
+      const saidas = val(`id_registro_${rid}-alimentacao`)
+        + val(`id_registro_${rid}-parqueamento`)
+        + val(`id_registro_${rid}-taxa`)
+        + val(`id_registro_${rid}-outros`)
+        + val(`id_registro_${rid}-taxi`);
 
-    const saldo = entradas - saidas;
+      const saldo = entradas - saidas;
 
-    setVal(`entradas_total_${rid}`, fmt(entradas), 'resumo-val positive');
-    setVal(`saidas_total_${rid}`,   fmt(saidas),   'resumo-val negative');
-    setVal(`saldo_liquido_${rid}`,  fmt(saldo),
-      saldo > 0 ? 'resumo-val positive' : saldo < 0 ? 'resumo-val negative' : 'resumo-val neutral');
-  }
+      setVal(`entradas_total_${rid}`, fmt(entradas), 'resumo-val positive');
+      setVal(`saidas_total_${rid}`, fmt(saidas), 'resumo-val negative');
+      setVal(`saldo_liquido_${rid}`, fmt(saldo),
+        saldo > 0 ? 'resumo-val positive' : saldo < 0 ? 'resumo-val negative' : 'resumo-val neutral');
+    }
 
-  {% for item in forms %}
-  (function () {
-    const rid = {{ item.registro.id }};
-    const campos = ['normal','alunos','luvu','frete','alimentacao','parqueamento','taxa','outros','taxi'];
+    {% for item in forms %}
+    (function () {
+      const rid = {{ item.registro.id }
+    };
+    const campos = ['normal', 'alunos', 'luvu', 'frete', 'alimentacao', 'parqueamento', 'taxa', 'outros', 'taxi'];
     campos.forEach(function (c) {
       const el = document.getElementById(`id_registro_${rid}-${c}`);
       if (el) el.addEventListener('input', function () { updateSummary(rid); });
@@ -725,7 +1067,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ── LOADING NO SUBMIT ───────────────────────── */
   const form = document.getElementById('relatorioForm');
-  const btn  = document.getElementById('btnGuardar');
+  const btn = document.getElementById('btnGuardar');
   if (form && btn) {
     form.addEventListener('submit', function () {
       btn.classList.add('loading');
