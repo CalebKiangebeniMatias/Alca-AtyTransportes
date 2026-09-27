@@ -728,27 +728,27 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   {% for item in forms %}
-  (function () {
-    const rid = {{ item.registro.id }};
-    const campos = ['normal','alunos','luvu','frete','alimentacao','parqueamento','taxa','outros','taxi'];
-    campos.forEach(function (c) {
-      const el = document.getElementById(`id_registro_${rid}-${c}`);
-      if (el) el.addEventListener('input', function () { updateSummary(rid); });
-    });
-    updateSummary(rid);
-  })();
+    (function () {
+      const rid = {{ item.registro.id }};
+      const campos = ['normal','alunos','luvu','frete','alimentacao','parqueamento','taxa','outros','taxi'];
+      campos.forEach(function (c) {
+        const el = document.getElementById(`id_registro_${rid}-${c}`);
+        if (el) el.addEventListener('input', function () { updateSummary(rid); });
+      });
+      updateSummary(rid);
+    })();
   {% endfor %}
 
-  /* ── LOADING NO SUBMIT ───────────────────────── */
-  const form = document.getElementById('relatorioForm');
-  const btn  = document.getElementById('btnGuardar');
-  if (form && btn) {
-    form.addEventListener('submit', function () {
-      btn.classList.add('loading');
-      btn.disabled = true;
-      setTimeout(function () { btn.classList.remove('loading'); btn.disabled = false; }, 10000);
-    });
-  }
+    /* ── LOADING NO SUBMIT ───────────────────────── */
+    const form = document.getElementById('relatorioForm');
+    const btn  = document.getElementById('btnGuardar');
+    if (form && btn) {
+      form.addEventListener('submit', function () {
+        btn.classList.add('loading');
+        btn.disabled = true;
+        setTimeout(function () { btn.classList.remove('loading'); btn.disabled = false; }, 10000);
+      });
+    }
 
 });
 </script>

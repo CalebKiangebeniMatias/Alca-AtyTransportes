@@ -6,23 +6,26 @@
 <style>
 /* ════════════════════════════════════════════════════
    DEPÓSITOS POR SECTOR
+   Fica no tema escuro do sistema (com o acento âmbar dos
+   cabeçalhos). Só a área de impressão é clara — é o
+   extrato que sai no papel, não fica visível no ecrã.
 ════════════════════════════════════════════════════ */
 
 .dep-wrapper {
+  --dp-amber:#F59E0B; --dp-amber-tx:#B45309; --dp-navy:#0B2545;
+  --dp-green:#12A150; --dp-red:#D62839;
   max-width: 1000px;
   margin: 0 auto;
   animation: depIn .5s cubic-bezier(.34,1.56,.64,1) both;
 }
-@keyframes depIn {
-  from { opacity:0; transform:translateY(18px); }
-  to   { opacity:1; transform:translateY(0); }
-}
+@keyframes depIn { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+@keyframes dpShine { to { transform: translateX(120%); } }
 
 /* ── TABS ────────────────────────────────────────── */
 .dep-tabs {
   display: flex; gap: 4px;
   border-bottom: 1px solid var(--glass-border);
-  margin-bottom: 28px;
+  margin-bottom: 22px;
   overflow-x: auto;
   padding-bottom: 0;
 }
@@ -30,7 +33,7 @@
   display: inline-flex; align-items: center; gap: 7px;
   padding: 10px 20px;
   background: transparent;
-  border: none; border-bottom: 2px solid transparent;
+  border: none; border-bottom: 3px solid transparent;
   color: rgba(255,255,255,.45);
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700; font-size: .9rem;
@@ -39,10 +42,10 @@
   transition: color var(--ease-fast), border-color var(--ease-fast);
 }
 .dep-tab i { font-size: .85rem; }
-.dep-tab:hover { color: rgba(255,255,255,.75); }
+.dep-tab:hover { color: rgba(255,255,255,.8); }
 .dep-tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
+  color: var(--dp-amber);
+  border-bottom-color: var(--dp-amber);
 }
 
 /* ── TAB PANES ───────────────────────────────────── */
@@ -73,9 +76,9 @@
 .dep-wrapper select:focus,
 .dep-wrapper input:focus,
 .dep-wrapper textarea:focus {
-  border-color: var(--accent) !important;
+  border-color: var(--dp-amber) !important;
   background: rgba(4,30,66,.85) !important;
-  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+  box-shadow: 0 0 0 3px rgba(245,158,11,.16) !important;
 }
 .dep-wrapper input::placeholder,
 .dep-wrapper textarea::placeholder { color: rgba(255,255,255,.3) !important; }
@@ -90,46 +93,51 @@
   margin-bottom: 6px;
 }
 
-/* Modal fields — fora do .dep-wrapper */
-.dep-modal-field {
-  width: 100%;
-  background: rgba(4,30,66,.55) !important;
-  border: 1px solid var(--glass-border) !important;
-  border-radius: var(--radius-md) !important;
-  color: var(--white) !important;
-  padding: 9px 13px !important;
-  font-family: 'Barlow', sans-serif !important;
-  font-size: .9rem !important;
-  transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
-  outline: none !important;
-  -webkit-appearance: none;
-  resize: vertical;
-}
-.dep-modal-field:focus {
-  border-color: var(--accent) !important;
-  background: rgba(4,30,66,.85) !important;
-  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
-}
-.dep-modal-field option { background: var(--navy); color: var(--white); }
-.dep-modal-field::placeholder { color: rgba(255,255,255,.3) !important; }
-.dep-modal-field::-webkit-calendar-picker-indicator { filter: invert(.7); }
 .kz-wrap input { padding-right: 34px !important; text-align: right; }
 .kz-sym {
   position: absolute; right: 11px; top: 50%;
   transform: translateY(-50%);
   font-size: .72rem; font-weight: 700;
-  color: var(--accent); pointer-events: none;
+  color: var(--dp-amber); pointer-events: none;
 }
 
-/* ── SECTION CARD ────────────────────────────────── */
+/* ── SECTION CARD (com cabeçalho azul-marinho + linha âmbar) ── */
 .dep-card {
   background: rgba(13,43,94,.42);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  padding: 24px;
+  overflow: hidden;
   margin-bottom: 20px;
+}
+.dep-card-head {
+  position: relative; overflow: hidden;
+  display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  padding: 16px 22px 15px; background: var(--dp-navy); border-bottom: 4px solid var(--dp-amber);
+}
+.dep-card-head::after {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.14) 50%, transparent 65%);
+  transform: translateX(-120%); animation: dpShine 1.4s ease .6s 1 forwards; pointer-events:none;
+}
+.dep-card-title { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:2px; line-height:1; color:#fff; }
+.dep-card-title span { color: var(--dp-amber); }
+.dep-card-sub { font-size:.8rem; color:#B8C7E0; margin-top:4px; }
+.dep-card-body { padding: 22px; }
+
+/* Botão cancelar edição — dentro do cabeçalho escuro */
+.dep-card-head .btn-dep-outline {
+  position: relative; z-index: 1;
+  border-color: rgba(255,255,255,.3) !important; color: rgba(255,255,255,.85);
+}
+.dep-card-head .btn-dep-outline:hover { background: rgba(245,158,11,.18); border-color: var(--dp-amber) !important; color: var(--dp-amber); }
+
+/* Barra de contexto de edição */
+#edit-banner {
+  background: rgba(79,195,247,.09); border: 1px solid rgba(79,195,247,.28);
+  border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 16px;
+  font-size: .82rem; color: var(--accent); align-items: center; gap: 8px;
 }
 
 /* ── FILTER BAR ──────────────────────────────────── */
@@ -161,6 +169,7 @@
   justify-content: space-between;
   background: rgba(4,30,66,.45);
   border: 1px solid var(--glass-border);
+  border-left: 3px solid var(--dp-green);
   border-radius: var(--radius-md);
   padding: 12px 16px;
   gap: 14px;
@@ -168,8 +177,8 @@
   animation: depItemIn .25s ease;
 }
 .dep-item:hover {
-  background: rgba(36,99,163,.22);
-  border-color: rgba(79,195,247,.25);
+  background: rgba(245,158,11,.08);
+  border-color: rgba(245,158,11,.25);
 }
 @keyframes depItemIn { from { opacity:0; transform:translateX(-6px); } to { opacity:1; transform:translateX(0); } }
 
@@ -186,7 +195,7 @@
 .dep-item-valor {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1.25rem; letter-spacing: 1px;
-  color: #69f0ae;
+  color: var(--dp-green);
 }
 .dep-item-btns { display: flex; gap: 6px; }
 
@@ -199,10 +208,10 @@
   transition: background var(--ease-fast), transform var(--ease-spring);
 }
 .btn-dep-action:hover { transform: scale(1.12); }
-.btn-dep-edit   { border-color: rgba(79,195,247,.35); color: var(--accent); }
-.btn-dep-edit:hover  { background: rgba(79,195,247,.15); }
-.btn-dep-del    { border-color: rgba(231,76,60,.35);  color: #ff8a80; }
-.btn-dep-del:hover   { background: rgba(231,76,60,.15); }
+.btn-dep-edit   { border-color: rgba(245,158,11,.4); color: var(--dp-amber); }
+.btn-dep-edit:hover  { background: rgba(245,158,11,.15); }
+.btn-dep-del    { border-color: rgba(214,40,57,.4);  color: #ff9d90; }
+.btn-dep-del:hover   { background: var(--dp-red); color: #fff; }
 
 /* Empty state */
 .dep-empty {
@@ -210,7 +219,7 @@
   color: rgba(255,255,255,.28);
   display: flex; flex-direction: column; align-items: center; gap: 10px;
 }
-.dep-empty i { font-size: 2.2rem; opacity: .5; }
+.dep-empty i { font-size: 2.2rem; opacity: .5; color: var(--dp-amber); }
 
 /* Loading */
 .dep-loading {
@@ -220,36 +229,38 @@
 }
 .dep-spinner {
   width: 32px; height: 32px;
-  border: 3px solid rgba(79,195,247,.15);
-  border-top-color: var(--accent);
+  border: 3px solid rgba(245,158,11,.15);
+  border-top-color: var(--dp-amber);
   border-radius: 50%;
   animation: spin .7s linear infinite;
 }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes lPulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
 
 /* ── TOTAIS ──────────────────────────────────────── */
 .total-display {
-  background: rgba(39,174,96,.1);
-  border: 1px solid rgba(39,174,96,.3);
+  background: rgba(18,161,80,.09);
+  border: 1px solid rgba(18,161,80,.3);
   border-radius: var(--radius-lg);
   padding: 20px 24px;
   text-align: center;
-  margin-top: 20px;
+  margin-top: 4px;
 }
 .total-label {
   font-size: .75rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: 1.5px;
-  color: rgba(255,255,255,.45); margin-bottom: 6px;
+  color: rgba(255,255,255,.5); margin-bottom: 6px;
 }
 .total-value {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 2.6rem; letter-spacing: 3px;
-  color: #69f0ae;
-  animation: none;
+  color: var(--dp-green);
 }
 .total-value.loading { animation: lPulse 1s ease-in-out infinite; }
 
 /* ── BUTTONS ─────────────────────────────────────── */
 .btn-dep {
+  position: relative; overflow: hidden;
   display: inline-flex; align-items: center; gap: 7px;
   padding: 9px 20px;
   border: none; border-radius: var(--radius-md);
@@ -259,22 +270,28 @@
   cursor: pointer; white-space: nowrap;
   transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
 }
+.btn-dep::before {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-dep:hover::before { transform: translateX(100%); }
 .btn-dep:hover { transform: translateY(-2px); }
 .btn-dep:active { transform: scale(.97); }
 .btn-dep-primary { background: var(--grad-btn); color: var(--white); box-shadow: var(--shadow-sm); }
-.btn-dep-primary:hover { box-shadow: 0 6px 20px rgba(36,99,163,.38); }
+.btn-dep-primary:hover { box-shadow: 0 6px 20px rgba(36,99,163,.38); color: var(--white); }
 .btn-dep-outline {
   background: transparent;
   border: 1px solid var(--glass-border) !important;
   color: rgba(255,255,255,.65);
 }
-.btn-dep-outline:hover { background: rgba(255,255,255,.07); color: var(--white); }
+.btn-dep-outline:hover { background: rgba(245,158,11,.1); border-color: rgba(245,158,11,.35) !important; color: var(--dp-amber); }
 .btn-dep-print {
   background: rgba(79,195,247,.1);
   border: 1px solid rgba(79,195,247,.3) !important;
   color: var(--accent);
 }
-.btn-dep-print:hover { background: rgba(79,195,247,.2); }
+.btn-dep-print:hover { background: rgba(79,195,247,.2); color: var(--accent); }
 
 .btn-dep .sp {
   display:none; width:13px; height:13px;
@@ -287,7 +304,7 @@
 /* ── TOAST ───────────────────────────────────────── */
 .dep-toast {
   position: fixed; top: 70px; right: 20px; z-index: 9000;
-  background: rgba(4,30,66,.95);
+  background: var(--dp-navy);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   padding: 12px 20px;
@@ -295,17 +312,23 @@
   display: flex; align-items: center; gap: 10px;
   box-shadow: var(--shadow-lg);
   animation: toastIn .3s cubic-bezier(.34,1.56,.64,1);
-  backdrop-filter: blur(12px);
   min-width: 220px;
+  color: #fff;
 }
-.dep-toast.success { border-left: 3px solid var(--success); color: #c8e6c9; }
-.dep-toast.error   { border-left: 3px solid var(--danger);  color: #ffcdd2; }
-.dep-toast.warning { border-left: 3px solid var(--warning); color: #fff9c4; }
+.dep-toast.success { border-left: 4px solid var(--dp-green); }
+.dep-toast.error   { border-left: 4px solid var(--dp-red);  }
+.dep-toast.warning { border-left: 4px solid var(--dp-amber); }
+.dep-toast.success i { color: var(--dp-green); }
+.dep-toast.error i   { color: var(--dp-red); }
+.dep-toast.warning i { color: var(--dp-amber); }
 @keyframes toastIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
 @keyframes toastOut { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(20px); } }
 
 /* ════════════════════════════════════════════════════
-   PRINT STYLES
+   ÁREA DE IMPRESSÃO
+   Só esta parte fica clara — é o extrato em papel.
+   Fica invisível (display:none) enquanto se navega no
+   ecrã, só aparece no momento de imprimir.
 ════════════════════════════════════════════════════ */
 @media print {
   body * { visibility: hidden !important; }
@@ -331,6 +354,9 @@
   .dep-item { flex-direction: column; align-items: flex-start; }
   .dep-item-right { align-items: flex-start; flex-direction: row; justify-content: space-between; width: 100%; }
 }
+@media (prefers-reduced-motion: reduce) {
+  .dep-wrapper, .dep-card-head::after, .dep-item { animation: none !important; }
+}
 </style>
 
 <div class="dep-wrapper">
@@ -353,12 +379,12 @@
     <div class="dep-card">
 
       <!-- Cabeçalho dinâmico: muda conforme modo novo/editar -->
-      <div style="margin-bottom:20px;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div class="dep-card-head">
         <div>
-          <div id="form-title" class="page-topbar-title" style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;margin-bottom:4px">
-            Novo <span style="color:var(--accent)">Depósito</span>
+          <div id="form-title" class="dep-card-title">
+            Novo <span>Depósito</span>
           </div>
-          <div id="form-subtitle" style="font-size:.8rem;color:var(--grey)">Registe um novo depósito para um sector</div>
+          <div id="form-subtitle" class="dep-card-sub">Registe um novo depósito para um sector</div>
         </div>
         <!-- Botão cancelar edição — só visível em modo edição -->
         <button id="btn_cancel_edit" class="btn-dep btn-dep-outline" style="display:none">
@@ -366,44 +392,48 @@
         </button>
       </div>
 
-      <!-- Barra de contexto de edição — aparece quando a editar -->
-      <div id="edit-banner" style="display:none;background:rgba(79,195,247,.08);border:1px solid rgba(79,195,247,.25);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:16px;font-size:.82rem;color:var(--accent);display:none;align-items:center;gap:8px">
-        <i class="fas fa-pen-to-square"></i>
-        <span>A editar registo <strong id="edit-banner-id"></strong></span>
-      </div>
+      <div class="dep-card-body">
 
-      <!-- Campo oculto para o ID em modo edição -->
-      <input type="hidden" id="dep_edit_id" value="">
+        <!-- Barra de contexto de edição — aparece quando a editar -->
+        <div id="edit-banner" style="display:none">
+          <i class="fas fa-pen-to-square"></i>
+          <span>A editar registo <strong id="edit-banner-id"></strong></span>
+        </div>
 
-      <div class="row g-3">
-        <div class="col-md-4 col-sm-6">
-          <label class="f-label">Sector</label>
-          <select id="dep_sector">
-            <option value="">-- Escolha sector --</option>
-            {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
-          </select>
-        </div>
-        <div class="col-md-3 col-sm-6">
-          <label class="f-label">Data</label>
-          <input id="dep_data" type="date" value="{{ now|date:'Y-m-d' }}">
-        </div>
-        <div class="col-md-3 col-sm-6">
-          <label class="f-label">Valor</label>
-          <div class="kz-wrap" style="position:relative">
-            <input id="dep_valor" type="number" step="0.01" placeholder="0.00">
-            <span class="kz-sym">Kz</span>
+        <!-- Campo oculto para o ID em modo edição -->
+        <input type="hidden" id="dep_edit_id" value="">
+
+        <div class="row g-3">
+          <div class="col-md-4 col-sm-6">
+            <label class="f-label">Sector</label>
+            <select id="dep_sector">
+              <option value="">-- Escolha sector --</option>
+              {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <label class="f-label">Data</label>
+            <input id="dep_data" type="date" value="{{ now|date:'Y-m-d' }}">
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <label class="f-label">Valor</label>
+            <div class="kz-wrap" style="position:relative">
+              <input id="dep_valor" type="number" step="0.01" placeholder="0.00">
+              <span class="kz-sym">Kz</span>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="f-label">Observação</label>
+            <textarea id="dep_obs" rows="2" placeholder="Observações opcionais..."></textarea>
+          </div>
+          <div class="col-12" style="display:flex;justify-content:flex-end">
+            <button id="btn_dep_save" class="btn-dep btn-dep-primary">
+              <span class="sp"></span>
+              <span class="btn-text"><i class="fas fa-floppy-disk"></i> Guardar Depósito</span>
+            </button>
           </div>
         </div>
-        <div class="col-12">
-          <label class="f-label">Observação</label>
-          <textarea id="dep_obs" rows="2" placeholder="Observações opcionais..."></textarea>
-        </div>
-        <div class="col-12" style="display:flex;justify-content:flex-end">
-          <button id="btn_dep_save" class="btn-dep btn-dep-primary">
-            <span class="sp"></span>
-            <span class="btn-text"><i class="fas fa-floppy-disk"></i> Guardar Depósito</span>
-          </button>
-        </div>
+
       </div>
     </div>
   </div>
@@ -462,7 +492,7 @@
     <!-- Total inline da lista -->
     <div style="display:flex;justify-content:flex-end;margin-top:14px;align-items:center;gap:10px">
       <span style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--grey)">Total filtrado:</span>
-      <span id="lista_total" style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px;color:#69f0ae">— Kz</span>
+      <span id="lista_total" style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px;color:#12A150">— Kz</span>
     </div>
 
   </div>
@@ -470,45 +500,53 @@
   <!-- ══ TAB: TOTAIS ══ -->
   <div class="dep-pane" id="tab-total">
     <div class="dep-card">
-      <div class="row g-3 align-items-end">
-        <div class="col-md-3 col-sm-6">
-          <label class="f-label">Sector</label>
-          <select id="total_sector">
-            <option value="">Todos os sectores</option>
-            {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
-          </select>
-        </div>
-        <div class="col-md-3 col-sm-6">
-          <label class="f-label">Ano</label>
-          <select id="total_year">
-            <option value="">Todos</option>
-              <option value="2030">2030</option><option value="2029">2029</option>
-              <option value="2028">2028</option><option value="2027">2027</option>
-              <option value="2026">2026</option><option value="2025">2025</option>
-          </select>
-        </div>
-        <div class="col-md-3 col-sm-6">
-          <label class="f-label">Mês</label>
-          <select id="total_month">
-            <option value="">Todos</option>
-            <option value="01">Janeiro</option><option value="02">Fevereiro</option>
-            <option value="03">Março</option><option value="04">Abril</option>
-            <option value="05">Maio</option><option value="06">Junho</option>
-            <option value="07">Julho</option><option value="08">Agosto</option>
-            <option value="09">Setembro</option><option value="10">Outubro</option>
-            <option value="11">Novembro</option><option value="12">Dezembro</option>
-          </select>
-        </div>
-        <div class="col-md-3 col-sm-6" style="display:flex;align-items:flex-end">
-          <button id="btn_total_reload" class="btn-dep btn-dep-primary" style="width:100%;justify-content:center">
-            <i class="fas fa-sync-alt"></i> Calcular
-          </button>
+      <div class="dep-card-head">
+        <div>
+          <div class="dep-card-title">Totais <span>de Depósitos</span></div>
+          <div class="dep-card-sub">Some os depósitos por sector, ano e mês</div>
         </div>
       </div>
+      <div class="dep-card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-3 col-sm-6">
+            <label class="f-label">Sector</label>
+            <select id="total_sector">
+              <option value="">Todos os sectores</option>
+              {% for s in sectores %}<option value="{{ s.id }}">{{ s.nome }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <label class="f-label">Ano</label>
+            <select id="total_year">
+              <option value="">Todos</option>
+                <option value="2030">2030</option><option value="2029">2029</option>
+                <option value="2028">2028</option><option value="2027">2027</option>
+                <option value="2026">2026</option><option value="2025">2025</option>
+            </select>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <label class="f-label">Mês</label>
+            <select id="total_month">
+              <option value="">Todos</option>
+              <option value="01">Janeiro</option><option value="02">Fevereiro</option>
+              <option value="03">Março</option><option value="04">Abril</option>
+              <option value="05">Maio</option><option value="06">Junho</option>
+              <option value="07">Julho</option><option value="08">Agosto</option>
+              <option value="09">Setembro</option><option value="10">Outubro</option>
+              <option value="11">Novembro</option><option value="12">Dezembro</option>
+            </select>
+          </div>
+          <div class="col-md-3 col-sm-6" style="display:flex;align-items:flex-end">
+            <button id="btn_total_reload" class="btn-dep btn-dep-primary" style="width:100%;justify-content:center">
+              <i class="fas fa-sync-alt"></i> Calcular
+            </button>
+          </div>
+        </div>
 
-      <div class="total-display">
-        <div class="total-label">Total de Depósitos</div>
-        <div class="total-value" id="total_valor">0,00 Kz</div>
+        <div class="total-display">
+          <div class="total-label">Total de Depósitos</div>
+          <div class="total-value" id="total_valor">0,00 Kz</div>
+        </div>
       </div>
     </div>
   </div>
@@ -596,7 +634,7 @@
 
     // Actualizar cabeçalho
     document.getElementById('form-title').innerHTML =
-      'Editar <span style="color:var(--accent)">Depósito</span>';
+      'Editar <span>Depósito</span>';
     document.getElementById('form-subtitle').textContent =
       'Edite os dados do depósito #' + d.id;
 
@@ -610,8 +648,8 @@
     document.querySelector('#btn_dep_save .btn-text').innerHTML =
       '<i class="fas fa-floppy-disk"></i> Actualizar Depósito';
 
-    // Mudar cor do card para sinalizar modo edição
-    document.querySelector('#tab-reg .dep-card').style.borderColor = 'rgba(79,195,247,.4)';
+    // Mudar a linha do cabeçalho do cartão para sinalizar modo edição
+    document.querySelector('#tab-reg .dep-card-head').style.borderBottomColor = 'var(--accent)';
 
     // Navegar para o tab de registo e fazer scroll suave ao topo
     activateTab('tab-reg');
@@ -630,7 +668,7 @@
 
     // Restaurar cabeçalho
     document.getElementById('form-title').innerHTML =
-      'Novo <span style="color:var(--accent)">Depósito</span>';
+      'Novo <span>Depósito</span>';
     document.getElementById('form-subtitle').textContent =
       'Registe um novo depósito para um sector';
 
@@ -642,8 +680,8 @@
     document.querySelector('#btn_dep_save .btn-text').innerHTML =
       '<i class="fas fa-floppy-disk"></i> Guardar Depósito';
 
-    // Restaurar borda do card
-    document.querySelector('#tab-reg .dep-card').style.borderColor = '';
+    // Restaurar cor do cabeçalho do cartão
+    document.querySelector('#tab-reg .dep-card-head').style.borderBottomColor = '';
   }
 
   document.getElementById('btn_cancel_edit').addEventListener('click', sairModoEdicao);
@@ -739,7 +777,7 @@
         el.innerHTML =
           '<div class="dep-item-left">' +
             '<span class="dep-item-sector">' + (d.sector || '—') + '</span>' +
-            '<span class="dep-item-date"><i class="fas fa-calendar-day" style="font-size:.65rem;margin-right:4px;color:var(--accent)"></i>' + (d.data_deposito || '—') + '</span>' +
+            '<span class="dep-item-date"><i class="fas fa-calendar-day" style="font-size:.65rem;margin-right:4px;color:var(--dp-amber)"></i>' + (d.data_deposito || '—') + '</span>' +
             (d.observacao ? '<span class="dep-item-obs">' + d.observacao + '</span>' : '') +
           '</div>' +
           '<div class="dep-item-right">' +
@@ -844,7 +882,7 @@
         '<td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:center">' + (i+1) + '</td>' +
         '<td style="padding:8px 12px;border-bottom:1px solid #eee;font-weight:600">' + (d.sector || '—') + '</td>' +
         '<td style="padding:8px 12px;border-bottom:1px solid #eee">' + (d.data_deposito || '—') + '</td>' +
-        '<td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right;font-weight:600;color:#1a7a3b">' + fmt.format(parseFloat(d.valor||0)) + ' Kz</td>' +
+        '<td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right;font-weight:600;color:#0e7a3f">' + fmt.format(parseFloat(d.valor||0)) + ' Kz</td>' +
         '<td style="padding:8px 12px;border-bottom:1px solid #eee;color:#555">' + (d.observacao || '—') + '</td>' +
       '</tr>';
     }).join('');
@@ -854,9 +892,9 @@
 
     var html =
       '<div style="font-family:Arial,sans-serif;color:#111;max-width:860px;margin:0 auto">' +
-        '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1565c0;padding-bottom:16px;margin-bottom:20px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:4px solid #F59E0B;padding-bottom:16px;margin-bottom:20px">' +
           '<div>' +
-            '<div style="font-size:22px;font-weight:900;letter-spacing:2px;color:#1565c0">ALCA &amp; ATY TRANSPORTES</div>' +
+            '<div style="font-size:22px;font-weight:900;letter-spacing:2px;color:#0B2545">ALCA &amp; ATY TRANSPORTES</div>' +
             '<div style="font-size:13px;color:#555;margin-top:3px">Extrato de Depósitos por Sector</div>' +
           '</div>' +
           '<div style="text-align:right;font-size:11px;color:#888">' +
@@ -866,7 +904,7 @@
           '</div>' +
         '</div>' +
         '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
-          '<thead><tr style="background:#1565c0;color:white">' +
+          '<thead><tr style="background:#0B2545;color:white">' +
             '<th style="padding:10px 12px;text-align:center">#</th>' +
             '<th style="padding:10px 12px">SECTOR</th>' +
             '<th style="padding:10px 12px">DATA</th>' +
@@ -875,10 +913,10 @@
           '</tr></thead>' +
           '<tbody>' + rows + '</tbody>' +
         '</table>' +
-        '<div style="display:flex;justify-content:flex-end;margin-top:20px;padding-top:12px;border-top:2px solid #1565c0">' +
-          '<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:12px 24px;text-align:right">' +
+        '<div style="display:flex;justify-content:flex-end;margin-top:20px;padding-top:12px;border-top:2px solid #0B2545">' +
+          '<div style="background:#eafaf0;border:1px solid #a8e3c1;border-radius:8px;padding:12px 24px;text-align:right">' +
             '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#555;margin-bottom:4px">Total de Depósitos</div>' +
-            '<div style="font-size:22px;font-weight:900;color:#1a7a3b">' + fmt.format(total) + ' Kz</div>' +
+            '<div style="font-size:22px;font-weight:900;color:#0e7a3f">' + fmt.format(total) + ' Kz</div>' +
             '<div style="font-size:11px;color:#888;margin-top:2px">' + _lastDepositos.length + ' registo(s)</div>' +
           '</div>' +
         '</div>' +
