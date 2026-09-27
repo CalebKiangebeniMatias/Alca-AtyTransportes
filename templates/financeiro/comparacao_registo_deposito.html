@@ -8,27 +8,30 @@
 <style>
 /* ════════════════════════════════════════════════════
    COMPARAÇÃO REGISTO VS DEPÓSITO
+   Fica no tema escuro do sistema, com o acento âmbar dos
+   cabeçalhos. Só a área de impressão é clara — é o
+   relatório em papel, não fica visível no ecrã.
 ════════════════════════════════════════════════════ */
 
 .comp-wrapper {
+  --cp-amber:#F59E0B; --cp-navy:#0B2545;
+  --cp-green:#12A150; --cp-red:#D62839; --cp-blue:#2463A3; --cp-gold:#E0A100;
   animation: compIn .5s cubic-bezier(.34,1.56,.64,1) both;
 }
-@keyframes compIn {
-  from { opacity:0; transform:translateY(18px); }
-  to   { opacity:1; transform:translateY(0); }
-}
+@keyframes compIn { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+@keyframes cpShine { to { transform: translateX(120%); } }
 
 /* ── PAGE HEADER ─────────────────────────────────── */
 .comp-header {
   display: flex; align-items: flex-end;
   justify-content: space-between; flex-wrap: wrap;
-  gap: 14px; margin-bottom: 24px;
+  gap: 14px; margin-bottom: 22px;
 }
 .comp-title {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1.9rem; letter-spacing: 2px; line-height: 1;
 }
-.comp-title span { color: var(--accent); }
+.comp-title span { color: var(--cp-amber); }
 .comp-subtitle { font-size: .8rem; color: var(--grey); margin-top: 4px; }
 
 /* ── FILTER CARD ─────────────────────────────────── */
@@ -39,12 +42,11 @@
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   padding: 20px 22px;
-  margin-bottom: 24px;
+  margin-bottom: 22px;
   display: flex; flex-wrap: wrap;
   gap: 16px; align-items: flex-end;
 }
 
-/* form fields override */
 .comp-wrapper select,
 .comp-wrapper input[type="text"],
 .comp-wrapper input[type="number"] {
@@ -62,9 +64,9 @@
 }
 .comp-wrapper select:focus,
 .comp-wrapper input:focus {
-  border-color: var(--accent) !important;
+  border-color: var(--cp-amber) !important;
   background: rgba(4,30,66,.85) !important;
-  box-shadow: 0 0 0 3px rgba(79,195,247,.15) !important;
+  box-shadow: 0 0 0 3px rgba(245,158,11,.16) !important;
 }
 .comp-wrapper select option { background: var(--navy); color: var(--white); }
 
@@ -79,6 +81,7 @@
 
 /* ── BUTTONS ─────────────────────────────────────── */
 .btn-comp {
+  position: relative; overflow: hidden;
   display: inline-flex; align-items: center; gap: 7px;
   padding: 10px 22px;
   border: none; border-radius: var(--radius-md);
@@ -89,6 +92,12 @@
   transition: transform var(--ease-spring), box-shadow var(--ease-base), background var(--ease-fast);
   text-decoration: none;
 }
+.btn-comp::before {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+  transform: translateX(-100%); transition: transform .5s ease;
+}
+.btn-comp:hover::before { transform: translateX(100%); }
 .btn-comp:hover { transform: translateY(-2px); }
 .btn-comp:active { transform: scale(.97); }
 .btn-filtrar { background: var(--grad-btn); color: var(--white); box-shadow: var(--shadow-sm); }
@@ -98,24 +107,26 @@
   border: 1px solid rgba(79,195,247,.3) !important;
   color: var(--accent);
 }
-.btn-print:hover { background: rgba(79,195,247,.2); }
+.btn-print:hover { background: rgba(79,195,247,.2); color: var(--accent); }
 
 /* ── SUMMARY CARDS ───────────────────────────────── */
 .summary-row {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 22px;
 }
 .summary-card {
+  --kc: var(--cp-navy);
+  position: relative; overflow: hidden;
   background: rgba(13,43,94,.42);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
-  padding: 14px 16px;
-  text-align: center;
-  transition: transform var(--ease-spring), border-color var(--ease-fast);
+  padding: 14px 16px 14px 20px;
+  transition: transform var(--ease-base), border-color var(--ease-fast);
 }
-.summary-card:hover { transform: translateY(-3px); border-color: rgba(79,195,247,.3); }
+.summary-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:5px; background: var(--kc); }
+.summary-card:hover { transform: translateY(-3px); border-color: rgba(245,158,11,.3); }
 .sc-label {
   font-size: .68rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: 1.2px;
@@ -124,44 +135,46 @@
 .sc-value {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1.35rem; letter-spacing: 1px;
-  line-height: 1;
+  line-height: 1; color: var(--kc);
 }
-.sc-value.entrada   { color: #69f0ae; }
-.sc-value.saida     { color: #ff8a80; }
-.sc-value.resto     { color: var(--accent); }
-.sc-value.deposit   { color: #ffd54f; }
-.sc-value.diferenca-ok  { color: #69f0ae; }
-.sc-value.diferenca-err { color: #ff8a80; }
+.summary-card.entrada { --kc: var(--cp-green); }
+.summary-card.saida   { --kc: var(--cp-red); }
+.summary-card.resto   { --kc: var(--cp-blue); }
+.summary-card.deposit { --kc: var(--cp-gold); }
+.summary-card.dif-ok  { --kc: var(--cp-green); }
+.summary-card.dif-err { --kc: var(--cp-red); }
 
 /* ── TABLE CARD ──────────────────────────────────── */
 .table-card {
   background: rgba(13,43,94,.42);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   overflow: hidden;
   box-shadow: 0 8px 28px rgba(4,30,66,.28);
 }
 
 .table-card-header {
+  position: relative; overflow: hidden;
   display: flex; align-items: center;
   justify-content: space-between;
-  padding: 13px 20px;
-  background: linear-gradient(90deg, rgba(36,99,163,.35), rgba(4,30,66,.2));
-  border-bottom: 1px solid var(--glass-border);
+  padding: 15px 20px 14px;
+  background: var(--cp-navy);
+  border-bottom: 4px solid var(--cp-amber);
   flex-wrap: wrap; gap: 10px;
 }
+.table-card-header::after {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.14) 50%, transparent 65%);
+  transform: translateX(-120%); animation: cpShine 1.4s ease .6s 1 forwards; pointer-events:none;
+}
 .table-card-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700; font-size: 1rem;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--white); display: flex; align-items: center; gap: 9px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400; font-size: 1.3rem;
+  letter-spacing: 1.5px; color: #fff;
+  display: flex; align-items: center; gap: 9px;
 }
-.table-card-title i { color: var(--accent); }
-.table-count {
-  font-size: .75rem; color: var(--grey);
-}
+.table-card-title i { color: var(--cp-amber); font-size: .95rem; }
+.table-count { font-size: .78rem; color: #B8C7E0; }
 
 /* ── TABLE ───────────────────────────────────────── */
 .comp-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -173,7 +186,7 @@
 
 .comp-table thead th {
   background: rgba(4,30,66,.7);
-  color: var(--accent);
+  color: var(--cp-amber);
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700; font-size: .75rem;
   letter-spacing: 1.5px; text-transform: uppercase;
@@ -185,10 +198,10 @@
 .comp-table thead th:first-child { text-align: left; }
 
 .comp-table tbody tr {
-  border-bottom: 1px solid rgba(79,195,247,.06);
+  border-bottom: 1px solid rgba(245,158,11,.06);
   transition: background var(--ease-fast);
 }
-.comp-table tbody tr:hover { background: rgba(36,99,163,.18); }
+.comp-table tbody tr:hover { background: rgba(245,158,11,.08); }
 
 .comp-table tbody td {
   padding: 11px 14px;
@@ -200,8 +213,8 @@
 .comp-table tbody td:nth-child(2) { text-align: left; }
 
 .comp-table tfoot tr {
-  background: rgba(36,99,163,.25);
-  border-top: 2px solid rgba(79,195,247,.3);
+  background: rgba(245,158,11,.12);
+  border-top: 3px solid var(--cp-amber);
 }
 .comp-table tfoot td {
   padding: 13px 14px;
@@ -211,25 +224,25 @@
   color: var(--white); text-align: center;
   white-space: nowrap;
 }
-.comp-table tfoot td:first-child { text-align: left; color: var(--accent); }
+.comp-table tfoot td:first-child { text-align: left; color: var(--cp-amber); }
 
 /* valor tags */
-.val-entrada { color: #69f0ae; font-weight: 700; }
-.val-saida   { color: #ff8a80; font-weight: 700; }
-.val-resto   { color: var(--accent); font-weight: 700; }
-.val-deposit { color: #ffd54f; font-weight: 700; }
-.val-dif-ok  { color: #69f0ae; }
-.val-dif-err { color: #ff8a80; font-weight: 700; }
+.val-entrada { color: var(--cp-green); font-weight: 700; }
+.val-saida   { color: var(--cp-red); font-weight: 700; }
+.val-resto   { color: var(--cp-blue-tx, #4fc3f7); font-weight: 700; }
+.val-deposit { color: var(--cp-gold); font-weight: 700; }
+.val-dif-ok  { color: var(--cp-green); }
+.val-dif-err { color: var(--cp-red); font-weight: 700; }
 
 /* sector chip */
 .sector-chip {
   display: inline-flex; align-items: center; gap: 5px;
-  background: rgba(79,195,247,.08);
-  border: 1px solid rgba(79,195,247,.15);
+  background: rgba(245,158,11,.08);
+  border: 1px solid rgba(245,158,11,.2);
   border-radius: 30px;
   padding: 2px 10px;
   font-size: .78rem; font-weight: 600;
-  color: rgba(255,255,255,.75);
+  color: rgba(255,255,255,.8);
 }
 
 /* date */
@@ -237,7 +250,7 @@
   font-size: .78rem; color: var(--grey);
   display: flex; align-items: center; gap: 5px;
 }
-.date-cell i { color: var(--accent); font-size: .65rem; }
+.date-cell i { color: var(--cp-amber); font-size: .65rem; }
 
 /* empty */
 .table-empty {
@@ -246,9 +259,13 @@
   color: rgba(255,255,255,.28);
   display: flex; flex-direction: column; align-items: center; gap: 10px;
 }
-.table-empty i { font-size: 2.4rem; opacity: .4; }
+.table-empty i { font-size: 2.4rem; opacity: .4; color: var(--cp-amber); }
 
-/* ── PRINT ───────────────────────────────────────── */
+/* ════════════════════════════════════════════════════
+   ÁREA DE IMPRESSÃO
+   Só esta parte fica clara — é o relatório em papel.
+   Fica invisível enquanto se navega no ecrã.
+════════════════════════════════════════════════════ */
 @media print {
   body * { visibility: hidden !important; }
   #print-area, #print-area * { visibility: visible !important; }
@@ -274,6 +291,9 @@
 }
 @media (max-width: 400px) {
   .summary-row { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .comp-wrapper, .table-card-header::after { animation: none !important; }
 }
 </style>
 
@@ -341,25 +361,25 @@
 
   <!-- SUMMARY CARDS -->
   <div class="summary-row">
-    <div class="summary-card">
+    <div class="summary-card entrada">
       <div class="sc-label"><i class="fas fa-arrow-down" style="margin-right:4px"></i>Total Entradas</div>
-      <div class="sc-value entrada">{{ total_entrada|intcomma }} <small style="font-size:.6em">Kz</small></div>
+      <div class="sc-value">{{ total_entrada|intcomma }} <small style="font-size:.6em">Kz</small></div>
     </div>
-    <div class="summary-card">
+    <div class="summary-card saida">
       <div class="sc-label"><i class="fas fa-arrow-up" style="margin-right:4px"></i>Total Saídas</div>
-      <div class="sc-value saida">{{ total_saida|intcomma }} <small style="font-size:.6em">Kz</small></div>
+      <div class="sc-value">{{ total_saida|intcomma }} <small style="font-size:.6em">Kz</small></div>
     </div>
-    <div class="summary-card">
+    <div class="summary-card resto">
       <div class="sc-label"><i class="fas fa-wallet" style="margin-right:4px"></i>Total Resto</div>
-      <div class="sc-value resto">{{ total_resto|intcomma }} <small style="font-size:.6em">Kz</small></div>
+      <div class="sc-value">{{ total_resto|intcomma }} <small style="font-size:.6em">Kz</small></div>
     </div>
-    <div class="summary-card">
+    <div class="summary-card deposit">
       <div class="sc-label"><i class="fas fa-piggy-bank" style="margin-right:4px"></i>Total Depositado</div>
-      <div class="sc-value deposit">{{ total_depositado|intcomma }} <small style="font-size:.6em">Kz</small></div>
+      <div class="sc-value">{{ total_depositado|intcomma }} <small style="font-size:.6em">Kz</small></div>
     </div>
-    <div class="summary-card">
+    <div class="summary-card {% if total_diferenca > 500 or total_diferenca < -500 %}dif-err{% else %}dif-ok{% endif %}">
       <div class="sc-label"><i class="fas fa-scale-balanced" style="margin-right:4px"></i>Diferença Total</div>
-      <div class="sc-value {% if total_diferenca > 500 or total_diferenca < -500 %}diferenca-err{% else %}diferenca-ok{% endif %}">
+      <div class="sc-value">
         {{ total_diferenca|intcomma }} <small style="font-size:.6em">Kz</small>
       </div>
     </div>
@@ -416,7 +436,7 @@
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="2"><i class="fas fa-sigma" style="margin-right:6px;color:var(--accent)"></i>TOTAL GERAL</td>
+            <td colspan="2"><i class="fas fa-sigma" style="margin-right:6px;color:var(--cp-amber)"></i>TOTAL GERAL</td>
             <td><span class="val-entrada">{{ total_entrada|intcomma }} Kz</span></td>
             <td><span class="val-saida">{{ total_saida|intcomma }} Kz</span></td>
             <td><span class="val-resto">{{ total_resto|intcomma }} Kz</span></td>
@@ -476,16 +496,16 @@
       /* diferença: cor baseada no texto */
       var difText = tds[6]?.innerText?.trim() || '—';
       var difEl   = tds[6]?.querySelector('span');
-      var difColor = difEl && difEl.classList.contains('val-dif-err') ? '#c62828' : '#1b5e20';
+      var difColor = difEl && difEl.classList.contains('val-dif-err') ? '#c62828' : '#0e7a3f';
 
       bodyRows +=
         '<tr style="background:' + rowColor + '">' +
           '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;text-align:center">' + (tds[0]?.innerText?.trim() || '') + '</td>' +
           '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;font-weight:600">'    + (tds[1]?.innerText?.trim() || '') + '</td>' +
-          '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;text-align:right;color:#1b5e20;font-weight:600">' + (tds[2]?.innerText?.trim() || '') + '</td>' +
+          '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;text-align:right;color:#0e7a3f;font-weight:600">' + (tds[2]?.innerText?.trim() || '') + '</td>' +
           '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;text-align:right;color:#c62828;font-weight:600">' + (tds[3]?.innerText?.trim() || '') + '</td>' +
-          '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;text-align:right;color:#1565c0;font-weight:600">' + (tds[4]?.innerText?.trim() || '') + '</td>' +
-          '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;text-align:right;color:#e65100;font-weight:600">' + (tds[5]?.innerText?.trim() || '') + '</td>' +
+          '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;text-align:right;color:#2463a3;font-weight:600">' + (tds[4]?.innerText?.trim() || '') + '</td>' +
+          '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;text-align:right;color:#B45309;font-weight:600">' + (tds[5]?.innerText?.trim() || '') + '</td>' +
           '<td style="padding:7px 10px;border:1px solid #dde;font-size:12px;text-align:right;color:' + difColor + ';font-weight:700">' + difText + '</td>' +
         '</tr>';
     });
@@ -496,13 +516,13 @@
     if (footCells.length) {
       var ftexts = Array.from(footCells).map(function (td) { return td.innerText.trim(); });
       footHtml =
-        '<tr style="background:#1565c0;color:white;font-weight:700">' +
-          '<td colspan="2" style="padding:9px 10px;border:1px solid #0d47a1;font-size:12px;letter-spacing:1px">' + ftexts[0] + '</td>' +
-          '<td style="padding:9px 10px;border:1px solid #0d47a1;font-size:12px;text-align:right">' + (ftexts[1]||'') + '</td>' +
-          '<td style="padding:9px 10px;border:1px solid #0d47a1;font-size:12px;text-align:right">' + (ftexts[2]||'') + '</td>' +
-          '<td style="padding:9px 10px;border:1px solid #0d47a1;font-size:12px;text-align:right">' + (ftexts[3]||'') + '</td>' +
-          '<td style="padding:9px 10px;border:1px solid #0d47a1;font-size:12px;text-align:right">' + (ftexts[4]||'') + '</td>' +
-          '<td style="padding:9px 10px;border:1px solid #0d47a1;font-size:12px;text-align:right">' + (ftexts[5]||'') + '</td>' +
+        '<tr style="background:#0B2545;color:white;font-weight:700">' +
+          '<td colspan="2" style="padding:9px 10px;border:1px solid #0B2545;font-size:12px;letter-spacing:1px">' + ftexts[0] + '</td>' +
+          '<td style="padding:9px 10px;border:1px solid #0B2545;font-size:12px;text-align:right">' + (ftexts[1]||'') + '</td>' +
+          '<td style="padding:9px 10px;border:1px solid #0B2545;font-size:12px;text-align:right">' + (ftexts[2]||'') + '</td>' +
+          '<td style="padding:9px 10px;border:1px solid #0B2545;font-size:12px;text-align:right">' + (ftexts[3]||'') + '</td>' +
+          '<td style="padding:9px 10px;border:1px solid #0B2545;font-size:12px;text-align:right">' + (ftexts[4]||'') + '</td>' +
+          '<td style="padding:9px 10px;border:1px solid #0B2545;font-size:12px;text-align:right">' + (ftexts[5]||'') + '</td>' +
         '</tr>';
     }
 
@@ -514,9 +534,9 @@
       '<div style="font-family:Arial,sans-serif;color:#111;padding:10px">' +
 
       /* HEADER */
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1565c0;padding-bottom:14px;margin-bottom:18px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:4px solid #F59E0B;padding-bottom:14px;margin-bottom:18px">' +
         '<div>' +
-          '<div style="font-size:22px;font-weight:900;letter-spacing:2px;color:#1565c0">ALCA &amp; ATY TRANSPORTES</div>' +
+          '<div style="font-size:22px;font-weight:900;letter-spacing:2px;color:#0B2545">ALCA &amp; ATY TRANSPORTES</div>' +
           '<div style="font-size:13px;color:#555;margin-top:2px">Comparação Registo vs Depósito</div>' +
         '</div>' +
         '<div style="text-align:right;font-size:11px;color:#777;line-height:1.7">' +
@@ -530,14 +550,14 @@
       /* TABELA */
       '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
         '<thead>' +
-          '<tr style="background:#1565c0;color:white">' +
-            '<th style="padding:9px 10px;border:1px solid #0d47a1;letter-spacing:.8px;text-align:center">DATA</th>' +
-            '<th style="padding:9px 10px;border:1px solid #0d47a1;letter-spacing:.8px">SECTOR</th>' +
-            '<th style="padding:9px 10px;border:1px solid #0d47a1;letter-spacing:.8px;text-align:right">ENTRADA</th>' +
-            '<th style="padding:9px 10px;border:1px solid #0d47a1;letter-spacing:.8px;text-align:right">SAÍDA</th>' +
-            '<th style="padding:9px 10px;border:1px solid #0d47a1;letter-spacing:.8px;text-align:right">RESTO</th>' +
-            '<th style="padding:9px 10px;border:1px solid #0d47a1;letter-spacing:.8px;text-align:right">DEPOSITADO</th>' +
-            '<th style="padding:9px 10px;border:1px solid #0d47a1;letter-spacing:.8px;text-align:right">DIFERENÇA</th>' +
+          '<tr style="background:#0B2545;color:white">' +
+            '<th style="padding:9px 10px;border:1px solid #0B2545;letter-spacing:.8px;text-align:center">DATA</th>' +
+            '<th style="padding:9px 10px;border:1px solid #0B2545;letter-spacing:.8px">SECTOR</th>' +
+            '<th style="padding:9px 10px;border:1px solid #0B2545;letter-spacing:.8px;text-align:right">ENTRADA</th>' +
+            '<th style="padding:9px 10px;border:1px solid #0B2545;letter-spacing:.8px;text-align:right">SAÍDA</th>' +
+            '<th style="padding:9px 10px;border:1px solid #0B2545;letter-spacing:.8px;text-align:right">RESTO</th>' +
+            '<th style="padding:9px 10px;border:1px solid #0B2545;letter-spacing:.8px;text-align:right">DEPOSITADO</th>' +
+            '<th style="padding:9px 10px;border:1px solid #0B2545;letter-spacing:.8px;text-align:right">DIFERENÇA</th>' +
           '</tr>' +
         '</thead>' +
         '<tbody>' + bodyRows + '</tbody>' +
@@ -546,11 +566,11 @@
 
       /* LEGENDA */
       '<div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:14px;font-size:10px;color:#666">' +
-        '<span><span style="color:#1b5e20;font-weight:700">■</span> Entrada</span>' +
+        '<span><span style="color:#0e7a3f;font-weight:700">■</span> Entrada</span>' +
         '<span><span style="color:#c62828;font-weight:700">■</span> Saída</span>' +
-        '<span><span style="color:#1565c0;font-weight:700">■</span> Resto</span>' +
-        '<span><span style="color:#e65100;font-weight:700">■</span> Depositado</span>' +
-        '<span><span style="color:#c62828;font-weight:700">■</span> Diferença alta (>500 Kz)</span>' +
+        '<span><span style="color:#2463a3;font-weight:700">■</span> Resto</span>' +
+        '<span><span style="color:#B45309;font-weight:700">■</span> Depositado</span>' +
+        '<span><span style="color:#c62828;font-weight:700">■</span> Diferença alta (acima de 500 Kz)</span>' +
       '</div>' +
 
       /* RODAPÉ */
