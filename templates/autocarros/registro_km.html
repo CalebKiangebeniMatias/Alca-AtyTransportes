@@ -567,8 +567,6 @@
 
             <div class="rp-head">
 
-              <div class="rp-head">
-
               <div class="rp-sector">
                 <i class="fas fa-map-marker-alt"></i>
                 {{ r.sector }}
@@ -781,6 +779,34 @@
     } catch (err) {
       list.innerHTML = '<div class="aut-empty"><i class="fas fa-triangle-exclamation"></i><span>Erro ao carregar autocarros.</span></div>';
     }
+  });
+
+  /* ── Imprimir um registo específico ─────────────── */
+  document.querySelectorAll('.btn-print-rp').forEach(function (btn) {
+
+    btn.addEventListener('click', function () {
+
+      var registo = btn.closest('.rp-item');
+
+      if (!registo) return;
+
+      /* Marca somente este registo para impressão */
+      registo.classList.add('print-target');
+
+      /* Dá tempo ao navegador para aplicar o CSS de impressão */
+      setTimeout(function () {
+
+        window.print();
+
+        /* Remove a marca depois da impressão */
+        setTimeout(function () {
+          registo.classList.remove('print-target');
+        }, 500);
+
+      }, 100);
+
+    });
+
   });
 
   /* ── Guardar ─────────────────────────────────────── */
