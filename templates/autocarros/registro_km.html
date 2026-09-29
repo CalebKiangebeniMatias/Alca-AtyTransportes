@@ -396,6 +396,79 @@
 .km-toast.success i { color: #69f0ae; }
 .km-toast.error   i { color: #ff8a80; }
 
+/* ── BOTÃO IMPRIMIR REGISTO ───────────────────────── */
+.rp-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+}
+
+.btn-print-rp {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 8px;
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .8px;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.btn-print-rp:hover {
+  background: rgba(255,255,255,.18);
+  border-color: var(--rp-amber);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.btn-print-rp i {
+  color: var(--rp-amber);
+}
+
+/* ── IMPRESSÃO ────────────────────────────────────── */
+@media print {
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .rp-item.print-target,
+  .rp-item.print-target * {
+    visibility: visible !important;
+  }
+
+  .rp-item.print-target {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  .rp-actions {
+    display: none !important;
+  }
+
+  .rp-item.print-target .rp-head::after {
+    display: none !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+}
+
 /* ── RESPONSIVE ─────────────────────────────────── */
 @media (max-width: 900px) {
   .km-grid { grid-template-columns: 1fr; }
@@ -493,8 +566,29 @@
           <div class="rp-item" style="--i:{{ forloop.counter0 }}">
 
             <div class="rp-head">
-              <div class="rp-sector"><i class="fas fa-map-marker-alt"></i> {{ r.sector }}</div>
-              <div class="rp-date">Data do registo<b>{{ r.data_registo }}</b></div>
+
+              <div class="rp-head">
+
+              <div class="rp-sector">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ r.sector }}
+              </div>
+
+              <div class="rp-actions">
+
+                <div class="rp-date">
+                  Data do registo
+                  <b>{{ r.data_registo }}</b>
+                </div>
+
+                <button type="button"
+                        class="btn-print-rp"
+                        title="Imprimir este registo">
+                  <i class="fas fa-print"></i>
+                  Imprimir
+                </button>
+
+              </div>
             </div>
 
             <div class="rp-kpis">
