@@ -18,7 +18,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "0.0.0.0",
-    "alcaatytransportes.up.railway.app",
+    "alca-atytransportes-aouf.onrender.com",
     "alca-atytransportes.onrender.com",
 ]
 
@@ -31,7 +31,7 @@ if DEBUG:
 else:
     CSRF_TRUSTED_ORIGINS = [
         "https://alca-atytransportes.onrender.com",
-        "https://alcaatytransportes.up.railway.app",
+        "https://alca-atytransportes-aouf.onrender.com",
     ]
 
 
