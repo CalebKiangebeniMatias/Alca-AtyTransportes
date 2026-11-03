@@ -1058,3 +1058,41 @@ class Caixa(models.Model):
 
     def __str__(self):
         return f'{self.data} — {self.autocarro.numero} — {self.valor_saida_combustivel}'
+
+        from decimal import Decimal
+
+# LISTAGEM DE MATERIAL OFICINA E ESTALEIRO
+from django.conf import settings
+from django.db import models
+
+
+class CompraMaterial(models.Model):
+    TIPO_ESTALEIRO = 'estaleiro'
+    TIPO_OFICINA = 'oficina'
+    TIPO_CHOICES = [
+        (TIPO_ESTALEIRO, 'Estaleiro (Mobiliário)'),
+        (TIPO_OFICINA, 'Oficina (Ferramentas)'),
+    ]
+
+    sector = models.ForeignKey('Sector', on_delete=models.PROTECT, related_name='compras_material')
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
+    item = models.CharField('Material', max_length=150)
+    quantidade = models.PositiveIntegerField(default=1)
+    preco_unitario = models.DecimalField('Preço unitário', max_digits=12, decimal_places=2, default=0)
+    fornecedor = models.CharField(max_length=150, blank=True)
+    nr_documento = models.CharField('Nº fatura/documento', max_length=60, blank=True)
+    data_compra = models.DateField()
+    observacoes = models.TextField(blank=True)
+    responsavel = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                                    on_delete=models.SET_NULL, related_name='+')
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-data_compra', '-criado_em']
+
+    @property
+    def total(self):
+        return (self.preco_unitario or Decimal('0')) * self.quantidade
+
+    def __str__(self):
+        return f'{self.item} ({self.sector})'

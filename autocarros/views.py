@@ -6326,6 +6326,104 @@ def caixa_list(request):
         'ano_selecionado': ano,
     })
 
+
+
+# LISTAGEM DE MATERIAL OFICINA E ESTALEIRO
+from collections import defaultdict
+from decimal import Decimal
+from django.contrib import messages
+from django.db.models import Sum, F, DecimalField, ExpressionWrapper
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.http import require_POST
+
+from .forms import CompraMaterialForm
+from .models import CompraMaterial, Sector
+
+
+@login_required
+@acesso_restrito(['admin', 'gestor'])
+def material_list(request):
+    qs = CompraMaterial.objects.select_related('sector', 'responsavel').all()
+
+    # ── Filtros ──
+    sector_id = request.GET.get('sector')
+    if sector_id:
+        qs = qs.filter(sector_id=sector_id)
+
+    q = request.GET.get('q')
+    if q:
+        qs = qs.filter(item__icontains=q)
+
+    # ── Agrupamento por região → (estaleiro | oficina) ──
+    por_sector = defaultdict(lambda: {'estaleiro': [], 'oficina': []})
+    for c in qs:
+        por_sector[c.sector_id][c.tipo].append(c)
+
+    sectores = Sector.objects.all()
+    if sector_id:
+        sectores = sectores.filter(pk=sector_id)
+
+    grupos = []
+    total_geral = Decimal('0')
+    for s in sectores:
+        dados = por_sector.get(s.pk, {'estaleiro': [], 'oficina': []})
+        t_est = sum((c.total for c in dados['estaleiro']), Decimal('0'))
+        t_ofi = sum((c.total for c in dados['oficina']), Decimal('0'))
+        total_geral += t_est + t_ofi
+        grupos.append({
+            'sector': s,
+            'estaleiro': dados['estaleiro'],
+            'oficina': dados['oficina'],
+            'total_estaleiro': t_est,
+            'total_oficina': t_ofi,
+            'total': t_est + t_ofi,
+        })
+
+    return render(request, 'material/material_list.html', {
+        'grupos': grupos,
+        'total_geral': total_geral,
+        'total_registos': qs.count(),
+        'sectores': Sector.objects.all(),
+    })
+
+
+@login_required
+@acesso_restrito(['admin', 'gestor'])
+def material_create(request):
+    # permite abrir já com a região/tipo escolhidos: ?sector=3&tipo=oficina
+    initial = {k: request.GET.get(k) for k in ('sector', 'tipo') if request.GET.get(k)}
+    form = CompraMaterialForm(request.POST or None, initial=initial)
+    if request.method == 'POST' and form.is_valid():
+        obj = form.save(commit=False)
+        obj.responsavel = request.user
+        obj.save()
+        messages.success(request, 'Compra registada com sucesso.')
+        return redirect('material_list')
+    return render(request, 'material/material_form.html', {'form': form, 'titulo': 'Registar Compra'})
+
+
+@login_required
+@acesso_restrito(['admin', 'gestor'])
+def material_edit(request, pk):
+    obj = get_object_or_404(CompraMaterial, pk=pk)
+    form = CompraMaterialForm(request.POST or None, instance=obj)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Compra atualizada.')
+        return redirect('material_list')
+    return render(request, 'material/material_form.html', {'form': form, 'titulo': 'Editar Compra'})
+
+
+@login_required
+@acesso_restrito(['admin', 'gestor'])
+@require_POST
+def material_delete(request, pk):
+    get_object_or_404(CompraMaterial, pk=pk).delete()
+    messages.success(request, 'Compra eliminada.')
+    return redirect('material_list')
+
+
+
 # ═══════════════════════════════════════════════════════════
 # 3. ADICIONAR AS URLS NO urls.py
 # ═══════════════════════════════════════════════════════════

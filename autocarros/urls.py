@@ -244,6 +244,11 @@ urlpatterns = [
     path('caixa/<int:pk>/eliminar/', views.caixa_delete, name='caixa_delete'),
     path('caixa/', views.caixa_list, name='caixa_list'),
 
+    path('material/', views.material_list, name='material_list'),
+    path('material/nova/', views.material_create, name='material_create'),
+    path('material/<int:pk>/editar/', views.material_edit, name='material_edit'),
+    path('material/<int:pk>/eliminar/', views.material_delete, name='material_delete'),
+
 ]
 
 # Servir arquivos de mídia em modo DEBUG

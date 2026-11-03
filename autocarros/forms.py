@@ -693,3 +693,19 @@ class CaixaForm(forms.ModelForm):
             'valor_saida_combustivel': forms.NumberInput(attrs={'step': '0.01', 'placeholder': '0.00'}),
             'observacao': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Notas adicionais (opcional)'}),
         }
+
+
+# LISTAGEM DE MATERIAL OFICINA E ESTALEIRO
+from django import forms
+from .models import CompraMaterial
+
+
+class CompraMaterialForm(forms.ModelForm):
+    class Meta:
+        model = CompraMaterial
+        fields = ['sector', 'tipo', 'item', 'quantidade', 'preco_unitario',
+                  'fornecedor', 'nr_documento', 'data_compra', 'observacoes']
+        widgets = {
+            'data_compra': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+            'observacoes': forms.Textarea(attrs={'rows': 3}),
+        }
