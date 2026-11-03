@@ -1,59 +1,77 @@
-# Django e canais
+
+# ==========================================
+# DJANGO E SERVIDOR
+# ==========================================
 Django==5.2.7
 asgiref==3.9.2
+gunicorn==23.0.0
+whitenoise==6.9.0
+dj-database-url==2.3.0
+
+# ==========================================
+# WEBSOCKETS E COMUNICAÇÃO ASSÍNCRONA
+# ==========================================
 channels==4.3.1
 channels_redis==4.3.0
 daphne==4.2.1
 
-gunicorn
-whitenoise
-dj-database-url
-python-dotenv
-django-mptt
-
-# Tarefas assíncronas e cache
+# ==========================================
+# TAREFAS ASSÍNCRONAS E CACHE
+# ==========================================
 celery==5.5.3
 redis==6.4.0
 
-# Utilitários do Django
+# ==========================================
+# UTILITÁRIOS DJANGO
+# ==========================================
+django-mptt
 django-model-utils==5.0.0
 django-notifications-hq==1.8.3
-sqlparse==0.4.4
 
-# Segurança e autenticação
+# ==========================================
+# BANCO DE DADOS POSTGRESQL
+# ==========================================
+psycopg[binary]==3.2.10
+
+# ==========================================
+# SEGURANÇA E AUTENTICAÇÃO
+# ==========================================
 cryptography==41.0.7
 bcrypt==3.2.2
 PyJWT==2.7.0
 
-# Datas e timezone
+# ==========================================
+# DATAS E FORMATAÇÃO
+# ==========================================
 python-dateutil==2.8.2
 tzdata==2025.2
+Babel==2.10.3
 
-# Requests e rede
+# ==========================================
+# REQUISIÇÕES E REDE
+# ==========================================
 requests==2.31.0
 idna==3.6
 
-# Formatação, CLI e utilidades
-Babel==2.10.3
+# ==========================================
+# UTILITÁRIOS E CLI
+# ==========================================
 click==8.1.6
 click-didyoumean==0.3.1
 click-plugins==1.1.1
 click-repl==0.3.0
 packaging==24.0
 rich==13.7.1
-
-# Manipulação de arquivos
-Pillow==10.4.0
 PyYAML==6.0.1
-psycopg[binary]==3.2.10
-psycopg2-binary==2.9.9
+sqlparse==0.4.4
 
-
-# Biblioteca para gerar documentos Word (.docx)
+# ==========================================
+# MANIPULAÇÃO DE IMAGENS E DOCUMENTOS
+# ==========================================
+Pillow==10.4.0
 python-docx==1.1.2
 
-# Para timezone e manipulação de datas (Django já inclui, mas é bom garantir)
-pytz==2023.3
-
-# Dependência comum em projetos Django com F, Sum, DecimalField (já vem com Django)
-# portanto não precisa instalar nada extra para esses — estão no core do Django.
+# ==========================================
+# AMBIENTE LOCAL
+# ==========================================
+python-dotenv
