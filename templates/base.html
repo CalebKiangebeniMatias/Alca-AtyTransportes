@@ -954,6 +954,32 @@
       <!-- OPERAÇÕES -->
       <div class="nav-section-label">Operações</div>
 
+            <div class="sidebar-item">
+        <button class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#sub-material" aria-expanded="false">
+          <i class="fas fa-boxes-stacked nav-icon"></i>
+          <span class="nav-text">Material</span>
+          <i class="fas fa-chevron-right nav-chevron"></i>
+        </button>
+        <div class="collapse sidebar-submenu" id="sub-material">
+          <a class="sidebar-link" href="{% url 'material_list' %}">
+            <i class="fas fa-list nav-icon"></i>
+            <span class="nav-text">Listar Material</span>
+          </a>
+          <a class="sidebar-link" href="{% url 'material_create' %}">
+            <i class="fas fa-cart-plus nav-icon"></i>
+            <span class="nav-text">Registar Compra</span>
+          </a>
+          <a class="sidebar-link" href="{% url 'material_list' %}?tipo=estaleiro">
+            <i class="fas fa-couch nav-icon"></i>
+            <span class="nav-text">Estaleiro (Mobiliário)</span>
+          </a>
+          <a class="sidebar-link" href="{% url 'material_list' %}?tipo=oficina">
+            <i class="fas fa-screwdriver-wrench nav-icon"></i>
+            <span class="nav-text">Oficina (Ferramentas)</span>
+          </a>
+        </div>
+      </div>
+
       <div class="sidebar-item">
         <button class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#sub-manut" aria-expanded="false">
           <i class="fas fa-tools nav-icon"></i>

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block breadcrumb %}Frota › Material › {{ titulo }}{% endblock %}
+
+{% block content %}
+<style>
+  .lf{max-width:760px;background:#F4F6FA;color:#14213D;border-radius:14px;overflow:hidden;
+    box-shadow:0 10px 30px rgba(2,16,40,.35)}
+  .lf-head{background:#0B2545;border-bottom:4px solid #F59E0B;color:#fff;padding:16px 20px;
+    font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:1.5px}
+  .lf-body{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .lf-body .full{grid-column:1/-1}
+  .lf-body label{display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+    color:#5B6478;margin-bottom:4px}
+  .lf-body input,.lf-body select,.lf-body textarea{width:100%;padding:9px 12px;border:1px solid #DDE3EE;
+    border-radius:8px;background:#fff;color:#14213D}
+  .lf-err{color:#D62839;font-size:.75rem}
+  .lf-foot{padding:0 20px 20px;display:flex;gap:10px}
+  .lf-foot button{background:#12A150;color:#fff;border:0;border-radius:8px;padding:10px 24px;font-weight:700;cursor:pointer}
+  .lf-foot a{padding:10px 20px;color:#5B6478;text-decoration:none}
+  .total-box{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:#0B2545}
+  @media(max-width:700px){.lf-body{grid-template-columns:1fr}}
+</style>
+
+<form method="post" class="lf">
+  {% csrf_token %}
+  <div class="lf-head">{{ titulo }}</div>
+  <div class="lf-body">
+    {% for f in form %}
+    <div class="{% if f.name in 'observacoes item' %}full{% endif %}">
+      <label>{{ f.label }}</label>
+      {{ f }}
+      {% for e in f.errors %}<div class="lf-err">{{ e }}</div>{% endfor %}
+    </div>
+    {% endfor %}
+    <div class="full">
+      <label>Total estimado</label>
+      <div class="total-box"><span id="totalCalc">0,00</span> Kz</div>
+    </div>
+  </div>
+  <div class="lf-foot">
+    <button type="submit"><i class="fas fa-save"></i> Guardar</button>
+    <a href="{% url 'material_list' %}">Cancelar</a>
+  </div>
+</form>
+
+<script>
+(function(){
+  var q=document.getElementById('id_quantidade'), p=document.getElementById('id_preco_unitario'),
+      out=document.getElementById('totalCalc');
+  function calc(){
+    var t=(parseFloat(q.value)||0)*(parseFloat((p.value||'0').replace(',','.'))||0);
+    out.textContent=t.toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+  q.addEventListener('input',calc); p.addEventListener('input',calc); calc();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% if itens %}
+<table class="mt-table">
+  <thead>
+    <tr><th>Data</th><th>Material</th><th>Qtd</th><th>P. Unit.</th><th>Total</th><th>Fornecedor</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for c in itens %}
+    <tr>
+      <td>{{ c.data_compra|date:"d/m/Y" }}</td>
+      <td><b>{{ c.item }}</b></td>
+      <td>{{ c.quantidade }}</td>
+      <td>{{ c.preco_unitario|floatformat:2 }}</td>
+      <td><b>{{ c.total|floatformat:2 }}</b></td>
+      <td>{{ c.fornecedor|default:"—" }}</td>
+      <td class="act" style="white-space:nowrap">
+        <a href="{% url 'material_edit' c.pk %}" title="Editar"><i class="fas fa-pen"></i></a>
+        <form action="{% url 'material_delete' c.pk %}" method="post" style="display:inline"
+              onsubmit="return confirm('Eliminar esta compra?')">
+          {% csrf_token %}
+          <button type="submit" title="Eliminar"><i class="fas fa-trash-can"></i></button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="mt-empty">Sem registos.</div>
+{% endif %}

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Material{% endblock %}
+{% block breadcrumb %}Frota › Material{% endblock %}
+
+{% block content %}
+<style>
+  .mt-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+  .mt-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:2px}
+  .mt-title span{color:var(--accent)}
+  .mt-filter{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+  .mt-filter select,.mt-filter input{background:rgba(4,30,66,.55);border:1px solid var(--glass-border);
+    color:#fff;border-radius:var(--radius-md);padding:9px 13px}
+  .mt-btn{background:var(--success);color:#fff;border:none;border-radius:var(--radius-md);padding:9px 20px;
+    font-weight:700;text-transform:uppercase;text-decoration:none;cursor:pointer}
+
+  .sector-card{background:#F4F6FA;border-radius:14px;overflow:hidden;margin-bottom:24px;
+    box-shadow:0 10px 30px rgba(2,16,40,.35);color:#14213D}
+  .sector-head{background:#0B2545;border-bottom:4px solid #F59E0B;color:#fff;padding:14px 20px;
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+  .sector-head h2{margin:0;font-family:'Bebas Neue',sans-serif;font-size:1.35rem;letter-spacing:1.5px}
+  .sector-head small{color:#B8C7E0}
+  .sector-head b{color:#fff}
+
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  .side{padding:14px 16px;overflow-x:auto}
+  .side + .side{border-left:2px solid #DDE3EE}
+  .side-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .side-title .sub{font-size:.8rem;color:#2463A3}
+  .side-title a{font-size:.75rem;color:#2463A3;text-decoration:none}
+
+  .mt-table{width:100%;border-collapse:collapse;font-size:.82rem;min-width:420px}
+  .mt-table th{background:#0B2545;color:#fff;font-size:.68rem;letter-spacing:1px;text-transform:uppercase;
+    padding:8px 10px;text-align:left}
+  .mt-table td{padding:8px 10px;border-bottom:1px solid #DDE3EE;background:#fff}
+  .mt-table tr:nth-child(even) td{background:#F0F3F9}
+  .mt-empty{padding:22px;text-align:center;color:#5B6478;font-size:.8rem}
+  .act a,.act button{border:0;background:none;cursor:pointer;color:#B45309;margin-right:6px}
+  .act button{color:#D62839}
+
+  @media(max-width:900px){.split{grid-template-columns:1fr}.side+.side{border-left:0;border-top:2px solid #DDE3EE}}
+</style>
+
+<div class="mt-head">
+  <div>
+    <div class="mt-title">Controlo de <span>Material</span></div>
+    <small>Estaleiro (mobiliário) e Oficina (ferramentas) por região · Total geral:
+      <b>{{ total_geral|floatformat:2 }} Kz</b></small>
+  </div>
+  <a href="{% url 'material_create' %}" class="mt-btn"><i class="fas fa-plus"></i> Registar Compra</a>
+</div>
+
+<form method="get" class="mt-filter">
+  <select name="sector">
+    <option value="">Todas as regiões</option>
+    {% for s in sectores %}
+    <option value="{{ s.pk }}" {% if request.GET.sector == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>
+    {% endfor %}
+  </select>
+  <input type="text" name="q" placeholder="Material" value="{{ request.GET.q }}">
+  <button class="mt-btn" style="background:var(--grad-btn)"><i class="fas fa-filter"></i> Filtrar</button>
+</form>
+
+{% for g in grupos %}
+<div class="sector-card">
+  <div class="sector-head">
+    <h2><i class="fas fa-location-dot"></i> {{ g.sector.nome }}</h2>
+    <small>Total da região: <b>{{ g.total|floatformat:2 }} Kz</b></small>
+  </div>
+
+  <div class="split">
+    {# ───── ESTALEIRO ───── #}
+    <div class="side">
+      <div class="side-title">
+        <span><i class="fas fa-couch"></i> Estaleiro (Mobiliário)
+          <span class="sub">· {{ g.total_estaleiro|floatformat:2 }} Kz</span></span>
+        <a href="{% url 'material_create' %}?sector={{ g.sector.pk }}&tipo=estaleiro">+ Adicionar</a>
+      </div>
+      {% include 'material/_tabela.html' with itens=g.estaleiro %}
+    </div>
+
+    {# ───── OFICINA ───── #}
+    <div class="side">
+      <div class="side-title">
+        <span><i class="fas fa-screwdriver-wrench"></i> Oficina (Ferramentas)
+          <span class="sub">· {{ g.total_oficina|floatformat:2 }} Kz</span></span>
+        <a href="{% url 'material_create' %}?sector={{ g.sector.pk }}&tipo=oficina">+ Adicionar</a>
+      </div>
+      {% include 'material/_tabela.html' with itens=g.oficina %}
+    </div>
+  </div>
+</div>
+{% empty %}
+<div class="mt-empty">Nenhuma região encontrada.</div>
+{% endfor %}
+{% endblock %}
